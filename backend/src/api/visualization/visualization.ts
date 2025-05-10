@@ -146,6 +146,42 @@ const _delete = async (
   }
 };
 
+const createOrUpdateExternal = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {
+      data
+    } = request.body;
+
+    const visualizations = Array.isArray(data)
+      ? data
+      : [data];
+    const createdVisualizations = await Promise.all(
+      visualizations.map(async (visualizationData) => {
+        const visualization: VisualizationTypes.VisualizationCreate = {
+          name: visualizationData.name,
+          data: visualizationData.data,
+          projectName: visualizationData.projectName,
+          type: visualizationData.type,
+          description: visualizationData.description,
+          tags: visualizationData.tags,
+        };
+        ValidatorSchemas.validateWithSchema<
+        VisualizationTypes.VisualizationCreate
+      >(ValidatorSchemas.visualizationTypeSchema, visualization)
+        return Factory.getInstance().getBZL().VisualizationBZL.createOrUpdate(visualization as VisualizationTypes.VisualizationCreate);
+      })
+    );
+
+    returnResponse(response, null, createdVisualizations.length === 1 ? createdVisualizations[0] : createdVisualizations, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
 export {
-  createOrUpdate, findOne, browse, _delete
+  createOrUpdate, findOne, browse, _delete, createOrUpdateExternal
 };

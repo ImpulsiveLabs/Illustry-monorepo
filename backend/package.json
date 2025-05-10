@@ -11,7 +11,7 @@
     "lint:fix": "eslint . --fix",
     "depcheck": "depcheck --ignore-bin-package --ignores='jest,ts-jest,@types/jest,jest-junit,@commitlint/config-conventional,@commitlint/cli,standard-version,@typescript-eslint/parser,@typescript-eslint/eslint-plugin,eslint-config-airbnb-base,eslint-plugin-import,eslint-plugin-node,eslint-plugin-promise,zod,zod-error'",
     "build:ts": " yarn clean && yarn compile",
-    "start:dev": "yarn build:ts && node ./dist/src/app-cli.js",
+    "start:dev": "yarn build:ts && node ./dist/app-cli.js",
     "start:prod": "node ./build-dist/illustry.js",
     "test": "jest --detectOpenHandles",
     "webpack": "webpack --config webpack.config.js"

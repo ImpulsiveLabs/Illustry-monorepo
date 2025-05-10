@@ -24,7 +24,6 @@ const create = async (
       description: projectDescription,
       isActive
     };
-
     const visualization: VisualizationTypes.VisualizationCreate = {
       name,
       projectName,
