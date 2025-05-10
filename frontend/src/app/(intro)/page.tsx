@@ -36,7 +36,7 @@ const Home = () => {
           </Balance>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
-              href="http://mrvladimirn.github.io/IllustryDocs/"
+              href="https://impulsivelabs.github.io/Illustry-monorepo/"
               className={cn(
                 buttonVariants({
                   size: 'lg'

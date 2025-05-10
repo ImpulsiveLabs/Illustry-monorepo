@@ -105,7 +105,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
-             <DropdownMenuItem asChild>
+              <DropdownMenuItem asChild>
                 <Link
                   href={`/dashboardhub?name=${row.original.name}`}
                 >

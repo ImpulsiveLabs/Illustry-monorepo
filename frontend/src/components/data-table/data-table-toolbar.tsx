@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import DataTableFacetedFilter from '@/components/data-table/data-table-faceted-filter';
 import DataTableViewOptions from '@/components/data-table/data-table-view-options';
-import useDebounce from '@/hooks/use-debounce';
+import useDebounce from '@/lib/hooks/use-debounce';
 import ActionButton from '../ui/table-action-button';
 
 type SearchButtonProps = {

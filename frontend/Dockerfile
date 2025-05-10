@@ -29,7 +29,7 @@ RUN yarn build:ts
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
+ENV NODE_ENV=production
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -48,6 +48,6 @@ ENV NEXT_PUBLIC_APP_PORT=3000
 
 EXPOSE $NEXT_PUBLIC_APP_PORT
 
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]

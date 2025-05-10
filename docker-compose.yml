@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   mongodb:
     image: mongo:latest
@@ -16,20 +18,25 @@ services:
       - illustry-network
 
   illustrybackend:
-    image: illustrybackend
+    build:
+      context: ./  # Build context for backend
+      dockerfile: backend/Dockerfile  # Optional, default is Dockerfile
     container_name: illustrybackend
     restart: unless-stopped
     environment:
       MONGO_URL: mongodb://mongo:27017/illustry
       MONGO_USER: root
       MONGO_PASSWORD: rootPass
+      BACKEND_PORT: 7001
     ports:
       - "7001:7001"
     networks:
       - illustry-network
 
   illustryfrontend:
-    image: illustryfrontend
+    build:
+      context: ./  # Build context for frontend
+      dockerfile: frontend/Dockerfile  # Optional, default is Dockerfile
     container_name: illustryfrontend
     restart: unless-stopped
     environment:
@@ -39,9 +46,45 @@ services:
     networks:
       - illustry-network
 
+  n8n:
+    image: n8n-n8n:latest # Use your custom fork here
+    container_name: n8n
+    environment:
+      N8N_PORT: 5678
+      N8N_HOST: localhost
+      N8N_PROTOCOL: http
+      N8N_PUBLIC_API_URL: http://localhost:5678
+      N8N_USER_MANAGEMENT_DISABLED: "true"
+      N8N_BASIC_AUTH_ACTIVE: "false"
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    tmpfs:
+      - /tmp  # Helps with performance & avoiding disk issues
+    networks:
+      - illustry-network
+
+  openalexclassifier:
+    image: openalex-topic-classifier:latest
+    container_name: openalexclassifier
+    restart: unless-stopped
+    environment:
+      PORT: 8080
+      GUNICORN_WORKERS: 4
+      PYTHONUNBUFFERED: "TRUE"
+      PYTHONDONTWRITEBYTECODE: "TRUE"
+      LOG4J_FORMAT_MSG_NO_LOOKUPS: "true"
+    ports:
+      - "8080:8080"
+    command: serve
+    networks:
+      - illustry-network
+
 networks:
   illustry-network:
     driver: bridge
 
 volumes:
   illustry_mongo:
+  n8n_data:

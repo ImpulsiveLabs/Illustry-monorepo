@@ -1,28 +1,36 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable no-return-assign */
 /* eslint-disable no-unused-vars */
-import { Dispatch, RefObject, SetStateAction } from 'react';
+import {
+  Dispatch, RefObject, SetStateAction, useEffect, useRef
+} from 'react';
 import { useThemeColors } from '@/components/providers/theme-provider';
 import Icons from '@/components/icons';
 import ColorPicker from '../colorPicker';
 import {
-  Tabs, TabsContent, TabsList, TabsTrigger
+  Tabs, TabsList, TabsTrigger, TabsContent
 } from '../tabs';
 
-type GenericThemesProps = {
+// TypeScript interface for theme structure
+interface ThemeColors {
+  [key: string]: {
+    light: { colors: string[] };
+    dark: { colors: string[] };
+  };
+}
+
+interface GenericThemesProps {
   activeColorPickerIndex: number | null;
   handleColorChange: (
     newColor: string,
     index: number,
     visualization: string,
-    theme: string
+    theme: 'light' | 'dark'
   ) => void;
   colorPickerRef: RefObject<HTMLDivElement>;
-  setActiveColorPickerIndex: Dispatch<
-    SetStateAction<number | null>
-  >;
+  setActiveColorPickerIndex: Dispatch<SetStateAction<number | null>>;
   visualization: string;
-  handleColorDelete: (visualization: string, theme: string) => void;
-  handleColorAdd: (visualization: string, theme: string) => void;
+  handleColorDelete: (visualization: string, theme: 'light' | 'dark') => void;
+  handleColorAdd: (visualization: string, theme: 'light' | 'dark') => void;
 }
 
 const GenericThemesAccordion = ({
@@ -34,178 +42,113 @@ const GenericThemesAccordion = ({
   handleColorDelete,
   handleColorAdd
 }: GenericThemesProps) => {
-  // State to hold input values and their validation statuses
-  const activeTheme = useThemeColors();
-  // @ts-ignore
+  const activeTheme = useThemeColors() as ThemeColors;
   const activeVisualization = activeTheme[visualization];
-  const darkColorsLength = activeVisualization.dark.colors.length;
+  const lightColorsLength = activeVisualization?.light.colors.length;
+  const darkColorsLength = activeVisualization?.dark.colors.length;
+  const swatchRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Validate hex color
+  const isValidHex = (color: string) => /^#([0-9A-F]{3}){1,2}$/i.test(color);
+
+  // Handle click outside to close color picker
+  const handleClickOutside = (event: MouseEvent) => {
+    if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
+      setActiveColorPickerIndex(null);
+    }
+  };
+
+  useEffect(() => {
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Common color row rendering function
+  const renderColorRow = (theme: 'light' | 'dark', colors: string[], colorsLength: number) => (
+    <div className="flex items-start mt-4 gap-4">
+      <div className="text-sm font-medium pr-4 min-w-[80px]">
+        Colors
+      </div>
+      <div className="flex flex-col gap-2 w-[75%] relative">
+        {colors.map((color, index) => (
+          <div className="flex items-center gap-2" key={index}>
+            <input
+              type="text"
+              className={`w-full rounded p-1 border ${isValidHex(color) ? 'border-gray-300' : 'border-red-500'} 
+              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              value={color}
+              onChange={(e) => {
+                const newColor = e.target.value;
+                if (isValidHex(newColor) || newColor === '') {
+                  handleColorChange(newColor, index, visualization, theme);
+                }
+              }}
+              placeholder="#FFFFFF"
+            />
+            <div
+              ref={(el) => (swatchRefs.current[index] = el)}
+              onClick={() => setActiveColorPickerIndex(index)}
+              style={{ backgroundColor: color }}
+              className="w-6 h-6 border border-gray-300 rounded cursor-pointer hover:ring-2 hover:ring-blue-500"
+            />
+            {activeColorPickerIndex === index && (
+              <div
+                ref={colorPickerRef}
+                className="absolute z-10 bg-white dark:bg-gray-800 p-2
+                 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700"
+                style={{
+                  top: swatchRefs.current[index]?.getBoundingClientRect().bottom
+                    ? `${swatchRefs.current[index]!.getBoundingClientRect().bottom
+                    - swatchRefs.current[index]!.getBoundingClientRect().top + 8}px`
+                    : '0',
+                  right: '0'
+                }}
+              >
+                <ColorPicker
+                  initialColor={colors[activeColorPickerIndex] as string}
+                  changeColor={(newColor: string) => handleColorChange(newColor, activeColorPickerIndex!, visualization, theme)}
+                />
+                <button
+                  onClick={() => setActiveColorPickerIndex(null)}
+                  className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  <Icons.close className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+        <div className="flex items-center gap-2">
+          <button
+            className={`w-6 h-6 border border-gray-300 rounded flex items-center justify-center cursor-pointer
+             hover:bg-gray-100 dark:hover:bg-gray-700 ${colorsLength >= 10 ? 'opacity-50 pointer-events-none' : ''}`}
+            onClick={() => colorsLength < 10 && handleColorAdd(visualization, theme)}
+          >
+            <Icons.add className={`text-gray-500 w-4 h-4 ${colorsLength >= 10 ? 'opacity-50' : ''}`} />
+          </button>
+          <button
+            className={`w-6 h-6 border border-gray-300 rounded flex items-center justify-center cursor-pointer
+             hover:bg-gray-100 dark:hover:bg-gray-700 ${colorsLength <= 3 ? 'opacity-50 pointer-events-none' : ''}`}
+            onClick={() => colorsLength > 3 && handleColorDelete(visualization, theme)}
+          >
+            <Icons.remove className={`text-gray-500 w-4 h-4 ${colorsLength <= 3 ? 'opacity-50' : ''}`} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <Tabs defaultValue="theme" className="w-[100%]">
+    <Tabs defaultValue="Light" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
         <TabsTrigger value="Light">Light</TabsTrigger>
         <TabsTrigger value="Dark">Dark</TabsTrigger>
       </TabsList>
       <TabsContent value="Light">
-        <div className="flex items-start mt-[5%]">
-          <div className="text-sm font-medium pr-4">
-            Colors
-            {activeColorPickerIndex !== null && (
-              <div className="mt-2" ref={colorPickerRef}>
-                <ColorPicker
-                  initialColor={
-                    activeVisualization.light.colors[
-                      activeColorPickerIndex
-                    ] as string
-                  }
-                  changeColor={(newColor:string) => handleColorChange(
-                    newColor,
-                    activeColorPickerIndex,
-                    visualization,
-                    'light'
-                  )}
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col justify-end ml-auto">
-            {Object.values(activeVisualization.light.colors).map(
-              (color, index) => (
-                <div className="flex items-center mb-2" key={index}>
-                  <input
-                    readOnly
-                    type="text"
-                    className="w-[60%] rounded p-1 border border-gray-300"
-                    value={color as string}
-                  />
-                  <div
-                    onClick={() => setActiveColorPickerIndex(index)}
-                    key={index}
-                    style={{ backgroundColor: color as string }}
-                    className="w-5 h-5 ml-2 border border-gray-300 rounded flex items-center justify-center cursor-pointer"
-                  />
-                </div>
-              )
-            )}
-            <div className="flex items-center">
-              <div
-                className={`w-4 h-4 ml-2 mr-1 border border-gray-300 rounded flex items-center justify-center cursor-pointer ${
-                  darkColorsLength >= 10 ? 'opacity-50 pointer-events-none' : ''
-                }`}
-                onClick={() => {
-                  if (darkColorsLength < 10) {
-                    return handleColorAdd(visualization, 'light');
-                  }
-                  return null;
-                }}
-              >
-                <Icons.add
-                  className={`text-gray-500 w-3 h-3 ${
-                    darkColorsLength >= 10 ? 'opacity-50' : ''
-                  }`}
-                />
-              </div>
-              <div
-                className={`w-4 h-4 border border-gray-300 rounded flex items-center justify-center cursor-pointer ${
-                  darkColorsLength < 4 ? 'opacity-50 pointer-events-none' : ''
-                }`}
-                onClick={() => {
-                  if (darkColorsLength >= 4) {
-                    return handleColorDelete(visualization, 'light');
-                  }
-                  return null;
-                }}
-              >
-                <Icons.remove
-                  className={`text-gray-500 w-3 h-3 ${
-                    darkColorsLength < 4 ? 'opacity-50' : ''
-                  }`}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        {renderColorRow('light', activeVisualization?.light.colors as string[], lightColorsLength as number)}
       </TabsContent>
-
       <TabsContent value="Dark">
-        <div className="flex items-start mt-[5%]">
-          <div className="text-sm font-medium pr-4">
-            Colors
-            {activeColorPickerIndex !== null && (
-              <div className="mt-2" ref={colorPickerRef}>
-                <ColorPicker
-                  initialColor={
-                    // @ts-ignore
-                    activeVisualization.dark.colors[
-                      activeColorPickerIndex
-                    ] as string
-                  }
-                  changeColor={(newColor:string) => handleColorChange(
-                    newColor,
-                    activeColorPickerIndex,
-                    visualization,
-                    'dark'
-                  )}
-                />
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col justify-end ml-auto">
-            {Object.values(activeVisualization.dark.colors).map(
-              (color, index) => (
-                <div className="flex items-center mb-2" key={index}>
-                  <input
-                    readOnly
-                    type="text"
-                    className="w-[60%] rounded p-1 border border-gray-300"
-                    value={color as string}
-                  />
-                  <div
-                    onClick={() => setActiveColorPickerIndex(index)}
-                    key={index}
-                    style={{ backgroundColor: color as string }}
-                    className="w-5 h-5 ml-2 border border-gray-300 rounded flex items-center justify-center cursor-pointer"
-                  />
-                </div>
-              )
-            )}
-            <div className="flex items-center">
-              <div
-                className={`w-4 h-4 ml-2 mr-1 border border-gray-300 rounded flex items-center justify-center cursor-pointer ${
-                  darkColorsLength >= 10 ? 'opacity-50 pointer-events-none' : ''
-                }`}
-                onClick={() => {
-                  if (darkColorsLength < 10) {
-                    return handleColorAdd(visualization, 'dark');
-                  }
-                  return null;
-                }}
-              >
-                <Icons.add
-                  className={`text-gray-500 w-3 h-3 ${
-                    darkColorsLength >= 10 ? 'opacity-50' : ''
-                  }`}
-                />
-              </div>
-              <div
-                className={`w-4 h-4 border border-gray-300 rounded flex items-center justify-center cursor-pointer ${
-                  darkColorsLength < 4 ? 'opacity-50 pointer-events-none' : ''
-                }`}
-                onClick={() => {
-                  if (darkColorsLength >= 4) {
-                    return handleColorDelete(visualization, 'dark');
-                  }
-                  return null;
-                }}
-              >
-                <Icons.remove
-                  className={`text-gray-500 w-3 h-3 ${
-                    darkColorsLength < 4 ? 'opacity-50' : ''
-                  }`}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
+        {renderColorRow('dark', activeVisualization?.dark.colors as string[], darkColorsLength as number)}
       </TabsContent>
     </Tabs>
   );

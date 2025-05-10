@@ -1,7 +1,6 @@
 'use client';
 
 import {
-  ChangeEvent,
   Dispatch,
   SetStateAction,
   Suspense,
@@ -11,11 +10,11 @@ import {
   VisualizationTypes,
   ValidatorSchemas
 } from '@illustry/types';
+import Editor from '@monaco-editor/react';
 import siteConfig from '@/config/site';
 import { catchError } from '@/lib/utils';
 import { Button } from '../ui/button';
 import PresetSelector from '../ui/playground/preset-selector';
-import Textarea from '../ui/textarea';
 import Separator from '../ui/separator';
 import Fallback from '../ui/fallback';
 import { ShowDiagramState } from './theme-shell';
@@ -52,20 +51,18 @@ const PlaygroundShell = () => {
   });
   const [textareaValue, setTextareaValue] = useState<string>();
   const [isSubmitable, setIsSubmitable] = useState<boolean>(false);
-  const handleTextareaChange = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    setTextareaValue(event.target.value);
+  const handleEditorChange = (value: string | undefined) => {
+    setTextareaValue(value);
     setIsSubmitable(false);
   };
   const getActiveDiagramKey = (): keyof ShowDiagramState | null => {
     const activeKeys = Object.keys(showDiagram).filter(
       (key) => showDiagram[key as keyof ShowDiagramState]
     );
-
     return activeKeys.length === 1
       ? (activeKeys[0] as keyof ShowDiagramState)
       : null;
   };
-
   const toShowDiagram = (name: string, data: Record<string, unknown>) => {
     switch (name) {
       case 'heb':
@@ -227,7 +224,6 @@ const PlaygroundShell = () => {
                   legend={false}
                   options={false}
                   filter={false}
-
                 />
               )}
               {key === 'treeMap' && isSubmitable && (
@@ -258,41 +254,45 @@ const PlaygroundShell = () => {
   return (
     <>
       <div className="hidden flex-col md:flex">
-        <div className="container flex flex-col items-start justify-between
-         space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
-          <h2 className="text-lg font-semibold">Playground</h2>
+        <div className="container flex flex-col items-start
+        justify-between space-y-2 py-4 sm:flex-row sm:items-center sm:space-y-0 md:h-16">
           <div className="ml-auto flex w-full space-x-2 sm:justify-end">
             <PresetSelector
               presets={siteConfig.visualizations}
               setShowDiagram={setShowDiagram}
-              setTextareaValue={
-                setTextareaValue as Dispatch<SetStateAction<string>>
-              }
+              setTextareaValue={setTextareaValue as Dispatch<SetStateAction<string>>}
               setIsSubmitable={setIsSubmitable}
             />
-            <div className="hidden space-x-2 md:flex">
-              {/* <CodeViewer /> */}
-            </div>
+            <div className="hidden space-x-2 md:flex"></div>
           </div>
         </div>
         <Separator />
-        <div className="flex h-screen">
-          <div className="w-[50%] md:w-1/3 p-4">
-            <div className="container h-[93%] py-6 bg-gray-50 rounded-3xl dark:bg-gray-800">
-              <Textarea
+        <div className="flex flex-1">
+          <div className="w-[50%] md:w-1/3 p-2">
+            <div className="container h-full p-2 bg-gray-50 rounded-3xl dark:bg-gray-800">
+              <Editor
+                height="700px"
+                defaultLanguage="json"
                 value={textareaValue}
-                onChange={handleTextareaChange}
-                className="w-full h-[90%] flex-1 p-4 border-gray-300 bg-gray-50 rounded-3xl
-                 dark:border-gray-700 dark:bg-gray-800 md:min-h-[530px] lg:min-h-[530px]"
-                style={{ overflow: 'scroll', resize: 'none' }}
+                onChange={handleEditorChange}
+                theme="vs-dark"
+                options={{
+                  minimap: { enabled: false },
+                  scrollBeyondLastLine: false,
+                  fontSize: 14,
+                  lineNumbers: 'on',
+                  renderLineHighlight: 'all',
+                  automaticLayout: true,
+                  padding: { top: 16, bottom: 16 }
+                }}
+                className="w-full border-gray-300 bg-gray-50 rounded-3xl dark:border-gray-700 dark:bg-gray-800"
               />
-              <div className="flex items-center space-x-2 mt-4">
+              <div className="flex justify-center mt-4">
                 <Button onClick={handleSubmit}>Submit</Button>
               </div>
             </div>
           </div>
-
-          <div className="w-full h-[80%] md:w-2/3">
+          <div className="w-[50%] md:w-2/3 h-full">
             {createVisualizations()}
           </div>
         </div>
