@@ -2,7 +2,7 @@
   "name": "@impulsivelabs/illustry-client",
   "version": "0.2.0",
   "scripts": {
-    "depcheck": "depcheck --ignore-bin-package --ignores='postcss,autoprefixer,@typescript-eslint/parser,zod-error'",
+    "depcheck": "depcheck --ignore-bin-package --ignores='postcss,autoprefixer,@typescript-eslint/parser,zod-error,@testing-library/react-hooks,@testing-library/user-event,@vitest/coverage-v8'",
     "clean": "rm -rf ./next",
     "start:dev": "next dev",
     "build:ts": "next build",
