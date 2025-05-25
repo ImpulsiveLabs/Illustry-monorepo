@@ -35,7 +35,7 @@ const ScatterShellView = ({
       {filter ? (
         <FilteredScatterGraphShellView
           options={options}
-          points={computedPoints}
+          points={computedPoints as (string | number)[][]}
           categories={categories}
           legend={legend}
           fullScreen={fullScreen}
@@ -44,7 +44,7 @@ const ScatterShellView = ({
         <>
           <ScatterGraphView
             options={options}
-            points={computedPoints}
+            points={computedPoints as (string | number)[][]}
             categories={categories}
             legend={legend}
             fullScreen={fullScreen}
