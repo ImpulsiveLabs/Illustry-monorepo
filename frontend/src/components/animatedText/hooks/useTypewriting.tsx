@@ -1,9 +1,7 @@
 'use client';
 
-import {
-  useCallback, useEffect, useRef, useReducer
-} from 'react';
-import { reducer } from '../reducer';
+import React from 'react';
+import { reducer } from './reducer';
 
 type TypewriterProps = {
   onLoopDone?: () => void;
@@ -36,20 +34,20 @@ const useTypewriter = ({
   onDelete,
   onDelay
 }: TypewriterProps): [string, TypewriterHelper] => {
-  const [{ speed, text, count }, dispatch] = useReducer(reducer, {
+  const [{ speed, text, count }, dispatch] = React.useReducer(reducer, {
     speed: typeSpeed,
     text: '',
     count: 0
   });
 
   // Refs
-  const loops = useRef(0);
-  const isDone = useRef(false);
-  const isDelete = useRef(false);
-  const isType = useRef(false);
-  const isDelay = useRef(false);
+  const loops = React.useRef(0);
+  const isDone = React.useRef(false);
+  const isDelete = React.useRef(false);
+  const isType = React.useRef(false);
+  const isDelay = React.useRef(false);
 
-  const handleTyping = useCallback(() => {
+  const handleTyping = React.useCallback(() => {
     const index = count % words.length;
     const fullWord = words[index];
 
@@ -107,7 +105,7 @@ const useTypewriter = ({
     onDelay
   ]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     const typing = setTimeout(handleTyping, speed);
 
     if (isDone.current) clearTimeout(typing);
@@ -115,7 +113,7 @@ const useTypewriter = ({
     return () => clearTimeout(typing);
   }, [handleTyping, speed]);
 
-  useEffect(() => {
+  React.useEffect(() => {
     if (!onLoopDone) return;
 
     if (isDone.current) {

@@ -33,7 +33,7 @@ const computePropertiesForToolTip = (
 
 const calculateMeanValue = (numbers: number[]) => {
   if (numbers.length === 0) {
-    return 0; // Return 0 for an empty array (or you can handle this case differently)
+    return 0;
   }
 
   const sum = numbers.reduce((total, num) => total + num, 0);
@@ -43,27 +43,30 @@ const calculateMeanValue = (numbers: number[]) => {
 };
 
 const computeColor = (nr: number, meanValue: number, colors: string[]) => {
+  if (meanValue === 0) {
+    return '';
+  }
   const percent = (nr * 100) / meanValue;
   if (percent > 0 && percent <= 25) {
-    return colors[0];
+    return colors[0] || '';
   }
   if (percent > 25 && percent <= 50) {
-    return colors[1];
+    return colors[1] || '';
   }
   if (percent > 50 && percent <= 75) {
-    return colors[2];
+    return colors[2] || '';
   }
   if (percent > 75 && percent <= 100) {
-    return colors[3];
+    return colors[3] || '';
   }
   if (percent > 100) {
-    return colors[4];
+    return colors[4] || '';
   }
   return '';
 };
 
 const computeWords = (words: VisualizationTypes.WordType[], colors: string[]) => {
-  const values = words.map((word) => word.value);
+  const values = words.map((word) => word.value).filter((value) => value > 0);
   const meanValue = calculateMeanValue(values);
 
   return words.map((word) => ({
@@ -77,5 +80,7 @@ const computeWords = (words: VisualizationTypes.WordType[], colors: string[]) =>
 
 export {
   computePropertiesForToolTip,
-  computeWords
+  computeWords,
+  calculateMeanValue,
+  computeColor
 };

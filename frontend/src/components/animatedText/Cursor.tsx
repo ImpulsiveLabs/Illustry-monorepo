@@ -1,10 +1,10 @@
-import { ReactNode, memo, JSX } from 'react';
+import React from 'react';
 
 type CursorProps = {
   /** Enable cursor blinking animation */
   cursorBlinking?: boolean;
   /** Change cursor style */
-  cursorStyle?: ReactNode;
+  cursorStyle?: React.ReactNode;
   /** Change cursor color */
   cursorColor?: string;
 };
@@ -13,7 +13,7 @@ const MemoizedCursor = ({
   cursorBlinking = true,
   cursorStyle = '|',
   cursorColor = 'inherit'
-}: CursorProps): JSX.Element => (
+}: CursorProps): React.JSX.Element => (
   <span
     style={{ color: cursorColor }}
     className={`blinkingCursor ${cursorBlinking ? 'blinking' : ''}`}
@@ -21,7 +21,8 @@ const MemoizedCursor = ({
     {cursorStyle}
   </span>
 );
-const Cursor = memo(MemoizedCursor);
+
+const Cursor = React.memo(MemoizedCursor);
 
 export default Cursor;
 export type { CursorProps };

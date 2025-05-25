@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import React from 'react';
 
 const NotFound = () => (
     <div className="flex flex-col items-center justify-center h-screen">

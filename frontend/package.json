@@ -8,7 +8,9 @@
     "build:ts": "next build",
     "start:prod": "node .next/standalone/frontend/server.js",
     "lint": "next lint",
-    "lint:fix": "next lint --fix"
+    "lint:fix": "next lint --fix",
+    "test": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
     "@files-ui/react": "1.0.8",
@@ -63,6 +65,11 @@
   "devDependencies": {
     "@illustry/types": "1.0.1",
     "@tailwindcss/typography": "0.5.10",
+    "@testing-library/dom": "10.4.0",
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "16.3.0",
+    "@testing-library/react-hooks": "^8.0.1",
+    "@testing-library/user-event": "14.6.1",
     "@types/echarts": "4.9.21",
     "@types/node": "20.9.1",
     "@types/react": "18.2.37",
@@ -71,13 +78,18 @@
     "@types/react-vertical-timeline-component": "3.3.6",
     "@types/uuid": "9.0.7",
     "@typescript-eslint/eslint-plugin": "6.21.0",
+    "@vitest/coverage-v8": "3.1.1",
+    "@vitest/ui": "3.1.1",
     "eslint": "8.57.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-config-next": "14.0.3",
     "eslint-plugin-import": "2.29.0",
+    "jsdom": "26.1.0",
+    "next-router-mock": "^1.0.2",
     "postcss": "8.4.31",
     "tailwindcss": "3.3.5",
     "typescript": "5.2.2",
+    "vitest": "3.1.1",
     "zod": "3.22.4",
     "zod-error": "1.5.0"
   },
