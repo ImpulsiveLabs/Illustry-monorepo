@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import { findOneDashboard } from '@/app/_actions/dashboard';
 import UpdateDashboardForm from '@/components/form/update-dashboard-form';
@@ -35,3 +36,4 @@ const UpdateDashboardPage = async ({
 
 export default UpdateDashboardPage;
 export { metadata };
+export type { UpdateDashboardPageProps };

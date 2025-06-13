@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import { findOneDashboard } from '@/app/_actions/dashboard';
 import ResizableDashboard from '@/components/shells/dashboard-shell';

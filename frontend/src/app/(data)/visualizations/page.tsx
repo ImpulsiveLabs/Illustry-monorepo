@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
 import { browseVisualizations } from '@/app/_actions/visualization';

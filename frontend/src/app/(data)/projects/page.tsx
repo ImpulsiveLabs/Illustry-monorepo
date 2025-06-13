@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import { ProjectTypes } from '@illustry/types';
 import { browseProjects } from '@/app/_actions/project';

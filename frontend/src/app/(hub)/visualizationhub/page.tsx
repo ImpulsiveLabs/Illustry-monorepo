@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
 import { findOneVisualization } from '@/app/_actions/visualization';

@@ -1,5 +1,5 @@
+import React from 'react';
 import type { Metadata } from 'next';
-
 import AddProjectForm from '@/components/form/add-project-form';
 
 const metadata: Metadata = {

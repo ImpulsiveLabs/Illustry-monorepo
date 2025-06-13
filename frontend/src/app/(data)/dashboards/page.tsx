@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { DashboardTypes } from '@illustry/types';
+import React from 'react';
 import { browseDashboards } from '@/app/_actions/dashboard';
 import DashboardsTableShell from '@/components/shells/dashboards-table-shell';
 
@@ -43,3 +44,4 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
 
 export default Dashboards;
 export { metadata };
+export type { DashboardsProps };

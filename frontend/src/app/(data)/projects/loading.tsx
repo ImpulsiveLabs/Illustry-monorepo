@@ -1,3 +1,4 @@
+import React from 'react';
 import DataTableLoading from '@/components/data-table/data-table-loading';
 
 const ProjectsLoading = () => (

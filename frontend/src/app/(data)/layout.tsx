@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import SiteHeader from '@/components/layouts/site-header';
 
 type DataLayoutProps = {
-  children: ReactNode
+  children: React.ReactNode
 }
 
 const DataLayout = ({ children }: DataLayoutProps) => (

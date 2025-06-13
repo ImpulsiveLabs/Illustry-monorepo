@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import { ProjectTypes } from '@illustry/types';
 import UpdateProjectForm from '@/components/form/update-project-form';

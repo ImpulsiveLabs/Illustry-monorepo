@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import React from 'react';
 import { browseVisualizations } from '@/app/_actions/visualization';
 import AddDashboardForm from '@/components/form/add-dashboard-form';
 
