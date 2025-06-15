@@ -52,7 +52,7 @@ const deleteVisualization = async (
     return makeRequest<boolean>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
@@ -70,7 +70,7 @@ const createOrUpdateVisualization = async (
     return makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 

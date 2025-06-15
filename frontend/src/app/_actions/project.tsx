@@ -44,7 +44,7 @@ const deleteProject = async (projectName: string) => {
     return makeRequest<boolean>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
@@ -61,7 +61,7 @@ const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
     return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
@@ -82,7 +82,7 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
     return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 

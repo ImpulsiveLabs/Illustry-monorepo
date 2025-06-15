@@ -18,6 +18,7 @@ export default defineConfig({
             '**/*.d.ts',
             '**/*.js',
             '**/*.jsx',
+            'src/components/icons.tsx'
         ],
         coverage: {
             provider: 'v8',
@@ -32,6 +33,7 @@ export default defineConfig({
                 '**/*.d.ts',
                 '**/*.js',
                 '**/*.jsx',
+                'src/components/icons.tsx'
             ]
         }
     },

@@ -1,11 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority';
-import {
-  ButtonHTMLAttributes,
-  ComponentType,
-  forwardRef,
-  useState,
-  KeyboardEvent
-} from 'react';
+import React from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -47,7 +41,7 @@ type MultiSelectProps = {
   options: {
     label: string;
     value: string;
-    icon?: ComponentType<{ className?: string }>;
+    icon?: React.ComponentType<{ className?: string }>;
   }[];
   // eslint-disable-next-line no-unused-vars
   onValueChange: (value: string[]) => void;
@@ -58,9 +52,9 @@ type MultiSelectProps = {
   modalPopover?: boolean;
   asChild?: boolean;
   className?: string;
-} & ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof multiSelectVariants>;
+} & React.ButtonHTMLAttributes<HTMLButtonElement> & VariantProps<typeof multiSelectVariants>;
 
-const MultiSelect = forwardRef<HTMLButtonElement, MultiSelectProps>(
+const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
   (
     {
       options,
@@ -76,11 +70,11 @@ const MultiSelect = forwardRef<HTMLButtonElement, MultiSelectProps>(
     },
     ref
   ) => {
-    const [selectedValues, setSelectedValues] = useState<string[]>(defaultValue);
-    const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-    const [isAnimating, setIsAnimating] = useState(false);
+    const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
+    const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+    const [isAnimating, setIsAnimating] = React.useState(false);
 
-    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
         setIsPopoverOpen(true);
       } else if (event.key === 'Backspace' && !event.currentTarget.value) {

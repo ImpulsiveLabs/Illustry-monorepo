@@ -1,15 +1,15 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import SiteHeader from '@/components/layouts/site-header';
 
-interface IntroLayoutProps {
-  children: ReactNode;
+interface ThemeLayoutProps {
+  children: React.ReactNode;
 }
 
-export default async function ThemeLayout({ children }: IntroLayoutProps) {
-  return (
+const ThemeLayout = ({ children }: ThemeLayoutProps) => (
     <div className="relative flex min-h-screen flex-col">
       <SiteHeader />
       <main className="flex-1">{children}</main>
     </div>
-  );
-}
+);
+
+export default ThemeLayout;

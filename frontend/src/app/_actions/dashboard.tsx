@@ -44,7 +44,7 @@ const deleteDashboard = async (dashboardName: string) => {
     return makeRequest<boolean>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
@@ -61,7 +61,7 @@ const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
     return makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
@@ -83,7 +83,7 @@ const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
     return makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
