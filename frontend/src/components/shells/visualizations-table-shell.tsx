@@ -21,6 +21,7 @@ import {
 } from '../ui/dropdown-menu';
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
+import { useRouter } from 'next/navigation';
 
 type VisualizationsTableShellProps = {
   data?: VisualizationTypes.VisualizationType[];
@@ -35,6 +36,7 @@ const VisualizationsTableShell = ({
   const [selectedRowProperties, setSelectedRowProperties] = useState<
     { name: string; type: VisualizationTypes.VisualizationTypesEnum }[]
   >([]);
+  const router = useRouter();
   const columns = useMemo<ColumnDef<VisualizationTypes.VisualizationType, unknown>[]>(
     () => [
       {
@@ -190,7 +192,7 @@ const VisualizationsTableShell = ({
                       }),
                       {
                         loading: 'Deleting...',
-                        success: () => 'Visualization deleted successfully.',
+                        success: () => { router.refresh(); return 'Visualization deleted successfully.' },
                         error: (err: unknown) => catchError(err)
                       }
                     );
@@ -221,6 +223,7 @@ const VisualizationsTableShell = ({
         loading: 'Deleting...',
         success: () => {
           setSelectedRowProperties([]);
+          router.refresh();
           return 'Visualizations deleted successfully.';
         },
         error: (err: unknown) => {

@@ -1,6 +1,6 @@
 'use client';
 
-import { JSX } from 'react';
+import React from 'react';
 import Cursor, { CursorProps } from './Cursor';
 import { TypewriterProps, useTypewriter } from './hooks/useTypewriting';
 
@@ -23,7 +23,7 @@ const Typewriter = ({
   onType,
   onDelay,
   onDelete
-}: ComponentProps): JSX.Element => {
+}: ComponentProps): React.JSX.Element => {
   const [text] = useTypewriter({
     words,
     loop,

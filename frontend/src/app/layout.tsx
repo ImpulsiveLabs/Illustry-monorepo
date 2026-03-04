@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { ReactNode } from 'react';
+import React from 'react';
 import './globals.css';
 import siteConfig from '@/config/site';
 import { fontMono, fontSans } from '@/lib/fonts';
@@ -35,7 +35,7 @@ const metadata: Metadata = {
 };
 
 interface RootLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const RootLayout = ({ children }: RootLayoutProps) => (

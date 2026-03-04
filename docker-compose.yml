@@ -40,46 +40,48 @@ services:
     container_name: illustryfrontend
     restart: unless-stopped
     environment:
-      NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://illustrybackend:7001
+      BACKEND_INTERNAL_URL: http://illustrybackend:7001
+      NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:7001
+
     ports:
       - "3000:3000"
     networks:
       - illustry-network
 
-  n8n:
-    image: n8n-n8n:latest # Use your custom fork here
-    container_name: n8n
-    environment:
-      N8N_PORT: 5678
-      N8N_HOST: localhost
-      N8N_PROTOCOL: http
-      N8N_PUBLIC_API_URL: http://localhost:5678
-      N8N_USER_MANAGEMENT_DISABLED: "true"
-      N8N_BASIC_AUTH_ACTIVE: "false"
-    ports:
-      - "5678:5678"
-    volumes:
-      - n8n_data:/home/node/.n8n
-    tmpfs:
-      - /tmp  # Helps with performance & avoiding disk issues
-    networks:
-      - illustry-network
+  # n8n:
+  #   image: n8n-n8n:latest # Use your custom fork here
+  #   container_name: n8n
+  #   environment:
+  #     N8N_PORT: 5678
+  #     N8N_HOST: localhost
+  #     N8N_PROTOCOL: http
+  #     N8N_PUBLIC_API_URL: http://localhost:5678
+  #     N8N_USER_MANAGEMENT_DISABLED: "true"
+  #     N8N_BASIC_AUTH_ACTIVE: "false"
+  #   ports:
+  #     - "5678:5678"
+  #   volumes:
+  #     - n8n_data:/home/node/.n8n
+  #   tmpfs:
+  #     - /tmp  # Helps with performance & avoiding disk issues
+  #   networks:
+  #     - illustry-network
 
-  openalexclassifier:
-    image: openalex-topic-classifier:latest
-    container_name: openalexclassifier
-    restart: unless-stopped
-    environment:
-      PORT: 8080
-      GUNICORN_WORKERS: 4
-      PYTHONUNBUFFERED: "TRUE"
-      PYTHONDONTWRITEBYTECODE: "TRUE"
-      LOG4J_FORMAT_MSG_NO_LOOKUPS: "true"
-    ports:
-      - "8080:8080"
-    command: serve
-    networks:
-      - illustry-network
+  # openalexclassifier:
+  #   image: openalex-topic-classifier:latest
+  #   container_name: openalexclassifier
+  #   restart: unless-stopped
+  #   environment:
+  #     PORT: 8080
+  #     GUNICORN_WORKERS: 4
+  #     PYTHONUNBUFFERED: "TRUE"
+  #     PYTHONDONTWRITEBYTECODE: "TRUE"
+  #     LOG4J_FORMAT_MSG_NO_LOOKUPS: "true"
+  #   ports:
+  #     - "8080:8080"
+  #   command: serve
+  #   networks:
+  #     - illustry-network
 
 networks:
   illustry-network:
@@ -87,4 +89,4 @@ networks:
 
 volumes:
   illustry_mongo:
-  n8n_data:
+  # n8n_data:

@@ -1,10 +1,11 @@
-import { InputHTMLAttributes, forwardRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
-type InputProps = InputHTMLAttributes<HTMLInputElement>
+type InputProps = React.InputHTMLAttributes<HTMLInputElement>
+  & { suggestionsConfig?: unknown }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => (
+const Input = React.forwardRef<HTMLInputElement, InputProps>(
+  ({ className, type, suggestionsConfig: _suggestionsConfig, ...props }, ref) => (
     <input
       type={type}
       className={cn(

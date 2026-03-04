@@ -1,3 +1,4 @@
+import React from 'react';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
 import { findOneVisualization } from '@/app/_actions/visualization';
@@ -8,24 +9,27 @@ const metadata: Metadata = {
   description: 'Manage your Visualizations'
 };
 
-type VisualizationsProps = {
-  searchParams: {
+type HubProps = {
+  searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-  };
-}
-
-const Hub = async ({ searchParams }: VisualizationsProps) => {
-  const { name, type } = searchParams;
-  const visualization = await findOneVisualization({
-    name,
-    type
-  } as VisualizationTypes.VisualizationFilter);
-  return (
-    <>
-      <HubShell data={visualization} fullScreen={true} filter={true} legend={true}></HubShell>
-    </>
-  );
+    name?: string;
+    type?: string;
+  }>;
 };
 
-export default Hub;
+const VisualizationHub = async ({ searchParams }: HubProps) => {
+  const sp = await searchParams;
+
+  const name = typeof sp.name === 'string' ? sp.name : undefined;
+  const type = typeof sp.type === 'string' ? sp.type : undefined;
+
+  const visualization = await findOneVisualization({
+    name,
+    type,
+  } as VisualizationTypes.VisualizationFilter);
+
+  return <HubShell data={visualization} fullScreen filter legend />;
+};
+
+export default VisualizationHub;
 export { metadata };

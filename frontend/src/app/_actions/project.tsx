@@ -3,18 +3,20 @@
 'use server';
 
 import 'dotenv/config';
-import { revalidateTag } from 'next/cache';
 import { ProjectTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
+import getBackendUrl from '@/lib/backend-url';
+
 
 const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
-  revalidateTag('projects');
+  const BACKEND = getBackendUrl() as string;
+
   let newFilter: ProjectTypes.ProjectFilter = {};
 
   if (filter) {
     newFilter = filter;
   }
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/projects`, {
+  const request = new Request(`${BACKEND as string}/api/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -30,8 +32,9 @@ const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
 };
 
 const deleteProject = async (projectName: string) => {
-  revalidateTag('projects');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -44,13 +47,14 @@ const deleteProject = async (projectName: string) => {
     return makeRequest<boolean>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
 const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
-  revalidateTag('projects');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -61,17 +65,19 @@ const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
     return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
 const createProject = async (project: ProjectTypes.ProjectCreate) => {
+  const BACKEND = getBackendUrl() as string;
+
   const newProject = {
     projectName: project.name,
     projectDescription: project.description,
     isActive: project.isActive
   };
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -82,13 +88,15 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
     return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
 const findOneProject = async (projectName: string) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project/${projectName}`,
+    `${BACKEND as string}/api/project/${projectName}`,
     {
       method: 'POST',
       headers: {

@@ -3,20 +3,22 @@
 'use server';
 
 import 'dotenv/config';
-import { revalidateTag } from 'next/cache';
 import {
   VisualizationTypes
 } from '@illustry/types';
 import makeRequest from '@/lib/request';
+import getBackendUrl from '@/lib/backend-url';
+
 
 const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFilter) => {
+  const BACKEND = getBackendUrl() as string;
+
   let newFilter: VisualizationTypes.VisualizationFilter = {};
   if (filter) {
     newFilter = filter;
   }
-  revalidateTag('visualizations');
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualizations`,
+    `${BACKEND as string}/api/visualizations`,
     {
       method: 'POST',
       headers: {
@@ -37,9 +39,10 @@ const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFil
 const deleteVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
-  revalidateTag('visualizations');
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization`,
+    `${BACKEND as string}/api/visualization`,
     {
       method: 'DELETE',
       headers: {
@@ -52,15 +55,17 @@ const deleteVisualization = async (
     return makeRequest<boolean>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
 const createOrUpdateVisualization = async (
   form: FormData
 ) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization`,
+    `${BACKEND as string}/api/visualization`,
     {
       method: 'POST',
       body: form
@@ -70,16 +75,17 @@ const createOrUpdateVisualization = async (
     return makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
-    return err;
+    return null;
   }
 };
 
 const findOneVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
-  revalidateTag('visualizations');
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization/${visualizationFilter.name}`,
+    `${BACKEND as string}/api/visualization/${visualizationFilter.name}`,
     {
       method: 'POST',
       headers: {

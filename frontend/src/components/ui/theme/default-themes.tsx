@@ -30,7 +30,9 @@ const DefaultThemesAccordion = ({
       {Object.keys(colorPalette).map((schemeName, index) => (
         <div
           key={index}
-          ref={(el) => (themeRefs.current[index] = el)}
+          ref={(el) => {
+            themeRefs.current[index] = el;
+          }}
           role="button"
           tabIndex={0}
           className="flex flex-wrap border border-gray-300 m-1 rounded cursor-pointer p-2

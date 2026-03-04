@@ -76,7 +76,6 @@ const AddVisualizationForm = () => {
           setFiles([]);
           toast.success('Visualizations added successfully.');
           router.push('/visualizations');
-          router.refresh();
         } else {
           toast.error('No files selected.');
         }

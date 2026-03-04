@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import React from 'react';
 import { browseVisualizations } from '@/app/_actions/visualization';
 import AddDashboardForm from '@/components/form/add-dashboard-form';
 
@@ -6,6 +7,8 @@ export const metadata: Metadata = {
   title: 'New Dashboard',
   description: 'Add a new Dashboard'
 };
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 const NewDashboardPage = async () => {
   const visualizations = await browseVisualizations({ per_page: 100 });

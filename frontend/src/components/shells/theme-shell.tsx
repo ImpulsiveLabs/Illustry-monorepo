@@ -3,6 +3,7 @@
 'use client';
 
 import {
+  RefObject,
   Suspense, useEffect, useRef, useState
 } from 'react';
 import { VisualizationTypes, UtilTypes } from '@illustry/types';
@@ -231,7 +232,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="sankey"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -250,7 +251,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="calendar"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -269,7 +270,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="flg"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -288,7 +289,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="heb"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -307,7 +308,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="wordcloud"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -326,7 +327,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="lineChart"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -345,7 +346,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="barChart"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -364,7 +365,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="pieChart"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -383,7 +384,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="scatter"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -402,7 +403,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="treeMap"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -421,7 +422,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="sunburst"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -440,7 +441,7 @@ const ThemeShell = () => {
                 handleColorAdd={handleColorAdd}
                 setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="funnel"
-                colorPickerRef={colorPickerRef}
+                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>

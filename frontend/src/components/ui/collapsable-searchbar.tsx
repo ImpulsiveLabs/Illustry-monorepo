@@ -1,12 +1,6 @@
 'use client';
 
-import {
-  ChangeEvent,
-  Dispatch,
-  FormEvent,
-  SetStateAction,
-  useState
-} from 'react';
+import React from 'react';
 import { VisualizationTypes } from '@illustry/types';
 import parseFilter from '@/lib/filter';
 import { axisWords } from '@/lib/filter/axis';
@@ -23,7 +17,7 @@ import { Button } from './button';
 
 type CollapsableSearchBarProps<T> = {
   data: T;
-  setFilteredData: Dispatch<SetStateAction<T>>;
+  setFilteredData: React.Dispatch<React.SetStateAction<T>>;
   type: VisualizationTypes.VisualizationTypesEnum;
 }
 
@@ -34,18 +28,18 @@ const CollapsableSearchBar = <
     setFilteredData,
     type
   }: CollapsableSearchBarProps<T>) => {
-  const [initialData] = useState(() => data);
-  const [searchValue, setSearchValue] = useState('');
-  const [isInputClicked, setIsInputClicked] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const [initialData] = React.useState(() => data);
+  const [searchValue, setSearchValue] = React.useState('');
+  const [isInputClicked, setIsInputClicked] = React.useState(false);
+  const [isFocused, setIsFocused] = React.useState(false);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
     if (!isInputClicked) {
       setIsInputClicked(true);
     }
   };
 
-  const handleSearch = (e: FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     let words: string[] = [];
     switch (type) {

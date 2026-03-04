@@ -1,8 +1,8 @@
-import { ReactNode } from 'react';
+import React from 'react';
 import SiteHeader from '@/components/layouts/site-header';
 
 type HubLayoutProps = {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const HubLayout = ({ children }: HubLayoutProps) => (

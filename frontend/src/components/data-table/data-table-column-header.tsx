@@ -5,7 +5,7 @@ import {
   EyeNoneIcon
 } from '@radix-ui/react-icons';
 import { type Column } from '@tanstack/react-table';
-import { HTMLAttributes } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -20,7 +20,7 @@ type DataTableColumnHeaderProps<TData, TValue>
   = {
     column: Column<TData, TValue>;
     title: string;
-  } & HTMLAttributes<HTMLDivElement>
+  } & React.HTMLAttributes<HTMLDivElement>
 
 const DataTableColumnHeader = <TData, TValue>({
   column,

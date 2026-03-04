@@ -1,3 +1,4 @@
+import React from 'react';
 import siteConfig from '@/config/site';
 import MainNav from './main-nav';
 import MobileNav from './mobile-nav';

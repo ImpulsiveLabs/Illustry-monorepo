@@ -28,6 +28,9 @@ const groupEventsByDate = (events: VisualizationTypes.TimelineEvent[]): {
 
   return events.reduce((groupedEv, event) => {
     const { date } = event;
+    if (!event.date) {
+      return groupedEv;
+    }
 
     if (!groupedEv[date]) {
       groupedEvents[date] = [];

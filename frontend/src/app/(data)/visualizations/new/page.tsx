@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Metadata } from 'next';
 import AddVisualizationForm from '@/components/form/add-visualization-form';
 

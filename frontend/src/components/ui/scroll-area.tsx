@@ -1,10 +1,10 @@
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area';
-import { ComponentPropsWithoutRef, ElementRef, forwardRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 
-const ScrollBar = forwardRef<
-  ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
-  ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
+const ScrollBar = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.ScrollAreaScrollbar>
 >(({ className, orientation = 'vertical', ...props }, ref) => (
   <ScrollAreaPrimitive.ScrollAreaScrollbar
     ref={ref}
@@ -24,9 +24,9 @@ const ScrollBar = forwardRef<
 ));
 ScrollBar.displayName = ScrollAreaPrimitive.ScrollAreaScrollbar.displayName;
 
-const ScrollArea = forwardRef<
-  ElementRef<typeof ScrollAreaPrimitive.Root>,
-  ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
+const ScrollArea = React.forwardRef<
+  React.ElementRef<typeof ScrollAreaPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof ScrollAreaPrimitive.Root> & {
     orientation?: 'vertical' | 'horizontal'
   }
 >(({
@@ -35,6 +35,7 @@ const ScrollArea = forwardRef<
   <ScrollAreaPrimitive.Root
     ref={ref}
     className={cn('relative overflow-hidden', className)}
+    data-testid="scrollbar"
     {...props}
   >
     <ScrollAreaPrimitive.Viewport className="h-full w-full rounded-[inherit]">

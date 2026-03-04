@@ -1,3 +1,4 @@
+import React from 'react';
 import Balance from 'react-wrap-balancer';
 import Link from 'next/link';
 import Typewriter from '@/components/animatedText/Typewriter';

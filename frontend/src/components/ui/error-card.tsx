@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ComponentPropsWithoutRef } from 'react';
+import React from 'react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import {
@@ -18,7 +18,7 @@ type ErrorCardProps = {
   description: string
   retryLink?: string
   retryLinkText?: string
-} & ComponentPropsWithoutRef<typeof Card>;
+} & React.ComponentPropsWithoutRef<typeof Card>;
 
 const ErrorCard = ({
   icon,
@@ -35,7 +35,7 @@ const ErrorCard = ({
     <Card className={cn('grid place-items-center', className)} {...props}>
       <CardHeader>
         <div className="grid h-20 w-20 place-items-center rounded-full bg-muted">
-          <Icon className="h-10 w-10" aria-hidden="true" />
+          <Icon data-testid = 'img' className="h-10 w-10" aria-hidden="true" />
         </div>
       </CardHeader>
       <CardContent className="flex min-h-[176px] flex-col items-center justify-center space-y-4 text-center">
