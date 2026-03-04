@@ -1,11 +1,8 @@
-# Deploy Astro Docs (monorepo) to GitHub Pages
 name: Deploy Astro Docs to Pages
 
 on:
   push:
-    branches: ['main'] # Trigger workflow on pushes to the 'main' branch
-
-  # Allows manual triggering from the Actions tab
+    branches: ['main']
   workflow_dispatch:
 
 permissions:
@@ -22,31 +19,27 @@ jobs:
     name: Build Astro Docs Site
     runs-on: ubuntu-latest
     steps:
-      # Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Set up Node.js
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 18 # Use the appropriate Node.js version
+          node-version: 18
+          cache: yarn
 
-      # Install dependencies for the monorepo using Yarn
       - name: Install dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Compute Docs Types
         run: node scripts/compute-docs.cjs
 
-      # Build the Astro docs site in the monorepo's `docs` package
       - name: Build Astro Docs site
         working-directory: docs
         run: yarn build:docs
-      
-      # Upload the build artifacts for deployment
+
       - name: Upload artifact for Pages deployment
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           path: docs/dist
 
@@ -54,11 +47,10 @@ jobs:
     name: Deploy to GitHub Pages
     runs-on: ubuntu-latest
     needs: build
-    steps:
-      # Deploy the uploaded artifact to GitHub Pages
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v2
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
