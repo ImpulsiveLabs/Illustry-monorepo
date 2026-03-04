@@ -90,79 +90,63 @@ const ExcelOrCsvMappingTab = ({
       switch (type) {
         case VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvWordCloudMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvWordCloudMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH:
         case VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING:
         case VisualizationTypes.VisualizationTypesEnum.SANKEY:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvNodeLinkMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvNodeLinkMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.CALENDAR:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvCalendarMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvCalendarMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.BAR_CHART:
         case VisualizationTypes.VisualizationTypesEnum.LINE_CHART:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvAxisChartMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvAxisChartMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.PIE_CHART:
         case VisualizationTypes.VisualizationTypesEnum.FUNNEL:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvPieChartFunnelMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvPieChartFunnelMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.SCATTER:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvScatterMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvScatterMapping form={form} />
+            </div>
           );
         case VisualizationTypes.VisualizationTypesEnum.TREEMAP:
         case VisualizationTypes.VisualizationTypesEnum.SUNBURST:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-                <ExcelOrCsvHierarchyMapping form={form} />
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+              <ExcelOrCsvHierarchyMapping form={form} />
+            </div>
           );
         default:
           return (
-            <>
-              <div className="space-y-4">
-                {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-              </div>
-            </>
+            <div className="space-y-4">
+              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
+            </div>
           );
       }
     }

@@ -33,7 +33,8 @@ export default defineConfig({
                 '**/*.d.ts',
                 '**/*.js',
                 '**/*.jsx',
-                'src/components/icons.tsx'
+                'src/components/icons.tsx',
+                'src/lib/types/**'
             ]
         }
     },

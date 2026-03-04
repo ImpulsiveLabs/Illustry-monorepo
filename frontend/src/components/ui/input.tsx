@@ -2,9 +2,10 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 type InputProps = React.InputHTMLAttributes<HTMLInputElement>
+  & { suggestionsConfig?: unknown }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, ...props }, ref) => (
+  ({ className, type, suggestionsConfig: _suggestionsConfig, ...props }, ref) => (
     <input
       type={type}
       className={cn(

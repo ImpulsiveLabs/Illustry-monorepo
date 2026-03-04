@@ -3,18 +3,26 @@
 'use server';
 
 import 'dotenv/config';
-import { revalidateTag } from 'next/cache';
 import { DashboardTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
 
+function getBackendUrl() {
+  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+  if (!url) {
+    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
+  }
+  return url;
+}
+
+const BACKEND = getBackendUrl() as string;
+
 const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
-  revalidateTag('dashboards');
   let newFilter: DashboardTypes.DashboardFilter = {};
 
   if (filter) {
     newFilter = filter;
   }
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/dashboards`, {
+  const request = new Request(`${BACKEND as string}/api/dashboards`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -30,8 +38,7 @@ const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
 };
 
 const deleteDashboard = async (dashboardName: string) => {
-  revalidateTag('dashboards');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/dashboard`, {
+  const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -49,8 +56,7 @@ const deleteDashboard = async (dashboardName: string) => {
 };
 
 const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
-  revalidateTag('dashboards');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/dashboard`, {
+  const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -72,7 +78,7 @@ const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
     description: dashboard.description,
     name: dashboard.name
   };
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/dashboard`, {
+  const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -88,9 +94,8 @@ const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
 };
 
 const findOneDashboard = async (dashboardName: string, fullVisualizations: boolean = false) => {
-  revalidateTag('dashboards');
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/dashboard/${dashboardName}`,
+    `${BACKEND as string}/api/dashboard/${dashboardName}`,
     {
       method: 'POST',
       headers: {

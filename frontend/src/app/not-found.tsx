@@ -9,13 +9,12 @@ const NotFound = () => (
       <p className="text-lg text-gray-600 mb-8">
         Sorry, we couldn&apos;t find the requested resource.
       </p>
-      <Link href="/">
-        <a
-          className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4
-            rounded focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
-        >
-          Go to Main Page
-        </a>
+      <Link
+        href="/"
+        className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4
+          rounded focus:outline-none focus:shadow-outline-blue active:bg-blue-800"
+      >
+        Go to Main Page
       </Link>
     </div>
 );

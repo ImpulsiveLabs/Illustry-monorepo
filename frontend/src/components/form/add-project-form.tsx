@@ -40,10 +40,10 @@ const AddProjectForm = () => {
       try {
         await createProject({ ...data });
 
-        form.reset();
         toast.success('Project added successfully.');
         router.push('/projects');
-        router.refresh();
+        form.reset();
+
       } catch (err) {
         catchError(err);
       }
@@ -104,7 +104,7 @@ const AddProjectForm = () => {
               </FormItem>
             )}
           />
-          <Button className="w-fit" disabled={isPending}>
+          <Button type="submit" className="w-fit" disabled={isPending}>
             {isPending && (
               <Icons.spinner
                 className="mr-2 h-4 w-4 animate-spin"

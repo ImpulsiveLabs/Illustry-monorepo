@@ -59,7 +59,6 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
         form.reset();
         toast.success('Dashboard updated successfully.');
         router.push('/dashboards');
-        router.refresh();
       } catch (err) {
         catchError(err);
       }

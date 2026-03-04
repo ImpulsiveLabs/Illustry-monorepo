@@ -20,6 +20,7 @@ import {
 import Checkbox from '../ui/checkbox';
 import DataTable from '../data-table/data-table';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
+import { useRouter } from 'next/navigation';
 
 type DashboardsTableShellProps = {
   data?: DashboardTypes.DashboardType[];
@@ -29,6 +30,7 @@ type DashboardsTableShellProps = {
 const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) => {
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
+  const router = useRouter();
   const columns = useMemo<ColumnDef<DashboardTypes.DashboardType, unknown>[]>(
     () => [
       {
@@ -123,7 +125,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
                     row.toggleSelected(false);
                     toast.promise(deleteDashboard(row.original.name), {
                       loading: 'Deleting...',
-                      success: () => 'Dashboard deleted successfully.',
+                      success: () => { router.refresh(); return 'Dashboard deleted successfully.'},
                       error: (err: unknown) => catchError(err)
                     });
                   });
@@ -148,6 +150,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
         loading: 'Deleting...',
         success: () => {
           setSelectedRowNames([]);
+          router.refresh();
           return 'Dashboards deleted successfully.';
         },
         error: (err: unknown) => {

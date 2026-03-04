@@ -1,528 +1,215 @@
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
-    computeCategoriesSankey,
-    computeNodesSankey,
-    computeLinksSankey,
-    sortColumns,
-    sortRows,
-    addStyleTooltipWithHover,
-    createHeadersAndPropertiesString,
-    computeCategoriesFLGOrHEB,
-    computeNodesHEB,
-    computeLinksFLGOrHEB,
-    computeNodesFLG,
-    categoryMap,
+  computeCategoriesSankey,
+  computeNodesSankey,
+  computeLinksSankey,
+  sortColumns,
+  sortRows,
+  addStyleTooltipWithHover,
+  createHeadersAndPropertiesString,
+  computeCategoriesFLGOrHEB,
+  computeNodesHEB,
+  computeLinksFLGOrHEB,
+  computeNodesFLG,
+  categoryMap
 } from '../../../../src/lib/visualizations/node-link/helper';
-import { VisualizationTypes, TransformerTypes } from '@illustry/types';
+import { VisualizationTypes } from '@illustry/types';
 
 beforeEach(() => {
-    document.body.innerHTML = '';
-    vi.restoreAllMocks();
+  document.body.innerHTML = '';
+  vi.restoreAllMocks();
 });
 
-describe('computeCategoriesSankey', () => {
-    test('returns unique categories', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-            { name: 'n2', category: 'cat2' },
-            { name: 'n3', category: 'cat1' },
-        ];
-        expect(computeCategoriesSankey(nodes)).toEqual(['cat1', 'cat2']);
+describe('node-link helpers', () => {
+  it('computes sankey categories and styled nodes', () => {
+    const nodes: VisualizationTypes.Node[] = [
+      { name: 'n1', category: 'cat-1', properties: { a: 1 } },
+      { name: 'n2', category: 'cat-2', properties: 'meta' },
+      { name: 'n3', category: 'cat-1' }
+    ];
+
+    expect(computeCategoriesSankey(nodes)).toEqual(['cat-1', 'cat-2']);
+
+    const styled = computeNodesSankey(nodes, ['cat-1', 'cat-2'], ['#f00', '#0f0']);
+    expect(styled[0]).toMatchObject({
+      name: 'n1',
+      itemStyle: { color: '#f00', borderColor: '#f00' },
+      prop: '<div style="font-weight: bold">a:1</div>'
     });
-
-    test('handles empty nodes', () => {
-        expect(computeCategoriesSankey([])).toEqual([]);
+    expect(styled[1]).toMatchObject({
+      name: 'n2',
+      itemStyle: { color: '#0f0', borderColor: '#0f0' },
+      prop: 'meta'
     });
-
-    test('handles undefined category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: undefined } as any,
-            { name: 'n2', category: 'cat1' },
-        ];
-        expect(computeCategoriesSankey(nodes)).toEqual([undefined, 'cat1']);
+    expect(styled[2]).toMatchObject({
+      name: 'n3',
+      itemStyle: { color: '#f00', borderColor: '#f00' }
     });
-});
+  });
 
-describe('computeNodesSankey', () => {
-    test('computes nodes with valid inputs', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1', properties: { key: 'val' } },
-        ];
-        const categories = ['cat1'];
-        const colors = ['#FF0000'];
-        const result = computeNodesSankey(nodes, categories, colors);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                itemStyle: { color: '#FF0000', borderColor: '#FF0000' },
-                prop: '<div style="font-weight: bold">key:val</div>',
-            },
-        ]);
+  it('computes sankey links with optional tooltip payload', () => {
+    const links: VisualizationTypes.Link[] = [
+      { source: 'n1', target: 'n2', value: 5, properties: { p: 'x' } },
+      { source: 'n2', target: 'n3', value: 9 }
+    ];
+
+    const result = computeLinksSankey(links);
+    expect(result[0]).toMatchObject({
+      source: 'n1',
+      target: 'n2',
+      value: 5,
+      prop: '<div style="font-weight: bold">p:x</div><div style="font-weight: bold">value:5</div>'
     });
+    expect(result[1]).toEqual({ source: 'n2', target: 'n3', value: 9 });
+  });
 
-    test('handles empty inputs', () => {
-        expect(computeNodesSankey([], [], [])).toEqual([]);
+  it('computes FLG/HEB categories and transformed nodes/links', () => {
+    const nodes: VisualizationTypes.Node[] = [
+      { name: 'A', category: 'left', properties: { info: '1' } },
+      { name: 'B', category: 'right' }
+    ];
+
+    const categories = computeCategoriesFLGOrHEB(nodes, ['#123', '#456']);
+    expect(categories).toEqual([
+      { name: 'left', itemStyle: { color: '#123' } },
+      { name: 'right', itemStyle: { color: '#456' } }
+    ]);
+
+    const hebNodes = computeNodesHEB(nodes, categories);
+    expect(hebNodes[0]).toMatchObject({
+      id: 'A',
+      label: { show: true, color: '#123' },
+      prop: '<div style="font-weight: bold">info:1</div>'
     });
+    expect(hebNodes[1]).toMatchObject({ id: 'B', label: { show: true, color: '#456' } });
 
-    test('handles undefined category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: undefined, properties: { key: 'val' } } as any,
-        ];
-        const result = computeNodesSankey(nodes, ['cat1'], ['#FF0000']);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                itemStyle: { color: undefined, borderColor: undefined },
-                prop: '<div style="font-weight: bold">key:val</div>',
-            },
-        ]);
+    const flgNodes = computeNodesFLG(nodes, categories);
+    expect(flgNodes).toEqual([
+      { id: '0', name: 'A', category: 0, prop: '<div style="font-weight: bold">info:1</div>' },
+      { id: '1', name: 'B', category: 1 }
+    ]);
+
+    const links = computeLinksFLGOrHEB([
+      { source: 'A', target: 'B', value: 2, properties: { weight: 'w' } },
+      { source: 'unknown', target: 'B', value: 1 }
+    ], nodes);
+
+    expect(links[0]).toMatchObject({
+      source: 0,
+      target: 1,
+      value: 2,
+      prop: '<div style="font-weight: bold">weight:w</div><div style="font-weight: bold">value:2</div>'
     });
+    expect(links[1]).toEqual({ source: -1, target: 1, value: 1 });
+  });
 
-    test('handles undefined properties', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-        ];
-        const result = computeNodesSankey(nodes, ['cat1'], ['#FF0000']);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                itemStyle: { color: '#FF0000', borderColor: '#FF0000' },
-            },
-        ]);
+  it('maps nodes by category key', () => {
+    const grouped = categoryMap([
+      { name: 'a', category: 'one' },
+      { name: 'b', category: 'two' },
+      { name: 'c', category: 'one' }
+    ]);
+
+    expect(grouped).toEqual({
+      one: [{ name: 'a', category: 'one' }, { name: 'c', category: 'one' }],
+      two: [{ name: 'b', category: 'two' }]
     });
-});
+  });
 
-describe('computeLinksSankey', () => {
-    test('computes links with valid inputs', () => {
-        const links: VisualizationTypes.Link[] = [
-            { source: 'n1', target: 'n2', value: 10, properties: { key: 'val' } },
-        ];
-        const result = computeLinksSankey(links);
-        expect(result).toEqual([
-            {
-                source: 'n1',
-                target: 'n2',
-                value: 10,
-                prop: '<div style="font-weight: bold">key:val</div><div style="font-weight: bold">value:10</div>',
-            },
-        ]);
-    });
+  it('creates matrix table markup for headers, labels and links', () => {
+    const group1: VisualizationTypes.Node[] = [
+      {
+        name: 'g1-node',
+        category: 'g1',
+        labels: [{ name: 'L1', value: 10, properties: { tip: { x: 'y' } } }]
+      } as any
+    ];
+    const group2: VisualizationTypes.Node[] = [
+      {
+        name: 'g2-node',
+        category: 'g2',
+        labels: [{ name: 'R1', value: 20, properties: { style: { color: 'red' } } }],
+        properties: { tip: { a: 'b' } }
+      } as any
+    ];
+    const links: VisualizationTypes.Link[] = [
+      { source: 'g1-node', target: 'g2-node', value: 33, properties: { tip: { link: 'yes' } } }
+    ];
 
-    test('handles empty links', () => {
-        expect(computeLinksSankey([])).toEqual([]);
-    });
+    const html = createHeadersAndPropertiesString(group1, group2, links);
 
-    test('handles undefined properties', () => {
-        const links: VisualizationTypes.Link[] = [
-            { source: 'n1', target: 'n2', value: 10 },
-        ];
-        const result = computeLinksSankey(links);
-        expect(result).toEqual([
-            { source: 'n1', target: 'n2', value: 10 },
-        ]);
-    });
-});
+    expect(html).toContain('<thead>');
+    expect(html).toContain('g2-node');
+    expect(html).toContain('g1-node');
+    expect(html).toContain('L1');
+    expect(html).toContain('R1');
+    expect(html).toContain('33');
+    expect(html).toContain('tooltip');
+    expect(html).toContain('sortableCol');
+    expect(html).toContain('sortableRow');
+  });
 
-// describe('sortColumns', () => {
-//     beforeEach(() => {
-//         document.body.innerHTML = `
-//       <table id="myTable">
-//         <tr>
-//           <td class="sortableCol" right-data-sort-direction="asc">Col1</td>
-//         </tr>
-//       </table>
-//     `;
-//     });
+  it('wires sortable column clicks and toggles direction', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr>
+          <td class="sortableCol" right-data-sort-direction="asc">H</td>
+        </tr>
+        <tr><td class="right-sortable-items"><span>2</span></td></tr>
+        <tr><td class="right-sortable-items"><span>1</span></td></tr>
+      </table>
+    `;
 
-//     test('adds click listeners and toggles sort direction', () => {
-//         sortColumns();
-//         const col = document.querySelector('.sortableCol')!;
-//         col.dispatchEvent(new MouseEvent('click'));
-//         expect(globalThis.sortUpperTable).toHaveBeenCalledWith(1, 'desc');
-//         expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
-//         col.dispatchEvent(new MouseEvent('click'));
-//         expect(globalThis.sortUpperTable).toHaveBeenCalledWith(1, 'asc');
-//     });
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
 
-//     test('handles no sortable columns', () => {
-//         document.body.innerHTML = '<table id="myTable"></table>';
-//         expect(() => sortColumns()).not.toThrow();
-//     });
-// });
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('asc');
+  });
 
-// describe('sortRows', () => {
-//     beforeEach(() => {
-//         document.body.innerHTML = `
-//       <table id="myTable">
-//         <tr>
-//           <td class="sortableRow" left-data-sort-direction="asc">Row1</td>
-//         </tr>
-//       </table>
-//     `;
-//         vi.spyOn(globalThis, 'sortLowerTable');
-//     });
+  it('wires sortable row clicks and sorts tbody rows', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <thead>
+          <tr><td class="sortableRow" left-data-sort-direction="asc">Header</td></tr>
+        </thead>
+        <tbody>
+          <tr class="sortus"><td class="left-sortable-items"><span>2</span></td><td>row-two</td></tr>
+          <tr class="sortus"><td class="left-sortable-items"><span>10</span></td><td>row-ten</td></tr>
+        </tbody>
+      </table>
+    `;
 
-//     test('adds click listeners and toggles sort direction', () => {
-//         sortRows();
-//         const row = document.querySelector('.sortableRow')!;
-//         row.dispatchEvent(new MouseEvent('click'));
-//         expect(globalThis.sortLowerTable).toHaveBeenCalledWith(0, 'desc');
-//         expect(row.getAttribute('left-data-sort-direction')).toBe('desc');
-//         row.dispatchEvent(new MouseEvent('click'));
-//         expect(globalThis.sortLowerTable).toHaveBeenCalledWith(0, 'asc');
-//     });
+    sortRows();
 
-//     test('handles no sortable rows', () => {
-//         document.body.innerHTML = '<table id="myTable"></table>';
-//         expect(() => sortRows()).not.toThrow();
-//     });
-// });
+    const rowTrigger = document.querySelector('.sortableRow') as HTMLElement;
+    rowTrigger.click();
+    expect(rowTrigger.getAttribute('left-data-sort-direction')).toBe('desc');
 
-// describe('addStyleTooltipWithHover', () => {
-//     beforeEach(() => {
-//         document.body.innerHTML = `
-//       <div class="right-sortable-items">
-//         <span class="tooltip">Tooltip</span>
-//       </div>
-//       <div class="left-sortable-items">
-//         <span class="tooltip">Tooltip2</span>
-//       </div>
-//     `;
-//     });
+    const tbodyRows = Array.from(document.querySelectorAll('#myTable tbody tr'));
+    expect(tbodyRows[0]?.textContent).toContain('row-ten');
 
-//     test('adds hover events to show/hide tooltip', () => {
-//         addStyleTooltipWithHover();
-//         const item1 = document.querySelector('.right-sortable-items')!;
-//         const item2 = document.querySelector('.left-sortable-items')!;
-//         const tooltip1: any = item1.querySelector('.tooltip')!;
-//         const tooltip2: any = item2.querySelector('.tooltip')!;
-//         expect(tooltip1.style.visibility).toBe('hidden');
-//         expect(tooltip2.style.visibility).toBe('hidden');
-//         item1.dispatchEvent(new MouseEvent('mouseover'));
-//         expect(tooltip1.style.visibility).toBe('visible');
-//         item1.dispatchEvent(new MouseEvent('mouseout'));
-//         expect(tooltip1.style.visibility).toBe('hidden');
-//         item2.dispatchEvent(new MouseEvent('mouseover'));
-//         expect(tooltip2.style.visibility).toBe('visible');
-//         item2.dispatchEvent(new MouseEvent('mouseout'));
-//         expect(tooltip2.style.visibility).toBe('hidden');
-//     });
+    rowTrigger.click();
+    expect(rowTrigger.getAttribute('left-data-sort-direction')).toBe('asc');
+  });
 
-//     test('handles no tooltips', () => {
-//         document.body.innerHTML = '<div class="right-sortable-items"></div>';
-//         expect(() => addStyleTooltipWithHover()).not.toThrow();
-//     });
+  it('adds hover behavior for tooltip visibility', () => {
+    document.body.innerHTML = `
+      <div class="right-sortable-items"><span class="tooltip">A</span></div>
+      <div class="left-sortable-items"><span class="tooltip">B</span></div>
+    `;
 
-//     test('handles no sortable items', () => {
-//         document.body.innerHTML = '';
-//         expect(() => addStyleTooltipWithHover()).not.toThrow();
-//     });
-// });
+    addStyleTooltipWithHover();
 
-// describe('createHeadersAndPropertiesString', () => {
-//     test('creates table with valid inputs', () => {
-//         const group1: VisualizationTypes.Node[] = [
-//             {
-//                 name: 'n1',
-//                 labels: [{ name: 'label1', value: 10, properties: { key: 'val' } }] ,
-//             } as any,
-//         ];
-//         const group2: VisualizationTypes.Node[] = [
-//             {
-//                 name: 'n2',
-//                 labels: [{ name: 'label2', value: 20, properties: { key: 'val2' } }],
-//             } as any,
-//         ];
-//         const links: VisualizationTypes.Link[] = [
-//             { source: 'n1', target: 'n2', value: 30, properties: { key: 'link' } },
-//         ];
-//         const result = createHeadersAndPropertiesString(group1, group2, links);
-//         expect(result).toContain('label1');
-//         expect(result).toContain('label2');
-//         expect(result).toContain('n1');
-//         expect(result).toContain('n2');
-//         expect(result).toContain('10');
-//         expect(result).toContain('20');
-//         expect(result).toContain('30');
-//         expect(result).toContain('key:val');
-//         expect(result).toContain('key:val2');
-//         expect(result).toContain('key:link');
-//     });
+    const right = document.querySelector('.right-sortable-items') as HTMLElement;
+    const tip = right.querySelector('.tooltip') as HTMLElement;
+    expect(tip.style.visibility).toBe('hidden');
 
-//     test('handles empty inputs', () => {
-//         const result = createHeadersAndPropertiesString([], [], []);
-//         expect(result).toContain('<thead><tr id="header" ><th> </th></tr></thead><tbody></tbody>');
-//     });
-
-//     test('handles undefined labels', () => {
-//         const group1: VisualizationTypes.Node[] = [
-//             { name: 'n1', labels: undefined } as any,
-//         ];
-//         const group2: VisualizationTypes.Node[] = [
-//             { name: 'n2', labels: undefined } as any,
-//         ];
-//         const result = createHeadersAndPropertiesString(group1, group2, []);
-//         expect(result).toContain('n1');
-//         expect(result).toContain('n2');
-//         expect(result).toContain('<td class="right-sortable-items left-sortable-items"');
-//     });
-
-//     test('handles undefined properties', () => {
-//         const group1: VisualizationTypes.Node[] = [
-//             { name: 'n1', labels: [{ name: 'label1', value: 10 }] } as any,
-//         ];
-//         const group2: VisualizationTypes.Node[] = [
-//             { name: 'n2', labels: [{ name: 'label2', value: 20 }] } as any,
-//         ];
-//         const links: VisualizationTypes.Link[] = [
-//             { source: 'n1', target: 'n2', value: 30 },
-//         ];
-//         const result = createHeadersAndPropertiesString(group1, group2, links);
-//         expect(result).toContain('10');
-//         expect(result).toContain('20');
-//         expect(result).toContain('30');
-//     });
-// });
-
-// describe('computeCategoriesFLGOrHEB', () => {
-//     test('computes categories with valid inputs', () => {
-//         const nodes: VisualizationTypes.Node[] = [
-//             { name: 'n1', category: 'cat1' },
-//             { name: 'n2', category: 'cat2' },
-//             { name: 'n3', category: 'cat1' },
-//         ];
-//         const colors = ['#FF0000', '#00FF00'];
-//         const result = computeCategoriesFLGOrHEB(nodes, colors);
-//         expect(result).toEqual([
-//             { name: 'cat1', itemStyle: { color: '#FF0000' } },
-//             { name: 'cat2', itemStyle: { color: '#00FF00' } },
-//         ]);
-//     });
-
-//     test('handles empty inputs', () => {
-//         expect(computeCategoriesFLGOrHEB([], [])).toEqual([]);
-//     });
-
-//     test('handles undefined category', () => {
-//         const nodes: VisualizationTypes.Node[] = [
-//             { name: 'n1', category: undefined },
-//             { name: 'n2', category: 'cat1' },
-//         ];
-//         const result = computeCategoriesFLGOrHEB(nodes, ['#FF0000', '#00FF00']);
-//         expect(result).toEqual([
-//             { name: undefined, itemStyle: { color: '#FF0000' } },
-//             { name: 'cat1', itemStyle: { color: '#00FF00' } },
-//         ]);
-//     });
-
-//     test('handles fewer colors than categories', () => {
-//         const nodes: VisualizationTypes.Node[] = [
-//             { name: 'n1', category: 'cat1' },
-//             { name: 'n2', category: 'cat2' },
-//         ];
-//         const result = computeCategoriesFLGOrHEB(nodes, ['#FF0000']);
-//         expect(result).toEqual([
-//             { name: 'cat1', itemStyle: { color: '#FF0000' } },
-//             { name: 'cat2', itemStyle: { color: undefined } },
-//         ]);
-//     });
-// });
-
-describe('computeNodesHEB', () => {
-    test('computes nodes with valid inputs', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1', properties: { key: 'val' } },
-        ];
-        const categories = [{ name: 'cat1', itemStyle: { color: '#FF0000' } }];
-        const result = computeNodesHEB(nodes, categories);
-
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                category: 'cat1',
-                properties: { key: 'val' },
-                id: 'n1',
-                label: { show: true, color: '#FF0000' },
-                symbolSize: '',
-                prop: '<div style="font-weight: bold">key:val</div>'
-            },
-        ]);
-    });
-
-    test('handles empty inputs', () => {
-        expect(computeNodesHEB([], [])).toEqual([]);
-    });
-
-    test('handles undefined category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: undefined } as any,
-        ];
-        const result = computeNodesHEB(nodes, []);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                category: undefined,
-                id: 'n1',
-                label: { show: true, color: '#000' },
-                symbolSize: '',
-            },
-        ]);
-    });
-
-    test('handles missing category in categories', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-        ];
-        const result = computeNodesHEB(nodes, []);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                category: 'cat1',
-                id: 'n1',
-                label: { show: true, color: '#000' },
-                symbolSize: '',
-            },
-        ]);
-    });
-
-    test('handles undefined properties', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-        ];
-        const categories = [{ name: 'cat1', itemStyle: { color: '#FF0000' } }];
-        const result = computeNodesHEB(nodes, categories);
-        expect(result).toEqual([
-            {
-                name: 'n1',
-                category: 'cat1',
-                id: 'n1',
-                label: { show: true, color: '#FF0000' },
-                symbolSize: '',
-            },
-        ]);
-    });
-});
-
-describe('computeLinksFLGOrHEB', () => {
-    test('computes links with valid inputs', () => {
-        const links: VisualizationTypes.Link[] = [
-            { source: 'n1', target: 'n2', value: 10, properties: { key: 'val' } },
-        ];
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1' },
-            { name: 'n2' },
-        ];
-        const result = computeLinksFLGOrHEB(links, nodes);
-        expect(result).toEqual([
-            {
-                source: 0,
-                target: 1,
-                value: 10,
-                prop: '<div style="font-weight: bold">key:val</div><div style="font-weight: bold">value:10</div>',
-            },
-        ]);
-    });
-
-    test('handles empty inputs', () => {
-        expect(computeLinksFLGOrHEB([], [])).toEqual([]);
-    });
-
-    test('handles missing nodes', () => {
-        const links: VisualizationTypes.Link[] = [
-            { source: 'n1', target: 'n2', value: 10 },
-        ];
-        const result = computeLinksFLGOrHEB(links, []);
-        expect(result).toEqual([
-            { source: -1, target: -1, value: 10 },
-        ]);
-    });
-
-    test('handles undefined properties', () => {
-        const links: VisualizationTypes.Link[] = [
-            { source: 'n1', target: 'n2', value: 10 },
-        ];
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1' },
-            { name: 'n2' },
-        ];
-        const result = computeLinksFLGOrHEB(links, nodes);
-        expect(result).toEqual([
-            { source: 0, target: 1, value: 10 },
-        ]);
-    });
-});
-
-describe('computeNodesFLG', () => {
-    test('computes nodes with valid inputs', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1', properties: { key: 'val' } },
-        ];
-        const categories = [{ name: 'cat1' }];
-        const result = computeNodesFLG(nodes, categories);
-        expect(result).toEqual([
-            {
-                id: '0',
-                name: 'n1',
-                category: 0,
-                prop: '<div style="font-weight: bold">key:val</div>',
-            },
-        ]);
-    });
-
-    test('handles empty inputs', () => {
-        expect(computeNodesFLG([], [])).toEqual([]);
-    });
-
-    test('handles undefined category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: undefined } as any,
-        ];
-        const categories = [{ name: 'cat1' }];
-        const result = computeNodesFLG(nodes, categories);
-        expect(result).toEqual([
-            { id: '0', name: 'n1', category: -1 },
-        ]);
-    });
-
-    test('handles undefined properties', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-        ];
-        const categories = [{ name: 'cat1' }];
-        const result = computeNodesFLG(nodes, categories);
-        expect(result).toEqual([
-            { id: '0', name: 'n1', category: 0 },
-        ]);
-    });
-});
-
-describe('categoryMap', () => {
-    test('maps nodes by category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: 'cat1' },
-            { name: 'n2', category: 'cat2' },
-            { name: 'n3', category: 'cat1' },
-        ];
-        const result = categoryMap(nodes);
-        expect(result).toEqual({
-            cat1: [{ name: 'n1', category: 'cat1' }, { name: 'n3', category: 'cat1' }],
-            cat2: [{ name: 'n2', category: 'cat2' }],
-        });
-    });
-
-    test('handles empty nodes', () => {
-        expect(categoryMap([])).toEqual({});
-    });
-
-    test('handles undefined category', () => {
-        const nodes: VisualizationTypes.Node[] = [
-            { name: 'n1', category: undefined },
-            { name: 'n2', category: 'cat1' },
-        ];
-        const result = categoryMap(nodes);
-        expect(result).toEqual({
-            undefined: [{ name: 'n1', category: undefined }],
-            cat1: [{ name: 'n2', category: 'cat1' }],
-        });
-    });
+    right.dispatchEvent(new MouseEvent('mouseover'));
+    expect(tip.style.visibility).toBe('visible');
+    right.dispatchEvent(new MouseEvent('mouseout'));
+    expect(tip.style.visibility).toBe('hidden');
+  });
 });

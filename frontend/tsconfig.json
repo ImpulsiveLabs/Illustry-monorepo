@@ -17,7 +17,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": ".",
@@ -29,7 +29,7 @@
     "paths": {
       "@/*": [
         "./src/*"
-      ],
+      ]
     },
     "plugins": [
       {
@@ -49,9 +49,10 @@
     "@testing-library/jest-dom",
     "vitest/globals",
     "__tests__/**/*",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "__tests__/**/*",
+    "__tests__/**/*"
   ]
 }

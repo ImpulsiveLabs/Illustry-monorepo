@@ -51,7 +51,6 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
         form.reset();
         toast.success('Dashboard added successfully.');
         router.push('/dashboards');
-        router.refresh();
       } catch (err) {
         catchError(err);
       }

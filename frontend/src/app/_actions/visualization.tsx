@@ -3,20 +3,28 @@
 'use server';
 
 import 'dotenv/config';
-import { revalidateTag } from 'next/cache';
 import {
   VisualizationTypes
 } from '@illustry/types';
 import makeRequest from '@/lib/request';
+
+function getBackendUrl() {
+  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+  if (!url) {
+    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
+  }
+  return url;
+}
+
+const BACKEND = getBackendUrl() as string;
 
 const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFilter) => {
   let newFilter: VisualizationTypes.VisualizationFilter = {};
   if (filter) {
     newFilter = filter;
   }
-  revalidateTag('visualizations');
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualizations`,
+    `${BACKEND as string}/api/visualizations`,
     {
       method: 'POST',
       headers: {
@@ -37,9 +45,8 @@ const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFil
 const deleteVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
-  revalidateTag('visualizations');
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization`,
+    `${BACKEND as string}/api/visualization`,
     {
       method: 'DELETE',
       headers: {
@@ -60,7 +67,7 @@ const createOrUpdateVisualization = async (
   form: FormData
 ) => {
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization`,
+    `${BACKEND as string}/api/visualization`,
     {
       method: 'POST',
       body: form
@@ -77,9 +84,8 @@ const createOrUpdateVisualization = async (
 const findOneVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
-  revalidateTag('visualizations');
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/visualization/${visualizationFilter.name}`,
+    `${BACKEND as string}/api/visualization/${visualizationFilter.name}`,
     {
       method: 'POST',
       headers: {

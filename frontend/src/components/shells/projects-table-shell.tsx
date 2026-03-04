@@ -23,6 +23,7 @@ import Checkbox from '../ui/checkbox';
 import DataTable from '../data-table/data-table';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useActiveProjectDispatch } from '../providers/active-project-provider';
+import { useRouter } from 'next/navigation';
 
 type ProjectsTableShellProps = {
   data?: ProjectTypes.ProjectType[];
@@ -33,6 +34,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
   const dispatch = useActiveProjectDispatch();
+  const router = useRouter();
 
   useEffect(() => {
     if (dispatch) {
@@ -136,7 +138,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
 
                     toast.promise(deleteProject(row.original.name), {
                       loading: 'Deleting...',
-                      success: () => 'Project deleted successfully.',
+                      success: () => { router.refresh(); return 'Project deleted successfully.' },
                       error: (err: unknown) => catchError(err)
                     });
                   });
@@ -161,6 +163,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
         loading: 'Deleting...',
         success: () => {
           setSelectedRowNames([]);
+          router.refresh();
           return 'Projects deleted successfully.';
         },
         error: (err: unknown) => {

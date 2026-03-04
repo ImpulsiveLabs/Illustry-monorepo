@@ -18,9 +18,9 @@ vi.mock('@/components/ui/command', () => ({
   Command: ({ children }: any) => <div>{children}</div>,
   CommandInput: (props: any) => <input data-testid="command-input" {...props} />,
   CommandList: ({ children }: any) => <ul>{children}</ul>,
-  CommandGroup: ({ children }: any) => <li>{children}</li>,
+  CommandGroup: ({ children }: any) => <div>{children}</div>,
   CommandItem: ({ children, onSelect }: any) => (
-    <li onClick={() => onSelect?.()}>{children}</li>
+    <div onClick={() => onSelect?.()}>{children}</div>
   ),
   CommandSeparator: () => <hr />,
   CommandEmpty: () => <div>No results found.</div>
@@ -107,4 +107,3 @@ describe('MultiSelect', () => {
     expect(closeBtn).toBeInTheDocument(); // Basic smoke test for the button
   });
 });
-

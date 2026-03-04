@@ -3,18 +3,26 @@
 'use server';
 
 import 'dotenv/config';
-import { revalidateTag } from 'next/cache';
 import { ProjectTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
 
+function getBackendUrl() {
+  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+  if (!url) {
+    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
+  }
+  return url;
+}
+
+const BACKEND = getBackendUrl() as string;
+
 const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
-  revalidateTag('projects');
   let newFilter: ProjectTypes.ProjectFilter = {};
 
   if (filter) {
     newFilter = filter;
   }
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/projects`, {
+  const request = new Request(`${BACKEND as string}/api/projects`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -30,8 +38,7 @@ const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
 };
 
 const deleteProject = async (projectName: string) => {
-  revalidateTag('projects');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -49,8 +56,7 @@ const deleteProject = async (projectName: string) => {
 };
 
 const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
-  revalidateTag('projects');
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
@@ -71,7 +77,7 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
     projectDescription: project.description,
     isActive: project.isActive
   };
-  const request = new Request(`${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project`, {
+  const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -88,7 +94,7 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
 
 const findOneProject = async (projectName: string) => {
   const request = new Request(
-    `${process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL as string}/api/project/${projectName}`,
+    `${BACKEND as string}/api/project/${projectName}`,
     {
       method: 'POST',
       headers: {

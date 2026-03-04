@@ -1,30 +1,27 @@
 import React from 'react';
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { findOneDashboard } from '@/app/_actions/dashboard';
 import ResizableDashboard from '@/components/shells/dashboard-shell';
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: 'Dashboards',
-  description: 'Manage your Dashboards'
+  description: 'Manage your Dashboards',
 };
 
 type DashboardProps = {
-  searchParams: {
-    [key: string]: string;
-  };
-}
+  searchParams: Promise<{
+    [key: string]: string | string[] | undefined;
+    name?: string;
+  }>;
+};
 
 const DashboardHub = async ({ searchParams }: DashboardProps) => {
-  const { name } = searchParams;
-  const dashboard = (await findOneDashboard((name as string), true));
-  return (
-    <>
-      <ResizableDashboard
-        dashboard={dashboard}
-      />
-    </>
-  );
+  const sp = await searchParams;
+  const name = typeof sp.name === 'string' ? sp.name : undefined;
+
+  const dashboard = await findOneDashboard(name ?? '', true);
+
+  return <ResizableDashboard dashboard={dashboard} />;
 };
 
 export default DashboardHub;
-export { metadata };

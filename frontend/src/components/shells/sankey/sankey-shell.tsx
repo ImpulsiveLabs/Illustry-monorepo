@@ -1,3 +1,5 @@
+'use client';
+
 import { VisualizationTypes } from '@illustry/types';
 import dynamic from 'next/dynamic';
 import {

@@ -1,5 +1,3 @@
-/* eslint-disable no-return-assign */
-/* eslint-disable no-unused-vars */
 import {
   Dispatch, RefObject, SetStateAction, useEffect, useRef
 } from 'react';
@@ -10,7 +8,6 @@ import {
   Tabs, TabsList, TabsTrigger, TabsContent
 } from '../tabs';
 
-// TypeScript interface for theme structure
 interface ThemeColors {
   [key: string]: {
     light: { colors: string[] };
@@ -86,7 +83,7 @@ const GenericThemesAccordion = ({
               placeholder="#FFFFFF"
             />
             <div
-              ref={(el) => (swatchRefs.current[index] = el)}
+              ref={(el) => { swatchRefs.current[index] = el }}
               onClick={() => setActiveColorPickerIndex(index)}
               style={{ backgroundColor: color }}
               className="w-6 h-6 border border-gray-300 rounded cursor-pointer hover:ring-2 hover:ring-blue-500"
