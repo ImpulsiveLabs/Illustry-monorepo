@@ -7,7 +7,7 @@ Illustry is a powerful web application built to serve as a visualization hub, se
 
 ## Key Technologies Used
 
-- **Frontend:** Next 14
+- **Frontend:** Next 16
 - **Database:** MongoDB
 - **Server:** Node
 
