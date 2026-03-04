@@ -5,18 +5,12 @@
 import 'dotenv/config';
 import { ProjectTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
+import getBackendUrl from '@/lib/backend-url';
 
-function getBackendUrl() {
-  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
-  if (!url) {
-    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
-  }
-  return url;
-}
-
-const BACKEND = getBackendUrl() as string;
 
 const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
+  const BACKEND = getBackendUrl() as string;
+
   let newFilter: ProjectTypes.ProjectFilter = {};
 
   if (filter) {
@@ -38,6 +32,8 @@ const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
 };
 
 const deleteProject = async (projectName: string) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'DELETE',
     headers: {
@@ -56,6 +52,8 @@ const deleteProject = async (projectName: string) => {
 };
 
 const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'PUT',
     headers: {
@@ -72,6 +70,8 @@ const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
 };
 
 const createProject = async (project: ProjectTypes.ProjectCreate) => {
+  const BACKEND = getBackendUrl() as string;
+
   const newProject = {
     projectName: project.name,
     projectDescription: project.description,
@@ -93,6 +93,8 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
 };
 
 const findOneProject = async (projectName: string) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
     `${BACKEND as string}/api/project/${projectName}`,
     {

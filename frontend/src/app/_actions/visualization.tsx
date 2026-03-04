@@ -7,18 +7,12 @@ import {
   VisualizationTypes
 } from '@illustry/types';
 import makeRequest from '@/lib/request';
+import getBackendUrl from '@/lib/backend-url';
 
-function getBackendUrl() {
-  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
-  if (!url) {
-    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
-  }
-  return url;
-}
-
-const BACKEND = getBackendUrl() as string;
 
 const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFilter) => {
+  const BACKEND = getBackendUrl() as string;
+
   let newFilter: VisualizationTypes.VisualizationFilter = {};
   if (filter) {
     newFilter = filter;
@@ -45,6 +39,8 @@ const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFil
 const deleteVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
     `${BACKEND as string}/api/visualization`,
     {
@@ -66,6 +62,8 @@ const deleteVisualization = async (
 const createOrUpdateVisualization = async (
   form: FormData
 ) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
     `${BACKEND as string}/api/visualization`,
     {
@@ -84,6 +82,8 @@ const createOrUpdateVisualization = async (
 const findOneVisualization = async (
   visualizationFilter: VisualizationTypes.VisualizationFilter
 ) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
     `${BACKEND as string}/api/visualization/${visualizationFilter.name}`,
     {

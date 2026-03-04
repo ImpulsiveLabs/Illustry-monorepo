@@ -5,18 +5,12 @@
 import 'dotenv/config';
 import { DashboardTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
+import getBackendUrl from '@/lib/backend-url';
 
-function getBackendUrl() {
-  const url = process.env.BACKEND_INTERNAL_URL || process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
-  if (!url) {
-    throw new Error('Backend URL is not set (BACKEND_INTERNAL_URL or NEXT_PUBLIC_BACKEND_PUBLIC_URL)');
-  }
-  return url;
-}
-
-const BACKEND = getBackendUrl() as string;
 
 const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
+  const BACKEND = getBackendUrl() as string;
+
   let newFilter: DashboardTypes.DashboardFilter = {};
 
   if (filter) {
@@ -38,6 +32,8 @@ const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
 };
 
 const deleteDashboard = async (dashboardName: string) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'DELETE',
     headers: {
@@ -56,6 +52,8 @@ const deleteDashboard = async (dashboardName: string) => {
 };
 
 const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'PUT',
     headers: {
@@ -72,6 +70,8 @@ const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
 };
 
 const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
+  const BACKEND = getBackendUrl() as string;
+
   const newDashboard = {
     projectName: dashboard.projectName,
     visualizations: dashboard.visualizations,
@@ -94,6 +94,8 @@ const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
 };
 
 const findOneDashboard = async (dashboardName: string, fullVisualizations: boolean = false) => {
+  const BACKEND = getBackendUrl() as string;
+
   const request = new Request(
     `${BACKEND as string}/api/dashboard/${dashboardName}`,
     {
