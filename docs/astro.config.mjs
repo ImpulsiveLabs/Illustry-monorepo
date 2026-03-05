@@ -24,10 +24,18 @@ export default defineConfig({
 				},
 			  ],
 			favicon: 'icon.ico',
-			social: {
-				github: 'https://impulsivelabs.github.io/Illustry-monorepo/',
-				linkedin: 'https://www.linkedin.com/in/vladimir-nitu-antonie-763b45172/'
-			},
+			social: [
+				{
+					icon: 'github',
+					label: 'GitHub',
+					href: 'https://impulsivelabs.github.io/Illustry-monorepo/'
+				},
+				{
+					icon: 'linkedin',
+					label: 'LinkedIn',
+					href: 'https://www.linkedin.com/in/vladimir-nitu-antonie-763b45172/'
+				}
+			],
 			sidebar: [
 				{
 					label: 'Guide',
