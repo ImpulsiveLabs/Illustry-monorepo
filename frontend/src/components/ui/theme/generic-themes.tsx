@@ -1,5 +1,5 @@
 import {
-  Dispatch, RefObject, SetStateAction, useEffect, useRef
+  useEffect, useMemo, useState
 } from 'react';
 import { useThemeColors } from '@/components/providers/theme-provider';
 import Icons from '@/components/icons';
@@ -7,6 +7,9 @@ import ColorPicker from '../colorPicker';
 import {
   Tabs, TabsList, TabsTrigger, TabsContent
 } from '../tabs';
+import {
+  Popover, PopoverContent, PopoverTrigger
+} from '../popover';
 
 interface ThemeColors {
   [key: string]: {
@@ -16,25 +19,19 @@ interface ThemeColors {
 }
 
 interface GenericThemesProps {
-  activeColorPickerIndex: number | null;
   handleColorChange: (
     newColor: string,
     index: number,
     visualization: string,
     theme: 'light' | 'dark'
   ) => void;
-  colorPickerRef: RefObject<HTMLDivElement>;
-  setActiveColorPickerIndex: Dispatch<SetStateAction<number | null>>;
   visualization: string;
   handleColorDelete: (visualization: string, theme: 'light' | 'dark') => void;
   handleColorAdd: (visualization: string, theme: 'light' | 'dark') => void;
 }
 
 const GenericThemesAccordion = ({
-  activeColorPickerIndex,
   handleColorChange,
-  setActiveColorPickerIndex,
-  colorPickerRef,
   visualization,
   handleColorDelete,
   handleColorAdd
@@ -43,22 +40,34 @@ const GenericThemesAccordion = ({
   const activeVisualization = activeTheme[visualization];
   const lightColorsLength = activeVisualization?.light.colors.length;
   const darkColorsLength = activeVisualization?.dark.colors.length;
-  const swatchRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [activePickerKey, setActivePickerKey] = useState<string | null>(null);
+  const [draftColors, setDraftColors] = useState<Record<string, string>>({});
 
   // Validate hex color
   const isValidHex = (color: string) => /^#([0-9A-F]{3}){1,2}$/i.test(color);
-
-  // Handle click outside to close color picker
-  const handleClickOutside = (event: MouseEvent) => {
-    if (colorPickerRef.current && !colorPickerRef.current.contains(event.target as Node)) {
-      setActiveColorPickerIndex(null);
-    }
-  };
+  const inputKey = (theme: 'light' | 'dark', index: number) => `${theme}-${index}`;
+  const normalizedColors = useMemo(
+    () => ({
+      light: activeVisualization?.light.colors ?? [],
+      dark: activeVisualization?.dark.colors ?? []
+    }),
+    [activeVisualization]
+  );
 
   useEffect(() => {
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+    const nextDrafts: Record<string, string> = {};
+    normalizedColors.light.forEach((color, index) => {
+      nextDrafts[inputKey('light', index)] = color;
+    });
+    normalizedColors.dark.forEach((color, index) => {
+      nextDrafts[inputKey('dark', index)] = color;
+    });
+    setDraftColors((previous) => {
+      const previousSerialized = JSON.stringify(previous);
+      const nextSerialized = JSON.stringify(nextDrafts);
+      return previousSerialized === nextSerialized ? previous : nextDrafts;
+    });
+  }, [normalizedColors]);
 
   // Common color row rendering function
   const renderColorRow = (theme: 'light' | 'dark', colors: string[], colorsLength: number) => (
@@ -71,48 +80,68 @@ const GenericThemesAccordion = ({
           <div className="flex items-center gap-2" key={index}>
             <input
               type="text"
-              className={`w-full rounded p-1 border ${isValidHex(color) ? 'border-gray-300' : 'border-red-500'} 
+              className={`w-full rounded p-1 border ${isValidHex(draftColors[inputKey(theme, index)] ?? color) ? 'border-gray-300' : 'border-red-500'} 
               focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
-              value={color}
+              value={draftColors[inputKey(theme, index)] ?? color}
               onChange={(e) => {
-                const newColor = e.target.value;
-                if (isValidHex(newColor) || newColor === '') {
-                  handleColorChange(newColor, index, visualization, theme);
+                setDraftColors((prev) => ({
+                  ...prev,
+                  [inputKey(theme, index)]: e.target.value
+                }));
+              }}
+              onBlur={() => {
+                const rawValue = (draftColors[inputKey(theme, index)] ?? '').trim();
+                const normalized = rawValue && rawValue.startsWith('#') ? rawValue : `#${rawValue}`;
+                if (isValidHex(normalized)) {
+                  handleColorChange(normalized, index, visualization, theme);
+                  setDraftColors((prev) => ({
+                    ...prev,
+                    [inputKey(theme, index)]: normalized
+                  }));
+                  return;
                 }
+                setDraftColors((prev) => ({
+                  ...prev,
+                  [inputKey(theme, index)]: color
+                }));
               }}
               placeholder="#FFFFFF"
             />
-            <div
-              ref={(el) => { swatchRefs.current[index] = el }}
-              onClick={() => setActiveColorPickerIndex(index)}
-              style={{ backgroundColor: color }}
-              className="w-6 h-6 border border-gray-300 rounded cursor-pointer hover:ring-2 hover:ring-blue-500"
-            />
-            {activeColorPickerIndex === index && (
-              <div
-                ref={colorPickerRef}
-                className="absolute z-10 bg-white dark:bg-gray-800 p-2
-                 rounded-lg shadow-lg border border-gray-300 dark:border-gray-700"
-                style={{
-                  top: swatchRefs.current[index]?.getBoundingClientRect().bottom
-                    ? `${swatchRefs.current[index]!.getBoundingClientRect().bottom
-                    - swatchRefs.current[index]!.getBoundingClientRect().top + 8}px`
-                    : '0',
-                  right: '0'
-                }}
-              >
-                <ColorPicker
-                  initialColor={colors[activeColorPickerIndex] as string}
-                  changeColor={(newColor: string) => handleColorChange(newColor, activeColorPickerIndex!, visualization, theme)}
-                />
+            <Popover
+              open={activePickerKey === inputKey(theme, index)}
+              onOpenChange={(isOpen) => setActivePickerKey(isOpen ? inputKey(theme, index) : null)}
+            >
+              <PopoverTrigger asChild>
                 <button
-                  onClick={() => setActiveColorPickerIndex(null)}
-                  className="absolute top-1 right-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  <Icons.close className="w-4 h-4" />
-                </button>
-              </div>
-            )}
+                  type="button"
+                  style={{ backgroundColor: color }}
+                  className="h-8 w-8 rounded border border-gray-300 hover:ring-2 hover:ring-blue-500"
+                  aria-label={`Open color picker ${theme} ${index + 1}`}
+                />
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-2">
+                <div className="relative">
+                  <ColorPicker
+                    initialColor={color}
+                    changeColor={(newColor: string) => {
+                      handleColorChange(newColor, index, visualization, theme);
+                      setDraftColors((prev) => ({
+                        ...prev,
+                        [inputKey(theme, index)]: newColor
+                      }));
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setActivePickerKey(null)}
+                    className="absolute right-1 top-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    aria-label="Close color picker"
+                  >
+                    <Icons.close className="h-4 w-4" />
+                  </button>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
         ))}
         <div className="flex items-center gap-2">

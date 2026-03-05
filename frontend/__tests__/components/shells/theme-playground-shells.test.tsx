@@ -59,16 +59,12 @@ vi.mock('@/components/ui/theme/generic-themes', () => ({
         handleColorAdd,
         handleColorDelete,
         handleColorChange,
-        visualization,
-        setActiveColorPickerIndex,
-        colorPickerRef
+        visualization
     }: any) => (
         <div>
-            <div ref={colorPickerRef}>picker-{visualization}</div>
             <button onClick={() => handleColorAdd(visualization, 'light')}>add-color-{visualization}</button>
             <button onClick={() => handleColorDelete(visualization, 'light')}>delete-color-{visualization}</button>
             <button onClick={() => handleColorChange('#ffffff', 0, visualization, 'light')}>change-color-{visualization}</button>
-            <button onClick={() => setActiveColorPickerIndex(0)}>activate-picker-{visualization}</button>
         </div>
     )
 }));
@@ -189,8 +185,6 @@ describe('theme + playground shells', () => {
         await user.click(screen.getByRole('button', { name: 'add-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'delete-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'change-color-calendar' }));
-        await user.click(screen.getByRole('button', { name: 'activate-picker-calendar' }));
-        fireEvent.mouseDown(document.body);
 
         await waitFor(() => {
             expect(themeDispatch).toHaveBeenCalled();
