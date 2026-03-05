@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import { useRouter } from 'next/navigation';
@@ -15,11 +15,12 @@ const ResponsiveGridLayout = WidthProvider(Responsive) as unknown as React.FC<Re
 type VisualizationData = {
   dashboard: DashboardTypes.DashboardType | null;
 };
+type ResponsiveLayouts = Record<string, DashboardTypes.Layout[]>;
 
 const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const router = useRouter();
   const { layouts = [], visualizations = [] } = dashboard as DashboardTypes.DashboardType;
-  const initialLayout = layouts?.length ? layouts
+  const initialLayout = useMemo(() => (layouts?.length ? layouts
     : (visualizations as VisualizationTypes.VisualizationType[])
       .map((viz, index) => ({
         i: index.toString(),
@@ -29,18 +30,54 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         h: 4,
         minW: 4,
         minH: 2
-      })) as DashboardTypes.Layout[];
+      })) as DashboardTypes.Layout[]), [layouts, visualizations]);
 
   const [layout, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
+  const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
   const [hasLayoutChanged, setHasLayoutChanged] = useState(false);
+  const cloneLayout = useCallback(
+    (items: DashboardTypes.Layout[]) => items.map((item) => ({ ...item })),
+    []
+  );
+  const [responsiveLayouts, setResponsiveLayouts] = useState<ResponsiveLayouts>(() => ({
+    lg: cloneLayout(initialLayout)
+  }));
 
-  const onLayoutChange = useCallback((newLayout: DashboardTypes.Layout[]) => {
-    setLayout(newLayout);
-    setHasLayoutChanged(true);
+  useEffect(() => {
+    setLayout(initialLayout);
+    setResponsiveLayouts((prev) => ({
+      ...prev,
+      lg: cloneLayout(initialLayout)
+    }));
+  }, [cloneLayout, initialLayout]);
+
+  const onLayoutChange = useCallback(
+    (newLayout: DashboardTypes.Layout[], allLayouts: ResponsiveLayouts) => {
+      setResponsiveLayouts((prev) => {
+        const nextLayouts: ResponsiveLayouts = { ...prev };
+        Object.entries(allLayouts || {}).forEach(([breakpoint, bpLayout]) => {
+          nextLayouts[breakpoint] = cloneLayout(bpLayout);
+        });
+        if (!nextLayouts.lg && activeBreakpoint === 'lg') {
+          nextLayouts.lg = cloneLayout(newLayout);
+        }
+        return nextLayouts;
+      });
+
+      if (activeBreakpoint === 'lg') {
+        setLayout(cloneLayout(newLayout));
+        setHasLayoutChanged(true);
+      }
+    },
+    [activeBreakpoint, cloneLayout]
+  );
+
+  const onBreakpointChange = useCallback((newBreakpoint: string) => {
+    setActiveBreakpoint(newBreakpoint);
   }, []);
 
   const updateDashboardLayout = async () => {
-    const updatedDash = { ...dashboard, layouts: layout };
+    const updatedDash = { ...dashboard, layouts: responsiveLayouts.lg ?? layout };
     delete updatedDash.visualizations;
     await updateDashboard(updatedDash);
   };
@@ -56,7 +93,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [hasLayoutChanged, layout]);
+  }, [hasLayoutChanged, layout, responsiveLayouts]);
 
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
     const url = `/visualizationhub?name=${viz.name}&type=${viz.type}`;
@@ -67,7 +104,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     <div className="p-4">
       <ResponsiveGridLayout
         className="layout"
-        layouts={{ lg: layout }}
+        layouts={responsiveLayouts}
         breakpoints={{
           lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0
         }}
@@ -76,6 +113,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         }}
         rowHeight={150}
         onLayoutChange={onLayoutChange}
+        onBreakpointChange={onBreakpointChange}
         isDraggable={true}
         isResizable={true}
         draggableHandle=".draggable-corner"
@@ -102,7 +140,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
                     {viz.name} ({(viz.type as string).charAt(0).toUpperCase() + viz.type.slice(1)} Chart)
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[calc(100%-4rem)]">
+                <CardContent className="h-[calc(100%-4rem)] overflow-hidden">
                   <HubShell data={viz} fullScreen={false} filter={false} legend={true} />
                 </CardContent>
               </div>

@@ -205,7 +205,11 @@ const HubShell = ({
     return null;
   };
 
-  return <div>{renderGraph()}</div>;
+  return (
+    <div className={fullScreen ? '' : 'h-full [&>*]:h-full [&>*]:!mt-0'}>
+      {renderGraph()}
+    </div>
+  );
 };
 
 export default HubShell;

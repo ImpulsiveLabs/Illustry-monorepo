@@ -67,7 +67,7 @@ const WordCloudView = ({ words, fullScreen }: WordCloudProp) => {
       }
     ]
   };
-  const height = fullScreen ? '73.5vh' : '35vh';
+  const height = fullScreen ? '73.5vh' : '100%';
   return (
     <div className="w-full h-full">
       <ReactEcharts

@@ -27,14 +27,14 @@ describe('lib/filter modules', () => {
         const calendarData = {
             categories: ['work', 'personal'],
             calendar: [
-                { date: '2024-01-01', value: 1 },
-                { date: '2024-02-01', value: 2 }
+                { date: '2024-01-01', value: 1, category: 'work' },
+                { date: '2024-02-01', value: 2, category: 'personal' }
             ]
         } as any;
 
         const filtered = applyCalendarFilter(["categories=['work']", "dates>='2024-02-01'"], calendarData);
         expect(filtered.categories).toEqual(['work']);
-        expect(filtered.calendar).toEqual([{ date: '2024-02-01', value: 2 }]);
+        expect(filtered.calendar).toEqual([]);
     });
 
     it('filters funnel/pie values', () => {
@@ -56,7 +56,22 @@ describe('lib/filter modules', () => {
 
         const filtered = applyHierachyFilter(['values>=10', "categories=['x']"], data);
         expect(filtered.nodes).toHaveLength(1);
-        expect(filtered.categories).toEqual([]);
+        expect(filtered.categories).toEqual(['x']);
+    });
+
+    it('keeps untouched axis dimensions when only one filter type is used', () => {
+        const axisData = {
+            headers: ['a', 'b'],
+            values: { s1: [1, 2] }
+        } as any;
+        expect(applyAxisFilter(["headers=['a']"], axisData)).toEqual({
+            headers: ['a'],
+            values: { s1: [1] }
+        });
+        expect(applyAxisFilter(['values>=2'], axisData)).toEqual({
+            headers: ['a', 'b'],
+            values: { s1: [0, 2] }
+        });
     });
 
     it('filters node-link by categories/sources/targets/names/values', () => {

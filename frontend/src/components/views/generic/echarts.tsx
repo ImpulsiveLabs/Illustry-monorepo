@@ -2,7 +2,9 @@
 
 'use client';
 
-import React, { forwardRef, useImperativeHandle, useRef } from 'react';
+import React, {
+  forwardRef, useEffect, useImperativeHandle, useRef
+} from 'react';
 import ReactECharts from 'echarts-for-react';
 import 'echarts-wordcloud';
 import * as echarts from 'echarts/core';
@@ -60,7 +62,7 @@ type ReactEChartsProps<T> = {
   settings?: any;
   loading?: boolean;
   theme?: 'light' | 'dark';
-  style?: object;
+  style?: React.CSSProperties;
 };
 
 // Updated ReactEcharts Component with forwardRef
@@ -71,6 +73,7 @@ const ReactEcharts = forwardRef(<T, >(
   ref: React.Ref<unknown> | undefined
 ) => {
   const chartRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   useImperativeHandle(ref, () => ({
     // eslint-disable-next-line consistent-return
@@ -81,15 +84,34 @@ const ReactEcharts = forwardRef(<T, >(
     }
   }));
 
+  useEffect(() => {
+    const resizeChart = () => {
+      chartRef.current?.getEchartsInstance()?.resize();
+    };
+
+    window.addEventListener('resize', resizeChart);
+    const resizeObserver = new ResizeObserver(() => resizeChart());
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      window.removeEventListener('resize', resizeChart);
+      resizeObserver.disconnect();
+    };
+  }, []);
+
   return (
-    <ReactECharts
-      ref={chartRef}
-      option={option}
-      className={className}
-      theme={theme}
-      showLoading={loading}
-      style={style}
-    />
+    <div ref={containerRef} className="h-full w-full">
+      <ReactECharts
+        ref={chartRef}
+        option={option}
+        className={className}
+        theme={theme}
+        showLoading={loading}
+        style={{ height: '100%', width: '100%', ...style }}
+      />
+    </div>
   );
 });
 ReactEcharts.displayName = 'ReactEcharts';

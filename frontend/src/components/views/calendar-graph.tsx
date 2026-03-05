@@ -20,7 +20,9 @@ type CalendarGraphProp = {
   & WithOptions
   & WithFullScreen
 
-const CalendarGraphView = ({ categories, calendar, legend }: CalendarGraphProp) => {
+const CalendarGraphView = ({
+  categories, calendar, legend, fullScreen
+}: CalendarGraphProp) => {
   const activeTheme = useThemeColors();
   const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
   const isDarkTheme = theme === 'dark';
@@ -65,7 +67,9 @@ const CalendarGraphView = ({ categories, calendar, legend }: CalendarGraphProp) 
     calendar: computedCalendar.calendar as CalendarOption,
     series: computedCalendar.series
   };
-  const canvasHeight = `${computedCalendar.calendar.length * 35}vh`;
+  const yearsCount = computedCalendar.calendar.length || 1;
+  const fullScreenHeight = Math.min(Math.max(yearsCount * 300, 560), 1800);
+  const canvasHeight = fullScreen ? `${fullScreenHeight}px` : '100%';
   return (
     <div className="relative mt-[4%] flex flex-col items-center">
       {legend && (
