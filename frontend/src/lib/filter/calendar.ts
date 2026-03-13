@@ -91,8 +91,8 @@ const applyCalendarFilter = (expressions: string[], defaultData: {
     categories: string[];
     calendar: VisualizationTypes.CalendarType[];
   } = {
-    categories: [],
-    calendar: []
+    categories: [...defaultData.categories],
+    calendar: [...defaultData.calendar]
   };
   let categoriesFilter: string = '';
   let datesFilter: string = '';
@@ -115,13 +115,26 @@ const applyCalendarFilter = (expressions: string[], defaultData: {
     }
   });
   if (categoriesFilter !== '') {
-    newData.categories = applyCategoriesFilter(categoriesFilter, defaultData);
+    newData.categories = applyCategoriesFilter(categoriesFilter, newData);
+    if (newData.categories.length) {
+      const categorySet = new Set(newData.categories);
+      newData.calendar = newData.calendar.filter(
+        (event) => event.category && categorySet.has(event.category)
+      );
+    } else {
+      newData.calendar = [];
+    }
   }
   if (datesFilter !== '') {
     newData.calendar = applyDatesFilter(
       datesFilter,
-      defaultData
+      newData
     );
+  }
+  if (categoriesFilter === '' && datesFilter !== '') {
+    newData.categories = [...new Set(newData.calendar
+      .map((event) => event.category)
+      .filter((category): category is string => Boolean(category)))];
   }
   return newData;
 };

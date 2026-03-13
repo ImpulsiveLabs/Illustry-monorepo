@@ -88,6 +88,7 @@ const PlaygroundShell = () => {
       case 'scatter':
         ValidatorSchemas.validateWithSchema<Record<string, unknown>>(ValidatorSchemas.scatterDataSchema, data);
         break;
+      case 'treeMap':
       case 'treemap':
       case 'sunburst':
         ValidatorSchemas.validateWithSchema<Record<string, unknown>>(ValidatorSchemas.hierarchySchema, data);

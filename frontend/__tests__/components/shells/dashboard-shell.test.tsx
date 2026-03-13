@@ -23,9 +23,17 @@ vi.mock('@/components/shells/hub-shell', () => ({
 
 vi.mock('react-grid-layout', () => ({
     WidthProvider: (Comp: any) => Comp,
-    Responsive: ({ children, onLayoutChange }: any) => (
+    Responsive: ({ children, onLayoutChange, onDragStop }: any) => (
         <div>
-            <button onClick={() => onLayoutChange([{ i: '0', x: 1, y: 1, w: 2, h: 2 }])}>change-layout</button>
+            <button
+                onClick={() => {
+                    const nextLayout = [{ i: '0', x: 1, y: 1, w: 2, h: 2 }];
+                    onLayoutChange(nextLayout, { lg: nextLayout });
+                    onDragStop(nextLayout);
+                }}
+            >
+                change-layout
+            </button>
             {children}
         </div>
     )

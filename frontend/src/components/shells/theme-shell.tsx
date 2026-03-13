@@ -3,8 +3,7 @@
 'use client';
 
 import {
-  RefObject,
-  Suspense, useEffect, useRef, useState
+  Suspense, useEffect, useMemo, useState
 } from 'react';
 import { VisualizationTypes, UtilTypes } from '@illustry/types';
 import siteConfig from '@/config/site';
@@ -56,9 +55,7 @@ const ThemeShell = () => {
   const colorPalette: { [key: string]: string[] } = siteConfig.colorPallets;
   const activeTheme = useThemeColors();
   const themeDispatch = useThemeColorsDispach();
-  const [activeColorPickerIndex, setActiveColorPickerIndex] = useState<
-    number | null
-  >(null);
+  const [selectedSchemeName, setSelectedSchemeName] = useState<string | null>(null);
   const [showDiagram, setShowDiagram] = useState<ShowDiagramState>({
     sankey: false,
     heb: false,
@@ -75,15 +72,17 @@ const ThemeShell = () => {
     matrix: false,
     timeline: false
   });
-  const colorPickerRef = useRef<HTMLDivElement>(null);
-  const handleOutsideClick = (event: MouseEvent) => {
-    if (
-      colorPickerRef.current
-      && !colorPickerRef.current.contains(((event as MouseEvent).target as Node))
-    ) {
-      setActiveColorPickerIndex(null);
-    }
-  };
+  const findMatchingScheme = useMemo(() => {
+    const activeColors = activeTheme.sankey.light.colors;
+    const foundEntry = Object.entries(colorPalette).find(
+      ([, paletteColors]) => JSON.stringify(paletteColors) === JSON.stringify(activeColors)
+    );
+    return foundEntry?.[0] ?? null;
+  }, [activeTheme.sankey.light.colors, colorPalette]);
+
+  useEffect(() => {
+    setSelectedSchemeName(findMatchingScheme);
+  }, [findMatchingScheme]);
   const handleApplyTheme = (themeName: string) => {
     const appliedThemeColors: UtilTypes.DeepPartial<ThemeColors> = {
       flg: {
@@ -140,6 +139,7 @@ const ThemeShell = () => {
         type: 'apply',
         modifiedData: appliedThemeColors
       });
+      setSelectedSchemeName(themeName);
     }
   };
   const handleColorChange = (
@@ -157,6 +157,7 @@ const ThemeShell = () => {
           type: 'apply',
           modifiedData: updatedTheme
         });
+        setSelectedSchemeName(null);
       }, 200);
     }
   };
@@ -169,6 +170,7 @@ const ThemeShell = () => {
         type: 'apply',
         modifiedData: updatedTheme
       });
+      setSelectedSchemeName(null);
     }
   };
   const handleColorDelete = (visualization: string, theme: string) => {
@@ -180,6 +182,7 @@ const ThemeShell = () => {
         type: 'apply',
         modifiedData: updatedTheme
       });
+      setSelectedSchemeName(null);
     }
   };
   const setShowDiagramHandler = (keyToSet?: keyof ShowDiagramState) => {
@@ -195,13 +198,6 @@ const ThemeShell = () => {
       return newState as unknown as ShowDiagramState;
     });
   };
-  useEffect(() => {
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => {
-      document.removeEventListener('mousedown', handleOutsideClick);
-    };
-  }, []);
-
   return (
     <div className="flex h-screen">
       <ScrollArea className="fixed w-1/4 p-4 overflow-y-auto h-screen border-r-4">
@@ -214,6 +210,7 @@ const ThemeShell = () => {
               <DefaultThemesAccordion
                 colorPalette={colorPalette}
                 handleApplyTheme={handleApplyTheme}
+                selectedSchemeName={selectedSchemeName}
               />
             </AccordionContent>
           </AccordionItem>
@@ -226,13 +223,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="sankey"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -245,13 +239,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="calendar"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -264,13 +255,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="flg"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -283,13 +271,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="heb"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -302,13 +287,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="wordcloud"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -321,13 +303,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="lineChart"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -340,13 +319,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="barChart"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -359,13 +335,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="pieChart"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -378,13 +351,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="scatter"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -397,13 +367,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="treeMap"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -416,13 +383,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="sunburst"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>
@@ -435,13 +399,10 @@ const ThemeShell = () => {
             </AccordionTrigger>
             <AccordionContent>
               <GenericThemesAccordion
-                activeColorPickerIndex={activeColorPickerIndex}
                 handleColorChange={handleColorChange}
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
                 visualization="funnel"
-                colorPickerRef={colorPickerRef as RefObject<HTMLDivElement> }
               />
             </AccordionContent>
           </AccordionItem>

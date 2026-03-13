@@ -86,7 +86,7 @@ const ScatterView = ({
       }
     ]
   };
-  const height = fullScreen ? '73.5vh' : '35vh';
+  const height = fullScreen ? '73.5vh' : '100%';
 
   return (
     <div className="relative mt-[4%] flex flex-col items-center">

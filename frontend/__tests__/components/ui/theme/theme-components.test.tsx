@@ -1,4 +1,4 @@
-import React, { createRef } from 'react';
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -53,17 +53,13 @@ describe('theme ui components', () => {
 
     it('renders generic theme tabs and handles add/delete/input interactions', async () => {
         const user = userEvent.setup();
-        const setActiveColorPickerIndex = vi.fn();
         const handleColorChange = vi.fn();
         const handleColorDelete = vi.fn();
         const handleColorAdd = vi.fn();
 
         render(
             <GenericThemesAccordion
-                activeColorPickerIndex={null}
                 handleColorChange={handleColorChange}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
-                colorPickerRef={createRef<HTMLDivElement>()}
                 visualization="sankey"
                 handleColorDelete={handleColorDelete}
                 handleColorAdd={handleColorAdd}
@@ -75,11 +71,11 @@ describe('theme ui components', () => {
 
         const colorInputs = screen.getAllByPlaceholderText('#FFFFFF');
         fireEvent.change(colorInputs[0], { target: { value: '#ffffff' } });
+        fireEvent.blur(colorInputs[0]);
         expect(handleColorChange).toHaveBeenCalled();
 
-        const swatches = document.querySelectorAll('.w-6.h-6.border.border-gray-300.rounded.cursor-pointer');
+        const swatches = screen.getAllByRole('button', { name: /Open color picker/i });
         fireEvent.click(swatches[0]);
-        expect(setActiveColorPickerIndex).toHaveBeenCalledWith(0);
 
         const addButtons = screen.getAllByRole('button').filter((b) => b.className.includes('hover:bg-gray-100'));
         fireEvent.click(addButtons[0]);
@@ -89,23 +85,19 @@ describe('theme ui components', () => {
     });
 
     it('renders color picker popover for active index and handles outside click', async () => {
-        const setActiveColorPickerIndex = vi.fn();
         const handleColorChange = vi.fn();
 
         render(
             <GenericThemesAccordion
-                activeColorPickerIndex={0}
                 handleColorChange={handleColorChange}
-                setActiveColorPickerIndex={setActiveColorPickerIndex}
-                colorPickerRef={createRef<HTMLDivElement>()}
                 visualization="sankey"
                 handleColorDelete={vi.fn()}
                 handleColorAdd={vi.fn()}
             />
         );
 
+        fireEvent.click(screen.getAllByRole('button', { name: /Open color picker/i })[0]);
         expect(screen.getByTestId('color-picker')).toBeInTheDocument();
-        fireEvent.mouseDown(document.body);
-        expect(setActiveColorPickerIndex).toHaveBeenCalledWith(null);
+        fireEvent.click(screen.getByRole('button', { name: /Close color picker/i }));
     });
 });

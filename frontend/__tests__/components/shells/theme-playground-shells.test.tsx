@@ -59,16 +59,12 @@ vi.mock('@/components/ui/theme/generic-themes', () => ({
         handleColorAdd,
         handleColorDelete,
         handleColorChange,
-        visualization,
-        setActiveColorPickerIndex,
-        colorPickerRef
+        visualization
     }: any) => (
         <div>
-            <div ref={colorPickerRef}>picker-{visualization}</div>
             <button onClick={() => handleColorAdd(visualization, 'light')}>add-color-{visualization}</button>
             <button onClick={() => handleColorDelete(visualization, 'light')}>delete-color-{visualization}</button>
             <button onClick={() => handleColorChange('#ffffff', 0, visualization, 'light')}>change-color-{visualization}</button>
-            <button onClick={() => setActiveColorPickerIndex(0)}>activate-picker-{visualization}</button>
         </div>
     )
 }));
@@ -189,39 +185,36 @@ describe('theme + playground shells', () => {
         await user.click(screen.getByRole('button', { name: 'add-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'delete-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'change-color-calendar' }));
-        await user.click(screen.getByRole('button', { name: 'activate-picker-calendar' }));
-        fireEvent.mouseDown(document.body);
 
         await waitFor(() => {
             expect(themeDispatch).toHaveBeenCalled();
         });
     });
 
-    it('submits playground payload, validates and renders selected shell', async () => {
+    const presetCases: Array<[string, string]> = [
+        ['preset-line', 'axis-line'],
+        ['preset-sankey', 'sankey-shell'],
+        ['preset-matrix', 'matrix-shell'],
+        ['preset-heb', 'heb-shell'],
+        ['preset-flg', 'flg-shell'],
+        ['preset-word', 'wordcloud-shell'],
+        ['preset-funnel', 'funnel-shell'],
+        ['preset-pie', 'pie-shell'],
+        ['preset-scatter', 'scatter-shell'],
+        ['preset-sunburst', 'sunburst-shell'],
+        ['preset-treemap', 'treemap-shell'],
+        ['preset-calendar', 'calendar-shell'],
+        ['preset-timeline', 'timeline-shell']
+    ];
+
+    it.each(presetCases)('submits %s playground payload and renders shell %s', async (preset, testId) => {
         const user = userEvent.setup();
         render(<PlaygroundShell />);
 
-        const cases: Array<[string, string]> = [
-            ['preset-line', 'axis-line'],
-            ['preset-sankey', 'sankey-shell'],
-            ['preset-matrix', 'matrix-shell'],
-            ['preset-heb', 'heb-shell'],
-            ['preset-flg', 'flg-shell'],
-            ['preset-word', 'wordcloud-shell'],
-            ['preset-funnel', 'funnel-shell'],
-            ['preset-pie', 'pie-shell'],
-            ['preset-scatter', 'scatter-shell'],
-            ['preset-sunburst', 'sunburst-shell'],
-            ['preset-treemap', 'treemap-shell'],
-            ['preset-calendar', 'calendar-shell'],
-            ['preset-timeline', 'timeline-shell']
-        ];
+        await user.click(screen.getByRole('button', { name: preset }));
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
 
-        for (const [preset, testId] of cases) {
-            await user.click(screen.getByRole('button', { name: preset }));
-            await user.click(screen.getByRole('button', { name: 'Submit' }));
-            expect(screen.getByTestId(testId)).toBeInTheDocument();
-        }
+        expect(screen.getByTestId(testId)).toBeInTheDocument();
         expect(validateWithSchemaSpy).toHaveBeenCalled();
     });
 

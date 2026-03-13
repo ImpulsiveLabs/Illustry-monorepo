@@ -85,8 +85,8 @@ const applyHeadersFilter = (headersFilter: string, defaultData: VisualizationTyp
 
 const applyAxisFilter = (expressions: string[], defaultData: VisualizationTypes.AxisChartData) => {
   const newData: VisualizationTypes.AxisChartData = {
-    headers: [],
-    values: {}
+    headers: [...defaultData.headers],
+    values: { ...defaultData.values }
   };
   let headersFilter: string = '';
   let valuesFilter: string = '';
@@ -116,15 +116,13 @@ const applyAxisFilter = (expressions: string[], defaultData: VisualizationTypes.
     initialHeaders,
     newData.headers
   );
-  if (valuesFilter !== '') {
-    newData.values = applyValuesFilter(
-      valuesFilter,
-      validValuesPosition.length
-        ? validValuesPosition
-        : Array.from({ length: initialHeaders.length }, (_, i) => i),
-      defaultData
-    );
-  }
+  newData.values = applyValuesFilter(
+    valuesFilter,
+    validValuesPosition.length
+      ? validValuesPosition
+      : Array.from({ length: initialHeaders.length }, (_, i) => i),
+    defaultData
+  );
   return newData;
 };
 

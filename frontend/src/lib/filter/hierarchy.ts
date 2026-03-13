@@ -140,7 +140,7 @@ const applyHierachyFilter = (expressions:string[], defaultData: {
   }
   if (categoriesFilter !== '') {
     newData.categories = applyCategoriesFilter(
-      valuesFilter,
+      categoriesFilter,
       newData
     );
   }
