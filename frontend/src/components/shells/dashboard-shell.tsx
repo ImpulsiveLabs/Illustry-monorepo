@@ -1,6 +1,8 @@
 'use client';
 
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, {
+  useEffect, useState, useCallback, useMemo, useRef
+} from 'react';
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import { useRouter } from 'next/navigation';
@@ -35,6 +37,10 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const [layout, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
   const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
   const [hasLayoutChanged, setHasLayoutChanged] = useState(false);
+  const hasLayoutChangedRef = useRef(false);
+  const dashboardRef = useRef(dashboard);
+  const responsiveLayoutsRef = useRef<ResponsiveLayouts>({});
+  const layoutRef = useRef<DashboardTypes.Layout[]>(initialLayout);
   const cloneLayout = useCallback(
     (items: DashboardTypes.Layout[]) => items.map((item) => ({ ...item })),
     []
@@ -49,7 +55,24 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       ...prev,
       lg: cloneLayout(initialLayout)
     }));
+    setHasLayoutChanged(false);
   }, [cloneLayout, initialLayout]);
+
+  useEffect(() => {
+    hasLayoutChangedRef.current = hasLayoutChanged;
+  }, [hasLayoutChanged]);
+
+  useEffect(() => {
+    dashboardRef.current = dashboard;
+  }, [dashboard]);
+
+  useEffect(() => {
+    responsiveLayoutsRef.current = responsiveLayouts;
+  }, [responsiveLayouts]);
+
+  useEffect(() => {
+    layoutRef.current = layout;
+  }, [layout]);
 
   const onLayoutChange = useCallback(
     (newLayout: DashboardTypes.Layout[], allLayouts: ResponsiveLayouts) => {
@@ -66,7 +89,6 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
       if (activeBreakpoint === 'lg') {
         setLayout(cloneLayout(newLayout));
-        setHasLayoutChanged(true);
       }
     },
     [activeBreakpoint, cloneLayout]
@@ -76,24 +98,56 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     setActiveBreakpoint(newBreakpoint);
   }, []);
 
-  const updateDashboardLayout = async () => {
-    const updatedDash = { ...dashboard, layouts: responsiveLayouts.lg ?? layout };
+  const updateDashboardLayout = useCallback(async () => {
+    const currentDashboard = dashboardRef.current;
+    if (!currentDashboard || !hasLayoutChangedRef.current) {
+      return;
+    }
+    const updatedDash = {
+      ...currentDashboard,
+      layouts: responsiveLayoutsRef.current.lg ?? layoutRef.current
+    };
     delete updatedDash.visualizations;
     await updateDashboard(updatedDash);
-  };
+    setHasLayoutChanged(false);
+    hasLayoutChangedRef.current = false;
+  }, []);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (hasLayoutChanged) {
-        updateDashboardLayout();
+      if (hasLayoutChangedRef.current) {
+        void updateDashboardLayout();
       }
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      if (hasLayoutChangedRef.current) {
+        void updateDashboardLayout();
+      }
     };
-  }, [hasLayoutChanged, layout, responsiveLayouts]);
+  }, [updateDashboardLayout]);
+
+  const handleUserLayoutCommit = useCallback((newLayout: DashboardTypes.Layout[]) => {
+    if (activeBreakpoint !== 'lg') {
+      return;
+    }
+    const cloned = cloneLayout(newLayout);
+    layoutRef.current = cloned;
+    responsiveLayoutsRef.current = {
+      ...responsiveLayoutsRef.current,
+      lg: cloned
+    };
+    hasLayoutChangedRef.current = true;
+    setLayout(cloned);
+    setResponsiveLayouts((prev) => ({
+      ...prev,
+      lg: cloned
+    }));
+    setHasLayoutChanged(true);
+    void updateDashboardLayout();
+  }, [activeBreakpoint, cloneLayout, updateDashboardLayout]);
 
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
     const url = `/visualizationhub?name=${viz.name}&type=${viz.type}`;
@@ -114,6 +168,8 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         rowHeight={150}
         onLayoutChange={onLayoutChange}
         onBreakpointChange={onBreakpointChange}
+        onDragStop={handleUserLayoutCommit}
+        onResizeStop={handleUserLayoutCommit}
         isDraggable={true}
         isResizable={true}
         draggableHandle=".draggable-corner"

@@ -96,26 +96,23 @@ const CollapsableSearchBar = <
     setFilteredData(initialData);
   };
 
-  const expandedInputWidth = 'min(80vw, 42rem)';
-
   return (
     <form
       action=""
-      className="relative mx-auto mt-[2%] w-full max-w-3xl px-2"
+      className="relative mx-auto mt-[2%] w-max"
       onSubmit={handleSearch}
     >
-      <div className="mx-auto flex w-full items-center justify-center">
+      <div className="flex items-center w-[75%] mx-auto">
         <input
           type="search"
           value={searchValue}
           onChange={handleInputChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
-          className={`peer relative z-10 h-12 w-12 cursor-pointer
+          className={`peer relative z-10 h-12 w-12 cursor-pointer 
           rounded-full border bg-transparent pl-12 outline-none transition-all duration-500 ${
-            isFocused || searchValue.trim() !== '' ? 'w-full max-w-[42rem]' : 'w-12'
+            isFocused || searchValue.trim() !== '' ? 'w-screen' : 'w-12'
           } focus:border-lime-300 focus:pl-16 focus:pr-4`}
-          style={isFocused || searchValue.trim() !== '' ? { width: expandedInputWidth } : undefined}
         />
         {isInputClicked && searchValue.trim() !== '' && (
           <Button
