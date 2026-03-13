@@ -58,7 +58,6 @@
     "lodash": "4.17.23",
     "mdast-util-to-hast": "13.2.1",
     "micromatch": "4.0.8",
-    "minimatch": "10.2.4",
     "qs": "6.15.0",
     "rollup": "4.59.0",
     "serialize-javascript": "7.0.4",
