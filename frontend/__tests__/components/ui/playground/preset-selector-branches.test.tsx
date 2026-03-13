@@ -22,50 +22,47 @@ const cases: Array<{ name: string; key: string; token: string }> = [
 ];
 
 describe('PresetSelector toShowDiagram branches', () => {
-    it('maps every known preset name to diagram key and payload', async () => {
+    it.each(cases)('maps preset %s to diagram key and payload', async (testCase) => {
         const user = userEvent.setup();
+        const setShowDiagram = vi.fn();
+        const setTextareaValue = vi.fn();
+        const setIsSubmitable = vi.fn();
 
-        for (const [i, testCase] of cases.entries()) {
-            const setShowDiagram = vi.fn();
-            const setTextareaValue = vi.fn();
-            const setIsSubmitable = vi.fn();
+        render(
+            <PresetSelector
+                presets={[{ id: testCase.key, name: testCase.name }]}
+                setShowDiagram={setShowDiagram}
+                setTextareaValue={setTextareaValue}
+                setIsSubmitable={setIsSubmitable}
+            />
+        );
 
-            render(
-                <PresetSelector
-                    presets={[{ id: String(i), name: testCase.name }]}
-                    setShowDiagram={setShowDiagram}
-                    setTextareaValue={setTextareaValue}
-                    setIsSubmitable={setIsSubmitable}
-                />
-            );
+        await user.click(screen.getByRole('combobox', { name: 'Load a visualization...' }));
+        await user.click(screen.getByText(testCase.name));
 
-            await user.click(screen.getAllByRole('combobox', { name: 'Load a visualization...' }).at(-1)!);
-            await user.click(screen.getByText(testCase.name));
+        const updater = setShowDiagram.mock.calls[0][0] as (prev: Record<string, boolean>) => Record<string, boolean>;
+        const result = updater({
+            heb: true,
+            flg: true,
+            sankey: true,
+            calendar: true,
+            wordCloud: true,
+            matrix: true,
+            lineChart: true,
+            barChart: true,
+            pieChart: true,
+            funnel: true,
+            scatter: true,
+            treeMap: true,
+            sunburst: true,
+            timeline: true
+        });
 
-            const updater = setShowDiagram.mock.calls[0][0] as (prev: Record<string, boolean>) => Record<string, boolean>;
-            const result = updater({
-                heb: true,
-                flg: true,
-                sankey: true,
-                calendar: true,
-                wordCloud: true,
-                matrix: true,
-                lineChart: true,
-                barChart: true,
-                pieChart: true,
-                funnel: true,
-                scatter: true,
-                treeMap: true,
-                sunburst: true,
-                timeline: true
-            });
+        Object.entries(result).forEach(([k, v]) => {
+            expect(v).toBe(k === testCase.key);
+        });
 
-            Object.entries(result).forEach(([k, v]) => {
-                expect(v).toBe(k === testCase.key);
-            });
-
-            expect(String(setTextareaValue.mock.calls[0][0])).toContain(testCase.token);
-            expect(setIsSubmitable).toHaveBeenCalledWith(false);
-        }
+        expect(String(setTextareaValue.mock.calls[0][0])).toContain(testCase.token);
+        expect(setIsSubmitable).toHaveBeenCalledWith(false);
     });
 });

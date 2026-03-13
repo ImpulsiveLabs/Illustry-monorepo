@@ -10,7 +10,7 @@ describe('Cursor component', () => {
     expect(cursor).toBeInTheDocument();
     expect(cursor).toHaveClass('blinkingCursor');
     expect(cursor).toHaveClass('blinking');
-    expect(cursor).toHaveStyle({ color: 'inherit' });
+    expect(cursor.getAttribute('style')).toContain('color: inherit');
   });
 
   it('does not apply blinking class when cursorBlinking is false', () => {
