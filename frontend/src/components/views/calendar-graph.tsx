@@ -1,6 +1,6 @@
 'use client';
 
-import { CalendarOption } from 'echarts/types/dist/shared';
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeCalendar,
@@ -24,8 +24,7 @@ const CalendarGraphView = ({
   categories, calendar, legend, fullScreen
 }: CalendarGraphProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.calendar.dark.colors
     : activeTheme.calendar.light.colors;
@@ -64,7 +63,7 @@ const CalendarGraphView = ({
       inRange: { color: computeColors(categories, colors) }
     },
 
-    calendar: computedCalendar.calendar as CalendarOption,
+    calendar: computedCalendar.calendar,
     series: computedCalendar.series
   };
   const yearsCount = computedCalendar.calendar.length || 1;

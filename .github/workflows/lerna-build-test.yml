@@ -3,10 +3,8 @@ name: Lerna Monorepo Build and Test
 on:
   push:
     branches:
-      - '**'
+      - main
   pull_request:
-    branches:
-      - '**'
 
 permissions:
   contents: read
@@ -69,3 +67,12 @@ jobs:
 
       - name: Run Tests
         run: yarn test
+
+      - name: Install Playwright Browsers
+        run: yarn workspace @impulsivelabs/illustry-client playwright install --with-deps chromium
+
+      - name: Run Frontend E2E Main Flows
+        run: CI=1 yarn e2e
+
+      - name: Run Frontend E2E Coverage Check
+        run: CI=1 yarn workspace @impulsivelabs/illustry-client e2e:coverage:check

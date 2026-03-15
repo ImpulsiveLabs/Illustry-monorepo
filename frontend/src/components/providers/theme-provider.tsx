@@ -442,7 +442,9 @@ const ThemeColorsProvider = ({ children }: AuxProps) => {
     initialTheme
   );
   useEffect(() => {
-    localStorage.setItem('colorTheme', JSON.stringify(themeProv));
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('colorTheme', JSON.stringify(themeProv));
+    }
   }, [themeProv]);
   return (
     <ThemeColorsContext.Provider value={themeProv}>

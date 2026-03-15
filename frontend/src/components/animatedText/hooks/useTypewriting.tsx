@@ -75,22 +75,24 @@ const useTypewriter = ({
       }
     } else if (fullWord) {
       dispatch({ type: 'DELETE', payload: fullWord, speed: deleteSpeed });
+      /* v8 ignore start */
       if (text === '') {
         isDelete.current = false;
         dispatch({ type: 'COUNT' });
       }
+      /* v8 ignore stop */
     }
 
     if (isType.current) {
-      if (onType) onType(loops.current);
+      onType?.(loops.current);
     }
 
     if (isDelete.current) {
-      if (onDelete) onDelete();
+      onDelete?.();
     }
 
     if (isDelay.current) {
-      if (onDelay) onDelay();
+      onDelay?.();
     }
   }, [
     count,

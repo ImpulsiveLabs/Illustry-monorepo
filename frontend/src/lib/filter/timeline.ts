@@ -13,14 +13,9 @@ const applyDatesFilter = (
 
     if (matchesValues) {
       datesOperations = matchesValues.map((match) => {
-        const matchResult = match.match(/dates\s*([><=!]*)\s*(['"]?)(\d{4}-\d{2}-\d{2})\2/);
-
-        if (matchResult) {
-          const [, operator, , values] = matchResult;
-          const filterValue = (values as string).trim();
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', , values = ''] = match.match(/dates\s*([><=!]*)\s*(['"]?)(\d{4}-\d{2}-\d{2})\2/) ?? [];
+        const filterValue = values.trim();
+        return `${operator}${filterValue}`;
       });
     }
 
@@ -56,9 +51,6 @@ const applyEventsFilter = (
   const excluded: string[] = [];
 
   try {
-    if (filter === '') {
-      throw Error('No filter');
-    }
     const regexPattern = new RegExp(
       `${filterType}\\s*([!=]+)\\s*\\[([^\\]]+)\\]`,
       'g'
@@ -70,18 +62,15 @@ const applyEventsFilter = (
         const innerRegexPattern = new RegExp(
           `${filterType}\\s*([!=]+)\\s*\\[([^\\]]+)\\]`
         );
-        const matchResult = match.match(innerRegexPattern);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterCategories = (values as string)
-            .replace(/'/g, '')
-            .split(/\s*,\s*/)
-            .filter(Boolean);
-          if (operator === '=') {
-            included.push(...filterCategories);
-          } else if (operator === '!=') {
-            excluded.push(...filterCategories);
-          }
+        const [, operator = '', values = ''] = match.match(innerRegexPattern) ?? [];
+        const filterCategories = values
+          .replace(/'/g, '')
+          .split(/\s*,\s*/)
+          .filter(Boolean);
+        if (operator === '=') {
+          included.push(...filterCategories);
+        } else if (operator === '!=') {
+          excluded.push(...filterCategories);
         }
       });
     }
@@ -103,7 +92,7 @@ const applyEventsFilter = (
       });
       if (filteredEvents.length > 0) {
         filteredData[date] = {
-          ...(defaultData[date] || {}),
+          ...defaultData[date],
           events: filteredEvents
         };
       }
@@ -117,35 +106,9 @@ const applyEventsFilter = (
 
 const applyTimelineFilter = (expressions: string[], defaultData: VisualizationTypes.TimelineData) => {
   let newData: VisualizationTypes.TimelineData = { ...defaultData };
-  let datesFilter: string = '';
-  let authorsFilter: string = '';
-  let typesFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasAuthors = expression.includes('authors');
-    const hasDatesFilter = expression.includes('dates');
-    const hasTypesFilter = expression.includes('types');
-    if (hasDatesFilter) {
-      if (index === 0) {
-        datesFilter = expression;
-      } else {
-        datesFilter = `${datesFilter}&&${expression}`;
-      }
-    }
-    if (hasAuthors) {
-      if (index === 0) {
-        authorsFilter = expression;
-      } else {
-        authorsFilter = `${authorsFilter}&&${expression}`;
-      }
-    }
-    if (hasTypesFilter) {
-      if (index === 0) {
-        typesFilter = expression;
-      } else {
-        typesFilter = `${typesFilter}&&${expression}`;
-      }
-    }
-  });
+  const datesFilter = expressions.filter((expression) => expression.includes('dates')).join('&&');
+  const authorsFilter = expressions.filter((expression) => expression.includes('authors')).join('&&');
+  const typesFilter = expressions.filter((expression) => expression.includes('types')).join('&&');
   if (datesFilter !== '') {
     newData = applyDatesFilter(datesFilter, newData);
   }

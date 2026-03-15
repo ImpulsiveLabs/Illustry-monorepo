@@ -58,4 +58,16 @@ describe('DashboardHub Page', () => {
     expect(screen.getByTestId('resizable-dashboard')).toBeInTheDocument();
     expect(screen.getByText(/Mock Dashboard:/i)).toBeInTheDocument();
   });
+
+  it('falls back to empty name when search param is not a string', async () => {
+    vi.mocked(findOneDashboard).mockResolvedValue(undefined);
+
+    const searchParams = {
+      name: ['Sales Dashboard'],
+    } as any;
+
+    render(await DashboardHub({ searchParams }));
+
+    expect(findOneDashboard).toHaveBeenCalledWith('', true);
+  });
 });

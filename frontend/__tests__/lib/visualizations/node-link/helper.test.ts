@@ -45,6 +45,17 @@ describe('node-link helpers', () => {
       name: 'n3',
       itemStyle: { color: '#f00', borderColor: '#f00' }
     });
+
+    const numericPropertiesNode = computeNodesSankey(
+      [{ name: 'n4', category: 'cat-1', properties: 1 as any }],
+      ['cat-1'],
+      ['#f00']
+    );
+    expect(numericPropertiesNode[0]).toMatchObject({
+      name: 'n4',
+      itemStyle: { color: '#f00', borderColor: '#f00' }
+    });
+    expect(numericPropertiesNode[0]?.prop).toBe('');
   });
 
   it('computes sankey links with optional tooltip payload', () => {
@@ -103,6 +114,28 @@ describe('node-link helpers', () => {
     expect(links[1]).toEqual({ source: -1, target: 1, value: 1 });
   });
 
+  it('covers HEB fallback color and string link properties', () => {
+    const nodes: VisualizationTypes.Node[] = [
+      { name: 'A', category: 'missing' },
+      { name: 'B', category: 'known' }
+    ];
+    const categories = [{ name: 'known', itemStyle: { color: '#123' } }];
+
+    const hebNodes = computeNodesHEB(nodes, categories as any);
+    expect(hebNodes[0]).toMatchObject({ id: 'A', label: { color: '#000' } });
+    expect(hebNodes[1]).toMatchObject({ id: 'B', label: { color: '#123' } });
+
+    const links = computeLinksFLGOrHEB([
+      { source: 'A', target: 'B', value: 2, properties: 'meta' }
+    ], nodes);
+    expect(links[0]).toMatchObject({
+      source: 0,
+      target: 1,
+      value: 2,
+      prop: 'meta<div style="font-weight: bold">value:2</div>'
+    });
+  });
+
   it('maps nodes by category key', () => {
     const grouped = categoryMap([
       { name: 'a', category: 'one' },
@@ -149,6 +182,95 @@ describe('node-link helpers', () => {
     expect(html).toContain('sortableRow');
   });
 
+  it('handles array-form matrix properties and missing links', () => {
+    const group1: VisualizationTypes.Node[] = [
+      {
+        name: 'g1',
+        category: 'a',
+        labels: [
+          {
+            name: 'L',
+            value: 1,
+            properties: [{ tooltip: { a: 1 } }, { style: { color: 'blue' } }]
+          }
+        ]
+      } as any
+    ];
+    const group2: VisualizationTypes.Node[] = [
+      {
+        name: 'g2',
+        category: 'b',
+        labels: [{ name: 'R', value: 2 }]
+      } as any
+    ];
+
+    const html = createHeadersAndPropertiesString(group1, group2, []);
+    expect(html).toContain('g1');
+    expect(html).toContain('g2');
+    expect(html).toContain('tooltip');
+    expect(html).toContain('right-sortable-items');
+  });
+
+  it('builds matrix with multiple left labels and missing left-label cells', () => {
+    const group1: VisualizationTypes.Node[] = [
+      {
+        name: 'g1-a',
+        category: 'a',
+        labels: [{ name: 'L1', value: 1 }]
+      } as any,
+      {
+        name: 'g1-b',
+        category: 'a',
+        labels: [{ name: 'L2', value: 2 }]
+      } as any
+    ];
+    const group2: VisualizationTypes.Node[] = [
+      {
+        name: 'g2-a',
+        category: 'b',
+        labels: [{ name: 'R1', value: 3 }]
+      } as any
+    ];
+
+    const html = createHeadersAndPropertiesString(group1, group2, []);
+    expect(html).toContain('L1');
+    expect(html).toContain('L2');
+    expect(html).toContain('R1');
+    // Missing label cells are rendered as empty sortable left cells.
+    expect(html).toContain('left-sortable-items');
+  });
+
+  it('builds matrix rows when links are reversed and labels are missing', () => {
+    const group1: VisualizationTypes.Node[] = [
+      { name: 'left', category: 'a' } as any
+    ];
+    const group2: VisualizationTypes.Node[] = [
+      { name: 'right', category: 'b', labels: [{ name: 'R', value: 3 }] } as any
+    ];
+    const links: VisualizationTypes.Link[] = [
+      { source: 'right', target: 'left', value: 5 }
+    ];
+
+    const html = createHeadersAndPropertiesString(group1, group2, links);
+    expect(html).toContain('5');
+    expect(html).toContain('left');
+    expect(html).toContain('right');
+  });
+
+  it('handles group2 nodes without labels and string header properties', () => {
+    const group1: VisualizationTypes.Node[] = [
+      { name: 'left', category: 'a', labels: [{ name: 'L', value: 1 }] } as any
+    ];
+    const group2: VisualizationTypes.Node[] = [
+      { name: 'right-a', category: 'b', properties: 'meta', labels: [{ name: 'R', value: 2 }] } as any,
+      { name: 'right-b', category: 'b' } as any
+    ];
+
+    const html = createHeadersAndPropertiesString(group1, group2, []);
+    expect(html).toContain('right-b');
+    expect(html).toContain('right-sortable-items');
+  });
+
   it('wires sortable column clicks and toggles direction', () => {
     document.body.innerHTML = `
       <table id="myTable">
@@ -167,6 +289,94 @@ describe('node-link helpers', () => {
     expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
     col.click();
     expect(col.getAttribute('right-data-sort-direction')).toBe('asc');
+  });
+
+  it('sorts upper table with numeric and non-numeric values', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr><td>header</td></tr>
+        <tr>
+          <td class="sortableCol" right-data-sort-direction="asc">H</td>
+          <td class="right-sortable-items"><span>foo</span></td>
+          <td class="right-sortable-items"><span>2</span></td>
+        </tr>
+        <tr>
+          <td>row-a</td>
+          <td class="right-sortable-items"><span>9</span></td>
+          <td class="right-sortable-items"><span>1</span></td>
+        </tr>
+        <tr><td>row-b</td></tr>
+      </table>
+    `;
+
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('asc');
+  });
+
+  it('sorts upper table when sortable rows have mismatched cell counts', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr><td>header</td></tr>
+        <tr>
+          <td class="sortableCol" right-data-sort-direction="asc">H</td>
+          <td class="right-sortable-items"><span>4</span></td>
+        </tr>
+        <tr>
+          <td>row-a</td>
+          <td class="right-sortable-items"></td>
+          <td class="right-sortable-items"><span>2</span></td>
+        </tr>
+      </table>
+    `;
+
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
+  });
+
+  it('keeps sortable columns stable with missing sortable values', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr><td class="sortableCol" right-data-sort-direction="asc">H</td></tr>
+        <tr><td>no-sortable-class</td></tr>
+      </table>
+    `;
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
+  });
+
+  it('handles empty sortable text nodes while sorting columns', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr>
+          <td class="sortableCol" right-data-sort-direction="asc">H</td>
+          <td class="right-sortable-items"></td>
+        </tr>
+      </table>
+    `;
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
+  });
+
+  it('keeps sortable columns stable when row index is out of range', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <tr><td class="sortableCol" right-data-sort-direction="asc">H</td></tr>
+      </table>
+    `;
+    sortColumns();
+    const col = document.querySelector('.sortableCol') as HTMLElement;
+    col.click();
+    expect(col.getAttribute('right-data-sort-direction')).toBe('desc');
   });
 
   it('wires sortable row clicks and sorts tbody rows', () => {
@@ -195,6 +405,44 @@ describe('node-link helpers', () => {
     expect(rowTrigger.getAttribute('left-data-sort-direction')).toBe('asc');
   });
 
+  it('sorts rows when text content is non numeric', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <thead>
+          <tr><td class="sortableRow" left-data-sort-direction="asc">Header</td></tr>
+        </thead>
+        <tbody>
+          <tr class="sortus"><td class="left-sortable-items"><span>foo</span></td><td>row-foo</td></tr>
+          <tr class="sortus"><td class="left-sortable-items"><span>1</span></td><td>row-one</td></tr>
+        </tbody>
+      </table>
+    `;
+
+    sortRows();
+    const rowTrigger = document.querySelector('.sortableRow') as HTMLElement;
+    rowTrigger.click();
+    expect(rowTrigger.getAttribute('left-data-sort-direction')).toBe('desc');
+  });
+
+  it('sorts rows when first compared cell is non numeric', () => {
+    document.body.innerHTML = `
+      <table id="myTable">
+        <thead>
+          <tr><td class="sortableRow" left-data-sort-direction="asc">Header</td></tr>
+        </thead>
+        <tbody>
+          <tr class="sortus"><td class="left-sortable-items"><span>foo</span></td><td>row-foo</td></tr>
+          <tr class="sortus"><td class="left-sortable-items"><span>bar</span></td><td>row-bar</td></tr>
+        </tbody>
+      </table>
+    `;
+
+    sortRows();
+    const rowTrigger = document.querySelector('.sortableRow') as HTMLElement;
+    rowTrigger.click();
+    expect(rowTrigger.getAttribute('left-data-sort-direction')).toBe('desc');
+  });
+
   it('adds hover behavior for tooltip visibility', () => {
     document.body.innerHTML = `
       <div class="right-sortable-items"><span class="tooltip">A</span></div>
@@ -211,5 +459,15 @@ describe('node-link helpers', () => {
     expect(tip.style.visibility).toBe('visible');
     right.dispatchEvent(new MouseEvent('mouseout'));
     expect(tip.style.visibility).toBe('hidden');
+  });
+
+  it('ignores hover wiring when tooltip is missing', () => {
+    document.body.innerHTML = `
+      <div class="right-sortable-items"><span>plain</span></div>
+      <div class="left-sortable-items"><span class="tooltip">tip</span></div>
+    `;
+    addStyleTooltipWithHover();
+    const right = document.querySelector('.right-sortable-items') as HTMLElement;
+    expect(() => right.dispatchEvent(new MouseEvent('mouseover'))).not.toThrow();
   });
 });

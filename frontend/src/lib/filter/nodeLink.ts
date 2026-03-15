@@ -21,9 +21,6 @@ const applyNodeNameFilter = (
   const excluded: string[] = [];
 
   try {
-    if (filter === '') {
-      throw Error('No filter');
-    }
     const regexPattern = new RegExp(
       `${filterType}\\s*([!=]+)\\s*\\[([^\\]]+)\\]`,
       'g'
@@ -35,18 +32,15 @@ const applyNodeNameFilter = (
         const innerRegexPattern = new RegExp(
           `${filterType}\\s*([!=]+)\\s*\\[([^\\]]+)\\]`
         );
-        const matchResult = match.match(innerRegexPattern);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterCategories = (values as string)
-            .replace(/'/g, '')
-            .split(/\s*,\s*/)
-            .filter(Boolean);
-          if (operator === '=') {
-            included.push(...filterCategories);
-          } else if (operator === '!=') {
-            excluded.push(...filterCategories);
-          }
+        const [, operator = '', values = ''] = match.match(innerRegexPattern) ?? [];
+        const filterCategories = values
+          .replace(/'/g, '')
+          .split(/\s*,\s*/)
+          .filter(Boolean);
+        if (operator === '=') {
+          included.push(...filterCategories);
+        } else if (operator === '!=') {
+          excluded.push(...filterCategories);
         }
       });
 
@@ -103,13 +97,9 @@ const applyValuesFilter = (
     const matchesValues = valuesFilter.match(/values\s*([><=!]*)\s*(\d+)/g);
     if (matchesValues) {
       valuesOperations = matchesValues.map((match) => {
-        const matchResult = match.match((/values\s*([><=!]*)\s*(\d+)/));
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterValue = (values as string).trim();
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', values = ''] = match.match(/values\s*([><=!]*)\s*(\d+)/) ?? [];
+        const filterValue = values.trim();
+        return `${operator}${filterValue}`;
       });
     }
     const filteredLinks = defaultData.links.map((link) => {
@@ -144,53 +134,11 @@ const applyNodeLinkFilter = (
     nodes: VisualizationTypes.Node[];
     links: VisualizationTypes.Link[];
   } = { nodes: [...defaultData.nodes], links: [...defaultData.links] };
-  let categoriesFilter: string = '';
-  let sourcesFilter: string = '';
-  let targetsFilter: string = '';
-  let namesFilter: string = '';
-  let valuesFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasCategories = expression.includes('categories');
-    const hasSourcesFilter = expression.includes('sources');
-    const hasTargetsFilter = expression.includes('targets');
-    const hasNamesFilter = expression.includes('names');
-    const hasValuesFilter = expression.includes('values');
-    if (hasCategories) {
-      if (index === 0) {
-        categoriesFilter = expression;
-      } else {
-        categoriesFilter = `${categoriesFilter}&&${expression}`;
-      }
-    }
-    if (hasSourcesFilter) {
-      if (index === 0) {
-        sourcesFilter = expression;
-      } else {
-        sourcesFilter = `${sourcesFilter}&&${expression}`;
-      }
-    }
-    if (hasTargetsFilter) {
-      if (index === 0) {
-        targetsFilter = expression;
-      } else {
-        targetsFilter = `${targetsFilter}&&${expression}`;
-      }
-    }
-    if (hasNamesFilter) {
-      if (index === 0) {
-        namesFilter = expression;
-      } else {
-        namesFilter = `${namesFilter}&&${expression}`;
-      }
-    }
-    if (hasValuesFilter) {
-      if (index === 0) {
-        valuesFilter = expression;
-      } else {
-        valuesFilter = `${valuesFilter}&&${expression}`;
-      }
-    }
-  });
+  const categoriesFilter = expressions.filter((expression) => expression.includes('categories')).join('&&');
+  const sourcesFilter = expressions.filter((expression) => expression.includes('sources')).join('&&');
+  const targetsFilter = expressions.filter((expression) => expression.includes('targets')).join('&&');
+  const namesFilter = expressions.filter((expression) => expression.includes('names')).join('&&');
+  const valuesFilter = expressions.filter((expression) => expression.includes('values')).join('&&');
   if (categoriesFilter !== '') {
     newData = applyNodeNameFilter(categoriesFilter, newData, 'categories');
   }

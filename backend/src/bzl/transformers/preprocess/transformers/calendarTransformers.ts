@@ -37,6 +37,8 @@ const excelDateToJSDate = (excelDate: number): string | null => {
   return `${jsDate.getFullYear()}-${String(jsDate.getMonth() + 1).padStart(2, '0')}-${String(jsDate.getDate()).padStart(2, '0')}`;
 };
 
+const formatDateObject = (date: Date): string => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
 const calendarTransformer = (
   mapping: { [key: string]: string },
   values: (string | number)[],
@@ -45,11 +47,13 @@ const calendarTransformer = (
   const {
     dates, values: mValues, categories, properties
   } = mapping;
+  const dateValue = values[+dates] as unknown;
   const calendar: TransformerTypes.CalendarType = {
-    date:
-      typeof values[+dates] === 'string'
-        ? reformatDate(values[+dates] as string)
-        : excelDateToJSDate(values[+dates] as number),
+    date: typeof dateValue === 'string'
+      ? reformatDate(dateValue)
+      : dateValue instanceof Date
+        ? formatDateObject(dateValue)
+        : excelDateToJSDate(dateValue as number),
     value:
       typeof values[+mValues] === 'string'
         ? +(values[+mValues])

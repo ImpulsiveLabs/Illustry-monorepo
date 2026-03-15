@@ -1,5 +1,6 @@
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeCategoriesFLGOrHEB,
@@ -23,8 +24,7 @@ const ForcedLayoutGraphView = ({
   nodes, links, legend, fullScreen
 }: ForcedLayoutGraphProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.flg.dark.colors
     : activeTheme.flg.light.colors;

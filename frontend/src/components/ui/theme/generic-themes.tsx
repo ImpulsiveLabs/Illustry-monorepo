@@ -37,7 +37,19 @@ const GenericThemesAccordion = ({
   handleColorAdd
 }: GenericThemesProps) => {
   const activeTheme = useThemeColors() as ThemeColors;
-  const activeVisualization = activeTheme[visualization];
+  const rawVisualization = activeTheme[visualization];
+  const activeVisualization = {
+    light: {
+      colors: Array.isArray(rawVisualization?.light?.colors)
+        ? rawVisualization.light.colors
+        : []
+    },
+    dark: {
+      colors: Array.isArray(rawVisualization?.dark?.colors)
+        ? rawVisualization.dark.colors
+        : []
+    }
+  };
   const lightColorsLength = activeVisualization?.light.colors.length;
   const darkColorsLength = activeVisualization?.dark.colors.length;
   const [activePickerKey, setActivePickerKey] = useState<string | null>(null);
@@ -48,8 +60,8 @@ const GenericThemesAccordion = ({
   const inputKey = (theme: 'light' | 'dark', index: number) => `${theme}-${index}`;
   const normalizedColors = useMemo(
     () => ({
-      light: activeVisualization?.light.colors ?? [],
-      dark: activeVisualization?.dark.colors ?? []
+      light: activeVisualization.light.colors,
+      dark: activeVisualization.dark.colors
     }),
     [activeVisualization]
   );

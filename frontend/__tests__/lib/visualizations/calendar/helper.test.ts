@@ -32,6 +32,8 @@ describe('lib/visualizations/calendar/helper', () => {
     it('computes tooltip content', () => {
         expect(computePropertiesForToolTip({ a: 1, b: 'x' }, 9)).toContain('value:9');
         expect(computePropertiesForToolTip('plain', undefined)).toContain('plain');
+        expect(computePropertiesForToolTip('plain', 5)).toContain('plain');
+        expect(computePropertiesForToolTip(123 as any, undefined)).toBe('');
         expect(computePropertiesForToolTip(null, undefined)).toBe('');
     });
 
@@ -42,5 +44,17 @@ describe('lib/visualizations/calendar/helper', () => {
         expect(result.calendar[0]?.dayLabel.textStyle.color).toBe('#fff');
         expect(result.series.some((s) => s.data.length > 0)).toBe(true);
         expect(result.encode).toEqual({ time: 0, value: 1, category: 2 });
+    });
+
+    it('appends multiple events into the same yearly series bucket', () => {
+        const result = computeCalendar([
+            { date: '2024-01-01', value: 1, category: 'a' },
+            { date: '2024-02-01', value: 2, category: 'b' },
+            { date: '2024-03-01', category: 'c' }
+        ] as any, '#fff');
+
+        expect(result.calendar).toHaveLength(1);
+        expect(result.series[0]?.data).toHaveLength(3);
+        expect(result.series[0]?.data[2]?.[1]).toBe(1);
     });
 });

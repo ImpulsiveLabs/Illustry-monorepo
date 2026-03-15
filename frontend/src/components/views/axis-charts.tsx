@@ -1,5 +1,6 @@
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeLegendColors,
@@ -21,20 +22,9 @@ const AxisChartView = ({
   data, type, legend, fullScreen
 }: AxisChartProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
-  let colors;
-  if (isDarkTheme) {
-    if (type === 'bar') {
-      colors = activeTheme.barChart.dark.colors;
-    } else if (type === 'line') {
-      colors = activeTheme.lineChart.dark.colors;
-    }
-  } else if (type === 'bar') {
-    colors = activeTheme.barChart.light.colors;
-  } else if (type === 'line') {
-    colors = activeTheme.lineChart.light.colors;
-  }
+  const themeMode = getStoredTheme() === 'dark' ? 'dark' : 'light';
+  const chartTheme = type === 'bar' ? activeTheme.barChart : activeTheme.lineChart;
+  const colors = chartTheme[themeMode].colors;
 
   const { headers, values } = data;
   const option = {

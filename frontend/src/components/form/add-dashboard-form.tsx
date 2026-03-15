@@ -37,10 +37,11 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
       visualizations: {}
     }
   });
-  const visualizationOptions = Object.keys(visualizations)
+  const safeVisualizations = visualizations ?? {};
+  const visualizationOptions = Object.keys(safeVisualizations)
     .map((key) => ({
-      label: visualizations[key] as string,
-      value: visualizations[key] as string
+      label: safeVisualizations[key] as string,
+      value: safeVisualizations[key] as string
     }));
 
   const onSubmit = (data: DashboardTypes.DashboardCreate) => {

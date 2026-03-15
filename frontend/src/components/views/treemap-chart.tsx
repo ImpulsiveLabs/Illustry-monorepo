@@ -2,6 +2,7 @@
 
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   calculateMeanValue,
@@ -30,8 +31,7 @@ const TreeMapView = ({
   const meanValue = calculateMeanValue(computeUniqueValues(nodes));
   const levels = createLevels(maxDepth);
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.treeMap.dark.colors
     : activeTheme.treeMap.light.colors;

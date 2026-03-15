@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
+import { useEffect, useRef } from 'react';
 import {
   addStyleTooltipWithHover,
   categoryMap,
@@ -21,7 +22,7 @@ const createMatrix = (nodes: VisualizationTypes.Node[], links: VisualizationType
   const categories = categoryMap(nodes);
   const categoriesKeys: string[] = Object.keys(categories);
   if (categoriesKeys.length !== 2) {
-    throw new Error('categories object must have exactly 2 keys');
+    return '<table id="myTable"></table>';
   }
 
   const tableString = `<table id="myTable" style="border-spacing: 0; width: 100%; border: 1px solid #ddd; margin-top: 5%;">${
@@ -36,19 +37,17 @@ const createMatrix = (nodes: VisualizationTypes.Node[], links: VisualizationType
 const MatrixView = ({ nodes, links }: MatrixProp) => {
   const tableRef = useRef<HTMLDivElement>(null);
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.heb.dark.colors
     : activeTheme.heb.light.colors;
 
   useEffect(() => {
-    if (tableRef.current) {
-      tableRef.current.innerHTML = createMatrix(nodes, links);
-      sortRows();
-      sortColumns();
-      addStyleTooltipWithHover();
-    }
+    const tableElement = tableRef.current as HTMLDivElement;
+    tableElement.innerHTML = createMatrix(nodes, links);
+    sortRows();
+    sortColumns();
+    addStyleTooltipWithHover();
 
     return () => {
       const tooltip = document.getElementById('showData');

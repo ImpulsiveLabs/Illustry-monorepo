@@ -23,9 +23,7 @@ const ActionButton = <TData, >({
   const handleDeleteClick: MouseEventHandler<HTMLButtonElement> = (event) => {
     startTransition(() => {
       table.toggleAllPageRowsSelected(false);
-      if (deleteRowsAction) {
-        deleteRowsAction(event);
-      }
+      deleteRowsAction?.(event);
     });
   };
 

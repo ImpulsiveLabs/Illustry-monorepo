@@ -18,4 +18,18 @@ describe('DataTableLoading', () => {
         expect(screen.getAllByRole('cell')).toHaveLength(6);
         expect(screen.getAllByRole('columnheader')).toHaveLength(3);
     });
+
+    it('does not render delete/new-row toolbar skeleton when actions are disabled', () => {
+        const { container } = render(
+            <DataTableLoading
+                columnCount={2}
+                rowCount={1}
+                isNewRowCreatable={false}
+                isRowsDeletable={false}
+            />
+        );
+
+        const actionSkeletons = container.querySelectorAll('.h-7.w-\\[70px\\]');
+        expect(actionSkeletons.length).toBeGreaterThan(0);
+    });
 });

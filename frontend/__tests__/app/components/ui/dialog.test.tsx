@@ -11,7 +11,6 @@ import {
     DialogDescription,
     DialogClose
 } from '@/components/ui/dialog';
-import exp from 'constants';
 
 describe('Dialog', () => {
     it('opens dialog, renders content, and close on button click', () => {
@@ -44,5 +43,21 @@ describe('Dialog', () => {
         expect(screen.getByText('Cancel')).toBeInTheDocument();
         fireEvent.click(screen.getByText('Submit'));
         expect(screen.queryByText('Dialog Title')).not.toBeInTheDocument();
-    })
+    });
+
+    it('applies top positioning style variant', () => {
+        render(
+            <Dialog>
+                <DialogTrigger>Top Dialog</DialogTrigger>
+                <DialogContent position="top">
+                    <DialogTitle>Top Title</DialogTitle>
+                </DialogContent>
+            </Dialog>
+        );
+
+        fireEvent.click(screen.getByText('Top Dialog'));
+        const title = screen.getByText('Top Title');
+        const content = title.closest('[role="dialog"]');
+        expect(content?.className).toContain('top-44');
+    });
 });

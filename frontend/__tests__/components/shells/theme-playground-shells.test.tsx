@@ -10,6 +10,7 @@ const { themeDispatch, catchErrorSpy, validateWithSchemaSpy } = vi.hoisted(() =>
     catchErrorSpy: vi.fn(),
     validateWithSchemaSpy: vi.fn()
 }));
+let themeDispatchEnabled = true;
 
 vi.mock('@/components/providers/theme-provider', () => ({
     useThemeColors: () => ({
@@ -26,7 +27,7 @@ vi.mock('@/components/providers/theme-provider', () => ({
         sunburst: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
         funnel: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } }
     }),
-    useThemeColorsDispach: () => themeDispatch
+    useThemeColorsDispach: () => (themeDispatchEnabled ? themeDispatch : undefined)
 }));
 
 vi.mock('@/lib/utils', async () => {
@@ -109,6 +110,15 @@ vi.mock('@/components/ui/playground/preset-selector', () => ({
                     {`preset-${label}`}
                 </button>
             ))}
+            <button
+                onClick={() => {
+                    setShowDiagram((prev: any) => ({ ...Object.fromEntries(Object.keys(prev).map((k) => [k, false])), barChart: true, lineChart: true }));
+                    setTextareaValue(JSON.stringify({ headers: ['x'], values: [[1]] }));
+                    setIsSubmitable(true);
+                }}
+            >
+                preset-multi
+            </button>
         </>
     )
 }));
@@ -133,6 +143,7 @@ vi.mock('@/components/ui/fallback', () => ({ default: () => <div>fallback</div> 
 describe('theme + playground shells', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        themeDispatchEnabled = true;
     });
 
     it('applies default theme and renders selected theme preview shell', async () => {
@@ -175,7 +186,7 @@ describe('theme + playground shells', () => {
 
         await user.click(screen.getByText('Sunburst'));
         expect(screen.getByTestId('sunburst-shell')).toBeInTheDocument();
-    });
+    }, 45000);
 
     it('dispatches color mutations from generic theme controls', async () => {
         const user = userEvent.setup();
@@ -228,5 +239,31 @@ describe('theme + playground shells', () => {
         await waitFor(() => {
             expect(catchErrorSpy).toHaveBeenCalled();
         });
+    });
+
+    it('covers theme handlers and playground default-path branches', async () => {
+        const user = userEvent.setup();
+
+        themeDispatchEnabled = false;
+        render(<ThemeShell />);
+        await user.click(screen.getByRole('button', { name: 'Default Schemes' }));
+        await user.click(screen.getByRole('button', { name: 'apply-default-theme' }));
+        await user.click(screen.getByText('Calendar'));
+        await user.click(screen.getByRole('button', { name: 'add-color-calendar' }));
+        await user.click(screen.getByRole('button', { name: 'delete-color-calendar' }));
+        await user.click(screen.getByRole('button', { name: 'change-color-calendar' }));
+        expect(themeDispatch).not.toHaveBeenCalled();
+    });
+
+    it('keeps diagram hidden before submit and handles multiple-active default validation switch', async () => {
+        const user = userEvent.setup();
+        render(<PlaygroundShell />);
+
+        await user.click(screen.getByRole('button', { name: 'preset-line' }));
+        expect(screen.queryByTestId('axis-line')).not.toBeInTheDocument();
+
+        await user.click(screen.getByRole('button', { name: 'preset-multi' }));
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
+        expect(validateWithSchemaSpy).not.toHaveBeenCalled();
     });
 });

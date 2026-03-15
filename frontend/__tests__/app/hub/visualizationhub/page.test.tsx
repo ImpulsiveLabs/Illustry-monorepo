@@ -34,4 +34,17 @@ describe('Hub page', () => {
       expect(screen.getByTestId('hub-shell')).toHaveTextContent('Mock HubShell - Test Viz');
     });
   });
+
+  it('passes undefined filters when search params are not strings', async () => {
+    const mockedData = { name: 'Fallback Viz', type: 'bar' };
+    (findOneVisualization as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockedData);
+
+    render(
+      await Hub({
+        searchParams: { name: ['bad'], type: ['bad'] } as any,
+      })
+    );
+
+    expect(findOneVisualization).toHaveBeenCalledWith({ name: undefined, type: undefined });
+  });
 });

@@ -82,4 +82,27 @@ describe('Projects Page', () => {
       sort: undefined,
     });
   });
+
+  it('handles desc sorting and malformed payload fallbacks', async () => {
+    vi.mocked(browseProjects).mockResolvedValue({
+      projects: null as any,
+      pagination: { pageCount: 'invalid' as any },
+    });
+
+    render(await Projects({
+      searchParams: {
+        page: '2',
+        per_page: '20',
+        sort: 'name.desc',
+      },
+    }));
+
+    expect(screen.getByTestId('projects-count').textContent).toBe('0');
+    expect(screen.getByTestId('page-count').textContent).toBe('1');
+    expect(browseProjects).toHaveBeenCalledWith({
+      page: 2,
+      per_page: 20,
+      sort: { sortOrder: -1, element: 'name' },
+    });
+  });
 });

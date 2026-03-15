@@ -17,6 +17,7 @@ const factory = Factory.getInstance();
 
 describe("dashboard CRUD", () => {
     beforeAll(async () => {
+        await factory.getBZL().ProjectBZL.delete({ name: "Test_Project_Dashboard" }).catch(() => undefined);
         const expectedProject: ProjectTypes.ProjectCreate = {
             name: "Test_Project_Dashboard",
             description: "Test_ProjectDescription1",

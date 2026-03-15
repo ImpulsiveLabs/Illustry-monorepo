@@ -26,4 +26,13 @@ describe('Button', () => {
        await user.click(button);
        expect(handleClick).toHaveBeenCalledTimes(1);
     });
+    it('renders as child when asChild is true', () => {
+       render(
+           <Button asChild>
+               <a href="/custom-link">Custom Link</a>
+           </Button>
+       );
+       const link = screen.getByRole('link', { name: 'Custom Link' });
+       expect(link).toHaveAttribute('href', '/custom-link');
+    });
 });

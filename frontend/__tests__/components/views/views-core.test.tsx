@@ -105,6 +105,7 @@ import ScatterView from '@/components/views/scatter';
 import SunburstView from '@/components/views/sunburst-chart';
 import TreeMapView from '@/components/views/treemap-chart';
 import WordCloudView from '@/components/views/wordcloud';
+import * as nodeLinkHelper from '@/lib/visualizations/node-link/helper';
 
 describe('Core Views', () => {
     beforeEach(() => {
@@ -150,7 +151,8 @@ describe('Core Views', () => {
     });
 
     it('builds matrix table and renders content', () => {
-        const { container } = render(
+        localStorage.setItem('theme', 'dark');
+        const { container, unmount } = render(
             <MatrixView
                 nodes={[{ id: 'a' }, { id: 'b' }] as any}
                 links={[{ source: 'a', target: 'b' }] as any}
@@ -161,5 +163,75 @@ describe('Core Views', () => {
         );
 
         expect(container.textContent).toContain('cell');
+        const tooltip = document.createElement('div');
+        tooltip.id = 'showData';
+        document.body.appendChild(tooltip);
+        unmount();
+        expect(document.getElementById('showData')).not.toBeInTheDocument();
+    });
+
+    it('renders matrix fallback table for non-bipartite category maps', () => {
+        vi.mocked(nodeLinkHelper.categoryMap).mockReturnValueOnce({ same: [{ id: 'a' }, { id: 'b' }] } as any);
+        const { container } = render(
+            <MatrixView
+                nodes={[{ id: 'a', category: 'same' }, { id: 'b', category: 'same' }] as any}
+                links={[{ source: 'a', target: 'b' }] as any}
+                legend={false}
+                options={{}}
+                fullScreen={false}
+            />
+        );
+
+        expect(container.querySelector('#myTable')).toBeInTheDocument();
+    });
+
+    it('executes tooltip formatter callbacks across view variants', () => {
+        localStorage.setItem('theme', 'dark');
+
+        const shared = { legend: false, options: {}, fullScreen: true } as any;
+        const { rerender } = render(
+            <ForcedLayoutGraphView
+                nodes={[{ id: 'a' }] as any}
+                links={[{ source: 'a', target: 'a', value: 1 }] as any}
+                {...shared}
+            />
+        );
+        let latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.tooltip.formatter({ data: { prop: 'forced' } })).toBe('forced');
+
+        rerender(
+            <SankeyGraphView
+                nodes={[{ id: 'a' }] as any}
+                links={[{ source: 'a', target: 'a', value: 1 }] as any}
+                {...shared}
+            />
+        );
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.tooltip.formatter({ data: { prop: 'sankey' } })).toBe('sankey');
+
+        rerender(
+            <SunburstView
+                nodes={[{ name: 'root' }] as any}
+                categories={['A']}
+                {...shared}
+            />
+        );
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.tooltip.formatter({ data: { prop: 'sun' } })).toBe('sun');
+
+        rerender(
+            <TreeMapView
+                nodes={[{ name: 'root', value: 1 }] as any}
+                categories={['A']}
+                {...shared}
+            />
+        );
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.tooltip.formatter({ data: { prop: 'tree' } })).toBe('tree');
+
+        rerender(<WordCloudView words={[{ text: 'x', value: 1 }] as any} {...shared} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.tooltip.formatter({ data: { properties: { a: 1 }, value: 1 } })).toBe('tooltip');
+        expect(latest.style).toEqual({ height: '73.5vh' });
     });
 });

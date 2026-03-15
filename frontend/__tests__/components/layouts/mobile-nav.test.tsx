@@ -56,4 +56,43 @@ describe('MobileNav', () => {
         expect(aboutLink).not.toHaveClass('pointer-events-none');
         expect(screen.getByRole('button', { name: 'Theme' })).toBeInTheDocument();
     });
+
+    it('keeps links clickable with active project and handles link clicks', async () => {
+        const user = userEvent.setup();
+        activeProjectValue = true;
+
+        render(
+            <MobileNav
+                items={[
+                    { title: 'Projects', href: '/projects', clickableNoActiveProject: false },
+                    { title: 'About', href: '/about', clickableNoActiveProject: true }
+                ]}
+            />
+        );
+
+        await user.click(await screen.findByRole('button', { name: 'Toggle Menu' }));
+
+        const projectsLink = screen.getByRole('link', { name: 'Projects' });
+        expect(projectsLink).not.toHaveClass('pointer-events-none');
+
+        await user.click(screen.getByRole('link', { name: 'Home' }));
+        await user.click(await screen.findByRole('button', { name: 'Toggle Menu' }));
+        await user.click(screen.getByRole('link', { name: 'Projects' }));
+    });
+
+    it('falls back to root path when mobile item href is missing', async () => {
+        const user = userEvent.setup();
+        activeProjectValue = true;
+
+        render(
+            <MobileNav
+                items={[
+                    { title: 'Fallback', clickableNoActiveProject: true }
+                ]}
+            />
+        );
+
+        await user.click(await screen.findByRole('button', { name: 'Toggle Menu' }));
+        expect(screen.getByRole('link', { name: 'Fallback' })).toHaveAttribute('href', '/');
+    });
 });

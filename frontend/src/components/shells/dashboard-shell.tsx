@@ -40,7 +40,6 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const hasLayoutChangedRef = useRef(false);
   const dashboardRef = useRef(dashboard);
   const responsiveLayoutsRef = useRef<ResponsiveLayouts>({});
-  const layoutRef = useRef<DashboardTypes.Layout[]>(initialLayout);
   const cloneLayout = useCallback(
     (items: DashboardTypes.Layout[]) => items.map((item) => ({ ...item })),
     []
@@ -70,10 +69,6 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     responsiveLayoutsRef.current = responsiveLayouts;
   }, [responsiveLayouts]);
 
-  useEffect(() => {
-    layoutRef.current = layout;
-  }, [layout]);
-
   const onLayoutChange = useCallback(
     (newLayout: DashboardTypes.Layout[], allLayouts: ResponsiveLayouts) => {
       setResponsiveLayouts((prev) => {
@@ -81,9 +76,6 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         Object.entries(allLayouts || {}).forEach(([breakpoint, bpLayout]) => {
           nextLayouts[breakpoint] = cloneLayout(bpLayout);
         });
-        if (!nextLayouts.lg && activeBreakpoint === 'lg') {
-          nextLayouts.lg = cloneLayout(newLayout);
-        }
         return nextLayouts;
       });
 
@@ -105,7 +97,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     }
     const updatedDash = {
       ...currentDashboard,
-      layouts: responsiveLayoutsRef.current.lg ?? layoutRef.current
+      layouts: responsiveLayoutsRef.current.lg
     };
     delete updatedDash.visualizations;
     await updateDashboard(updatedDash);
@@ -115,17 +107,13 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (hasLayoutChangedRef.current) {
-        void updateDashboardLayout();
-      }
+      void updateDashboardLayout();
     };
     window.addEventListener('beforeunload', handleBeforeUnload);
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
-      if (hasLayoutChangedRef.current) {
-        void updateDashboardLayout();
-      }
+      void updateDashboardLayout();
     };
   }, [updateDashboardLayout]);
 
@@ -134,7 +122,6 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       return;
     }
     const cloned = cloneLayout(newLayout);
-    layoutRef.current = cloned;
     responsiveLayoutsRef.current = {
       ...responsiveLayoutsRef.current,
       lg: cloned

@@ -18,7 +18,8 @@ const {
     createDashboard,
     updateDashboard,
     createOrUpdateVisualization,
-    catchError
+    catchError,
+    typeTabState
 } = vi.hoisted(() => ({
     push: vi.fn(),
     toastSuccess: vi.fn(),
@@ -28,7 +29,11 @@ const {
     createDashboard: vi.fn(() => Promise.resolve({})),
     updateDashboard: vi.fn(() => Promise.resolve({})),
     createOrUpdateVisualization: vi.fn(() => Promise.resolve({})),
-    catchError: vi.fn()
+    catchError: vi.fn(),
+    typeTabState: {
+        filesCount: 1,
+        fileType: 'CSV' as string
+    }
 }));
 
 vi.mock('next/navigation', () => ({
@@ -66,9 +71,14 @@ vi.mock('@/lib/utils', async () => {
 
 vi.mock('@/components/ui/multi-select', () => ({
     default: ({ onValueChange }: any) => (
-        <button onClick={() => onValueChange(['Revenue (bar-chart)', 'Growth (line-chart)'])}>
-            set-visualizations
-        </button>
+        <>
+            <button onClick={() => onValueChange(['Revenue (bar-chart)', 'Growth (line-chart)'])}>
+                set-visualizations
+            </button>
+            <button onClick={() => onValueChange(['Malformed visualization value'])}>
+                set-invalid-visualizations
+            </button>
+        </>
     )
 }));
 
@@ -77,12 +87,12 @@ vi.mock('@/components/ui/tabs/mappingTab/mappingTab', () => ({
 }));
 
 vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
-    default: ({ form, updateFiles, handleFileTypeChange }: any) => (
+    default: ({ form, updateFiles, handleFileTypeChange, removeFile }: any) => (
         <button
             type="button"
             onClick={() => {
-                handleFileTypeChange(FileTypes.FileType.CSV);
-                form.setValue('fileType', FileTypes.FileType.CSV);
+                handleFileTypeChange(typeTabState.fileType);
+                form.setValue('fileType', typeTabState.fileType);
                 form.setValue('fullDetails', false);
                 form.setValue('separator', ',');
                 form.setValue('includeHeaders', true);
@@ -91,12 +101,15 @@ vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
                 form.setValue('description', 'Desc');
                 form.setValue('tags', 'a,b');
                 form.setValue('mapping', { names: '1', values: '2', properties: '3' });
-                updateFiles([
-                    {
-                        id: '1',
-                        file: new File(['a,b'], 'demo.csv', { type: 'text/csv' })
-                    }
-                ]);
+                const files = Array.from({ length: typeTabState.filesCount }, (_, index) => ({
+                    id: String(index + 1),
+                    file: new File(['a,b'], `demo-${index + 1}.csv`, { type: 'text/csv' })
+                }));
+                updateFiles(files as any);
+                if (files.length > 0) {
+                    removeFile(files[0]?.id);
+                    updateFiles(files as any);
+                }
             }}
         >
             setup-visualization
@@ -107,6 +120,8 @@ vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
 describe('form components', () => {
     beforeEach(() => {
         vi.clearAllMocks();
+        typeTabState.filesCount = 1;
+        typeTabState.fileType = FileTypes.FileType.CSV;
     });
 
     it('submits add project form and redirects', async () => {
@@ -197,6 +212,40 @@ describe('form components', () => {
         expect(push).toHaveBeenCalledWith('/dashboards');
     });
 
+    it('handles missing visualization maps and malformed selected labels', async () => {
+        const user = userEvent.setup();
+
+        render(<AddDashboardForm visualizations={undefined as any} />);
+        await user.type(screen.getByPlaceholderText('Type Dashboard name here.'), 'Dash Missing');
+        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'Desc');
+        await user.click(screen.getByRole('button', { name: 'set-invalid-visualizations' }));
+        await user.click(screen.getByRole('button', { name: /Add Dashboard/i }));
+
+        await waitFor(() => {
+            expect(createDashboard).toHaveBeenCalledWith(expect.objectContaining({
+                visualizations: {}
+            }));
+        });
+
+        render(
+            <UpdateDashboardForm
+                dashboard={null}
+                visualizations={undefined as any}
+            />
+        );
+        const invalidButtons = screen.getAllByRole('button', { name: 'set-invalid-visualizations' });
+        await user.click(invalidButtons[invalidButtons.length - 1] as HTMLElement);
+        const updateButtons = screen.getAllByRole('button', { name: /Update Dashboard/i });
+        await user.click(updateButtons[updateButtons.length - 1] as HTMLElement);
+
+        await waitFor(() => {
+            expect(updateDashboard).toHaveBeenCalledWith(expect.objectContaining({
+                description: '',
+                visualizations: {}
+            }));
+        });
+    });
+
     it('submits add visualization form with file payload and handles no files path', async () => {
         const user = userEvent.setup();
         render(<AddVisualizationForm />);
@@ -204,6 +253,7 @@ describe('form components', () => {
         await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
         expect(toastError).toHaveBeenCalledWith('No files selected.');
 
+        await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
         await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
         await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
 
@@ -217,6 +267,34 @@ describe('form components', () => {
         expect(push).toHaveBeenCalledWith('/visualizations');
     });
 
+    it('handles no-op file type changes while still submitting payload', async () => {
+        const user = userEvent.setup();
+        typeTabState.fileType = FileTypes.FileType.JSON;
+
+        render(<AddVisualizationForm />);
+        await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
+        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
+
+        await waitFor(() => {
+            expect(createOrUpdateVisualization).toHaveBeenCalledTimes(1);
+        });
+    });
+
+    it('routes file-count validation errors through catchError', async () => {
+        const user = userEvent.setup();
+        typeTabState.filesCount = 11;
+
+        render(<AddVisualizationForm />);
+
+        await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
+        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
+
+        await waitFor(() => {
+            expect(catchError).toHaveBeenCalled();
+        });
+        expect(createOrUpdateVisualization).not.toHaveBeenCalled();
+    });
+
     it('routes thrown action errors through catchError', async () => {
         const user = userEvent.setup();
         createProject.mockRejectedValueOnce(new Error('boom'));
@@ -228,6 +306,77 @@ describe('form components', () => {
 
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
+        });
+    });
+
+    it('routes dashboard create/update errors through catchError', async () => {
+        const user = userEvent.setup();
+        createDashboard.mockRejectedValueOnce(new Error('dash-create'));
+        updateDashboard.mockRejectedValueOnce(new Error('dash-update'));
+
+        render(<AddDashboardForm visualizations={{ v1: 'Revenue (bar-chart)' }} />);
+        await user.type(screen.getByPlaceholderText('Type Dashboard name here.'), 'Dash Err');
+        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'Desc');
+        await user.click(screen.getByRole('button', { name: /Add Dashboard/i }));
+
+        await waitFor(() => {
+            expect(catchError).toHaveBeenCalled();
+        });
+
+        render(
+            <UpdateDashboardForm
+                dashboard={{ name: 'd2', description: 'old', visualizations: {} } as any}
+                visualizations={{}}
+            />
+        );
+        await user.click(screen.getAllByRole('button', { name: /Update Dashboard/i })[0] as HTMLElement);
+
+        await waitFor(() => {
+            expect(catchError).toHaveBeenCalled();
+        });
+    });
+
+    it('covers update-project guard and error paths', async () => {
+        const user = userEvent.setup();
+        updateProject.mockRejectedValueOnce(new Error('project-update'));
+
+        render(<UpdateProjectForm project={{ name: 'p2', description: 'old', isActive: false } as any} />);
+        await user.click(screen.getByRole('button', { name: /Update Project/i }));
+        await waitFor(() => {
+            expect(catchError).toHaveBeenCalled();
+        });
+
+        render(<UpdateProjectForm project={{ description: '', isActive: false } as any} />);
+        await user.click(screen.getAllByRole('button', { name: /Update Project/i })[1] as HTMLElement);
+        expect(updateProject).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses truthy project defaults and skips predefined visualization push when key is absent', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <UpdateProjectForm project={{ name: 'p3', description: 'has-desc', isActive: true } as any} />
+        );
+        expect(screen.getByRole('checkbox')).toHaveAttribute('aria-checked', 'true');
+
+        render(
+            <UpdateDashboardForm
+                dashboard={{
+                    name: 'd3',
+                    description: 'desc',
+                    visualizations: {}
+                } as any}
+                visualizations={{ 'Missing(line-chart)': 'Missing (line-chart)' }}
+            />
+        );
+
+        const setButtons = screen.getAllByRole('button', { name: 'set-visualizations' });
+        await user.click(setButtons[setButtons.length - 1] as HTMLElement);
+        const submitButtons = screen.getAllByRole('button', { name: /Update Dashboard/i });
+        await user.click(submitButtons[submitButtons.length - 1] as HTMLElement);
+
+        await waitFor(() => {
+            expect(updateDashboard).toHaveBeenCalled();
         });
     });
 });

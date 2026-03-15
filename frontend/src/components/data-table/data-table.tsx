@@ -190,7 +190,7 @@ const DataTable = <TData, TValue>({
   }, [filterableColumnFilters]);
 
   const table = useReactTable({
-    data,
+    data: Array.isArray(data) ? data : [],
     columns,
     pageCount: pageCount ?? -1,
     state: {

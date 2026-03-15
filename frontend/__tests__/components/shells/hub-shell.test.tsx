@@ -57,4 +57,17 @@ describe('HubShell', () => {
         const missing = render(<HubShell data={null} fullScreen={false} filter={false} legend={false} />);
         expect(missing.container.firstChild).toHaveTextContent('');
     });
+
+    it('renders fullscreen container class branch', () => {
+        const view = render(
+            <HubShell
+                data={{ type: 'sankey', data: {} } as any}
+                fullScreen={true}
+                filter={false}
+                legend={false}
+            />
+        );
+
+        expect(view.container.firstChild).not.toHaveClass('h-full');
+    });
 });

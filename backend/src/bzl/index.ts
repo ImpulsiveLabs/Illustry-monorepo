@@ -17,21 +17,24 @@ class BZLInstance {
   }
 
   get ProjectBZL() {
-    return this.projectBZL
-      ? this.projectBZL
-      : new ProjectBZL(this.dbaccInstance);
+    if (!this.projectBZL) {
+      this.projectBZL = new ProjectBZL(this.dbaccInstance);
+    }
+    return this.projectBZL;
   }
 
   get VisualizationBZL() {
-    return this.visualizationBZL
-      ? this.visualizationBZL
-      : new VisualizationBZL(this.dbaccInstance);
+    if (!this.visualizationBZL) {
+      this.visualizationBZL = new VisualizationBZL(this.dbaccInstance);
+    }
+    return this.visualizationBZL;
   }
 
   get DashboardBZL() {
-    return this.dashboardBZL
-      ? this.dashboardBZL
-      : new DashboardBZL(this.dbaccInstance);
+    if (!this.dashboardBZL) {
+      this.dashboardBZL = new DashboardBZL(this.dbaccInstance);
+    }
+    return this.dashboardBZL;
   }
 }
 

@@ -1,0 +1,37 @@
+# VCS
+.git
+.github
+
+# Local dependencies and build output
+node_modules
+**/node_modules
+.next
+**/.next
+coverage
+**/coverage
+.nyc_output
+**/.nyc_output
+playwright-report
+**/playwright-report
+test-results
+**/test-results
+
+# Logs and OS files
+*.log
+**/*.log
+.DS_Store
+**/.DS_Store
+
+# Local env files (examples stay)
+.env
+**/.env
+
+# Optional local caches
+**/.turbo
+
+# Keep production build on SWC (Babel config is only needed for local coverage workflows)
+**/.babelrc
+
+# Yarn local caches (not needed in image build context)
+.yarn/cache
+.yarn/unplugged

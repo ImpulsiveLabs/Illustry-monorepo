@@ -56,5 +56,18 @@ describe('UpdateDashboardPage', () => {
 
     expect(screen.getByText(/Dashboard: Sales/i)).toBeInTheDocument();
     expect(screen.getByText(/Visualizations: Revenue\(bar\), Profit\(line\)/i)).toBeInTheDocument();
-});
+  });
+
+  it('renders with empty visualization map when browse payload is malformed', async () => {
+    (findOneDashboard as any).mockResolvedValue({ name: 'Sales' });
+    (browseVisualizations as any).mockResolvedValue({ visualizations: null });
+
+    const result = await UpdateDashboardPage({ params: { dashboardName: 'Sales' } as any });
+    render(result);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('update-dashboard-form')).toBeInTheDocument();
+    });
+    expect(screen.getByText(/Visualizations:/i)).toBeInTheDocument();
+  });
 });

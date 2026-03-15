@@ -82,7 +82,6 @@ const computeCalendar = (
         .filter((year): year is number => year !== null)
     )
   ].sort((a, b) => a - b); // Sort ascending for consistent order
-  const yearsSet = new Set(years);
 
   // Group data by year, ensuring dates match the year
   const groupedByYears: Record<string, Array<[string, number, string]>> = {};
@@ -93,9 +92,6 @@ const computeCalendar = (
       return;
     }
     const yearStr = eventYear.toString();
-    if (!yearsSet.has(eventYear)) {
-      return;
-    }
     if (!groupedByYears[yearStr]) {
       groupedByYears[yearStr] = [];
     }
@@ -106,7 +102,7 @@ const computeCalendar = (
     type: 'heatmap' as const,
     coordinateSystem: 'calendar' as const,
     calendarIndex: index,
-    data: groupedByYears[year.toString()] || []
+    data: groupedByYears[year.toString()] as Array<[string, number, string]>
   }));
 
   return {

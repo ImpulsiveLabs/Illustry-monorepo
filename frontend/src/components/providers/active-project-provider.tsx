@@ -28,7 +28,9 @@ const ActiveProjectProvider = ({ children }: { children: ReactNode }) => {
   }
   const [initialActiveProjectProv, dispatchDataProv] = useReducer(activeProjectReducer, initialActiveProject);
   useEffect(() => {
-    localStorage.setItem('activeProject', JSON.stringify(initialActiveProjectProv));
+    if (typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem('activeProject', JSON.stringify(initialActiveProjectProv));
+    }
   }, [initialActiveProjectProv]);
 
   return (
