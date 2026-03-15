@@ -61,22 +61,19 @@ const visualizationPropertiesExtractor = (
   let tags: string[] = [];
   const sanitizedArr = arr.map((item) => {
     const newItem = { ...item } as TransformerTypes.FullCalendarDetails;
-    if (newItem) {
-      if (newItem.visualizationName) {
-        name = newItem.visualizationName as string;
-        delete newItem.visualizationName;
-      }
-      if (newItem.visualizationDescription) {
-        description = newItem.visualizationDescription as string;
-        delete newItem.visualizationDescription;
-      }
-      if (newItem.visualizationTags) {
-        tags = newItem.visualizationTags as string[];
-        delete newItem.visualizationTags;
-      }
-      return newItem;
+    if (newItem.visualizationName) {
+      name = newItem.visualizationName as string;
+      delete newItem.visualizationName;
     }
-    return null;
+    if (newItem.visualizationDescription) {
+      description = newItem.visualizationDescription as string;
+      delete newItem.visualizationDescription;
+    }
+    if (newItem.visualizationTags) {
+      tags = newItem.visualizationTags as string[];
+      delete newItem.visualizationTags;
+    }
+    return newItem;
   });
   return {
     data: sanitizedArr.filter(Boolean),

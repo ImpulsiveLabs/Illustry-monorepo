@@ -1,5 +1,6 @@
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { FC, useState } from 'react';
 import { useInView } from 'react-intersection-observer';
 import { VisualizationTypes } from '@illustry/types';
@@ -19,8 +20,7 @@ type TimelineProp = {
   & WithFullScreen;
 
 const TimelineView = ({ data, fullScreen }: TimelineProp) => {
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const { ref, inView } = useInView({
     triggerOnce: true
   });
@@ -33,16 +33,13 @@ const TimelineView = ({ data, fullScreen }: TimelineProp) => {
   const endIndex = startIndex + elementsPerPage;
   const displayedDates = sortedKeys.slice(startIndex, endIndex);
   const VerticalTimelineFC = VerticalTimeline as unknown as FC<VerticalTimelineProps>;
+  const maxPage = Math.max(0, Math.ceil(sortedKeys.length / elementsPerPage) - 1);
   const handleNextPage = () => {
-    if (endIndex < sortedKeys.length) {
-      setCurrentPage(currentPage + 1);
-    }
+    setCurrentPage((prev) => Math.min(prev + 1, maxPage));
   };
 
   const handlePreviousPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(currentPage - 1);
-    }
+    setCurrentPage((prev) => Math.max(prev - 1, 0));
   };
 
   return (

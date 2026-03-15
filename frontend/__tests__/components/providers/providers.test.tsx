@@ -37,7 +37,32 @@ const ActiveProjectConsumer = () => {
     );
 };
 
-const ThemeConsumer = ({ actionType = 'apply' }: { actionType?: string }) => {
+const ActiveProjectInvalidDispatchConsumer = () => {
+    const activeProject = useActiveProject();
+    const dispatch = useActiveProjectDispatch();
+    return (
+        <>
+            <span data-testid="active-project-invalid-state">{String(activeProject)}</span>
+            <button onClick={() => dispatch({ type: 'UNKNOWN' as any, payload: false })}>
+                invalid-dispatch
+            </button>
+        </>
+    );
+};
+
+const ActiveProjectDispatchOutsideProvider = () => {
+    const dispatch = useActiveProjectDispatch();
+    return <span data-testid="dispatch-outside">{String(Boolean(dispatch))}</span>;
+};
+
+const ThemeConsumer = ({
+    actionType = 'apply',
+    modifiedData = {
+        calendar: {
+            dark: { colors: ['#000000'] }
+        }
+    }
+}: { actionType?: string; modifiedData?: any }) => {
     const colors = useThemeColors();
     const dispatch = useThemeColorsDispach();
 
@@ -47,11 +72,7 @@ const ThemeConsumer = ({ actionType = 'apply' }: { actionType?: string }) => {
             <button
                 onClick={() => dispatch?.({
                     type: actionType as 'apply',
-                    modifiedData: {
-                        calendar: {
-                            dark: { colors: ['#000000'] }
-                        }
-                    }
+                    modifiedData
                 })}
             >
                 update-colors
@@ -72,6 +93,11 @@ describe('providers', () => {
 
     it('throws when active project hooks are used outside provider', () => {
         expect(() => render(<ActiveProjectConsumer />)).toThrow('useActiveProject must be used within an ActiveProjectProvider');
+    });
+
+    it('throws when active project dispatch hook is used outside provider', () => {
+        expect(() => render(<ActiveProjectDispatchOutsideProvider />))
+            .toThrow('useActiveProjectDispatch must be used within an ActiveProjectProvider');
     });
 
     it('hydrates active project state from localStorage and persists updates', async () => {
@@ -152,4 +178,50 @@ describe('providers', () => {
         render(<ThemeDispatchOutsideProvider />);
         expect(screen.getByTestId('dispatch-defined')).toHaveTextContent('false');
     });
+
+    it('keeps state unchanged for unknown active-project reducer actions', async () => {
+        const user = userEvent.setup();
+
+        render(
+            <ActiveProjectProvider>
+                <ActiveProjectInvalidDispatchConsumer />
+            </ActiveProjectProvider>
+        );
+
+        expect(screen.getByTestId('active-project-invalid-state')).toHaveTextContent('false');
+        await user.click(screen.getByRole('button', { name: 'invalid-dispatch' }));
+        expect(screen.getByTestId('active-project-invalid-state')).toHaveTextContent('false');
+    });
+
+    it('handles absent localStorage and ignores unknown theme keys during apply', async () => {
+        const user = userEvent.setup();
+        const originalLocalStorage = window.localStorage;
+
+        Object.defineProperty(window, 'localStorage', {
+            configurable: true,
+            value: null
+        });
+
+        render(
+            <ActiveProjectProvider>
+                <ActiveProjectConsumer />
+            </ActiveProjectProvider>
+        );
+        expect(screen.getByTestId('active-project-state')).toHaveTextContent('false');
+
+        render(
+            <ThemeColorsProvider>
+                <ThemeConsumer modifiedData={{ unknownKey: { dark: { colors: ['#fff'] } } }} />
+            </ThemeColorsProvider>
+        );
+        const beforeWithoutStorage = screen.getByTestId('calendar-color').textContent;
+        await user.click(screen.getByRole('button', { name: 'update-colors' }));
+        expect(screen.getByTestId('calendar-color').textContent).toBe(beforeWithoutStorage);
+
+        Object.defineProperty(window, 'localStorage', {
+            configurable: true,
+            value: originalLocalStorage
+        });
+    });
+
 });

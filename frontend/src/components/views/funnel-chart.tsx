@@ -1,5 +1,6 @@
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeLegendColors,
@@ -18,8 +19,7 @@ type FunnelProp = {
 
 const FunnelView = ({ data, legend, fullScreen }: FunnelProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.funnel.dark.colors
     : activeTheme.funnel.light.colors;

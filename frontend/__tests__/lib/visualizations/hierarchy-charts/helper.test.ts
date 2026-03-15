@@ -69,6 +69,12 @@ describe('hierarchy helpers', () => {
         name: 'orphan',
         value: 30,
         category: 'missing-cat'
+      },
+      {
+        name: 'numeric-prop',
+        value: 40,
+        category: 'cat-1',
+        properties: 7 as any
       }
     ];
 
@@ -91,6 +97,28 @@ describe('hierarchy helpers', () => {
       value: 30,
       itemStyle: { color: undefined, borderColor: undefined }
     });
+    expect(result[2]?.prop).toBe('');
+  });
+
+  it('handles zero-valued tooltip payloads without appending value text', () => {
+    const nodes: VisualizationTypes.HierarchyNode[] = [
+      {
+        name: 'zero-object',
+        value: 0,
+        category: 'cat-1',
+        properties: { key: 'value' }
+      },
+      {
+        name: 'zero-string',
+        value: 0,
+        category: 'cat-1',
+        properties: 'plain-text'
+      }
+    ];
+
+    const result = computeNodesHierarchy(nodes, ['cat-1'], ['#f00']);
+    expect(result[0]?.prop).toBe('<div style="font-weight: bold">key:value</div>');
+    expect(result[1]?.prop).toBe('plain-text');
   });
 
   it('creates level styling metadata', () => {

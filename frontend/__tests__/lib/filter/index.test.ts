@@ -45,13 +45,18 @@ describe('lib/filter/index parseFilter', () => {
         const words = ['values'];
 
         expect(parseFilter('values>=1&&values<=2', data, words, VisualizationTypes.VisualizationTypesEnum.LINE_CHART)).toEqual({ axis: true });
+        expect(parseFilter('values>=1&&values<=2', data, words, VisualizationTypes.VisualizationTypesEnum.BAR_CHART)).toEqual({ axis: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.CALENDAR)).toEqual({ calendar: true });
+        expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH)).toEqual({ nodeLink: true });
+        expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING)).toEqual({ nodeLink: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.MATRIX)).toEqual({ nodeLink: true });
+        expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.SANKEY)).toEqual({ nodeLink: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.FUNNEL)).toEqual({ funnelPie: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD)).toEqual({ wordCloud: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.SCATTER)).toEqual({ scatter: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.TIMELINE)).toEqual({ timeline: true });
         expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.SUNBURST)).toEqual({ hierarchy: true });
+        expect(parseFilter('values>=1', data, words, VisualizationTypes.VisualizationTypesEnum.TREEMAP)).toEqual({ hierarchy: true });
         expect(parseFilter('values>=1', data, words, 'unknown' as VisualizationTypes.VisualizationTypesEnum)).toBe(data);
 
         expect(validateExpressions).toHaveBeenCalled();

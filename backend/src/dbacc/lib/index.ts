@@ -18,19 +18,24 @@ class DbaccInstance {
   }
 
   get Project(): Project {
-    return this.project ? this.project : new Project(this.modelInstance);
+    if (!this.project) {
+      this.project = new Project(this.modelInstance);
+    }
+    return this.project;
   }
 
   get Visualization(): Visualization {
-    return this.visualization
-      ? this.visualization
-      : new Visualization(this.modelInstance);
+    if (!this.visualization) {
+      this.visualization = new Visualization(this.modelInstance);
+    }
+    return this.visualization;
   }
 
   get Dashboard(): Dashboard {
-    return this.dashboard
-      ? this.dashboard
-      : new Dashboard(this.modelInstance);
+    if (!this.dashboard) {
+      this.dashboard = new Dashboard(this.modelInstance);
+    }
+    return this.dashboard;
   }
 }
 

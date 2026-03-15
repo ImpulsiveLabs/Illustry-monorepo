@@ -33,10 +33,13 @@ describe('DataTablePagination', () => {
         await user.click(screen.getByRole('button', { name: 'Go to previous page' }));
         await user.click(screen.getByRole('button', { name: 'Go to next page' }));
         await user.click(screen.getByRole('button', { name: 'Go to last page' }));
+        await user.click(screen.getByRole('combobox'));
+        await user.click(screen.getByText('20'));
 
         expect(setPageIndex).toHaveBeenCalledWith(0);
         expect(previousPage).toHaveBeenCalledTimes(1);
         expect(nextPage).toHaveBeenCalledTimes(1);
         expect(setPageIndex).toHaveBeenCalledWith(4);
+        expect(table.setPageSize).toHaveBeenCalledWith(20);
     });
 });

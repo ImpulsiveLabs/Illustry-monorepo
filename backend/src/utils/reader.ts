@@ -4,7 +4,6 @@ import { FileTypes, VisualizationTypes, TransformerTypes } from '@illustry/types
 import readline from 'readline';
 import { parseStringPromise } from 'xml2js';
 import * as ExcelJS from 'exceljs';
-import { EventEmitter } from 'stream';
 import {
   jsonDataProvider,
   exelOrCsvdataProvider,
@@ -83,55 +82,41 @@ const readExcelFile = (
   ) {
     reject(new FileError('The provided file is not EXCEL format'));
   }
-  const workbookReader = new ExcelJS.stream.xlsx.WorkbookReader(file.filePath, {
-    worksheets: 'emit'
-  }) as ExcelJS.stream.xlsx.WorkbookReader & EventEmitter;
-  const computedRows: TransformerTypes.RowType[] = [];
-  let includeHeaders = fileDetails.includeHeaders || false;
-
-  workbookReader.on('end', async () => {
-    await fs.promises.unlink(file.filePath);
-    resolve(
-      exelOrCsvdataProvider(visualizationType, computedRows, allFileDetails)
-    );
-  });
-
-  workbookReader.on('worksheet', (worksheet: {
-    id: number;
-    emit: (event: string) => void;
-    on: (event: string, arg: { (row: { values: (string | number)[]; }): void }) => void;
-  }) => {
+  const loadWorkbook = async () => {
+    const workbook = new ExcelJS.Workbook();
+    const computedRows: TransformerTypes.RowType[] = [];
     const sheetsNr = fileDetails && fileDetails.sheets && fileDetails.sheets.length > 0
       ? +fileDetails.sheets
       : 1;
-    if (worksheet.id > sheetsNr) {
-      worksheet.emit('end');
-      return;
-    }
 
-    worksheet.on('row', (row) => {
-      if (!includeHeaders) {
-        includeHeaders = true;
-      } else if (row.values.length > 0 && fileDetails.mapping) {
-        computedRows.push(
-          transformerProvider(
-            visualizationType,
-            fileDetails.mapping,
-            row.values,
-            allFileDetails
-          )
-        );
-      }
+    await workbook.xlsx.readFile(file.filePath);
+
+    workbook.worksheets.slice(0, sheetsNr).forEach((worksheet) => {
+      let includeHeaders = fileDetails.includeHeaders || false;
+      worksheet.eachRow((row) => {
+        const rowValues = row.values as (string | number)[];
+        if (!includeHeaders) {
+          includeHeaders = true;
+        } else if (rowValues.length > 0 && fileDetails.mapping) {
+          computedRows.push(
+            transformerProvider(
+              visualizationType,
+              fileDetails.mapping,
+              rowValues as (string | number)[],
+              allFileDetails
+            )
+          );
+        }
+      });
     });
 
-    worksheet.on('end', () => {
-    });
-  });
+    await fs.promises.unlink(file.filePath);
+    return exelOrCsvdataProvider(visualizationType, computedRows, allFileDetails);
+  };
 
-  workbookReader.on('error', (err) => {
-    reject(new FileError(`An error occurred: ${err}`));
-  });
-  workbookReader.read();
+  loadWorkbook()
+    .then(resolve)
+    .catch((err) => reject(new FileError(`An error occurred: ${err}`)));
 });
 
 const readCsvFile = (

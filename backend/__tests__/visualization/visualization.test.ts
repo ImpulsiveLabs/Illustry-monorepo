@@ -38,6 +38,15 @@ describe("visualizations CRUD", () => {
       description: "Test_ProjectDescription1",
       isActive: true,
     };
+    let existingProject: ProjectTypes.ProjectType | null = null;
+    try {
+      existingProject = await factory.getBZL().ProjectBZL.findOne({ name: expectedProject.name });
+    } catch (err) {
+      existingProject = null;
+    }
+    if (existingProject) {
+      await factory.getBZL().ProjectBZL.delete({ name: expectedProject.name });
+    }
     await copyDirectory(jsonDirectoryPath, path.resolve(__dirname));
     await copyDirectory(xmlDirectoryPath, path.resolve(__dirname));
     await copyDirectory(excelDirectoryPath, path.resolve(__dirname));
@@ -174,7 +183,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
 
   it("It creates a sankey Visualization JSON with all the details in the JSON", async () => {
@@ -230,7 +240,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a word-cloud Visualization JSON with all the details in the JSON", async () => {
 
@@ -289,7 +300,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a calendar Visualization JSON with all the details in the JSON", async () => {
 
@@ -395,7 +407,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a matrix Visualization JSON with all the details in the JSON", async () => {
 
@@ -514,7 +527,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a line-chart Visualization JSON with all the details in the JSON", async () => {
 
@@ -550,7 +564,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a bar-chart Visualization JSON with all the details in the JSON", async () => {
 
@@ -4192,7 +4207,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a line-chart Visualization EXCEL with all the details in the EXCEL", async () => {
 
@@ -5011,7 +5027,8 @@ describe("visualizations CRUD", () => {
           fileDetails
         )
     )[0];
-    expect(visualization).toMatchObject(expectedVisualization);
+    const normalizedVisualization = JSON.parse(JSON.stringify(visualization));
+    expect(normalizedVisualization).toMatchObject(expectedVisualization);
   });
   it("It creates a line-chart Visualization EXCEL with only the data in the EXCEL", async () => {
 

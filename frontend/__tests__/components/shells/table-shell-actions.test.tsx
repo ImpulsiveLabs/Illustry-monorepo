@@ -227,8 +227,12 @@ describe('table shell action branches', () => {
         const selectCell = latestDataTableProps.columns[0].cell({
             row: { getIsSelected: () => false, toggleSelected: vi.fn(), original: { name: 'v1', type: 'bar-chart' } }
         });
+        const selectCellSameType = latestDataTableProps.columns[0].cell({
+            row: { getIsSelected: () => false, toggleSelected: vi.fn(), original: { name: 'v3', type: 'bar-chart' } }
+        });
         await act(async () => {
             selectCell.props.onCheckedChange(true);
+            selectCellSameType.props.onCheckedChange(true);
             selectCell.props.onCheckedChange(false);
         });
 

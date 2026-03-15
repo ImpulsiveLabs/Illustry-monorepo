@@ -140,4 +140,30 @@ describe('Dropdownmenu', () => {
         expect(screen.getByText('Item 1')).toBeInTheDocument();
         expect(screen.getByText('Ctrl+1')).toBeInTheDocument();
     })
+
+    it('applies inset styles for sub trigger, item and label variants', async () => {
+        render(
+            <DropdownMenu>
+                <DropdownMenuTrigger>Open</DropdownMenuTrigger>
+                <DropdownMenuContent>
+                    <DropdownMenuLabel inset>Inset Label</DropdownMenuLabel>
+                    <DropdownMenuItem inset>Inset Root Item</DropdownMenuItem>
+                    <DropdownMenuSub>
+                        <DropdownMenuSubTrigger inset>Inset More</DropdownMenuSubTrigger>
+                        <DropdownMenuSubContent>
+                            <DropdownMenuItem inset>Inset Item</DropdownMenuItem>
+                        </DropdownMenuSubContent>
+                    </DropdownMenuSub>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        );
+
+        await userEvent.click(screen.getByText('Open'));
+        const insetLabel = screen.getByText('Inset Label');
+        const insetSubTrigger = screen.getByText('Inset More');
+        const insetRootItem = screen.getByText('Inset Root Item');
+        expect(insetLabel.className).toContain('pl-8');
+        expect(insetSubTrigger.className).toContain('pl-8');
+        expect(insetRootItem.className).toContain('pl-8');
+    });
 });

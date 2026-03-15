@@ -43,13 +43,9 @@ const applyValuesFilter = (
 
     if (matchesValues) {
       valuesOperations = matchesValues.map((match) => {
-        const matchResult = match.match(/values\s*([><=!]*)\s*(\d+)/);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterValue = parseInt((values as string).trim(), 10);
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', values = ''] = match.match(/values\s*([><=!]*)\s*(\d+)/) ?? [];
+        const filterValue = parseInt(values.trim(), 10);
+        return `${operator}${filterValue}`;
       });
     }
 
@@ -70,25 +66,19 @@ const applyCategoriesFilter = (categoriesFilter: string, defaultData: {
   const excludedCategories: string[] = [];
 
   try {
-    if (categoriesFilter === '') {
-      throw Error('No CategoriesFilter');
-    }
     const matches = categoriesFilter.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/g);
 
     if (matches) {
       matches.forEach((match) => {
-        const matchResult = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterCategories = (values as string)
-            .replace(/'/g, '')
-            .split(/\s*,\s*/)
-            .filter(Boolean);
-          if (operator === '=') {
-            includedCategories.push(...filterCategories);
-          } else if (operator === '!=') {
-            excludedCategories.push(...filterCategories);
-          }
+        const [, operator = '', values = ''] = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/) ?? [];
+        const filterCategories = values
+          .replace(/'/g, '')
+          .split(/\s*,\s*/)
+          .filter(Boolean);
+        if (operator === '=') {
+          includedCategories.push(...filterCategories);
+        } else if (operator === '!=') {
+          excludedCategories.push(...filterCategories);
         }
       });
       const filteredCategories = defaultData.categories.filter(
@@ -111,26 +101,8 @@ const applyHierachyFilter = (expressions:string[], defaultData: {
     categories: string[]
     nodes: VisualizationTypes.HierarchyNode[]
     } = { nodes: [...defaultData.nodes], categories: [...defaultData.categories] };
-  let valuesFilter: string = '';
-  let categoriesFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasValuesFilter = expression.includes('values');
-    const hasCategoriesFilter = expression.includes('categories');
-    if (hasValuesFilter) {
-      if (index === 0) {
-        valuesFilter = expression;
-      } else {
-        valuesFilter = `${valuesFilter}&&${expression}`;
-      }
-    }
-    if (hasCategoriesFilter) {
-      if (index === 0) {
-        categoriesFilter = expression;
-      } else {
-        categoriesFilter = `${categoriesFilter}&&${expression}`;
-      }
-    }
-  });
+  const valuesFilter = expressions.filter((expression) => expression.includes('values')).join('&&');
+  const categoriesFilter = expressions.filter((expression) => expression.includes('categories')).join('&&');
 
   if (valuesFilter !== '') {
     newData = applyValuesFilter(

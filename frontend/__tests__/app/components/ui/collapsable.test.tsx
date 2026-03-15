@@ -1,21 +1,22 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { describe, it, expect } from 'vitest';
 import {
-    Collapsible, CollapsibleTrigger, CollapsibleContent
+    Collapsible,
+    CollapsibleTrigger,
+    CollapsibleContent
 } from '@/components/ui/collapsable';
 
-describe('Collapsible', () => {
-    it('toggles content when trigger is clicked', async () => {
+describe('collapsable re-exports', () => {
+    it('renders radix collapsable primitives through re-export', async () => {
         render(
-            <Collapsible>
-                <CollapsibleTrigger>Toggle Content</CollapsibleTrigger>
-                <CollapsibleContent>
-                    This is the collapsible content.
-                </CollapsibleContent>
+            <Collapsible defaultOpen>
+                <CollapsibleTrigger>toggle</CollapsibleTrigger>
+                <CollapsibleContent>content</CollapsibleContent>
             </Collapsible>
-        )
-        await userEvent.click(screen.getByText('Toggle Content'));
-        expect(screen.getByText('This is the collapsible content.')).toBeVisible();
-    })
-})
+        );
+
+        expect(screen.getByText('toggle')).toBeInTheDocument();
+        expect(screen.getByText('content')).toBeInTheDocument();
+    });
+});

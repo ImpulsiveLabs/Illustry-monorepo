@@ -16,14 +16,9 @@ const applyDatesFilter = (
 
     if (matchesValues) {
       datesOperations = matchesValues.map((match) => {
-        const matchResult = match.match(/dates\s*([><=!]*)\s*(['"]?)(\d{4}-\d{2}-\d{2})\2/);
-
-        if (matchResult) {
-          const [, operator, , values] = matchResult;
-          const filterValue = (values as string).trim();
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', , values = ''] = match.match(/dates\s*([><=!]*)\s*(['"]?)(\d{4}-\d{2}-\d{2})\2/) ?? [];
+        const filterValue = values.trim();
+        return `${operator}${filterValue}`;
       });
     }
 
@@ -50,25 +45,19 @@ const applyCategoriesFilter = (categoriesFilter: string, defaultData: {
   const excludedCategories: string[] = [];
 
   try {
-    if (categoriesFilter === '') {
-      throw Error('No categoriesFilter');
-    }
     const matches = categoriesFilter.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/g);
 
     if (matches) {
       matches.forEach((match) => {
-        const matchResult = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterCategories = (values as string)
-            .replace(/'/g, '')
-            .split(/\s*,\s*/)
-            .filter(Boolean);
-          if (operator === '=') {
-            includedCategories.push(...filterCategories);
-          } else if (operator === '!=') {
-            excludedCategories.push(...filterCategories);
-          }
+        const [, operator = '', values = ''] = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/) ?? [];
+        const filterCategories = values
+          .replace(/'/g, '')
+          .split(/\s*,\s*/)
+          .filter(Boolean);
+        if (operator === '=') {
+          includedCategories.push(...filterCategories);
+        } else if (operator === '!=') {
+          excludedCategories.push(...filterCategories);
         }
       });
       const filteredCategories = defaultData.categories.filter(
@@ -94,26 +83,8 @@ const applyCalendarFilter = (expressions: string[], defaultData: {
     categories: [...defaultData.categories],
     calendar: [...defaultData.calendar]
   };
-  let categoriesFilter: string = '';
-  let datesFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasCategories = expression.includes('categories');
-    const hasDatesFilter = expression.includes('dates');
-    if (hasDatesFilter) {
-      if (index === 0) {
-        datesFilter = expression;
-      } else {
-        datesFilter = `${datesFilter}&&${expression}`;
-      }
-    }
-    if (hasCategories) {
-      if (index === 0) {
-        categoriesFilter = expression;
-      } else {
-        categoriesFilter = `${categoriesFilter}&&${expression}`;
-      }
-    }
-  });
+  const categoriesFilter = expressions.filter((expression) => expression.includes('categories')).join('&&');
+  const datesFilter = expressions.filter((expression) => expression.includes('dates')).join('&&');
   if (categoriesFilter !== '') {
     newData.categories = applyCategoriesFilter(categoriesFilter, newData);
     if (newData.categories.length) {

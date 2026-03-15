@@ -31,4 +31,19 @@ describe('lib/visualizations/chart/helper', () => {
         );
         expect(legend).toEqual({ one: '#111', two: '' });
     });
+
+    it('covers color fallback path when index exceeds palette length', () => {
+        const series = constructSeries(
+            { one: [1], two: [2], three: [3] },
+            ['#111'],
+            false,
+            'line',
+            true
+        );
+
+        expect(series[2]).toMatchObject({
+            color: undefined,
+            areaStyle: { color: undefined }
+        });
+    });
 });

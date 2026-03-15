@@ -80,4 +80,27 @@ describe('Dashboards', () => {
       sort: undefined,
     } as const);
   });
+
+  it('handles desc sorting and malformed payload fallbacks', async () => {
+    vi.mocked(browseDashboards).mockResolvedValue({
+      dashboards: null as any,
+      pagination: { pageCount: 'invalid' as any },
+    });
+
+    render(await Dashboards({
+      searchParams: {
+        page: '2',
+        per_page: '20',
+        sort: 'name.desc',
+      },
+    }));
+
+    expect(screen.getByTestId('data-length').textContent).toBe('0');
+    expect(screen.getByTestId('page-count').textContent).toBe('1');
+    expect(browseDashboards).toHaveBeenCalledWith({
+      page: 2,
+      per_page: 20,
+      sort: { sortOrder: -1, element: 'name' },
+    } as const);
+  });
 });

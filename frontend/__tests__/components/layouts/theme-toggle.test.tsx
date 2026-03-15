@@ -44,4 +44,14 @@ describe('ThemeToggle', () => {
         expect(screen.getByTestId('icon-sun')).toBeInTheDocument();
         expect(screen.getByTestId('icon-moon')).toBeInTheDocument();
     });
+
+    it('toggles from dark back to light', async () => {
+        const user = userEvent.setup();
+        themeValue = 'dark';
+        render(<ThemeToggle />);
+
+        await user.click(screen.getByRole('button', { name: 'Toggle theme' }));
+
+        expect(setTheme).toHaveBeenCalledWith('light');
+    });
 });

@@ -1,8 +1,9 @@
 import React, { createRef } from 'react';
 import { describe, it, expect, vi } from 'vitest';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 
-const getInstance = vi.fn(() => ({ id: 'instance' }));
+const resizeSpy = vi.fn();
+const getInstance = vi.fn(() => ({ id: 'instance', resize: resizeSpy }));
 
 vi.mock('echarts/core', () => ({
     default: {},
@@ -44,7 +45,40 @@ describe('ReactEcharts wrapper', () => {
         );
 
         expect(getByTestId('echarts-lib')).toBeInTheDocument();
-        expect(ref.current.getEchartsInstance()).toEqual({ id: 'instance' });
+        expect(ref.current.getEchartsInstance()).toMatchObject({ id: 'instance' });
         expect(getInstance).toHaveBeenCalledTimes(1);
+    });
+
+    it('wires resize listeners and observer callbacks', () => {
+        const disconnect = vi.fn();
+        let observerCb: (() => void) | undefined;
+        vi.stubGlobal('ResizeObserver', class {
+            constructor(cb: () => void) {
+                observerCb = cb;
+            }
+
+            observe() {}
+
+            disconnect() {
+                disconnect();
+            }
+        });
+
+        const { unmount } = render(
+            <ReactEcharts
+                option={{ series: [] }}
+                className="chart"
+                style={{ height: '100px' }}
+            />
+        );
+
+        act(() => {
+            window.dispatchEvent(new Event('resize'));
+            observerCb?.();
+        });
+
+        expect(resizeSpy).toHaveBeenCalled();
+        unmount();
+        expect(disconnect).toHaveBeenCalled();
     });
 });

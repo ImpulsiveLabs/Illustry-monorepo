@@ -77,4 +77,27 @@ describe('Visualizations Page', () => {
       per_page: 10,
     });
   });
+
+  it('handles desc sorting and malformed payload fallbacks', async () => {
+    vi.mocked(browseVisualizations).mockResolvedValue({
+      visualizations: null as any,
+      pagination: { pageCount: 'invalid' as any },
+    });
+
+    render(await Visualizations({
+      searchParams: {
+        page: '3',
+        per_page: '20',
+        sort: 'name.desc',
+      },
+    }));
+
+    expect(screen.getByTestId('data-length').textContent).toBe('0');
+    expect(screen.getByTestId('page-count').textContent).toBe('1');
+    expect(browseVisualizations).toHaveBeenCalledWith({
+      page: 3,
+      per_page: 20,
+      sort: { sortOrder: -1, element: 'name' },
+    });
+  });
 });

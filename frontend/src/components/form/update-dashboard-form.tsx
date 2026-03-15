@@ -29,9 +29,10 @@ type UpdateDashboardFormProps = {
 const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormProps) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const safeVisualizations = visualizations ?? {};
   const predefinedOptions: string[] = [];
-  const visualizationOptions = Object.keys(visualizations).map((key) => {
-    const value = visualizations[key] as string;
+  const visualizationOptions = Object.keys(safeVisualizations).map((key) => {
+    const value = safeVisualizations[key] as string;
     const transformedKey = key.replace(/[()]/g, '_').replace(/_+$/, '');
 
     if (dashboard && dashboard.visualizations && (dashboard.visualizations as Record<string, string>)[transformedKey]) {

@@ -1,0 +1,15 @@
+{
+  "presets": ["next/babel"],
+  "env": {
+    "coverage": {
+      "plugins": [
+        [
+          "istanbul",
+          {
+            "exclude": ["e2e/**", "**/*.spec.*", "**/*.test.*"]
+          }
+        ]
+      ]
+    }
+  }
+}

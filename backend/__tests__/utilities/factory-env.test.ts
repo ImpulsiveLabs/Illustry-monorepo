@@ -79,4 +79,68 @@ describe('factory environment branches', () => {
     instance.cleanup();
     expect(close).toHaveBeenCalledWith(true);
   });
+
+  it('falls back to empty MONGO_URL string when missing in production', () => {
+    const close = jest.fn();
+    const createConnection = jest.fn(() => ({ close }));
+
+    jest.doMock('mongoose', () => ({
+      __esModule: true,
+      default: { createConnection }
+    }));
+    jest.doMock('../../src/dbacc/lib', () => ({
+      __esModule: true,
+      default: jest.fn().mockImplementation(() => ({}))
+    }));
+    jest.doMock('../../src/bzl', () => ({
+      __esModule: true,
+      default: jest.fn().mockImplementation(() => ({}))
+    }));
+    jest.doMock('dotenv/config', () => ({}), { virtual: true });
+
+    process.env.NODE_ENV = 'production';
+    const Factory = require('../../src/factory').default;
+    delete process.env.MONGO_URL;
+    const instance = Factory.getInstance();
+
+    expect(createConnection).toHaveBeenCalledWith(
+      '',
+      expect.objectContaining({ dbName: 'illustry' })
+    );
+
+    instance.cleanup();
+    expect(close).toHaveBeenCalledWith(true);
+  });
+
+  it('falls back to empty MONGO_TEST_URL string when missing in test env', () => {
+    const close = jest.fn();
+    const createConnection = jest.fn(() => ({ close }));
+
+    jest.doMock('mongoose', () => ({
+      __esModule: true,
+      default: { createConnection }
+    }));
+    jest.doMock('../../src/dbacc/lib', () => ({
+      __esModule: true,
+      default: jest.fn().mockImplementation(() => ({}))
+    }));
+    jest.doMock('../../src/bzl', () => ({
+      __esModule: true,
+      default: jest.fn().mockImplementation(() => ({}))
+    }));
+    jest.doMock('dotenv/config', () => ({}), { virtual: true });
+
+    process.env.NODE_ENV = 'test';
+    const Factory = require('../../src/factory').default;
+    delete process.env.MONGO_TEST_URL;
+    const instance = Factory.getInstance();
+
+    expect(createConnection).toHaveBeenCalledWith(
+      '',
+      expect.objectContaining({ dbName: 'illustrytest' })
+    );
+
+    instance.cleanup();
+    expect(close).toHaveBeenCalledWith(true);
+  });
 });

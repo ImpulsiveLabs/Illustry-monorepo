@@ -4,6 +4,7 @@ import {
   computeColors
 } from '@/lib/visualizations/scatter/helper';
 import { computeLegendColors } from '@/lib/visualizations/calendar/helper';
+import { getStoredTheme } from '@/lib/theme-mode';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
 import Legend from '../ui/legend';
 import { useThemeColors } from '../providers/theme-provider';
@@ -20,8 +21,7 @@ const ScatterView = ({
   points, categories, legend, fullScreen
 }: ScatterProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.scatter.dark.colors
     : activeTheme.scatter.light.colors;

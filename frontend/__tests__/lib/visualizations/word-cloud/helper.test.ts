@@ -243,4 +243,9 @@ describe('computeColor', () => {
     const result = computeColor(50, meanValue, []);
     expect(result).toBe('');
   });
+
+  test('falls back to empty when bucket color index is missing', () => {
+    expect(computeColor(25, meanValue, [])).toBe('');
+    expect(computeColor(60, meanValue, ['#FF0000'])).toBe('');
+  });
 });

@@ -39,4 +39,26 @@ describe('DataTableColumnHeader', () => {
         expect(toggleSorting).toHaveBeenCalledWith(true);
         expect(toggleVisibility).toHaveBeenCalledWith(false);
     });
+
+    it('renders sorted aria labels for asc and desc states', () => {
+        const descColumn = {
+            getCanSort: () => true,
+            getIsSorted: () => 'desc',
+            toggleSorting: vi.fn(),
+            toggleVisibility: vi.fn()
+        } as any;
+
+        const ascColumn = {
+            getCanSort: () => true,
+            getIsSorted: () => 'asc',
+            toggleSorting: vi.fn(),
+            toggleVisibility: vi.fn()
+        } as any;
+
+        const { rerender } = render(<DataTableColumnHeader column={descColumn} title="Name" />);
+        expect(screen.getByRole('button', { name: 'Sorted descending. Click to sort ascending.' })).toBeInTheDocument();
+
+        rerender(<DataTableColumnHeader column={ascColumn} title="Name" />);
+        expect(screen.getByRole('button', { name: 'Sorted ascending. Click to sort descending.' })).toBeInTheDocument();
+    });
 });

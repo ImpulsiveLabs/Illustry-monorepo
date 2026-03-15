@@ -83,4 +83,62 @@ describe('DataTableToolbar', () => {
         render(<DataTableToolbar table={table} />);
         expect(screen.queryByRole('button', { name: 'Reset filters' })).not.toBeInTheDocument();
     });
+
+    it('removes text query param when submitted text is empty', async () => {
+        const user = userEvent.setup();
+
+        const table = {
+            getState: () => ({ columnFilters: [] }),
+            getColumn: () => null,
+            resetColumnFilters: vi.fn()
+        } as any;
+
+        render(
+            <DataTableToolbar
+                table={table}
+                filterableColumns={[{ id: 'status', title: 'Status', options: [] }]}
+            />
+        );
+
+        await user.click(screen.getByRole('button', { name: 'magnifying glass' }));
+
+        expect(push).toHaveBeenCalledTimes(1);
+        const [path] = push.mock.calls[0];
+        expect(path).toContain('page=1');
+        expect(path).not.toContain('text=');
+    });
+
+    it('handles filterable columns with empty ids', () => {
+        const table = {
+            getState: () => ({ columnFilters: [] }),
+            getColumn: vi.fn(() => null),
+            resetColumnFilters: vi.fn()
+        } as any;
+
+        render(
+            <DataTableToolbar
+                table={table}
+                filterableColumns={[{ id: '' as any, title: 'Empty', options: [] }]}
+            />
+        );
+
+        expect(table.getColumn).toHaveBeenCalledWith('');
+    });
+
+    it('renders faceted filter when empty id column still resolves', () => {
+        const table = {
+            getState: () => ({ columnFilters: [] }),
+            getColumn: vi.fn(() => ({})),
+            resetColumnFilters: vi.fn()
+        } as any;
+
+        render(
+            <DataTableToolbar
+                table={table}
+                filterableColumns={[{ id: '' as any, title: 'Fallback', options: [] }]}
+            />
+        );
+
+        expect(screen.getByTestId('faceted-filter')).toHaveTextContent('Fallback');
+    });
 });

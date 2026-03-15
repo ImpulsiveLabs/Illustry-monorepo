@@ -54,11 +54,8 @@ const computePropertiesForToolTip = (
   let prop = '';
 
   if (typeof properties === 'object') {
-    Object.entries(properties).forEach(([key]) => {
-      if (Object.hasOwnProperty.call(properties, key)) {
-        const propValue = properties[key];
-        prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
-      }
+    Object.entries(properties).forEach(([key, propValue]) => {
+      prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
     });
 
     if (value) {
@@ -71,8 +68,6 @@ const computePropertiesForToolTip = (
     } else {
       prop += properties;
     }
-  } else if (value) {
-    prop += `<div style="font-weight: bold">value:${value}</div>`;
   }
 
   return prop;

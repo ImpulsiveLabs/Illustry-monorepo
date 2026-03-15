@@ -44,10 +44,18 @@ describe('dbacc visualization unit', () => {
     const fallback = lib.createFilter({ type: 'sankey' } as any);
     expect(fallback.per_page).toBe(10);
     expect(fallback.sort).toEqual({});
+
+    const ascending = lib.createFilter({
+      sort: { element: 'name', sortOrder: 1 }
+    } as any);
+    expect(ascending.sort).toEqual({ name: 1 });
+
+    const empty = lib.createFilter({} as any);
+    expect(empty.query).toEqual({});
   });
 
   it('covers create/findOne/browse/update/delete/deleteMany', async () => {
-    const { model } = createModel();
+    const { model, countDocuments } = createModel();
     const lib = new Visualization({ VisualizationModel: model } as any);
 
     await expect(lib.create({ name: 'a' } as any)).resolves.toEqual({ name: 'created' });
@@ -56,6 +64,13 @@ describe('dbacc visualization unit', () => {
     const browsed = await lib.browse({ query: { a: 1 }, page: 1, per_page: 2, sort: { name: 1 } } as any);
     expect(browsed.visualizations).toEqual([{ name: 'viz' }]);
     expect(browsed.pagination?.count).toBe(5);
+
+    const defaultPerPageBrowse = await lib.browse({ query: {}, page: 1 } as any);
+    expect(defaultPerPageBrowse.pagination?.pageCount).toBeCloseTo(0.5);
+
+    countDocuments.mockResolvedValueOnce(0);
+    const defaultBrowse = await lib.browse({} as any);
+    expect(defaultBrowse.pagination?.pageCount).toBe(1);
 
     await expect(lib.update({ query: { name: 'a' } } as any, { name: 'b' } as any)).resolves.toEqual({ name: 'updated' });
     await expect(lib.delete({ query: { name: 'a' } } as any)).resolves.toBe(true);

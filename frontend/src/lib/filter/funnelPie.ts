@@ -12,13 +12,9 @@ const applyValuesFilter = (
     const matchesValues = valuesFilter.match(/values\s*([><=!]*)\s*(\d+)/g);
     if (matchesValues) {
       valuesOperations = matchesValues.map((match) => {
-        const matchResult = match.match((/values\s*([><=!]*)\s*(\d+)/));
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterValue = (values as string).trim();
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', values = ''] = match.match(/values\s*([><=!]*)\s*(\d+)/) ?? [];
+        const filterValue = values.trim();
+        return `${operator}${filterValue}`;
       });
     }
     const filteredValues: { [key: string]: number } = {};
@@ -42,17 +38,7 @@ const applyFunnelPieFilter = (
   const newData: VisualizationTypes.FunnelData | VisualizationTypes.PieChartData = {
     values: {}
   };
-  let valuesFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasValuesFilter = expression.includes('values');
-    if (hasValuesFilter) {
-      if (index === 0) {
-        valuesFilter = expression;
-      } else {
-        valuesFilter = `${valuesFilter}&&${expression}`;
-      }
-    }
-  });
+  const valuesFilter = expressions.filter((expression) => expression.includes('values')).join('&&');
   if (valuesFilter !== '') {
     newData.values = applyValuesFilter(
       valuesFilter,

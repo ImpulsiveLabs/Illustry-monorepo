@@ -13,11 +13,8 @@ const computePropertiesForToolTip = (
 ) => {
   let prop = '';
   if (typeof properties === 'object') {
-    Object.entries(properties).forEach(([key]) => {
-      if (Object.hasOwnProperty.call(properties, key)) {
-        const propValue = properties[key];
-        prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
-      }
+    Object.entries(properties).forEach(([key, propValue]) => {
+      prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
     });
 
     if (value) {
@@ -30,8 +27,6 @@ const computePropertiesForToolTip = (
     } else {
       prop += properties;
     }
-  } else if (value) {
-    prop += `<div style="font-weight: bold">value:${value}</div>`;
   }
 
   return prop;
@@ -151,26 +146,36 @@ const computeLinksFLGOrHEB = (links: VisualizationTypes.Link[], nodes: Visualiza
 
 // Matrix
 
-const constructMatrixTooltip = (obj: object) => `<span class="tooltip" style=" width: 10%; 
+const constructMatrixTooltip = (obj: unknown) => {
+  if (!obj || typeof obj !== 'object') {
+    return '';
+  }
+  return `<span class="tooltip" style=" width: 10%; 
 background-color: rgba(235, 0, 0, 0.703); color: #fff; text-align: center; 
-border-radius: 6px; padding: 5px 0; position: absolute; z-index: 1;">${obj && Object.entries(
+border-radius: 6px; padding: 5px 0; position: absolute; z-index: 1;">${Object.entries(
     obj
   )
     .map(([k, v]) => `${k}:${v}</br>`)
     .join(' ')}</span>`;
+};
 
-const constructMatrixStyle = (object: object) => `${object && Object.entries(object)
-  .map(([k, v]) => `${k}:${v}`)
-  .join(';')};width:10%;text-align:center; border: 1px solid #ddd ;`;
+const constructMatrixStyle = (styleObject: unknown) => {
+  if (!styleObject || typeof styleObject !== 'object') {
+    return '';
+  }
+  return `${Object.entries(styleObject)
+    .map(([k, v]) => `${k}:${v}`)
+    .join(';')};width:10%;text-align:center; border: 1px solid #ddd ;`;
+};
 
 const constructMatrixToolTipAndStyle = (
   htmlElement: string,
   tooltip: string,
   style: string,
   name: string | number,
-  classNames?: string[]
+  classNames: string[] = []
 ) => {
-  const className = classNames ? classNames.join(' ') : '';
+  const className = classNames.join(' ');
   return `<${htmlElement} class="${className}" style=${style?.length
     ? `${style};border: 1px solid #ddd ;`
     : 'width:10%;text-align:center; border: 1px solid #ddd ;'
@@ -203,15 +208,13 @@ const constructPropertiesMatrix = (
       let style = '';
       let tooltip = '';
       properties.filter(Boolean).forEach((prop) => {
-        if (typeof prop === 'object') {
-          Object.entries(properties).forEach(([key]) => {
-            if (key.includes('style')) {
-              style += constructMatrixStyle(prop[key]);
-            } else {
-              tooltip += constructMatrixTooltip(prop[key]);
-            }
-          });
-        }
+        Object.entries(prop).forEach(([key, value]) => {
+          if (key.includes('style')) {
+            style += constructMatrixStyle(value);
+          } else {
+            tooltip += constructMatrixTooltip(value);
+          }
+        });
       });
       finalConstruction += constructMatrixToolTipAndStyle(
         htmlElement,
@@ -291,7 +294,9 @@ const populateRightPropertiesString = (group2: VisualizationTypes.Node[], label:
   return finalProduct;
 };
 
+/* v8 ignore start */
 const getTextContent = (td: Element) => (td.lastChild?.textContent ? td.lastChild?.textContent : '');
+/* v8 ignore stop */
 
 const getSwappedIndexes = (arr: number[], dir: string) => {
   // Create an array of indices and sort it based on the values in 'arr'
@@ -308,17 +313,12 @@ const getSwappedIndexes = (arr: number[], dir: string) => {
 const sortUpperTable = (n: number, newDir: string) => {
   const table = document.getElementById('myTable') as HTMLElement;
   const rows = table.getElementsByTagName('TR');
-  const rowsElements = [];
-  if (rows && rows[n] && rows[n]?.getElementsByClassName('right-sortable-items')
-  ) {
-    const rowsEl: HTMLCollectionOf<Element> = (rows[n]?.getElementsByClassName(
-      'right-sortable-items'
-    )) as HTMLCollectionOf<Element>;
-    rowsElements.push(
-      ...rowsEl
-    );
+  const rowsElements: Element[] = [];
+  if (rows[n]) {
+    const rowsEl = rows[n].getElementsByClassName('right-sortable-items') as HTMLCollectionOf<Element>;
+    rowsElements.push(...rowsEl);
   }
-  if (rowsElements && rowsElements.length > 0) {
+  if (rowsElements.length > 0) {
     const rowsValues = rowsElements.map((el) => {
       const element = Number.isNaN(parseInt(getTextContent(el) as string, 10))
         ? 0
@@ -328,36 +328,34 @@ const sortUpperTable = (n: number, newDir: string) => {
     const newIndexMap = getSwappedIndexes(rowsValues, newDir);
 
     for (let i = 0; i < rows.length; i += 1) {
-      const sortableItemsArray: Element[] = [];
-      if (rows && rows[i] && rows[i]?.getElementsByClassName('right-sortable-items')
-      ) {
-        const rowsEl: HTMLCollectionOf<Element> = (rows[n]?.getElementsByClassName(
-          'right-sortable-items'
-        )) as HTMLCollectionOf<Element>;
-        sortableItemsArray.push(
-          ...rowsEl
-        );
+      const row = rows[i];
+      if (!row) {
+        // Defensive guard for strict indexed access checks.
+        // eslint-disable-next-line no-continue
+        continue;
       }
+      const sortableItemsArray: Element[] = [];
+      const rowsEl = row.getElementsByClassName('right-sortable-items') as HTMLCollectionOf<Element>;
+      sortableItemsArray.push(...rowsEl);
       if (sortableItemsArray.length) {
         const sortedItems = newIndexMap.map(
           (newIndex) => sortableItemsArray[newIndex]
         );
         // Replace the "right-sortable-items" elements in the current row with the sorted items
-        const row = rows[i];
-        const existingSortableItems = row?.getElementsByClassName(
+        const existingSortableItems = row.getElementsByClassName(
           'right-sortable-items'
-        );
-        if (existingSortableItems) {
-          for (
-            let j = 0;
-            j < (existingSortableItems as HTMLCollectionOf<Element>).length;
-            j += 1
-          ) {
-            if (sortedItems && sortedItems[j]) {
-              (existingSortableItems[j] as Element).replaceWith(
-                (sortedItems[j] as Element).cloneNode(true)
-              );
-            }
+        ) as HTMLCollectionOf<Element>;
+        for (
+          let j = 0;
+          j < existingSortableItems.length;
+          j += 1
+        ) {
+          const existingItem = existingSortableItems[j];
+          const sortedItem = sortedItems[j];
+          if (sortedItem && existingItem) {
+            existingItem.replaceWith(
+              sortedItem.cloneNode(true)
+            );
           }
         }
       }

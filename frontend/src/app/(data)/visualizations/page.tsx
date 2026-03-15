@@ -39,12 +39,21 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
       : undefined,
   } as VisualizationTypes.VisualizationFilter);
 
+  const visualizationRows = visualizations && Array.isArray(visualizations.visualizations)
+    ? visualizations.visualizations
+    : [];
+  const visualizationsPageCount = visualizations
+    && visualizations.pagination
+    && typeof visualizations.pagination.pageCount === 'number'
+    ? Math.ceil(visualizations.pagination.pageCount)
+    : 1;
+
   return (
     <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-gray-50 rounded-3xl dark:bg-gray-800">
       <div className="space-y-2.5">
         <VisualizationsTableShell
-          data={visualizations ? visualizations.visualizations : []}
-          pageCount={visualizations ? Math.ceil(visualizations.pagination?.pageCount as number) : 1}
+          data={visualizationRows}
+          pageCount={visualizationsPageCount}
         ></VisualizationsTableShell>
       </div>
     </div>

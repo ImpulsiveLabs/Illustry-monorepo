@@ -16,6 +16,7 @@ vi.mock('next/font/google', () => ({
 import makeRequest from '@/lib/request';
 import { catchError, cloneDeep, cn, formatDate } from '@/lib/utils';
 import { fontMono, fontSans } from '@/lib/fonts';
+import getBackendUrl from '@/lib/backend-url';
 import * as z from 'zod';
 
 describe('lib request/utils/fonts', () => {
@@ -61,5 +62,25 @@ describe('lib request/utils/fonts', () => {
     it('fonts export configured objects', () => {
         expect(fontSans).toMatchObject({ variable: '--font-sans' });
         expect(fontMono).toMatchObject({ variable: '--font-mono' });
+    });
+
+    it('resolves backend url env vars with fallback to null', () => {
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+        const prevInternal = process.env.BACKEND_INTERNAL_URL;
+        const prevPublic = process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+
+        delete process.env.BACKEND_INTERNAL_URL;
+        delete process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+        expect(getBackendUrl()).toBeNull();
+        expect(warn).toHaveBeenCalled();
+
+        process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL = 'https://public.example';
+        expect(getBackendUrl()).toBe('https://public.example');
+
+        process.env.BACKEND_INTERNAL_URL = 'https://internal.example';
+        expect(getBackendUrl()).toBe('https://internal.example');
+
+        process.env.BACKEND_INTERNAL_URL = prevInternal;
+        process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL = prevPublic;
     });
 });

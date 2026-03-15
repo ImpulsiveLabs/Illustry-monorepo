@@ -62,4 +62,18 @@ describe('MainNav', () => {
         expect(projectsLink).toHaveAttribute('aria-disabled', 'false');
         expect(projectsLink).not.toHaveClass('pointer-events-none');
     });
+
+    it('falls back to root path when item href is not provided', async () => {
+        activeProjectValue = true;
+        render(
+            <MainNav
+                items={[
+                    { title: 'fallback-home', clickableNoActiveProject: true }
+                ]}
+            />
+        );
+
+        const fallbackLink = await screen.findByRole('link', { name: 'fallback-home' });
+        expect(fallbackLink).toHaveAttribute('href', '/');
+    });
 });

@@ -39,12 +39,21 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
       : undefined,
   } as DashboardTypes.DashboardFilter);
 
+  const dashboardRows = dashboards && Array.isArray(dashboards.dashboards)
+    ? dashboards.dashboards
+    : [];
+  const dashboardsPageCount = dashboards
+    && dashboards.pagination
+    && typeof dashboards.pagination.pageCount === 'number'
+    ? Math.ceil(dashboards.pagination.pageCount)
+    : 1;
+
   return (
     <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-gray-50 rounded-3xl dark:bg-gray-800">
       <div className="space-y-2.5">
         <DashboardsTableShell
-          data={dashboards ? dashboards.dashboards : []}
-          pageCount={dashboards ? Math.ceil(dashboards.pagination?.pageCount as number) : 1}
+          data={dashboardRows}
+          pageCount={dashboardsPageCount}
         />
       </div>
     </div>

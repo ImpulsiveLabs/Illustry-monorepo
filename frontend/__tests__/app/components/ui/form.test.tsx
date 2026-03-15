@@ -9,9 +9,9 @@ import {
     FormLabel,
     FormControl,
     FormDescription,
-    FormMessage
+    FormMessage,
+    UncontrolledFormMessage
 } from '@/components/ui/form';
-import exp from 'constants';
 
 const TestForm = ({ onSubmit}: {onSubmit : (data: any) => void}) => {
     const methods = useForm({
@@ -59,5 +59,29 @@ describe('Form', () => {
     await waitFor(() => {
         expect(handleSubmit).toHaveBeenCalledWith({ name: 'John Doe' }, expect.anything());
     })
+  });
+
+  it('renders uncontrolled form message branches', () => {
+    const Controlled = () => {
+      const methods = useForm({ defaultValues: { name: '' } });
+      return (
+        <Form {...methods}>
+          <form>
+            <FormField
+              name="name"
+              render={() => (
+                <FormItem>
+                  <UncontrolledFormMessage message="custom-message" />
+                  <UncontrolledFormMessage />
+                </FormItem>
+              )}
+            />
+          </form>
+        </Form>
+      );
+    };
+
+    render(<Controlled />);
+    expect(screen.getByText('custom-message')).toBeInTheDocument();
   });
 });

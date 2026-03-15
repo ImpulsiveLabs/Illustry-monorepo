@@ -2,6 +2,7 @@
 
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeNodesHierarchy
@@ -23,8 +24,7 @@ const SunburstView = ({
   nodes, categories, legend, fullScreen
 }: SunburstViewProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.sunburst.dark.colors
     : activeTheme.sunburst.light.colors;

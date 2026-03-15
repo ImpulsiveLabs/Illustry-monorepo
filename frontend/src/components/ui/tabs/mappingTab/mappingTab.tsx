@@ -29,9 +29,7 @@ const MappingTab = ({
 }: MappingTabProps) => {
   const [fileDetails, setFileDetails] = useState<boolean>(false);
   const handleFullDetails = (value: boolean) => {
-    if (value !== fileDetails) {
-      setFileDetails(value);
-    }
+    setFileDetails(value);
   };
   const renderMapping = (fType: string, fDetails: boolean) => {
     if (fType) {

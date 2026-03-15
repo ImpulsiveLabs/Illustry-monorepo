@@ -17,6 +17,8 @@
     "version": "echo \"standard-version removed; use external release tooling\"",
     "depcheck": "yarn workspaces foreach -A -pt run depcheck",
     "test": "yarn workspaces foreach -A -pt run test",
+    "e2e": "yarn workspace @impulsivelabs/illustry-client e2e",
+    "e2e:api": "yarn workspace @impulsivelabs/illustry-server e2e:api",
     "prepare": "husky install",
     "postversion": "echo \"manual publish step required\"",
     "build:ts": "yarn workspaces foreach -A -pt run build:ts",

@@ -14,25 +14,19 @@ const applyCategoriesFilter = (categoriesFilter: string, defaultData: {
   const excludedCategories: string[] = [];
 
   try {
-    if (categoriesFilter === '') {
-      throw Error('No Categories Filter');
-    }
     const matches = categoriesFilter.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/g);
 
     if (matches) {
       matches.forEach((match) => {
-        const matchResult = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterCategories = (values as string)
-            .replace(/'/g, '')
-            .split(/\s*,\s*/)
-            .filter(Boolean);
-          if (operator === '=') {
-            includedCategories.push(...filterCategories);
-          } else if (operator === '!=') {
-            excludedCategories.push(...filterCategories);
-          }
+        const [, operator = '', values = ''] = match.match(/categories\s*([!=]+)\s*\[([^\]]+)\]/) ?? [];
+        const filterCategories = values
+          .replace(/'/g, '')
+          .split(/\s*,\s*/)
+          .filter(Boolean);
+        if (operator === '=') {
+          includedCategories.push(...filterCategories);
+        } else if (operator === '!=') {
+          excludedCategories.push(...filterCategories);
         }
       });
       const filteredCategories = defaultData.categories.filter(
@@ -67,13 +61,9 @@ const applyPointsFilter = (
         const internRegexPattern = new RegExp(
           `${filterType}\\s*([><=!]*)\\s*(\\d+)`
         );
-        const matchResult = match.match(internRegexPattern);
-        if (matchResult) {
-          const [, operator, values] = matchResult;
-          const filterValue = (values as string).trim();
-          return `${operator}${filterValue}`;
-        }
-        return '';
+        const [, operator = '', values = ''] = match.match(internRegexPattern) ?? [];
+        const filterValue = values.trim();
+        return `${operator}${filterValue}`;
       });
     }
     const filteredPoints = defaultData.points.map((point) => {
@@ -103,35 +93,9 @@ const applyScatterFilter = (
     points: (string | number)[][];
     categories: string[];
   } = { points: [...defaultData.points], categories: [...defaultData.categories] };
-  let categoriesFilter: string = '';
-  let xCoordFilter: string = '';
-  let yCoordFilter: string = '';
-  expressions.forEach((expression, index) => {
-    const hasCategories = expression.includes('categories');
-    const hasXCoordFilter = expression.includes('xCoord');
-    const hasYCoordFilter = expression.includes('yCoord');
-    if (hasCategories) {
-      if (index === 0) {
-        categoriesFilter = expression;
-      } else {
-        categoriesFilter = `${categoriesFilter}&&${expression}`;
-      }
-    }
-    if (hasXCoordFilter) {
-      if (index === 0) {
-        xCoordFilter = expression;
-      } else {
-        xCoordFilter = `${xCoordFilter}&&${expression}`;
-      }
-    }
-    if (hasYCoordFilter) {
-      if (index === 0) {
-        yCoordFilter = expression;
-      } else {
-        yCoordFilter = `${yCoordFilter}&&${expression}`;
-      }
-    }
-  });
+  const categoriesFilter = expressions.filter((expression) => expression.includes('categories')).join('&&');
+  const xCoordFilter = expressions.filter((expression) => expression.includes('xCoord')).join('&&');
+  const yCoordFilter = expressions.filter((expression) => expression.includes('yCoord')).join('&&');
   if (categoriesFilter !== '') {
     newData.categories = applyCategoriesFilter(categoriesFilter, newData);
   }

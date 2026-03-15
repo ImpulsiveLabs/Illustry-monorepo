@@ -81,6 +81,12 @@ describe('tabs mapping/type components', () => {
 
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Type project name here.')).toBeInTheDocument();
+
+        jsonRender.unmount();
+        renderWithForm((form) => (
+            <XMLMappingTab form={form} router={router} fileDetails={true} />
+        ));
+        expect(screen.getByText("XML files don't need a special mapping")).toBeInTheDocument();
     });
 
     it('updates visualization detail fields', () => {
@@ -170,6 +176,65 @@ describe('tabs mapping/type components', () => {
         ), 'mapping');
 
         expect(screen.getByText('Separator')).toBeInTheDocument();
+
+        const excelRender = renderInTabsWithForm((form) => (
+            <MappingTab
+                selectedFileType={FileTypes.FileType.EXCEL}
+                isPending={false}
+                form={form}
+                router={{ refresh: vi.fn() }}
+            />
+        ), 'mapping');
+        expect(screen.getByText('Sheets number')).toBeInTheDocument();
+        excelRender.unmount();
+    });
+
+    it('returns empty mapping content for unsupported or missing file types', () => {
+        const unknownRender = renderInTabsWithForm((form) => (
+            <MappingTab
+                selectedFileType={'unsupported' as any}
+                isPending={false}
+                form={form}
+                router={{ refresh: vi.fn() }}
+            />
+        ), 'mapping');
+
+        expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
+        unknownRender.unmount();
+
+        renderInTabsWithForm((form) => (
+            <MappingTab
+                selectedFileType={''}
+                isPending={false}
+                form={form}
+                router={{ refresh: vi.fn() }}
+            />
+        ), 'mapping');
+        expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
+    });
+
+    it('renders pending spinner for xml and excel mapping submit buttons', () => {
+        const xmlRender = renderInTabsWithForm((form) => (
+            <MappingTab
+                selectedFileType={FileTypes.FileType.XML}
+                isPending={true}
+                form={form}
+                router={{ refresh: vi.fn() }}
+            />
+        ), 'mapping');
+
+        expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+        xmlRender.unmount();
+
+        renderInTabsWithForm((form) => (
+            <MappingTab
+                selectedFileType={FileTypes.FileType.EXCEL}
+                isPending={true}
+                form={form}
+                router={{ refresh: vi.fn() }}
+            />
+        ), 'mapping');
+        expect(document.querySelector('.animate-spin')).toBeInTheDocument();
     });
 
     it('renders excel/csv mapping tab branches for each visualization type', () => {
@@ -267,5 +332,35 @@ describe('tabs mapping/type components', () => {
         await user.click(screen.getByRole('combobox'));
         await user.click(screen.getByText(FileTypes.FileType.CSV));
         expect(fileTypeChanges).toHaveBeenCalledWith(FileTypes.FileType.CSV);
+    });
+
+    it('renders no formatter for empty or unsupported type tab file type', () => {
+        const fileTypeChanges = vi.fn();
+        const baseProps = {
+            handleFileTypeChange: fileTypeChanges,
+            files: [],
+            updateFiles: vi.fn(),
+            removeFile: vi.fn()
+        };
+
+        const unsupported = renderInTabsWithForm((form) => (
+            <TypeTab
+                form={form}
+                selectedFileType={'unsupported'}
+                {...baseProps}
+            />
+        ), 'type', { fileType: 'unsupported' });
+
+        expect(screen.queryByTestId('dropzone')).not.toBeInTheDocument();
+        unsupported.unmount();
+
+        renderInTabsWithForm((form) => (
+            <TypeTab
+                form={form}
+                selectedFileType={''}
+                {...baseProps}
+            />
+        ), 'type', { fileType: '' });
+        expect(screen.queryByTestId('dropzone')).not.toBeInTheDocument();
     });
 });

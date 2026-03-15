@@ -8,10 +8,8 @@ const computePropertiesForToolTip = (
 
   if (typeof properties === 'object' && properties !== null) {
     Object.entries(properties).forEach(([key]) => {
-      if (Object.hasOwnProperty.call(properties, key)) {
-        const propValue = properties[key];
-        prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
-      }
+      const propValue = properties[key];
+      prop += `<div style="font-weight: bold">${key}:${propValue}</div>`;
     });
 
     if (value) {

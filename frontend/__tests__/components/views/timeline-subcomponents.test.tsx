@@ -46,7 +46,7 @@ describe('Timeline subcomponents', () => {
     });
 
     it('renders timeline element wrapper', () => {
-        render(
+        const { rerender } = render(
             <TimelineElement date="2020-01-01" isDarkTheme={false} inView>
                 <span>Child content</span>
             </TimelineElement>
@@ -54,5 +54,13 @@ describe('Timeline subcomponents', () => {
 
         expect(screen.getByTestId('vertical-timeline-element')).toBeInTheDocument();
         expect(screen.getByText('Child content')).toBeInTheDocument();
+
+        rerender(
+            <TimelineElement date="2020-01-02" isDarkTheme={true} inView={false}>
+                <span>Child content dark</span>
+            </TimelineElement>
+        );
+
+        expect(screen.getByText('Child content dark')).toBeInTheDocument();
     });
 });

@@ -22,6 +22,7 @@ const {
 }));
 
 let latestDataTableProps: any = null;
+let dispatchEnabled = true;
 
 vi.mock('next/navigation', () => ({
     useRouter: () => ({ refresh })
@@ -44,7 +45,7 @@ vi.mock('@/app/_actions/visualization', () => ({
 }));
 
 vi.mock('@/components/providers/active-project-provider', () => ({
-    useActiveProjectDispatch: () => dispatch
+    useActiveProjectDispatch: () => (dispatchEnabled ? dispatch : undefined)
 }));
 
 vi.mock('@/components/data-table/data-table', () => ({
@@ -63,6 +64,7 @@ describe('table shell wrappers', () => {
         deleteProject.mockClear();
         deleteVisualization.mockClear();
         dispatch.mockClear();
+        dispatchEnabled = true;
     });
 
     it('passes expected props from dashboard shell to DataTable', async () => {
@@ -113,6 +115,49 @@ describe('table shell wrappers', () => {
         await waitFor(() => {
             expect(deleteProject).toHaveBeenCalledWith('p1');
         });
+    });
+
+    it('handles select-all callbacks safely when table data is undefined', async () => {
+        render(<DashboardsTableShell pageCount={0} />);
+        const dashboardHeader = latestDataTableProps.columns[0].header({
+            table: {
+                getIsAllPageRowsSelected: () => false,
+                toggleAllPageRowsSelected: vi.fn()
+            }
+        });
+        await act(async () => {
+            dashboardHeader.props.onCheckedChange(true);
+        });
+
+        render(<ProjectsTableShell pageCount={0} />);
+        const projectsHeader = latestDataTableProps.columns[0].header({
+            table: {
+                getIsAllPageRowsSelected: () => false,
+                toggleAllPageRowsSelected: vi.fn()
+            }
+        });
+        await act(async () => {
+            projectsHeader.props.onCheckedChange(true);
+        });
+
+        render(<VisualizationsTableShell pageCount={0} />);
+        const visualizationsHeader = latestDataTableProps.columns[0].header({
+            table: {
+                getIsAllPageRowsSelected: () => false,
+                toggleAllPageRowsSelected: vi.fn()
+            }
+        });
+        await act(async () => {
+            visualizationsHeader.props.onCheckedChange(true);
+        });
+
+        expect(deleteDashboard).not.toHaveBeenCalled();
+    });
+
+    it('skips active-project dispatch when provider dispatch is unavailable', () => {
+        dispatchEnabled = false;
+        render(<ProjectsTableShell data={[{ name: 'p1', isActive: true } as any]} pageCount={1} />);
+        expect(dispatch).not.toHaveBeenCalled();
     });
 
     it('handles visualization tags cell and bulk delete', async () => {

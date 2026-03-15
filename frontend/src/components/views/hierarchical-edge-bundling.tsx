@@ -2,6 +2,7 @@
 
 'use client';
 
+import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import { useEffect, useRef } from 'react';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
@@ -18,8 +19,7 @@ type HierarchicalEdgeBundlingGraphProp = {
 
 const HierarchicalEdgeBundlingGraphView = ({ nodes, links, fullScreen }: HierarchicalEdgeBundlingGraphProp) => {
   const activeTheme = useThemeColors();
-  const theme = typeof window !== 'undefined' ? localStorage.getItem('theme') : 'light';
-  const isDarkTheme = theme === 'dark';
+  const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme ? activeTheme.flg.dark.colors : activeTheme.flg.light.colors;
   const categories = computeCategoriesFLGOrHEB(nodes, colors);
   const chartRef = useRef(null);

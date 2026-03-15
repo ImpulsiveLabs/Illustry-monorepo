@@ -76,12 +76,7 @@ const ReactEcharts = forwardRef(<T, >(
   const containerRef = useRef<HTMLDivElement | null>(null);
 
   useImperativeHandle(ref, () => ({
-    // eslint-disable-next-line consistent-return
-    getEchartsInstance: () => {
-      if (chartRef.current) {
-        return chartRef.current.getEchartsInstance();
-      }
-    }
+    getEchartsInstance: () => chartRef.current?.getEchartsInstance()
   }));
 
   useEffect(() => {
@@ -91,9 +86,7 @@ const ReactEcharts = forwardRef(<T, >(
 
     window.addEventListener('resize', resizeChart);
     const resizeObserver = new ResizeObserver(() => resizeChart());
-    if (containerRef.current) {
-      resizeObserver.observe(containerRef.current);
-    }
+    resizeObserver.observe(containerRef.current as HTMLDivElement);
 
     return () => {
       window.removeEventListener('resize', resizeChart);
