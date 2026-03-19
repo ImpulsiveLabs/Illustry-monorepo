@@ -1728,9 +1728,9 @@ __metadata:
     cmdk: "npm:0.2.0"
     depcheck: "npm:1.4.7"
     dotenv: "npm:16.3.1"
-    echarts: "npm:5.4.3"
-    echarts-for-react: "npm:3.0.2"
-    echarts-wordcloud: "npm:2.1.0"
+    echarts: "npm:6.0.0"
+    echarts-for-react: "npm:3.0.6"
+    echarts-wordcloud: "file:vendor/echarts-wordcloud"
     eslint: "npm:8.57.1"
     eslint-config-airbnb-base: "npm:15.0.0"
     eslint-config-next: "npm:15.5.0"
@@ -5417,7 +5417,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:8.18.0":
+"ajv@npm:^6.12.4":
+  version: 6.14.0
+  resolution: "ajv@npm:6.14.0"
+  dependencies:
+    fast-deep-equal: "npm:^3.1.1"
+    fast-json-stable-stringify: "npm:^2.0.0"
+    json-schema-traverse: "npm:^0.4.1"
+    uri-js: "npm:^4.2.2"
+  checksum: 10/c71f14dd2b6f2535d043f74019c8169f7aeb1106bafbb741af96f34fdbf932255c919ddd46344043d03b62ea0ccb319f83667ec5eedf612393f29054fe5ce4a5
+  languageName: node
+  linkType: hard
+
+"ajv@npm:^8.0.0, ajv@npm:^8.11.0, ajv@npm:^8.17.1, ajv@npm:^8.9.0":
   version: 8.18.0
   resolution: "ajv@npm:8.18.0"
   dependencies:
@@ -7729,35 +7741,35 @@ __metadata:
   languageName: node
   linkType: hard
 
-"echarts-for-react@npm:3.0.2":
-  version: 3.0.2
-  resolution: "echarts-for-react@npm:3.0.2"
+"echarts-for-react@npm:3.0.6":
+  version: 3.0.6
+  resolution: "echarts-for-react@npm:3.0.6"
   dependencies:
     fast-deep-equal: "npm:^3.1.3"
     size-sensor: "npm:^1.0.1"
   peerDependencies:
-    echarts: ^3.0.0 || ^4.0.0 || ^5.0.0
+    echarts: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
     react: ^15.0.0 || >=16.0.0
-  checksum: 10/be9107e7c174fd8105d12e15c1ae4bbb828c4ca9a66ef99eec1660fc0c5db92e652f69a81c5c11c2b7b826b13ae79260569a6d74aea965ae4f31f0b4d18462e9
+  checksum: 10/e7c084f516ee6f4c32a1f9eff3ff4372616878aeb6bacaa495fc8d60d2114b54b4b255a31a81fee3e05bfb278f9d27d9a320bb33b8ff37c92e43ac9fd1e4b539
   languageName: node
   linkType: hard
 
-"echarts-wordcloud@npm:2.1.0":
+"echarts-wordcloud@file:vendor/echarts-wordcloud::locator=%40impulsivelabs%2Fillustry-client%40workspace%3Afrontend":
   version: 2.1.0
-  resolution: "echarts-wordcloud@npm:2.1.0"
+  resolution: "echarts-wordcloud@file:vendor/echarts-wordcloud#vendor/echarts-wordcloud::hash=20cd3a&locator=%40impulsivelabs%2Fillustry-client%40workspace%3Afrontend"
   peerDependencies:
-    echarts: ^5.0.1
-  checksum: 10/aa2ebcd6ff043e16308ba5287b1bd720f9901271c060e4642f93a3dcf9e440b3326e8d3ce88408a367d3457684af7b0ac169527e5dbbf1c52e8fb625c5b337a1
+    echarts: ^5.0.1 || ^6.0.0
+  checksum: 10/200b36305c10d05675293cd69b26459bb161103cbebcfee1ec45fa69f395f1dd4c7d45e5e21126245ad33ae2ae5dc683f749186e89cff323d500fe2dfc539d57
   languageName: node
   linkType: hard
 
-"echarts@npm:5.4.3":
-  version: 5.4.3
-  resolution: "echarts@npm:5.4.3"
+"echarts@npm:6.0.0":
+  version: 6.0.0
+  resolution: "echarts@npm:6.0.0"
   dependencies:
     tslib: "npm:2.3.0"
-    zrender: "npm:5.4.4"
-  checksum: 10/4a4edc95a83faf498ada31f9764d98841daf2dbcae0861c5e7c1e53fba6e6e9cfdd05a2cd60e6092f1d361316380ca79826486800fde9b4fc4b024ba67c23919
+    zrender: "npm:6.0.0"
+  checksum: 10/8dbb160cf22e99a2bce04174db756b73e52ba5c00048901c5dbda0c10e6e7b514e5344daa49aa2cdd9c620c9dcc2f4eb15c0614bb2d8a97d9d33e17552ae3655
   languageName: node
   linkType: hard
 
@@ -8957,7 +8969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-deep-equal@npm:^3.1.3":
+"fast-deep-equal@npm:^3.1.1, fast-deep-equal@npm:^3.1.3":
   version: 3.1.3
   resolution: "fast-deep-equal@npm:3.1.3"
   checksum: 10/e21a9d8d84f53493b6aa15efc9cfd53dd5b714a1f23f67fb5dc8f574af80df889b3bce25dc081887c6d25457cce704e636395333abad896ccdec03abaf1f3f9d
@@ -8997,7 +9009,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"fast-json-stable-stringify@npm:2.x, fast-json-stable-stringify@npm:^2.1.0":
+"fast-json-stable-stringify@npm:2.x, fast-json-stable-stringify@npm:^2.0.0, fast-json-stable-stringify@npm:^2.1.0":
   version: 2.1.0
   resolution: "fast-json-stable-stringify@npm:2.1.0"
   checksum: 10/2c20055c1fa43c922428f16ca8bb29f2807de63e5c851f665f7ac9790176c01c3b40335257736b299764a8d383388dabc73c8083b8e1bc3d99f0a941444ec60e
@@ -11505,6 +11517,13 @@ __metadata:
   version: 2.3.1
   resolution: "json-parse-even-better-errors@npm:2.3.1"
   checksum: 10/5f3a99009ed5f2a5a67d06e2f298cc97bc86d462034173308156f15b43a6e850be8511dc204b9b94566305da2947f7d90289657237d210351a39059ff9d666cf
+  languageName: node
+  linkType: hard
+
+"json-schema-traverse@npm:^0.4.1":
+  version: 0.4.1
+  resolution: "json-schema-traverse@npm:0.4.1"
+  checksum: 10/7486074d3ba247769fda17d5181b345c9fb7d12e0da98b22d1d71a5db9698d8b4bd900a3ec1a4ffdd60846fc2556274a5c894d0c48795f14cb03aeae7b55260b
   languageName: node
   linkType: hard
 
@@ -14390,7 +14409,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"punycode@npm:^2.3.1":
+"punycode@npm:^2.1.0, punycode@npm:^2.3.1":
   version: 2.3.1
   resolution: "punycode@npm:2.3.1"
   checksum: 10/febdc4362bead22f9e2608ff0171713230b57aff9dddc1c273aa2a651fbd366f94b7d6a71d78342a7c0819906750351ca7f2edd26ea41b626d87d6a13d1bd059
@@ -17471,6 +17490,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uri-js@npm:^4.2.2":
+  version: 4.4.1
+  resolution: "uri-js@npm:4.4.1"
+  dependencies:
+    punycode: "npm:^2.1.0"
+  checksum: 10/b271ca7e3d46b7160222e3afa3e531505161c9a4e097febae9664e4b59912f4cbe94861361a4175edac3a03fee99d91e44b6a58c17a634bc5a664b19fc76fbcb
+  languageName: node
+  linkType: hard
+
 "use-callback-ref@npm:^1.3.0, use-callback-ref@npm:^1.3.3":
   version: 1.3.3
   resolution: "use-callback-ref@npm:1.3.3"
@@ -18642,12 +18670,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zrender@npm:5.4.4":
-  version: 5.4.4
-  resolution: "zrender@npm:5.4.4"
+"zrender@npm:6.0.0":
+  version: 6.0.0
+  resolution: "zrender@npm:6.0.0"
   dependencies:
     tslib: "npm:2.3.0"
-  checksum: 10/4f9bc308aedef8655d3bb2c1ec5588b2e5a0e099019b7959476de18d3bb199d5c0763f291079c363c198a57acaeb8db9d8ce3a1425404f5e9ccbfa93a2edf298
+  checksum: 10/d7b6572ebe400d40d9dc6e066a3a5841d4da1fdea3a9c1fd605239e116ffe05553002a351cbb236bcfbf516a41d3bd67f85ef39a43ccc7ffdc5b70a0ceec6aa8
   languageName: node
   linkType: hard
 
