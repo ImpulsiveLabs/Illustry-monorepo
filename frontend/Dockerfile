@@ -10,6 +10,11 @@ COPY .yarn ./.yarn
 COPY .yarnrc.yml ./
 COPY yarn.lock ./
 COPY frontend/package.json ./package.json
+COPY frontend/vendor ./vendor
+COPY types/package.json ./types/package.json
+COPY types/dist ./types/dist
+
+RUN node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.dependencies['@illustry/types']='file:./types';fs.writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n');"
 
 RUN yarn install
 
