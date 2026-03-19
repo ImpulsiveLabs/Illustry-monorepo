@@ -10,6 +10,8 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
+import { useLocale } from '@/components/providers/locale-provider';
+import ViewTooltip from './shared/view-tooltip';
 import TimelineAccordion from './timeline/timelineAccordion';
 import TimelineElement from './timeline/timelineElement';
 
@@ -21,6 +23,7 @@ type TimelineProp = {
 
 const TimelineView = ({ data, fullScreen }: TimelineProp) => {
   const isDarkTheme = getStoredTheme() === 'dark';
+  const { t } = useLocale();
   const { ref, inView } = useInView({
     triggerOnce: true
   });
@@ -44,9 +47,12 @@ const TimelineView = ({ data, fullScreen }: TimelineProp) => {
 
   return (
     <div
-      className={`mt-5 mx-auto p-2 sm:p-4 lg:p-6 ${!fullScreen ? 'h-[50vh] overflow-y-auto' : ''}`}
+      className={`relative mt-5 mx-auto p-2 sm:p-4 lg:p-6 ${!fullScreen ? 'h-[50vh] overflow-y-auto' : ''}`}
       ref={ref}
     >
+      <div className="absolute right-4 top-4 z-20">
+        <ViewTooltip text={t('tooltip.timeline')} />
+      </div>
       <VerticalTimelineFC
         layout="1-column-left"
         animate={true}

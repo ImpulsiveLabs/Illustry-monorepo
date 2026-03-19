@@ -15,6 +15,7 @@ import {
   getChartTopPadding
 } from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -26,6 +27,7 @@ type WordCloudProp = {
 
 const WordCloudView = ({ words, legend, fullScreen }: WordCloudProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.wordcloud.dark.colors
@@ -145,6 +147,7 @@ const WordCloudView = ({ words, legend, fullScreen }: WordCloudProp) => {
       <ReactEcharts
         option={option}
         onEvents={onEvents}
+        helperText={t('tooltip.wordcloud')}
         className="w-full sm:h-120 lg:h-160"
         style={{
           height

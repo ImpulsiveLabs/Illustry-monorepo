@@ -10,6 +10,7 @@ import {
   ThemeProvider
 } from '@/components/providers/theme-provider';
 import { ActiveProjectProvider } from '@/components/providers/active-project-provider';
+import { LocaleProvider } from '@/components/providers/locale-provider';
 
 const metadata: Metadata = {
   title: {
@@ -50,13 +51,15 @@ const RootLayout = ({ children }: RootLayoutProps) => (
         )}
       >
 
-        <ThemeColorsProvider>
-          <ActiveProjectProvider>
-            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              {children}
-            </ThemeProvider>
-          </ActiveProjectProvider>
-        </ThemeColorsProvider>
+        <LocaleProvider>
+          <ThemeColorsProvider>
+            <ActiveProjectProvider>
+              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+                {children}
+              </ThemeProvider>
+            </ActiveProjectProvider>
+          </ThemeColorsProvider>
+        </LocaleProvider>
         <Toaster />
       </body>
     </html>

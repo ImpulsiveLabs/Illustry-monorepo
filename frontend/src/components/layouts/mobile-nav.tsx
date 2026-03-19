@@ -13,6 +13,8 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icons from '@/components/icons';
 import ThemeToggle from './theme-toggle';
 import { useActiveProject } from '../providers/active-project-provider';
+import { useLocale } from '../providers/locale-provider';
+import LocaleSwitcher from './locale-switcher';
 
 type NavItem = {
   title: string;
@@ -71,6 +73,20 @@ const MobileNav = ({ items }: MobileNavProps) => {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
   const activeProject = useActiveProject();
+  const { t } = useLocale();
+
+  const getNavigationLabel = (item: MainNavItem) => {
+    const hrefMap: Record<string, string> = {
+      '/projects': 'nav.projects',
+      '/visualizations': 'nav.visualizations',
+      '/dashboards': 'nav.dashboards',
+      '/theme': 'nav.theme',
+      '/playground': 'nav.playground'
+    };
+
+    const key = item.href ? hrefMap[item.href] : undefined;
+    return key ? t(key) : item.title;
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -91,13 +107,13 @@ const MobileNav = ({ items }: MobileNavProps) => {
           focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden"
         >
           <Icons.menu className="h-6 w-6" />
-          <span className="sr-only">Toggle Menu</span>
+          <span className="sr-only">{t('common.toggleMenu')}</span>
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="pl-1 pr-0">
         <div className="px-7">
           <Link
-            aria-label="Home"
+            aria-label={t('common.home')}
             href="/"
             className="flex items-center"
             onClick={() => setIsOpen(false)}
@@ -116,9 +132,10 @@ const MobileNav = ({ items }: MobileNavProps) => {
                 setIsOpen={setIsOpen}
                 disabled={!activeProject && !item.clickableNoActiveProject}
               >
-                {item.title}
+                {getNavigationLabel(item)}
               </MobileLink>
             ))}
+            <LocaleSwitcher />
             <ThemeToggle />
           </div>
         </ScrollArea>

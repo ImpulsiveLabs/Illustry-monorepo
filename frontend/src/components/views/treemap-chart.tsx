@@ -20,6 +20,7 @@ import {
   getLegendItems
 } from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -37,6 +38,7 @@ const TreeMapView = ({
   const meanValue = calculateMeanValue(computeUniqueValues(nodes));
   const levels = createLevels(maxDepth);
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.treeMap.dark.colors
@@ -112,6 +114,7 @@ const TreeMapView = ({
         <ReactEcharts
           option={option}
           onEvents={onEvents}
+          helperText={t('tooltip.treemap')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

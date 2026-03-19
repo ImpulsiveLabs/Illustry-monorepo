@@ -7,9 +7,12 @@ import {
   computeLinksFLGOrHEB,
   computeNodesFLG
 } from '@/lib/visualizations/node-link/helper';
-import { computeLegendColors } from '@/lib/visualizations/calendar/helper';
+import {
+  buildLegendOption,
+  getChartTopPadding
+} from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
-import Legend from '../ui/legend';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -24,6 +27,7 @@ const ForcedLayoutGraphView = ({
   nodes, links, legend, fullScreen
 }: ForcedLayoutGraphProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.flg.dark.colors
@@ -33,8 +37,11 @@ const ForcedLayoutGraphView = ({
     name: string;
     itemStyle: { color: string | undefined };
   }[] = computeCategoriesFLGOrHEB(nodes, colors);
+  const categoryNames = categories.map((category) => category.name);
+  const chartTop = getChartTopPadding(legend);
   const edges = computeLinksFLGOrHEB(links, nodes);
   const option = {
+    legend: buildLegendOption(legend, categoryNames),
     tooltip: {
       trigger: 'item',
       triggerOn: 'mousemove',
@@ -47,6 +54,10 @@ const ForcedLayoutGraphView = ({
     series: [
       {
         type: 'graph',
+        top: chartTop,
+        bottom: 16,
+        left: 24,
+        right: 24,
         layout: 'force',
         animation: false,
         label: {
@@ -75,17 +86,10 @@ const ForcedLayoutGraphView = ({
   const height = fullScreen ? '73.5vh' : '100%';
   return (
     <div className="relative mt-[4%] flex flex-col items-center">
-      {legend && (
-        <Legend
-          legendData={computeLegendColors(
-            categories.map((category) => category.name),
-            colors
-          )}
-        />
-      )}
       <div className="w-full h-full">
         <ReactEcharts
           option={option}
+          helperText={t('tooltip.forcedLayout')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

@@ -16,6 +16,7 @@ import {
   getLegendItems
 } from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -30,6 +31,7 @@ const SunburstView = ({
   nodes, categories, legend, fullScreen
 }: SunburstViewProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.sunburst.dark.colors
@@ -103,6 +105,7 @@ const SunburstView = ({
         <ReactEcharts
           option={option}
           onEvents={onEvents}
+          helperText={t('tooltip.sunburst')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

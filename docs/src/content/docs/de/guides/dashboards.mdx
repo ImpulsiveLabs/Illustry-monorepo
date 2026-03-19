@@ -1,0 +1,51 @@
+---
+title: Dashboards
+description: Dashboards doc
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dashboards as Visual Workspaces
+
+Dashboards act as versatile visual workspaces where you can organize and manage multiple visualizations related to your projects. They provide a dynamic and interactive environment for exploring, analyzing, and presenting data effectively.
+
+## Dashboard Data Structure
+
+To represent a dashboard in your system, you can use the following `DashboardData` interface:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Key Attributes
+
+- **name:** A unique identifier for the dashboard.
+- **projectName:** The name of the associated project for contextual linking.
+- **description:** An optional field providing additional context or details about the dashboard.
+- **createdAt:** The timestamp indicating when the dashboard was created.
+- **updatedAt:** The timestamp showing the last modification of the dashboard.
+- **visualizations:** A collection of visualizations included in the dashboard, either as key-value pairs or an array of visualization types.
+- **layouts:** A list of layout configurations that determine the position and size of visualizations within the dashboard. Each layout includes:
+  - **i:** A unique identifier for the visualization.
+  - **x, y:** Coordinates representing the visualization's position on the grid.
+  - **w, h:** The width and height of the visualization.
+  - **minW, minH:** Minimum width and height constraints.
+
+### Dashboard Features
+
+Dashboards enable users to:
+
+- Drag and drop visualizations to rearrange them in the workspace.
+- Resize visualizations to fit specific data needs.
+- Maintain multiple layouts to cater to different use cases or audiences.
+
+By offering such flexibility, dashboards empower users to customize their visual workspaces according to the project's requirements.
+
+### Practical Example
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

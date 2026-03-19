@@ -15,6 +15,7 @@ import {
   getLegendItems
 } from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -32,6 +33,7 @@ const SankeyGraphView = ({
   legend
 }: SankeyGraphProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.sankey.dark.colors
@@ -134,6 +136,7 @@ const SankeyGraphView = ({
         <ReactEcharts
           option={option}
           onEvents={onEvents}
+          helperText={t('tooltip.sankey')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

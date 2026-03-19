@@ -12,6 +12,8 @@ import {
 } from '@/lib/visualizations/node-link/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
 import { useThemeColors } from '@/components/providers/theme-provider';
+import { useLocale } from '@/components/providers/locale-provider';
+import ViewTooltip from './shared/view-tooltip';
 
 type MatrixProp = {
   nodes: VisualizationTypes.Node[];
@@ -37,6 +39,7 @@ const createMatrix = (nodes: VisualizationTypes.Node[], links: VisualizationType
 const MatrixView = ({ nodes, links }: MatrixProp) => {
   const tableRef = useRef<HTMLDivElement>(null);
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.heb.dark.colors
@@ -57,7 +60,14 @@ const MatrixView = ({ nodes, links }: MatrixProp) => {
     };
   }, [nodes, links, JSON.stringify(colors)]);
 
-  return <div ref={tableRef}></div>;
+  return (
+    <div className="relative">
+      <div className="absolute right-2 top-2 z-20">
+        <ViewTooltip text={t('tooltip.matrix')} />
+      </div>
+      <div ref={tableRef}></div>
+    </div>
+  );
 };
 
 export default MatrixView;

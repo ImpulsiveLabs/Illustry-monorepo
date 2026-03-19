@@ -7,7 +7,12 @@ import { VisualizationTypes } from '@illustry/types';
 import { useEffect, useRef } from 'react';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
 import { computeCategoriesFLGOrHEB, computeNodesHEB } from '@/lib/visualizations/node-link/helper';
+import {
+  buildLegendOption,
+  getChartTopPadding
+} from '@/lib/visualizations/legend/helper';
 import { useThemeColors } from '../providers/theme-provider';
+import { useLocale } from '../providers/locale-provider';
 import ReactEcharts from './generic/echarts';
 
 type HierarchicalEdgeBundlingGraphProp = {
@@ -17,15 +22,21 @@ type HierarchicalEdgeBundlingGraphProp = {
   & WithOptions
   & WithFullScreen
 
-const HierarchicalEdgeBundlingGraphView = ({ nodes, links, fullScreen }: HierarchicalEdgeBundlingGraphProp) => {
+const HierarchicalEdgeBundlingGraphView = ({
+  nodes, links, legend, fullScreen
+}: HierarchicalEdgeBundlingGraphProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme ? activeTheme.flg.dark.colors : activeTheme.flg.light.colors;
   const categories = computeCategoriesFLGOrHEB(nodes, colors);
+  const categoryNames = categories.map((category) => category.name);
+  const chartTop = getChartTopPadding(legend);
   const chartRef = useRef(null);
   const recomputedNodes = computeNodesHEB(nodes, categories);
   const inOutColors = colors.slice(categories.length);
   const option = {
+    legend: buildLegendOption(legend, categoryNames),
     tooltip: {
       formatter: (params: any) => {
         if (params.dataType === 'edge') {
@@ -40,6 +51,10 @@ const HierarchicalEdgeBundlingGraphView = ({ nodes, links, fullScreen }: Hierarc
     series: [
       {
         type: 'graph',
+        top: chartTop,
+        bottom: 16,
+        left: 24,
+        right: 24,
         layout: 'circular',
         circular: {
           rotateLabel: true
@@ -113,6 +128,7 @@ const HierarchicalEdgeBundlingGraphView = ({ nodes, links, fullScreen }: Hierarc
         <ReactEcharts
           ref={chartRef}
           option={option}
+          helperText={t('tooltip.heb')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

@@ -3,10 +3,14 @@
 import {
   computeColors
 } from '@/lib/visualizations/scatter/helper';
-import { computeLegendColors } from '@/lib/visualizations/calendar/helper';
+import {
+  buildLegendOption,
+  getChartTopPadding,
+  getLegendItems
+} from '@/lib/visualizations/legend/helper';
 import { getStoredTheme } from '@/lib/theme-mode';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
-import Legend from '../ui/legend';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -21,13 +25,26 @@ const ScatterView = ({
   points, categories, legend, fullScreen
 }: ScatterProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.scatter.dark.colors
     : activeTheme.scatter.light.colors;
+  const chartTop = getChartTopPadding(legend);
+  const derivedCategories = Array.from(new Set(
+    points
+      .map((point) => `${point[2] ?? ''}`.trim())
+      .filter((category) => category.length > 0)
+  ));
+  const legendItems = getLegendItems(
+    categories.length > 0 ? categories : derivedCategories
+  );
+  const colorMap = computeColors(legendItems, colors);
+  const fallbackLegend = legendItems.length === 1 && legendItems[0] === 'Series 1';
 
   const textColor = isDarkTheme ? '#888' : '#333';
   const option = {
+    legend: buildLegendOption(legend, legendItems),
     tooltip: {
       formatter: '<b>({c})</b>',
       axisPointer: {
@@ -40,6 +57,7 @@ const ScatterView = ({
     },
 
     grid: {
+      top: chartTop,
       left: '3%',
       right: '4%',
       bottom: '3%',
@@ -68,34 +86,36 @@ const ScatterView = ({
       show: false,
       orient: 'horizontal',
       left: 'center',
-      top: 30,
+      top: chartTop + 4,
       type: 'piecewise',
-      categories,
+      categories: legendItems,
       textStyle: {
         color: textColor
       },
-      inRange: { color: computeColors(categories, colors) }
+      inRange: { color: colorMap }
     },
-    series: [
-      {
-        type: 'scatter',
-        emphasis: {
-          focus: 'series'
-        },
-        data: points
-      }
-    ]
+    series: legendItems.map((legendItem) => ({
+      name: legendItem,
+      type: 'scatter',
+      emphasis: {
+        focus: 'series'
+      },
+      itemStyle: {
+        color: colorMap[legendItem]
+      },
+      data: fallbackLegend
+        ? points
+        : points.filter((point) => `${point[2] ?? ''}`.trim() === legendItem)
+    }))
   };
   const height = fullScreen ? '73.5vh' : '100%';
 
   return (
     <div className="relative mt-[4%] flex flex-col items-center">
-      {legend && (
-        <Legend legendData={computeLegendColors(categories, colors)} />
-      )}
       <div className="w-full h-full">
         <ReactEcharts
           option={option}
+          helperText={t('tooltip.scatter')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height
