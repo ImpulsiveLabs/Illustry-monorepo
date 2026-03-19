@@ -90,7 +90,7 @@ const buildLegendProxySeries = (
     show: false
   },
   itemStyle: {
-    opacity: 0
+    opacity: 1
   },
   data: getLegendItems(items).map((name) => ({
     name,
