@@ -1,34 +1,34 @@
 ---
 title: 项目
-description: Projects doc
+description: 项目文件
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Project as a Workspace
+# 项目作为工作空间
 
-In this system, a project serves as the fundamental building block, acting as a dedicated workspace for your endeavors. Each project encapsulates the essential elements of your work, providing a structured environment for data visualization and analysis.
+在这个系统中，项目作为基本构建块，充当您的工作的专用工作区。每个项目都封装了您工作的基本要素，为数据可视化和分析提供结构化环境。
 
-## Project Data Structure
+## 项目数据结构
 
-To represent a project in your system, you can use the following `ProjectData` interface:
+要表示系统中的项目，您可以使用以下 `ProjectData` 接口：
 
 ```typescript
 {{ProjectData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the project.
-- **description:** An optional field to provide additional context or details about the project.
-- **createdAt:** The timestamp indicating when the project was initially created.
-- **updatedAt:** The timestamp indicating the last modification of the project.
-- **isActive:** A boolean flag specifying whether the project is currently active.
+- **名称：** 项目的唯一标识符。
+- **描述：** 可选字段，用于提供有关项目的其他上下文或详细信息。
+- **createdAt：** 指示项目最初创建时间的时间戳。
+- **updatedAt：** 指示项目最后一次修改的时间戳。
+- **isActive：** 一个布尔标志，指定项目当前是否处于活动状态。
 
-## Project Activation
+## 项目启动
 
-It's important to note that only one project can be active at a given time. This ensures a focused and organized workspace, allowing users to concentrate on a specific project and its associated visualizations.
+请务必注意，在给定时间只能有一个项目处于活动状态。这确保了工作空间集中且井井有条，使用户能够专注于特定项目及其相关的可视化。
 
-By structuring your work in this manner, you create a cohesive and manageable environment for your projects, facilitating efficient data analysis and visualization within a dedicated workspace.
+通过以这种方式构建您的工作，您可以为您的项目创建一个有凝聚力且可管理的环境，从而促进在专用工作区中进行高效的数据分析和可视化。
 
-## Practical example
+## 实际例子
 
 ![Project in Action](/Illustry-monorepo/projects.gif)

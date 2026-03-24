@@ -1,13 +1,13 @@
 ---
 title: Nuage de mots
-description: Word cloud doc
+description: Document sur le nuage de mots
 ---
 
-The **Word Cloud** visualization is used for representing textual data in a visually engaging and informative way. It turns words into graphical elements, with the size of each word indicating its frequency or importance in the given dataset.
+La visualisation **Word Cloud** est utilisée pour représenter des données textuelles de manière visuellement attrayante et informative. Il transforme les mots en éléments graphiques, la taille de chaque mot indiquant sa fréquence ou son importance dans l'ensemble de données donné.
 
-## Word Cloud Data Structure
+## Structure des données du nuage de mots
 
-To represent a Word Cloud, you can use the following `WordCloudData` interface:
+Pour représenter un nuage de mots, vous pouvez utiliser l'interface `WordCloudData` suivante :
 
 ```typescript
 {{WordType}}
@@ -15,24 +15,24 @@ To represent a Word Cloud, you can use the following `WordCloudData` interface:
 {{WordCloudData}}
 
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** The word itself.
-- **value:** A number that represents a metric to determine how important that word is.
+- **nom :** Le mot lui-même.
+- **valeur :** un nombre qui représente une mesure permettant de déterminer l'importance de ce mot.
 
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Simplicity:** Word Clouds distill textual data into a simple and visually accessible format.
+#### Avantages
+- **Simplicité :** Les nuages ​​de mots distillent des données textuelles dans un format simple et visuellement accessible.
 
-- **Quick Analysis:** Users can rapidly analyze and identify the most significant words without delving into detailed text.
+- **Analyse rapide :** Les utilisateurs peuvent analyser et identifier rapidement les mots les plus significatifs sans se plonger dans le texte détaillé.
 
-#### Cons
-- **Loss of Context:** While Word Clouds highlight individual words, they may lack the context provided by full text or more complex visualizations.
+#### Inconvénients
+- **Perte de contexte :** Même si les nuages ​​de mots mettent en évidence des mots individuels, ils peuvent manquer du contexte fourni par le texte intégral ou par des visualisations plus complexes.
 
-- **Subjectivity:** Interpretation of a Word Cloud can be subjective, and the importance of a word might vary among individuals.
+- **Subjectivité :** L'interprétation d'un nuage de mots peut être subjective et l'importance d'un mot peut varier selon les individus.
 
-## Word Cloud Example
+## Exemple de nuage de mots
 
 ![Word Cloud Example](/Illustry-monorepo/word-cloud.gif)

@@ -2,6 +2,7 @@ import {
   useEffect, useMemo, useState
 } from 'react';
 import { useThemeColors } from '@/components/providers/theme-provider';
+import { useLocale } from '@/components/providers/locale-provider';
 import Icons from '@/components/icons';
 import ColorPicker from '../colorPicker';
 import {
@@ -36,6 +37,7 @@ const GenericThemesAccordion = ({
   handleColorDelete,
   handleColorAdd
 }: GenericThemesProps) => {
+  const { t } = useLocale();
   const activeTheme = useThemeColors() as ThemeColors;
   const rawVisualization = activeTheme[visualization];
   const activeVisualization = {
@@ -85,7 +87,7 @@ const GenericThemesAccordion = ({
   const renderColorRow = (theme: 'light' | 'dark', colors: string[], colorsLength: number) => (
     <div className="flex items-start mt-4 gap-4">
       <div className="text-sm font-medium pr-4 min-w-[80px]">
-        Colors
+        {t('theme.colors')}
       </div>
       <div className="flex flex-col gap-2 w-[75%] relative">
         {colors.map((color, index) => (
@@ -128,7 +130,7 @@ const GenericThemesAccordion = ({
                   type="button"
                   style={{ backgroundColor: color }}
                   className="h-8 w-8 rounded border border-gray-300 hover:ring-2 hover:ring-blue-500"
-                  aria-label={`Open color picker ${theme} ${index + 1}`}
+                  aria-label={`${t('tooltip.openColorPicker')} ${theme} ${index + 1}`}
                 />
               </PopoverTrigger>
               <PopoverContent className="w-auto p-2">
@@ -147,7 +149,7 @@ const GenericThemesAccordion = ({
                     type="button"
                     onClick={() => setActivePickerKey(null)}
                     className="absolute right-1 top-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                    aria-label="Close color picker"
+                    aria-label={t('tooltip.closeColorPicker')}
                   >
                     <Icons.close className="h-4 w-4" />
                   </button>
@@ -179,8 +181,8 @@ const GenericThemesAccordion = ({
   return (
     <Tabs defaultValue="Light" className="w-full">
       <TabsList className="grid w-full grid-cols-2">
-        <TabsTrigger value="Light">Light</TabsTrigger>
-        <TabsTrigger value="Dark">Dark</TabsTrigger>
+        <TabsTrigger value="Light">{t('theme.light')}</TabsTrigger>
+        <TabsTrigger value="Dark">{t('theme.dark')}</TabsTrigger>
       </TabsList>
       <TabsContent value="Light">
         {renderColorRow('light', activeVisualization?.light.colors as string[], lightColorsLength as number)}

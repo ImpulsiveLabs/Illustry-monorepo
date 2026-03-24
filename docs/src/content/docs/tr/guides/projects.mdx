@@ -1,0 +1,34 @@
+---
+title: Projeler
+description: Projeler belgesi
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Çalışma Alanı Olarak Proje
+
+Bu sistemde proje, temel yapı taşı görevi görür ve çabalarınıza özel bir çalışma alanı görevi görür. Her proje, veri görselleştirmesi ve analizi için yapılandırılmış bir ortam sağlayarak çalışmanızın temel unsurlarını kapsar.
+
+## Proje Veri Yapısı
+
+Sisteminizde bir projeyi temsil etmek için aşağıdaki `ProjectData` arayüzünü kullanabilirsiniz:
+
+```typescript
+{{ProjectData}}
+```
+### Anahtar Nitelikler
+
+- **ad:** Projenin benzersiz tanımlayıcısı.
+- **açıklama:** Projeyle ilgili ek bağlam veya ayrıntılar sağlayan isteğe bağlı bir alan.
+- **createdAt:** Projenin ilk olarak ne zaman oluşturulduğunu gösteren zaman damgası.
+- **updatedAt:** Projedeki son değişikliği gösteren zaman damgası.
+- **isActive:** Projenin şu anda etkin olup olmadığını belirten bir boole bayrağı.
+
+## Proje Aktivasyonu
+
+Belirli bir zamanda yalnızca bir projenin etkin olabileceğini unutmamak önemlidir. Bu, odaklanmış ve organize bir çalışma alanı sağlayarak kullanıcıların belirli bir projeye ve ilgili görselleştirmelere konsantre olmasına olanak tanır.
+
+Çalışmanızı bu şekilde yapılandırarak projeleriniz için uyumlu ve yönetilebilir bir ortam yaratır, özel bir çalışma alanı içinde verimli veri analizi ve görselleştirmeyi kolaylaştırırsınız.
+
+## Pratik örnek
+
+![Project in Action](/Illustry-monorepo/projects.gif)

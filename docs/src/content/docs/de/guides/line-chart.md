@@ -1,35 +1,35 @@
 ---
 title: Liniendiagramm
-description: Line Chart doc
+description: Liniendiagrammdokument
 ---
 
-The **Line Chart** visualization is a versatile tool for representing trends and patterns in numerical data over time. It is widely used for visualizing the relationship between two continuous variables and highlighting trends or fluctuations.
+Die Visualisierung **Liniendiagramm** ist ein vielseitiges Werkzeug zur Darstellung von Trends und Mustern in numerischen Daten im Zeitverlauf. Es wird häufig zur Visualisierung der Beziehung zwischen zwei kontinuierlichen Variablen und zur Hervorhebung von Trends oder Schwankungen verwendet.
 
-## Line Chart Data Structure
+## Datenstruktur des Liniendiagramms
 
-To represent a Line Chart, you can use the following `AxisChartData` interface:
+Zur Darstellung eines Liniendiagramms können Sie die folgende `AxisChartData`-Schnittstelle verwenden:
 
 ```typescript
 {{AxisChartData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **headers:** An array of strings representing the categories or dimensions along one of the axis.
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an array of numerical values along the other axis. 
+- **Header:** Ein Array von Zeichenfolgen, die die Kategorien oder Dimensionen entlang einer der Achsen darstellen.
+- **Werte:** Ein Wörterbuch, in dem jeder Schlüssel eine Kategorie oder Dimension ist und der entsprechende Wert ein Array numerischer Werte entlang der anderen Achse ist.
 
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Multi-Dimensional Comparison:** Line Charts excel at comparing multiple dimensions simultaneously, providing a comprehensive view of the data.
+#### Vorteile
+- **Mehrdimensionaler Vergleich:** Liniendiagramme zeichnen sich durch den gleichzeitigen Vergleich mehrerer Dimensionen aus und bieten einen umfassenden Überblick über die Daten.
 
-- **Clear Value Representation:** Numerical values are clearly represented along both the X and Y axes, making it easy for users to interpret and compare.
+- **Klare Wertdarstellung:** Numerische Werte werden entlang der X- und Y-Achse klar dargestellt, sodass Benutzer sie leicht interpretieren und vergleichen können.
 
-#### Cons
-- **Complexity with Excessive Categories:** When dealing with a large number of categories or dimensions, the visualization may become crowded and challenging to interpret.
+#### Nachteile
+- **Komplexität durch übermäßige Kategorien:** Bei der Arbeit mit einer großen Anzahl von Kategorien oder Dimensionen kann die Visualisierung überfüllt und schwierig zu interpretieren sein.
 
-- **Limited for Categorical Data:** Line Charts are most effective for numerical data and may not be the optimal choice for representing categorical data.
+- **Eingeschränkt für kategoriale Daten:** Liniendiagramme sind am effektivsten für numerische Daten und möglicherweise nicht die optimale Wahl für die Darstellung kategorialer Daten.
 
-## Line Chart Example
+## Beispiel für ein Liniendiagramm
 
 ![Line Chart Example](/Illustry-monorepo/line-chart.gif)

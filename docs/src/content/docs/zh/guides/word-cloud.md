@@ -1,13 +1,13 @@
 ---
 title: 词云
-description: Word cloud doc
+description: 词云文档
 ---
 
-The **Word Cloud** visualization is used for representing textual data in a visually engaging and informative way. It turns words into graphical elements, with the size of each word indicating its frequency or importance in the given dataset.
+**词云**可视化用于以视觉上引人入胜且信息丰富的方式表示文本数据。它将单词转换为图形元素，每个单词的大小表明其在给定数据集中的频率或重要性。
 
-## Word Cloud Data Structure
+## 词云数据结构
 
-To represent a Word Cloud, you can use the following `WordCloudData` interface:
+要表示词云，您可以使用以下 `WordCloudData` 接口：
 
 ```typescript
 {{WordType}}
@@ -15,24 +15,24 @@ To represent a Word Cloud, you can use the following `WordCloudData` interface:
 {{WordCloudData}}
 
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** The word itself.
-- **value:** A number that represents a metric to determine how important that word is.
+- **名称：** 单词本身。
+- **值：** 代表确定该单词重要性的指标的数字。
 
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Simplicity:** Word Clouds distill textual data into a simple and visually accessible format.
+#### 优点
+- **简单性：** 词云将文本数据提炼成简单且可视化的格式。
 
-- **Quick Analysis:** Users can rapidly analyze and identify the most significant words without delving into detailed text.
+- **快速分析：** 用户可以快速分析和识别最重要的单词，而无需深入研究详细的文本。
 
-#### Cons
-- **Loss of Context:** While Word Clouds highlight individual words, they may lack the context provided by full text or more complex visualizations.
+#### 缺点
+- **上下文丢失：**虽然词云突出显示单个单词，但它们可能缺乏全文或更复杂的可视化提供的上下文。
 
-- **Subjectivity:** Interpretation of a Word Cloud can be subjective, and the importance of a word might vary among individuals.
+- **主观性：** 对词云的解释可能是主观的，并且单词的重要性可能因人而异。
 
-## Word Cloud Example
+## 词云示例
 
 ![Word Cloud Example](/Illustry-monorepo/word-cloud.gif)

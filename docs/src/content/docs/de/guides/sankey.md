@@ -3,11 +3,11 @@ title: Sankey-Diagramm
 description: Sankey
 ---
 
-The **Sankey Diagram** visualization is a powerful tool for visualizing flow and relationships between entities in a dataset. It is particularly useful for showcasing the distribution and transformation of values across a system or process.
+Die **Sankey-Diagramm**-Visualisierung ist ein leistungsstarkes Tool zur Visualisierung von Flüssen und Beziehungen zwischen Entitäten in einem Datensatz. Es ist besonders nützlich, um die Verteilung und Transformation von Werten in einem System oder Prozess darzustellen.
 
-## Sankey Diagram Data Structure
+## Datenstruktur des Sankey-Diagramms
 
-To represent a Sankey Diagram, you can use the following `NodeLinkData` interface:
+Um ein Sankey-Diagramm darzustellen, können Sie die folgende `NodeLinkData`-Schnittstelle verwenden:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Sankey Diagram, you can use the following `NodeLinkData` interfac
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **Name:** Eine eindeutige Kennung für den Knoten.
+- **Kategorie:** Kategorisiert den Knoten in eine bestimmte Gruppe oder einen bestimmten Cluster.
+- **Quelle:** Identifiziert den Quellknoten des Links.
+- **Ziel:** Identifiziert den Zielknoten des Links.
+- **Wert:** Stellt einen mit dem Link verknüpften numerischen Wert dar, der angibt, wie stark die Knoten miteinander verbunden sind.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Flow Representation:** Effectively visualizes the flow of values or quantities between entities in a system or process.
+#### Vorteile
+- **Flussdarstellung:** Visualisiert effektiv den Fluss von Werten oder Mengen zwischen Entitäten in einem System oder Prozess.
 
-- **Insight into Distribution:** Offers insights into how values are distributed and transformed at each stage.
+- **Einblick in die Verteilung:** Bietet Einblicke in die Art und Weise, wie Werte in jeder Phase verteilt und transformiert werden.
 
-#### Cons
-- **Complexity with Numerous Nodes:** Visual clutter may occur with an extensive number of nodes, affecting readability.
+#### Nachteile
+- **Komplexität bei zahlreichen Knoten:** Bei einer großen Anzahl von Knoten kann es zu visuellem Durcheinander kommen, das die Lesbarkeit beeinträchtigt.
 
-- **Specialized Use Case:** Primarily designed for visualizing flow and distribution; may not be suitable for all types of datasets.
+- **Spezialisierter Anwendungsfall:** Hauptsächlich für die Visualisierung von Durchfluss und Verteilung konzipiert; ist möglicherweise nicht für alle Arten von Datensätzen geeignet.
 
-## Sankey Diagram Example
+## Beispiel für ein Sankey-Diagramm
 
 ![Sankey Diagram Example](/Illustry-monorepo/sankey.gif)

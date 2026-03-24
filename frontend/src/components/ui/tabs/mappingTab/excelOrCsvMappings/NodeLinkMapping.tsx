@@ -1,17 +1,20 @@
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from '@/components/providers/locale-provider';
 import Input from '@/components/ui/input';
 import { Inputs } from '@/components/form/types';
 
 type ExcelOrCsvNodeLinkMappingProps = {
   form: UseFormReturn<Inputs>;
 }
-const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => (
+const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Categories:</div>
+        <div className="w-20">{t('mapping.categories')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Categories"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.categories') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -23,10 +26,10 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Nodes:</div>
+        <div className="w-20">{t('mapping.nodes')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Nodes"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.nodes') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -38,10 +41,10 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Properties:</div>
+        <div className="w-20">{t('mapping.properties')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Properties"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.properties') || ''}
             onChange={(e) => {
               const { value } = e.target;
@@ -51,10 +54,10 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Sources:</div>
+        <div className="w-20">{t('mapping.sources')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Sources"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.sources') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -66,10 +69,10 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Targets:</div>
+        <div className="w-20">{t('mapping.targets')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Targets"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.targets') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -81,10 +84,10 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Values:</div>
+        <div className="w-20">{t('mapping.values')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Values"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.values') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -96,6 +99,7 @@ const ExcelOrCsvNodeLinkMapping = ({ form }: ExcelOrCsvNodeLinkMappingProps) => 
         </div>
       </div>
     </>
-);
+  );
+};
 
 export default ExcelOrCsvNodeLinkMapping;

@@ -1,40 +1,40 @@
 ---
 title: 日历图
-description: Calendar doc
+description: 日历文档
 ---
 
-The **Calendar** visualization is a unique representation designed to provide insights into temporal relationships within a dataset. It offers a distinctive approach to visualizing events, occurrences, or entities over time.
+**日历**可视化是一种独特的表示形式，旨在提供对数据集中时间关系的洞察。它提供了一种独特的方法来可视化随时间变化的事件、事件或实体。
 
-## Calendar Data Structure
+## 日历数据结构
 
-To represent a Calendar, you can use the following `CalendarData` interface:
+要表示日历，您可以使用以下 `CalendarData` 接口：
 
 ```typescript
 {{CalendarType}}
 
 {{CalendarData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **date:** A unique date of a specific year.
-- **value:** How impactful that date was for the event.
-- **category:** Categorizes the dates into a specific events.
+- **日期：** 特定年份的唯一日期。
+- **值：** 该日期对事件的影响有多大。
+- **类别：** 将日期分类为特定事件。
 
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Relationship Visualization:** The calendar visualization provides an intuitive and user-friendly way to explore temporal relationships, making it easy for users to understand patterns over time.
+#### 优点
+- **关系可视化：** 日历可视化提供了一种直观且用户友好的方式来探索时间关系，使用户可以轻松理解随时间变化的模式。
 
-- **Compact Representation:** A calendar optimizes space by presenting events in a compact format, allowing users to view a significant amount of temporal data without overwhelming visuals.
+- **紧凑表示：** 日历通过以紧凑​​格式呈现事件来优化空间，允许用户查看大量时态数据，而不会产生压倒性的视觉效果。
 
-- **Multiple years:** If the events are happening on a multi-year timespan more calendar visualizations will be displayed.
+- **多年：** 如果事件发生在多年时间跨度内，将显示更多日历可视化。
 
-#### Cons
-- **Complexity with Dense Graphs:** Due to its compact nature, a calendar may provide limited space for detailing each event. In scenarios requiring extensive information, additional interactions or supplementary views may be necessary.
+#### 缺点
+- **密集图的复杂性：** 由于其紧凑的性质，日历可能提供有限的空间来详细说明每个事件。在需要大量信息的场景中，可能需要额外的交互或补充视图。
 
-- **Not Ideal for Dense Event Overlaps:** In cases where multiple events overlap closely in time, the visualization might face challenges in maintaining clarity and preventing overlap-related visual clutter.
+- **对于密集事件重叠来说并不理想：** 在多个事件在时间上紧密重叠的情况下，可视化可能在保持清晰度和防止与重叠相关的视觉混乱方面面临挑战。
 
-## Calendar Example
+## 日历示例
 
 ![Calendar Example](/Illustry-monorepo/calendar.gif)

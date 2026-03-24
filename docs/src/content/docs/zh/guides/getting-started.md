@@ -1,22 +1,22 @@
 ---
 title: 快速开始
-description: A guide into Illustry
+description: Illustry 指南
 ---
 
-Illustry is a powerful web application built to serve as a visualization hub, seamlessly integrating various visualizations for diverse types of data. Illustry brings data exploration, theming, and filtering to life. With a user-friendly interface and advanced features, Illustry is designed to cater to a wide range of users.
+Illustry 是一个功能强大的 Web 应用程序，旨在充当可视化中心，无缝集成不同类型数据的各种可视化效果。 Illustry 将数据探索、主题化和过滤带入生活。 Illustry 具有用户友好的界面和先进的功能，旨在满足广泛的用户需求。
 
-## Key Technologies Used
+## 使用的关键技术
 
 - **Frontend:** Next 16
 - **Database:** MongoDB
 - **Server:** Node
 
-## Features
+## 特征
 
-- **Data Integration:** Supports various file formats, including JSON, XML, Excel, and CSV.
-- **Data Exploration:** Dive deep into your data with powerful exploration tools.
-- **Theming:** Customize the look and feel of your visualizations with ease.
-- **Filtering:** Easily filter and analyze data to extract meaningful insights.
-- **Playground:** Explore the capabilities of Illustry in the playground, where you can interact with the features and test different scenarios.
+- **数据集成：** 支持多种文件格式，包括JSON、XML、Excel 和CSV。
+- **数据探索：** 使用强大的探索工具深入研究您的数据。
+- **主题：** 轻松自定义可视化的外观和感觉。
+- **过滤：** 轻松过滤和分析数据以提取有意义的见解。
+- **Playground：** 在 Playground 中探索 Illustry 的功能，您可以在其中与功能进行交互并测试不同的场景。
 
-See [“manual setup instruction”](/Illustry-monorepo/guides/manual-setup-instruction/) for a quick installation guide to work with Illustry
+[如何手动配置 Illustry](../manual-setup-instruction/)

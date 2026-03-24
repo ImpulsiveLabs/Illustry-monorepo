@@ -1,39 +1,39 @@
 ---
-title: Sunburst
-description: Sun Burst doc
+title: Éclat de soleil
+description: Documentation Sun Burst
 ---
 
-The **Sun Burst Chart** visualization is a dynamic and engaging representation of hierarchical data. It uses a radial layout to convey the hierarchy of elements and their relationships within a dataset.
+La visualisation **Sun Burst Chart** est une représentation dynamique et attrayante de données hiérarchiques. Il utilise une disposition radiale pour transmettre la hiérarchie des éléments et leurs relations au sein d'un ensemble de données.
 
 
-## Sun Burst Data Structure
+## Structure des données Sun Burst
 
-To represent a Map Data, you can use the following `HierarchyData` interface:
+Pour représenter des données cartographiques, vous pouvez utiliser l'interface `HierarchyData` suivante :
 
 ```typescript
 {{HierarchyNode}}
 
 {{HierarchyData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** The node name.
-- **value:** A number that represents a metric to determine how big that node is.
-- **category:**  Describes the category or type to which the node belongs.
-- **children:**  This property is optional and represents an array of HierarchyNode objects. It signifies that the node can have child nodes, creating a hierarchical structure. Each child node follows the same HierarchyNode structure, allowing the representation of a tree-like hierarchy.
+- **name :** Le nom du nœud.
+- **valeur :** Un nombre qui représente une métrique permettant de déterminer la taille de ce nœud.
+- **category :** Décrit la catégorie ou le type auquel appartient le nœud.
+- **children :** Cette propriété est facultative et représente un tableau d'objets HierarchyNode. Cela signifie que le nœud peut avoir des nœuds enfants, créant ainsi une structure hiérarchique. Chaque nœud enfant suit la même structure HierarchyNode, permettant la représentation d'une hiérarchie arborescente.
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Hierarchical Understanding:** Sunbursts excel in displaying hierarchical data structures, providing a visual hierarchy that aids in understanding relationships between different levels.
+#### Avantages
+- **Compréhension hiérarchique :** Les Sunbursts excellent dans l'affichage de structures de données hiérarchiques, fournissant une hiérarchie visuelle qui aide à comprendre les relations entre les différents niveaux.
 
-- **Radial Layout:** The radial layout provides a visually appealing and organized representation of hierarchical structures.
+- **Disposition radiale :** La disposition radiale fournit une représentation visuellement attrayante et organisée des structures hiérarchiques.
 
-#### Cons
-- **Potential Clutter:** In cases with a large number of segments, the chart may become cluttered, affecting readability.
+#### Inconvénients
+- **Encombrement potentiel :** Dans les cas comportant un grand nombre de segments, le graphique peut devenir encombré, affectant la lisibilité.
 
-- **Limited to Hierarchical Data:** Treemaps are most effective when visualizing hierarchical data; for non-hierarchical datasets, alternative visualizations may be more suitable.
+- **Limité aux données hiérarchiques :** Les arborescences sont plus efficaces lors de la visualisation de données hiérarchiques ; pour les ensembles de données non hiérarchiques, des visualisations alternatives peuvent être plus adaptées.
 
-## Sun Burst Example
+## Exemple d'éclatement de soleil
 
 ![Sun Burst Example](/Illustry-monorepo/sun-burst.gif)

@@ -1,29 +1,29 @@
 ---
-title: Playground
-description: Playground
+title: Spielplatz
+description: Spielplatz
 ---
 
-Illustry offers a powerful Data Playground, allowing users to interactively test and visualize their JSON data before saving it. This feature is designed to provide a convenient and efficient way to see how different visualizations would look with your specific dataset. The playground also includes a data validation mechanism to ensure that your JSON conforms to the expected structure.
-### Real-Time Visualization
+Illustry bietet einen leistungsstarken Data Playground, der es Benutzern ermöglicht, ihre JSON-Daten vor dem Speichern interaktiv zu testen und zu visualisieren. Diese Funktion soll eine bequeme und effiziente Möglichkeit bieten, zu sehen, wie verschiedene Visualisierungen mit Ihrem spezifischen Datensatz aussehen würden. Der Spielplatz umfasst außerdem einen Datenvalidierungsmechanismus, um sicherzustellen, dass Ihr JSON der erwarteten Struktur entspricht.
+### Echtzeitvisualisierung
 
-The Illustry Data Playground provides a real-time visualization of your JSON data. As you input or modify the data, the corresponding visualizations update dynamically, giving you immediate feedback on how your data will be presented.
+Der Illustry Data Playground bietet eine Echtzeitvisualisierung Ihrer JSON-Daten. Wenn Sie die Daten eingeben oder ändern, werden die entsprechenden Visualisierungen dynamisch aktualisiert, sodass Sie sofort Feedback zur Darstellung Ihrer Daten erhalten.
 
-## How to Use the Data Playground
+## So nutzen Sie den Data Playground
 
-1. Navigate to the "Data Playground" section in the Illustry application.
-2. Paste or input your JSON data into the provided editor.
-3. Select the type of visualization you want to test.
-4. View the real-time visualization and make adjustments to your data as needed.
-5. Review any validation messages to ensure your data is correctly formatted.
-6. Save your data or copy the validated JSON for use in your projects.
+1. Navigieren Sie zum Abschnitt „Data Playground“ in der Anwendung Illustry.
+2. Fügen Sie Ihre JSON-Daten in den bereitgestellten Editor ein oder geben Sie sie ein.
+3. Wählen Sie den Visualisierungstyp aus, den Sie testen möchten.
+4. Sehen Sie sich die Echtzeitvisualisierung an und nehmen Sie bei Bedarf Anpassungen an Ihren Daten vor.
+5. Überprüfen Sie alle Validierungsmeldungen, um sicherzustellen, dass Ihre Daten korrekt formatiert sind.
+6. Speichern Sie Ihre Daten oder kopieren Sie den validierten JSON zur Verwendung in Ihren Projekten.
 
-## Why Use the Data Playground?
+## Warum den Data Playground nutzen?
 
-- **Visualize on the Fly:** See how your data will look in different visualizations without the need to save or commit changes.
-- **Data Validation:** Ensure that your JSON data adheres to the expected structure, reducing errors and streamlining your workflow.
-- **Experimentation:** Test various datasets and explore the capabilities of Illustry's visualizations in a risk-free environment.
+- **Visualisierung im Handumdrehen:** Sehen Sie, wie Ihre Daten in verschiedenen Visualisierungen aussehen, ohne dass Sie Änderungen speichern oder festschreiben müssen.
+- **Datenvalidierung:** Stellen Sie sicher, dass Ihre JSON-Daten der erwarteten Struktur entsprechen, wodurch Fehler reduziert und Ihr Arbeitsablauf optimiert werden.
+- **Experimentieren:** Testen Sie verschiedene Datensätze und erkunden Sie die Möglichkeiten der Visualisierungen von Illustry in einer risikofreien Umgebung.
 
 
-## Practical example
+## Praxisbeispiel
 
 ![Playground](/Illustry-monorepo/playground.gif)

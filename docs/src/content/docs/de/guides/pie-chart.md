@@ -1,34 +1,34 @@
 ---
 title: Kreisdiagramm
-description: Pie Chart doc
+description: Kreisdiagramm-Dokument
 ---
 
-The **Pie Chart** visualization is a concise and visually impactful way to represent the distribution of parts within a whole. It is particularly effective for displaying proportions and percentages in a circular format.
+Die **Kreisdiagramm**-Visualisierung ist eine prägnante und visuell wirkungsvolle Möglichkeit, die Verteilung von Teilen innerhalb eines Ganzen darzustellen. Es eignet sich besonders gut für die Darstellung von Proportionen und Prozentsätzen im Kreisformat.
 
 
-## Pie Chart Data Structure
+## Datenstruktur eines Kreisdiagramms
 
-To represent a Pie Chart, you can use the following `PieChartData` interface:
+Um ein Kreisdiagramm darzustellen, können Sie die folgende `PieChartData`-Schnittstelle verwenden:
 
 ```typescript
 {{PieChartData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Percentage Representation:** Pie Charts provide a clear representation of the percentage contribution of each category to the whole.
-
-- **Visual Simplicity:** The circular shape and simplicity of Pie Charts make them easy for users to understand at a glance.
-
-#### Cons
-- **Limited for Many Categories:** When dealing with numerous categories, Pie Charts can become crowded and challenging to interpret.
+- **Werte:** Ein Wörterbuch, in dem jeder Schlüssel eine Kategorie oder Dimension ist und der entsprechende Wert ein numerischer Wert ist.
 
 
-## Pie Chart Example
+### Für und Wider
+
+#### Vorteile
+- **Prozentuale Darstellung:** Kreisdiagramme bieten eine klare Darstellung des prozentualen Beitrags jeder Kategorie zum Ganzen.
+
+- **Visuelle Einfachheit:** Die kreisförmige Form und Einfachheit von Kreisdiagrammen machen sie für Benutzer auf einen Blick leicht verständlich.
+
+#### Nachteile
+- **Begrenzt für viele Kategorien:** Bei der Arbeit mit zahlreichen Kategorien können Kreisdiagramme unübersichtlich und schwierig zu interpretieren werden.
+
+
+## Beispiel für ein Kreisdiagramm
 
 ![Pie Chart Example](/Illustry-monorepo/pie-chart.gif)

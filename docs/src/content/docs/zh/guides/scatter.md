@@ -1,14 +1,14 @@
 ---
 title: 散点图
-description: Scatter doc
+description: 分散文档
 ---
 
-The **Scatter Plot** visualization is a powerful tool for visualizing the relationships between two numerical variables. It uses points on a Cartesian plane to represent individual data points, making it easy to identify patterns, correlations, and outliers.
+**散点图**可视化是可视化两个数值变量之间关系的强大工具。它使用笛卡尔平面上的点来表示各个数据点，从而可以轻松识别模式、相关性和异常值。
 
 
-## Scatter Plot Data Structure
+## 散点图数据结构
 
-To represent a Scatter Plot, you can use the following `ScatterData` interface:
+要表示散点图，您可以使用以下 `ScatterData` 接口：
 
 ```typescript
 {{ScatterPoint}}
@@ -16,23 +16,23 @@ To represent a Scatter Plot, you can use the following `ScatterData` interface:
 {{ScatterData}}
 ```
 
-### Key Attributes
+### 关键属性
 
-- **value:** An array of two numerical values [x, y], representing the coordinates of a data point on the X and Y axes.
-- **values:** A string indicating the category or group to which the data point belongs.
+- **value：** 两个数值[x,y]的数组，表示数据点在X轴和Y轴上的坐标。
+- **值：** 指示数据点所属类别或组的字符串。
 
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Relationship Identification:** Scatter Plots excel at revealing relationships, patterns, and trends between two numerical variables.
+#### 优点
+- **关系识别：** 散点图擅长揭示两个数值变量之间的关系、模式和趋势。
 
-- **Outlier Detection:** Outliers, or data points that deviate significantly from the norm, are easily identified on a Scatter Plot.
+- **离群值检测：** 离群值或显着偏离正常值的数据点可以在散点图上轻松识别。
 
-#### Cons
+#### 缺点
 
-- **Potential Overplotting:** In cases with a high density of data points, overplotting may occur, affecting the visibility of individual points.
+- **潜在的过度绘图：** 在数据点密度较高的情况下，可能会发生过度绘图，从而影响各个点的可见性。
 
-## Scatter Plot Example
+## 散点图示例
 
 ![Scatter Plot Example](/Illustry-monorepo/scatter.gif)

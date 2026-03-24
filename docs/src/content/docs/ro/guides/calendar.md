@@ -1,40 +1,40 @@
 ---
-title: Calendar
+title: Calendaristic
 description: Calendar doc
 ---
 
-The **Calendar** visualization is a unique representation designed to provide insights into temporal relationships within a dataset. It offers a distinctive approach to visualizing events, occurrences, or entities over time.
+Vizualizarea **Calendar** este o reprezentare unică concepută pentru a oferi informații despre relațiile temporale dintr-un set de date. Oferă o abordare distinctă pentru vizualizarea evenimentelor, aparițiilor sau entităților de-a lungul timpului.
 
-## Calendar Data Structure
+## Structura datelor din calendar
 
-To represent a Calendar, you can use the following `CalendarData` interface:
+Pentru a reprezenta un Calendar, puteți utiliza următoarea interfață `CalendarData`:
 
 ```typescript
 {{CalendarType}}
 
 {{CalendarData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **date:** A unique date of a specific year.
-- **value:** How impactful that date was for the event.
-- **category:** Categorizes the dates into a specific events.
+- **data:** O dată unică a unui anumit an.
+- **valoare:** cât de impact a fost data pentru eveniment.
+- **categorie:** Clasifică datele într-un anumit eveniment.
 
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Relationship Visualization:** The calendar visualization provides an intuitive and user-friendly way to explore temporal relationships, making it easy for users to understand patterns over time.
+#### Pro
+- **Vizualizarea relațiilor:** Vizualizarea calendarului oferă o modalitate intuitivă și ușor de utilizat de a explora relațiile temporale, facilitând înțelegerea modelelor de-a lungul timpului de către utilizatori.
 
-- **Compact Representation:** A calendar optimizes space by presenting events in a compact format, allowing users to view a significant amount of temporal data without overwhelming visuals.
+- **Reprezentare compactă:** Un calendar optimizează spațiul prin prezentarea evenimentelor într-un format compact, permițând utilizatorilor să vizualizeze o cantitate semnificativă de date temporale fără imagini copleșitoare.
 
-- **Multiple years:** If the events are happening on a multi-year timespan more calendar visualizations will be displayed.
+- **Mulți ani:** Dacă evenimentele au loc pe o perioadă de mai mulți ani, vor fi afișate mai multe vizualizări ale calendarului.
 
-#### Cons
-- **Complexity with Dense Graphs:** Due to its compact nature, a calendar may provide limited space for detailing each event. In scenarios requiring extensive information, additional interactions or supplementary views may be necessary.
+#### Contra
+- **Complexitate cu grafice dense:** Datorită naturii sale compacte, un calendar poate oferi spațiu limitat pentru detalierea fiecărui eveniment. În scenariile care necesită informații extinse, pot fi necesare interacțiuni suplimentare sau vizualizări suplimentare.
 
-- **Not Ideal for Dense Event Overlaps:** In cases where multiple events overlap closely in time, the visualization might face challenges in maintaining clarity and preventing overlap-related visual clutter.
+- **Nu este ideal pentru suprapuneri dense de evenimente:** în cazurile în care mai multe evenimente se suprapun îndeaproape în timp, vizualizarea poate întâmpina provocări în menținerea clarității și prevenirea dezordinei vizuale legate de suprapunere.
 
-## Calendar Example
+## Exemplu de calendar
 
 ![Calendar Example](/Illustry-monorepo/calendar.gif)

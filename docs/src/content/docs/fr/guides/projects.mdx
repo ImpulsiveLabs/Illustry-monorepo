@@ -1,34 +1,34 @@
 ---
 title: Projets
-description: Projects doc
+description: Document de projets
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Project as a Workspace
+# Projeter comme espace de travail
 
-In this system, a project serves as the fundamental building block, acting as a dedicated workspace for your endeavors. Each project encapsulates the essential elements of your work, providing a structured environment for data visualization and analysis.
+Dans ce système, un projet sert de pierre angulaire, agissant comme un espace de travail dédié à vos efforts. Chaque projet résume les éléments essentiels de votre travail, offrant un environnement structuré pour la visualisation et l'analyse des données.
 
-## Project Data Structure
+## Structure des données du projet
 
-To represent a project in your system, you can use the following `ProjectData` interface:
+Pour représenter un projet dans votre système, vous pouvez utiliser l'interface `ProjectData` suivante :
 
 ```typescript
 {{ProjectData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** A unique identifier for the project.
-- **description:** An optional field to provide additional context or details about the project.
-- **createdAt:** The timestamp indicating when the project was initially created.
-- **updatedAt:** The timestamp indicating the last modification of the project.
-- **isActive:** A boolean flag specifying whether the project is currently active.
+- **name :** Un identifiant unique pour le projet.
+- **description :** Un champ facultatif pour fournir un contexte ou des détails supplémentaires sur le projet.
+- **createdAt :** L'horodatage indiquant la date à laquelle le projet a été initialement créé.
+- **updatedAt :** L'horodatage indiquant la dernière modification du projet.
+- **isActive :** Un indicateur booléen spécifiant si le projet est actuellement actif.
 
-## Project Activation
+## Activation du projet
 
-It's important to note that only one project can be active at a given time. This ensures a focused and organized workspace, allowing users to concentrate on a specific project and its associated visualizations.
+Il est important de noter qu'un seul projet peut être actif à un moment donné. Cela garantit un espace de travail ciblé et organisé, permettant aux utilisateurs de se concentrer sur un projet spécifique et ses visualisations associées.
 
-By structuring your work in this manner, you create a cohesive and manageable environment for your projects, facilitating efficient data analysis and visualization within a dedicated workspace.
+En structurant votre travail de cette manière, vous créez un environnement cohérent et gérable pour vos projets, facilitant une analyse et une visualisation efficaces des données au sein d'un espace de travail dédié.
 
-## Practical example
+## Exemple pratique
 
 ![Project in Action](/Illustry-monorepo/projects.gif)

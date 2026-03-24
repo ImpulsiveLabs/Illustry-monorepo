@@ -24,6 +24,7 @@ import DataTable from '../data-table/data-table';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useActiveProjectDispatch } from '../providers/active-project-provider';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '../providers/locale-provider';
 
 type ProjectsTableShellProps = {
   data?: ProjectTypes.ProjectType[];
@@ -31,6 +32,7 @@ type ProjectsTableShellProps = {
 }
 
 const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
+  const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
   const dispatch = useActiveProjectDispatch();
@@ -57,7 +59,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
                 setSelectedRowNames((prev) => (prev.length === data.length ? [] : data.map((row) => row.name)));
               }
             }}
-            aria-label="Select all"
+            aria-label={t('tooltip.selectAllRows')}
             className="translate-y-[2px]"
           />
         ),
@@ -70,7 +72,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
                 ? [...prev, row.original.name]
                 : prev.filter((id) => id !== row.original.name)));
             }}
-            aria-label="Select row"
+            aria-label={t('tooltip.selectRow')}
             className="translate-y-[2px]"
           />
         ),
@@ -80,19 +82,19 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
       {
         accessorKey: 'name',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Name" />
+          <DataTableColumnHeader column={column} title={t('common.name')} />
         )
       },
       {
         accessorKey: 'description',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Description" />
+          <DataTableColumnHeader column={column} title={t('common.description')} />
         )
       },
       {
         accessorKey: 'createdAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Created At" />
+          <DataTableColumnHeader column={column} title={t('table.createdAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -100,7 +102,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
       {
         accessorKey: 'updatedAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Updated At" />
+          <DataTableColumnHeader column={column} title={t('table.updatedAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -108,9 +110,9 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
       {
         accessorKey: 'isActive',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Is Active" />
+          <DataTableColumnHeader column={column} title={t('table.isActive')} />
         ),
-        cell: ({ cell }) => (cell.getValue() ? 'active' : 'not active'),
+        cell: ({ cell }) => (cell.getValue() ? t('table.active') : t('table.notActive')),
         enableColumnFilter: false
       },
       {
@@ -119,7 +121,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label={t('tooltip.openRowMenu')}
                 variant="ghost"
                 className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
               >
@@ -128,7 +130,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
               <DropdownMenuItem asChild>
-                <Link href={`/projects/${row.original.name}`}>Edit</Link>
+                <Link href={`/projects/${row.original.name}`}>{t('table.edit')}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -137,15 +139,15 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
                     row.toggleSelected(false);
 
                     toast.promise(deleteProject(row.original.name), {
-                      loading: 'Deleting...',
-                      success: () => { router.refresh(); return 'Project deleted successfully.' },
+                      loading: t('table.deleting'),
+                      success: () => { router.refresh(); return t('toast.projectDeleted'); },
                       error: (err: unknown) => catchError(err)
                     });
                   });
                 }}
                 disabled={isPending}
               >
-                Delete
+                {t('table.delete')}
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -153,18 +155,18 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
         )
       }
     ],
-    [data, isPending]
+    [data, isPending, t]
   );
 
   const deleteSelectedRows = () => {
     toast.promise(
       Promise.all(selectedRowNames.map((name) => deleteProject(name))),
       {
-        loading: 'Deleting...',
+        loading: t('table.deleting'),
         success: () => {
           setSelectedRowNames([]);
           router.refresh();
-          return 'Projects deleted successfully.';
+          return t('toast.projectsDeleted');
         },
         error: (err: unknown) => {
           setSelectedRowNames([]);

@@ -1,35 +1,35 @@
 ---
 title: Graphique en lignes
-description: Line Chart doc
+description: Document Graphique en courbes
 ---
 
-The **Line Chart** visualization is a versatile tool for representing trends and patterns in numerical data over time. It is widely used for visualizing the relationship between two continuous variables and highlighting trends or fluctuations.
+La visualisation **Line Chart** est un outil polyvalent permettant de représenter les tendances et les modèles de données numériques au fil du temps. Il est largement utilisé pour visualiser la relation entre deux variables continues et mettre en évidence des tendances ou des fluctuations.
 
-## Line Chart Data Structure
+## Structure des données du graphique linéaire
 
-To represent a Line Chart, you can use the following `AxisChartData` interface:
+Pour représenter un graphique linéaire, vous pouvez utiliser l'interface `AxisChartData` suivante :
 
 ```typescript
 {{AxisChartData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **headers:** An array of strings representing the categories or dimensions along one of the axis.
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an array of numerical values along the other axis. 
+- **en-têtes :** un tableau de chaînes représentant les catégories ou les dimensions le long de l'un des axes.
+- **valeurs :** Un dictionnaire dans lequel chaque clé est une catégorie ou une dimension et la valeur correspondante est un tableau de valeurs numériques le long de l'autre axe.
 
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Multi-Dimensional Comparison:** Line Charts excel at comparing multiple dimensions simultaneously, providing a comprehensive view of the data.
+#### Avantages
+- **Comparaison multidimensionnelle :** Les graphiques linéaires excellent dans la comparaison simultanée de plusieurs dimensions, offrant une vue complète des données.
 
-- **Clear Value Representation:** Numerical values are clearly represented along both the X and Y axes, making it easy for users to interpret and compare.
+- **Représentation claire des valeurs :** Les valeurs numériques sont clairement représentées le long des axes X et Y, ce qui facilite l'interprétation et la comparaison par les utilisateurs.
 
-#### Cons
-- **Complexity with Excessive Categories:** When dealing with a large number of categories or dimensions, the visualization may become crowded and challenging to interpret.
+#### Inconvénients
+- **Complexité avec des catégories excessives :** Lorsqu'il s'agit d'un grand nombre de catégories ou de dimensions, la visualisation peut devenir encombrée et difficile à interpréter.
 
-- **Limited for Categorical Data:** Line Charts are most effective for numerical data and may not be the optimal choice for representing categorical data.
+- **Limité pour les données catégorielles :** Les graphiques linéaires sont plus efficaces pour les données numériques et peuvent ne pas constituer le choix optimal pour représenter des données catégorielles.
 
-## Line Chart Example
+## Exemple de graphique linéaire
 
 ![Line Chart Example](/Illustry-monorepo/line-chart.gif)

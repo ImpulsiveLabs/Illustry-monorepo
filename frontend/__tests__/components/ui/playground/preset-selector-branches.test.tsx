@@ -4,21 +4,21 @@ import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PresetSelector from '@/components/ui/playground/preset-selector';
 
-const cases: Array<{ name: string; key: string; token: string }> = [
-    { name: 'hierarchical-edge-bundling', key: 'heb', token: 'nodes' },
-    { name: 'force-directed-graph', key: 'flg', token: 'nodes' },
-    { name: 'sankey', key: 'sankey', token: 'nodes' },
-    { name: 'calendar', key: 'calendar', token: 'calendar' },
-    { name: 'word-cloud', key: 'wordCloud', token: 'words' },
-    { name: 'matrix', key: 'matrix', token: 'nodes' },
-    { name: 'line-chart', key: 'lineChart', token: 'headers' },
-    { name: 'bar-chart', key: 'barChart', token: 'headers' },
-    { name: 'pie-chart', key: 'pieChart', token: 'values' },
-    { name: 'funnel', key: 'funnel', token: 'values' },
-    { name: 'scatter', key: 'scatter', token: 'points' },
-    { name: 'treemap', key: 'treeMap', token: 'name' },
-    { name: 'sunburst', key: 'sunburst', token: 'name' },
-    { name: 'timeline', key: 'timeline', token: 'events' }
+const cases: Array<{ name: string; label: string; key: string; token: string }> = [
+    { name: 'hierarchical-edge-bundling', label: 'Hierarchical Edge Bundling', key: 'heb', token: 'nodes' },
+    { name: 'force-directed-graph', label: 'Forced Layout Graph', key: 'flg', token: 'nodes' },
+    { name: 'sankey', label: 'Sankey', key: 'sankey', token: 'nodes' },
+    { name: 'calendar', label: 'Calendar', key: 'calendar', token: 'calendar' },
+    { name: 'word-cloud', label: 'WordCloud', key: 'wordCloud', token: 'words' },
+    { name: 'matrix', label: 'Matrix', key: 'matrix', token: 'nodes' },
+    { name: 'line-chart', label: 'Line Chart', key: 'lineChart', token: 'headers' },
+    { name: 'bar-chart', label: 'Bar Chart', key: 'barChart', token: 'headers' },
+    { name: 'pie-chart', label: 'Pie Chart', key: 'pieChart', token: 'values' },
+    { name: 'funnel', label: 'Funnel', key: 'funnel', token: 'values' },
+    { name: 'scatter', label: 'Scatter', key: 'scatter', token: 'points' },
+    { name: 'treemap', label: 'Treemap', key: 'treeMap', token: 'name' },
+    { name: 'sunburst', label: 'Sunburst', key: 'sunburst', token: 'name' },
+    { name: 'timeline', label: 'Timeline', key: 'timeline', token: 'events' }
 ];
 
 describe('PresetSelector toShowDiagram branches', () => {
@@ -38,7 +38,7 @@ describe('PresetSelector toShowDiagram branches', () => {
         );
 
         await user.click(screen.getByRole('combobox', { name: 'Load a visualization...' }));
-        await user.click(screen.getByText(testCase.name));
+        await user.click(screen.getByText(testCase.label));
 
         const updater = setShowDiagram.mock.calls[0][0] as (prev: Record<string, boolean>) => Record<string, boolean>;
         const result = updater({

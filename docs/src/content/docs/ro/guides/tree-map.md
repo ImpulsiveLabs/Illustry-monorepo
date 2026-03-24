@@ -1,44 +1,44 @@
 ---
-title: Tree Map
-description: Tree Map doc
+title: Harta arborelui
+description: Harta copacului doc
 ---
 
-The **Tree Map** visualization is a dynamic and hierarchical way of representing data that provides a clear overview of complex structures. By utilizing nested rectangles, the Treemap efficiently visualizes hierarchical data relationships, making it an invaluable tool for conveying both the whole and the parts within a dataset.
+Vizualizarea **Harta arborelui** este un mod dinamic și ierarhic de reprezentare a datelor care oferă o imagine de ansamblu clară a structurilor complexe. Folosind dreptunghiuri imbricate, Arborele vizualizează eficient relațiile de date ierarhice, făcându-l un instrument neprețuit pentru transmiterea atât a întregului, cât și a părților dintr-un set de date.
 
-## Tree Map Data Structure
+## Structura de date a hărții arborelui
 
-To represent a Tree Map Data, you can use the following `HierarchyData` interface:
+Pentru a reprezenta o hartă arbore de date, puteți utiliza următoarea interfață `HierarchyData`:
 
 ```typescript
 {{HierarchyNode}}
 
 {{HierarchyData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** The node name.
-- **value:** A number that represents a metric to determine how big that node is.
-- **category:**  Describes the category or type to which the node belongs.
-- **children:**  This property is optional and represents an array of HierarchyNode objects. It signifies that the node can have child nodes, creating a hierarchical structure. Each child node follows the same HierarchyNode structure, allowing the representation of a tree-like hierarchy.
+- **nume:** Numele nodului.
+- **valoare:** un număr care reprezintă o valoare pentru a determina cât de mare este acel nod.
+- **categorie:** Descrie categoria sau tipul căruia îi aparține nodul.
+- **copii:** Această proprietate este opțională și reprezintă o matrice de obiecte HierarchyNode. Aceasta înseamnă că nodul poate avea noduri copii, creând o structură ierarhică. Fiecare nod copil urmează aceeași structură HierarchyNode, permițând reprezentarea unei ierarhii de tip arbore.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Hierarchical Understanding:** Treemaps excel in displaying hierarchical data structures, providing a visual hierarchy that aids in understanding relationships between different levels.
+#### Pro
+- **Înțelegerea ierarhică:** Hărțile arbore excelează în afișarea structurilor de date ierarhice, oferind o ierarhie vizuală care ajută la înțelegerea relațiilor dintre diferite niveluri.
 
-- **Proportional Representation:** The proportional sizing of rectangles allows for an intuitive representation of the relative values or sizes of different data categories.
+- **Reprezentare proporțională:** Dimensiunea proporțională a dreptunghiurilor permite o reprezentare intuitivă a valorilor sau dimensiunilor relative ale diferitelor categorii de date.
 
-- **Space Efficiency:** Treemaps efficiently use space, enabling users to visualize large datasets without cluttering the screen.
+- **Eficiența spațiului:** Hărțile arborescente utilizează în mod eficient spațiul, permițând utilizatorilor să vizualizeze seturi mari de date fără a aglomera ecranul.
 
-- **Quick Identification of Patterns:** Users can swiftly identify patterns, outliers, and concentrations within the dataset through the visual arrangement of rectangles.
+- **Identificare rapidă a modelelor:** utilizatorii pot identifica rapid modelele, valorile aberante și concentrațiile din setul de date prin aranjarea vizuală a dreptunghiurilor.
 
-#### Cons
-- **Complexity with Overlapping Labels:** In cases where labels overlap, especially in densely populated Treemaps, readability can be a challenge.
+#### Contra
+- **Complexitate cu etichete suprapuse:** în cazurile în care etichetele se suprapun, în special în hărțile arborescente dens populate, lizibilitatea poate fi o provocare.
 
-- **Difficulty in Precision:** While Treemaps provide a broad overview, achieving precise comparisons between individual data points might be challenging due to the hierarchical nature.
+- **Dificultate în precizie:** În timp ce Mapele arbore oferă o imagine de ansamblu amplă, realizarea unor comparații precise între punctele de date individuale ar putea fi dificilă din cauza naturii ierarhice.
 
-- **Limited to Hierarchical Data:** Treemaps are most effective when visualizing hierarchical data; for non-hierarchical datasets, alternative visualizations may be more suitable.
+- **Limitat la date ierarhice:** Hărțile arborescente sunt cele mai eficiente atunci când se vizualizează date ierarhice; pentru seturile de date non-ierarhice, vizualizările alternative pot fi mai potrivite.
 
-## Tree Map Example
+## Exemplu de hartă arboreală
 
 ![Tree Map Example](/Illustry-monorepo/tree-map.gif)

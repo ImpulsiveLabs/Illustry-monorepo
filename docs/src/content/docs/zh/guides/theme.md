@@ -1,29 +1,29 @@
 ---
 title: 应用主题
-description: Theme
+description: 主题
 ---
 
-Illustry provides a powerful theme customization feature that allows users to tailor the look and feel of their visualizations. Whether you prefer a dark or light mode, you have the flexibility to choose from predefined themes or fine-tune the colors for each type of visualization.
+Illustry 提供了强大的主题自定义功能，允许用户定制可视化的外观和感觉。无论您喜欢深色模式还是浅色模式，您都可以灵活地选择预定义的主题或微调每种可视化类型的颜色。
 
-## Predefined Themes
+## 预定义主题
 
-Illustry comes with a set of predefined themes that you can easily apply to your workspace. These themes are crafted to ensure a harmonious and visually appealing experience. You can switch between themes effortlessly to find the one that suits your preferences.
+Illustry 附带一组预定义主题，您可以轻松地将它们应用到您的工作区。这些主题经过精心设计，以确保和谐且具有视觉吸引力的体验。您可以轻松地在主题之间切换，找到适合您喜好的主题。
 
-## Custom Theme Editing
+## 自定义主题编辑
 
-For users who want more control over the aesthetics of their visualizations, Illustry offers a custom theme editing feature. This allows you to choose specific colors for different elements in each type of visualization. Whether it's adjusting background colors, chart hues, or text shades, you have the creative freedom to design your workspace to perfection.
+对于想要更好地控制可视化效果的用户，Illustry 提供了自定义主题编辑功能。这允许您为每种类型的可视化中的不同元素选择特定的颜色。无论是调整背景颜色、图表色调还是文本阴影，您都可以自由发挥创意，将您的工作空间设计得完美无缺。
 
-## Dark and Light Modes
+## 深色和浅色模式
 
-Illustry supports both dark and light modes, catering to different preferences and ensuring optimal visibility in various environments. You can seamlessly switch between modes to adapt to your working conditions and enhance the overall user experience.
+Illustry 支持深色和浅色模式，满足不同的喜好并确保在各种环境下的最佳可视性。您可以在模式之间无缝切换，以适应您的工作条件并增强整体用户体验。
 
-## How to Access the Theme Feature
+## 如何访问主题功能
 
-1. Navigate to the "Theme" section in the Illustry dashboard.
-2. Choose a predefined theme or enter the custom theme editor.
-3. Select the type of visualization you want to theme.
-4. Adjust colors and settings according to your preferences.
+1. 导航至 Illustry 仪表板中的“主题”部分。
+2. 选择预定义主题或进入自定义主题编辑器。
+3. 选择您想要主题化的可视化类型。
+4. 根据您的喜好调整颜色和设置。
 
-## Practical example
+## 实际例子
 
 ![Theme](/Illustry-monorepo/theme.gif)

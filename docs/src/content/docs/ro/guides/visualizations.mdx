@@ -1,15 +1,15 @@
 ---
-title: Vizualizari
-description: Visualizations doc
+title: Vizualizări
+description: Vizualizări doc
 ---
 
-# Visualizations in Your Workspace
+# Vizualizări în spațiul dvs. de lucru
 
-When working with visualizations, the system supports a flexible data structure through the `VisualizationData` interface:
+Când lucrați cu vizualizări, sistemul acceptă o structură de date flexibilă prin interfața `VisualizationData`:
 
-## Visualization Data Structure
+## Structura datelor de vizualizare
 
-To represent a visualization in your system, you can use the following `VisualizationData` interface:
+Pentru a reprezenta o vizualizare în sistemul dvs., puteți utiliza următoarea interfață `VisualizationData`:
 
 ```typescript
 
@@ -17,69 +17,69 @@ To represent a visualization in your system, you can use the following `Visualiz
 
 ```
 
-### Key Attributes
-- **projectName**: The active project.
-- **type:** A string or a string array that provides the type of visualization(array works only for JSON's).
-- **name:** A unique identifier for the visualization.
-- **description:** An optional field to provide additional context or details about the visualization.
-- **createdAt:** The timestamp indicating when the visualization was initially created.
-- **updatedAt:** The timestamp indicating the last modification of the visualization.
-- **isActive:** A boolean flag specifying whether the project is currently active.
-- **tags:** An optional field used to categorize the visualizations.
-- **data:** The data that the visualization will present
+### Atribute cheie
+- **projectName**: proiectul activ.
+- **tip:** Un șir sau o matrice de șir care oferă tipul de vizualizare (matricea funcționează numai pentru JSON).
+- **nume:** Un identificator unic pentru vizualizare.
+- **descriere:** Un câmp opțional pentru a furniza context suplimentar sau detalii despre vizualizare.
+- **createdAt:** Timpul care indică momentul în care vizualizarea a fost creată inițial.
+- **updatedAt:** Timpul care indică ultima modificare a vizualizării.
+- **isActive:** Un semnal boolean care specifică dacă proiectul este activ în prezent.
+- **etichete:** un câmp opțional folosit pentru a clasifica vizualizările.
+- **date:** Datele pe care le va prezenta vizualizarea
 
-## Visualization Types
+## Tipuri de vizualizare
 
-The system supports the following visualization types:
+Sistemul acceptă următoarele tipuri de vizualizare:
 
-- [**WORD_CLOUD**](/Illustry-monorepo/guides/word-cloud/)
-- [**FORCE_DIRECTED_GRAPH**](/Illustry-monorepo/guides/forced-layout-graph/)
-- [**SANKEY**](/Illustry-monorepo/guides/sankey/)
-- [**CALENDAR**](/Illustry-monorepo/guides/calendar/)
-- [**HIERARCHICAL_EDGE_BUNDLING**](/Illustry-monorepo/guides/hierarchical-edge-bundling/)
-- [**MATRIX**](/Illustry-monorepo/guides/matrix/)
-- [**LINE_CHART**](/Illustry-monorepo/guides/line-chart/)
-- [**BAR_CHART**](/Illustry-monorepo/guides/bar-chart/)
-- [**PIE_CHART**](/Illustry-monorepo/guides/pie-chart/)
-- [**SCATTER**](/Illustry-monorepo/guides/scatter/)
-- [**TREEMAP**](/Illustry-monorepo/guides/tree-map/)
-- [**SUNBURST**](/Illustry-monorepo/guides/sun-burst/)
-- [**FUNNEL**](/Illustry-monorepo/guides/funnel/)
-- [**TIMELINE**](/Illustry-monorepo/guides/timeline/)
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
 
-## Practical example
+## Exemplu practic
 
-When utilizing file formats like Excel, XML, JSON, and CSV, the system ensures compatibility with both complete and partial details in the file.
+Când se utilizează formate de fișiere precum Excel, XML, JSON și CSV, sistemul asigură compatibilitatea cu detaliile complete și parțiale din fișier.
 All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
 
-- **Example 1**: JSON format with all the details
+- **Exemplu 1**: format JSON cu toate detaliile
 
 ![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
 
-- **Example 2**: JSON format with partial details, complete the form with the missing details
+- **Exemplu 2**: format JSON cu detalii parțiale, completați formularul cu detaliile lipsă
 
 ![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
 
-- **Example 3**: Excel format with all the details, complete the mapping of fields
+- **Exemplu 3**: format Excel cu toate detaliile, completați maparea câmpurilor
 
 ![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
 
-- **Example 4**: Excel format with partial details, complete the form with the missing details
+- **Exemplu 4**: format Excel cu detalii parțiale, completați formularul cu detaliile lipsă
 
 ![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
 
-- **Example 5**: CSV format with all the details, complete the mapping of fields
+- **Exemplu 5**: format CSV cu toate detaliile, completați maparea câmpurilor
 
 ![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
 
-- **Example 6**: CSV format with partial details, complete the form with the missing details
+- **Exemplu 6**: format CSV cu detalii parțiale, completați formularul cu detaliile lipsă
 
 ![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
 
-- **Example 7**: XML format with all the details
+- **Exemplu 7**: format XML cu toate detaliile
 
 ![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
 
-- **Example 8**: XML format with partial details, complete the form with the missing details
+- **Exemplu 8**: format XML cu detalii parțiale, completați formularul cu detaliile lipsă
 
 ![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

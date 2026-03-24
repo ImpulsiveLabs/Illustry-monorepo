@@ -1,44 +1,44 @@
 ---
-title: 矩形树图
-description: Tree Map doc
+title: 树图
+description: 树状图.doc
 ---
 
-The **Tree Map** visualization is a dynamic and hierarchical way of representing data that provides a clear overview of complex structures. By utilizing nested rectangles, the Treemap efficiently visualizes hierarchical data relationships, making it an invaluable tool for conveying both the whole and the parts within a dataset.
+**树图**可视化是一种动态且分层的数据表示方式，可提供复杂结构的清晰概述。通过利用嵌套矩形，树形图可以有效地可视化分层数据关系，使其成为传达数据集中整体和部分的宝贵工具。
 
-## Tree Map Data Structure
+## 树形图数据结构
 
-To represent a Tree Map Data, you can use the following `HierarchyData` interface:
+要表示树图数据，您可以使用以下 `HierarchyData` 接口：
 
 ```typescript
 {{HierarchyNode}}
 
 {{HierarchyData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** The node name.
-- **value:** A number that represents a metric to determine how big that node is.
-- **category:**  Describes the category or type to which the node belongs.
-- **children:**  This property is optional and represents an array of HierarchyNode objects. It signifies that the node can have child nodes, creating a hierarchical structure. Each child node follows the same HierarchyNode structure, allowing the representation of a tree-like hierarchy.
+- **名称：** 节点名称。
+- **值：** 代表确定该节点有多大的指标的数字。
+- **category:** 描述节点所属的类别或类型。
+- **children：** 该属性是可选的，表示 HierarchyNode 对象的数组。它表示该节点可以有子节点，从而创建层次结构。每个子节点都遵循相同的 HierarchyNode 结构，允许表示树状层次结构。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Hierarchical Understanding:** Treemaps excel in displaying hierarchical data structures, providing a visual hierarchy that aids in understanding relationships between different levels.
+#### 优点
+- **分层理解：** 树形图擅长显示分层数据结构，提供可视化层次结构，有助于理解不同级别之间的关系。
 
-- **Proportional Representation:** The proportional sizing of rectangles allows for an intuitive representation of the relative values or sizes of different data categories.
+- **比例表示：** 矩形的比例大小可以直观地表示不同数据类别的相对值或大小。
 
-- **Space Efficiency:** Treemaps efficiently use space, enabling users to visualize large datasets without cluttering the screen.
+- **空间效率：** 树形图有效利用空间，使用户能够可视化大型数据集，而不会使屏幕混乱。
 
-- **Quick Identification of Patterns:** Users can swiftly identify patterns, outliers, and concentrations within the dataset through the visual arrangement of rectangles.
+- **快速识别模式：**用户可以通过矩形的视觉排列快速识别数据集中的模式、异常值和浓度。
 
-#### Cons
-- **Complexity with Overlapping Labels:** In cases where labels overlap, especially in densely populated Treemaps, readability can be a challenge.
+#### 缺点
+- **重叠标签的复杂性：** 在标签重叠的情况下，尤其是在人口密集的树图中，可读性可能是一个挑战。
 
-- **Difficulty in Precision:** While Treemaps provide a broad overview, achieving precise comparisons between individual data points might be challenging due to the hierarchical nature.
+- **精确度方面的困难：** 虽然树状图提供了广泛的概述，但由于层次结构的性质，在各个数据点之间实现精确比较可能具有挑战性。
 
-- **Limited to Hierarchical Data:** Treemaps are most effective when visualizing hierarchical data; for non-hierarchical datasets, alternative visualizations may be more suitable.
+- **仅限于分层数据：** 在可视化分层数据时，树形图最有效；对于非分层数据集，替代可视化可能更合适。
 
-## Tree Map Example
+## 树形图示例
 
 ![Tree Map Example](/Illustry-monorepo/tree-map.gif)

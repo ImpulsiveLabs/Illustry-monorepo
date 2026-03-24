@@ -1,0 +1,391 @@
+---
+import DefaultLanguageSelect from '@astrojs/starlight/components/LanguageSelect.astro';
+---
+
+<illustry-language-select>
+  <DefaultLanguageSelect />
+</illustry-language-select>
+
+<script>
+  const PAGE_SIZE = 5;
+  const SCROLL_OFFSET_PX = 16;
+  const NON_ROOT_LOCALES = [
+    'es', 'fr', 'de', 'it', 'pt', 'ru', 'uk', 'ro', 'nl', 'pl', 'tr', 'el',
+    'ar', 'he', 'hi', 'bn', 'ur', 'id', 'vi', 'th', 'ja', 'ko', 'zh'
+  ];
+  type LanguageSelectCopy = {
+    languageAriaLabel: string;
+    searchPlaceholder: string;
+    emptyResults: string;
+  };
+
+  const LOCALE_UI_COPY: Record<string, LanguageSelectCopy> = {
+    root: {
+      languageAriaLabel: 'Select language',
+      searchPlaceholder: 'Search languages...',
+      emptyResults: 'No languages found.'
+    },
+    es: {
+      languageAriaLabel: 'Seleccionar idioma',
+      searchPlaceholder: 'Buscar idiomas...',
+      emptyResults: 'No se encontraron idiomas.'
+    },
+    fr: {
+      languageAriaLabel: 'Choisir la langue',
+      searchPlaceholder: 'Rechercher des langues...',
+      emptyResults: 'Aucune langue trouvee.'
+    },
+    de: {
+      languageAriaLabel: 'Sprache auswaehlen',
+      searchPlaceholder: 'Sprachen suchen...',
+      emptyResults: 'Keine Sprachen gefunden.'
+    },
+    it: {
+      languageAriaLabel: 'Seleziona lingua',
+      searchPlaceholder: 'Cerca lingue...',
+      emptyResults: 'Nessuna lingua trovata.'
+    },
+    pt: {
+      languageAriaLabel: 'Selecionar idioma',
+      searchPlaceholder: 'Buscar idiomas...',
+      emptyResults: 'Nenhum idioma encontrado.'
+    },
+    ru: {
+      languageAriaLabel: 'Vyberite yazyk',
+      searchPlaceholder: 'Poisk yazykov...',
+      emptyResults: 'Yazyki ne naydeny.'
+    },
+    uk: {
+      languageAriaLabel: 'Vyberit movu',
+      searchPlaceholder: 'Poshuk mov...',
+      emptyResults: 'Movy ne znaydeni.'
+    },
+    ro: {
+      languageAriaLabel: 'Selectati limba',
+      searchPlaceholder: 'Cautati limbi...',
+      emptyResults: 'Nu au fost gasite limbi.'
+    },
+    nl: {
+      languageAriaLabel: 'Selecteer taal',
+      searchPlaceholder: 'Zoek talen...',
+      emptyResults: 'Geen talen gevonden.'
+    },
+    pl: {
+      languageAriaLabel: 'Wybierz jezyk',
+      searchPlaceholder: 'Szukaj jezykow...',
+      emptyResults: 'Nie znaleziono jezykow.'
+    },
+    tr: {
+      languageAriaLabel: 'Dil secin',
+      searchPlaceholder: 'Dilleri ara...',
+      emptyResults: 'Dil bulunamadi.'
+    },
+    el: {
+      languageAriaLabel: 'Epilogi glossas',
+      searchPlaceholder: 'Anazitisi glosswn...',
+      emptyResults: 'Den vrethikan glosses.'
+    },
+    ar: {
+      languageAriaLabel: 'Ikhtar allugha',
+      searchPlaceholder: 'Abhath an lughat...',
+      emptyResults: 'Lam yutam alathur ala lughat.'
+    },
+    he: {
+      languageAriaLabel: 'Bchar safa',
+      searchPlaceholder: 'Chapesh safot...',
+      emptyResults: 'Lo nimtzeu safot.'
+    },
+    hi: {
+      languageAriaLabel: 'Bhasha chunen',
+      searchPlaceholder: 'Bhasha khojen...',
+      emptyResults: 'Koi bhasha nahi mili.'
+    },
+    bn: {
+      languageAriaLabel: 'Bhasha nirbachon korun',
+      searchPlaceholder: 'Bhasha khujun...',
+      emptyResults: 'Kon bhasha paoa jayni.'
+    },
+    ur: {
+      languageAriaLabel: 'Zaban muntakhab karein',
+      searchPlaceholder: 'Zabanein talash karein...',
+      emptyResults: 'Koi zaban na mili.'
+    },
+    id: {
+      languageAriaLabel: 'Pilih bahasa',
+      searchPlaceholder: 'Cari bahasa...',
+      emptyResults: 'Bahasa tidak ditemukan.'
+    },
+    vi: {
+      languageAriaLabel: 'Chon ngon ngu',
+      searchPlaceholder: 'Tim ngon ngu...',
+      emptyResults: 'Khong tim thay ngon ngu.'
+    },
+    th: {
+      languageAriaLabel: 'Lueak phasa',
+      searchPlaceholder: 'Khnha phasa...',
+      emptyResults: 'Mai phop phasa.'
+    },
+    ja: {
+      languageAriaLabel: 'Gengo o sentaku',
+      searchPlaceholder: 'Gengo o kensaku...',
+      emptyResults: 'Gengo ga mitsukarimasen.'
+    },
+    ko: {
+      languageAriaLabel: 'Eoneo seontaek',
+      searchPlaceholder: 'Eoneo geomsaek...',
+      emptyResults: 'Eoneoreul chajeul su eopseumnida.'
+    },
+    zh: {
+      languageAriaLabel: 'Xuanze yuyan',
+      searchPlaceholder: 'Sousuo yuyan...',
+      emptyResults: 'Weizhaodao yuyan.'
+    }
+  };
+
+  const normalizeSearchValue = (value: string) => value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+
+  const normalizeLocale = (value: string) => {
+    const normalized = value.toLowerCase().replace('_', '-');
+    if (normalized === 'en' || normalized === 'root') {
+      return 'root';
+    }
+
+    const [prefix] = normalized.split('-');
+    return NON_ROOT_LOCALES.includes(prefix) ? prefix : 'root';
+  };
+
+  const resolveLocaleFromPath = (pathName: string) => {
+    for (const locale of NON_ROOT_LOCALES) {
+      if (pathName.includes(`/${locale}/`) || pathName.endsWith(`/${locale}`)) {
+        return locale;
+      }
+    }
+
+    return 'root';
+  };
+
+  class IllustryLanguageSelect extends HTMLElement {
+    cleanupController: AbortController | undefined;
+
+    connectedCallback() {
+      this.cleanupController?.abort();
+      this.cleanupController = new AbortController();
+      const { signal } = this.cleanupController;
+
+      const nativeLanguageSelect = this.querySelector('starlight-lang-select');
+      const nativeSelect = nativeLanguageSelect?.querySelector('select');
+
+      if (!nativeLanguageSelect || !nativeSelect) {
+        return;
+      }
+
+      const options = Array.from(nativeSelect.options).map((option) => ({
+        label: option.label,
+        value: option.value,
+        selected: option.selected
+      }));
+
+      if (options.length === 0) {
+        return;
+      }
+
+      nativeLanguageSelect.setAttribute('hidden', 'hidden');
+
+      const existingCustomRoot = this.querySelector('[data-illustry-language-root]');
+      if (existingCustomRoot) {
+        existingCustomRoot.remove();
+      }
+
+      const root = document.createElement('div');
+      root.className = 'illustry-language-select';
+      root.dataset.illustryLanguageRoot = 'true';
+
+      const selectedOption = options.find((option) => option.selected) || options[0];
+      const activeLocale = normalizeLocale(
+        resolveLocaleFromPath(window.location.pathname) || resolveLocaleFromPath(selectedOption.value)
+      );
+      const uiCopy = LOCALE_UI_COPY[activeLocale] || LOCALE_UI_COPY.root;
+
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'illustry-language-select__trigger';
+      trigger.setAttribute('aria-haspopup', 'listbox');
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.setAttribute('aria-label', uiCopy.languageAriaLabel);
+
+      const triggerLabel = document.createElement('span');
+      triggerLabel.className = 'illustry-language-select__trigger-label';
+
+      const triggerIcon = document.createElement('span');
+      triggerIcon.className = 'illustry-language-select__trigger-icon';
+      triggerIcon.setAttribute('aria-hidden', 'true');
+      triggerIcon.textContent = '▾';
+
+      trigger.append(triggerLabel, triggerIcon);
+
+      const panel = document.createElement('div');
+      panel.className = 'illustry-language-select__panel';
+      panel.hidden = true;
+
+      const searchWrap = document.createElement('div');
+      searchWrap.className = 'illustry-language-select__search-wrap';
+
+      const searchInput = document.createElement('input');
+      searchInput.type = 'search';
+      searchInput.className = 'illustry-language-select__search';
+      searchInput.setAttribute('aria-label', uiCopy.searchPlaceholder);
+      searchInput.placeholder = uiCopy.searchPlaceholder;
+
+      searchWrap.append(searchInput);
+
+      const list = document.createElement('div');
+      list.className = 'illustry-language-select__list';
+      list.setAttribute('role', 'listbox');
+      list.setAttribute('aria-label', uiCopy.languageAriaLabel);
+
+      panel.append(searchWrap, list);
+      root.append(trigger, panel);
+      this.append(root);
+
+      let isOpen = false;
+      let searchQuery = '';
+      let visibleCount = PAGE_SIZE;
+
+      const getSelectedOption = () => options.find((option) => option.selected) || options[0];
+
+      const setSelected = (value: string) => {
+        options.forEach((option) => {
+          option.selected = option.value === value;
+        });
+      };
+
+      const setOpen = (nextOpen: boolean) => {
+        isOpen = nextOpen;
+        panel.hidden = !nextOpen;
+        trigger.setAttribute('aria-expanded', String(nextOpen));
+        root.dataset.open = String(nextOpen);
+
+        if (nextOpen) {
+          searchInput.focus();
+        } else {
+          searchQuery = '';
+          searchInput.value = '';
+          visibleCount = PAGE_SIZE;
+        }
+
+        renderList();
+      };
+
+      const getFilteredOptions = () => {
+        const normalizedQuery = normalizeSearchValue(searchQuery.trim());
+
+        if (!normalizedQuery) {
+          return options;
+        }
+
+        return options.filter((option) => normalizeSearchValue(option.label).startsWith(normalizedQuery));
+      };
+
+      const renderList = () => {
+        const filteredOptions = getFilteredOptions();
+        const visibleOptions = filteredOptions.slice(0, visibleCount);
+
+        const activeOption = getSelectedOption();
+        triggerLabel.textContent = activeOption.label;
+
+        list.innerHTML = '';
+
+        visibleOptions.forEach((option) => {
+          const optionButton = document.createElement('button');
+          optionButton.type = 'button';
+          optionButton.className = 'illustry-language-select__option';
+          optionButton.setAttribute('role', 'option');
+          optionButton.setAttribute('aria-selected', String(option.selected));
+
+          const optionLabel = document.createElement('span');
+          optionLabel.className = 'illustry-language-select__option-label';
+          optionLabel.textContent = option.label;
+
+          const optionCheck = document.createElement('span');
+          optionCheck.className = 'illustry-language-select__option-check';
+          optionCheck.setAttribute('aria-hidden', 'true');
+          optionCheck.textContent = '✓';
+
+          if (!option.selected) {
+            optionCheck.classList.add('is-hidden');
+          }
+
+          optionButton.append(optionLabel, optionCheck);
+
+          optionButton.addEventListener('click', () => {
+            setSelected(option.value);
+            nativeSelect.value = option.value;
+            window.location.assign(option.value);
+          });
+
+          list.append(optionButton);
+        });
+
+        if (filteredOptions.length === 0) {
+          const emptyState = document.createElement('p');
+          emptyState.className = 'illustry-language-select__empty';
+          emptyState.textContent = uiCopy.emptyResults;
+          list.append(emptyState);
+        }
+      };
+
+      trigger.addEventListener('click', () => {
+        setOpen(!isOpen);
+      }, { signal });
+
+      searchInput.addEventListener('input', (event) => {
+        const target = event.target as HTMLInputElement | null;
+        searchQuery = target?.value || '';
+        visibleCount = PAGE_SIZE;
+        renderList();
+      }, { signal });
+
+      list.addEventListener('scroll', () => {
+        const filteredOptions = getFilteredOptions();
+        const reachedBottom = list.scrollTop + list.clientHeight >= list.scrollHeight - SCROLL_OFFSET_PX;
+
+        if (!reachedBottom) {
+          return;
+        }
+
+        if (visibleCount >= filteredOptions.length) {
+          return;
+        }
+
+        visibleCount = Math.min(visibleCount + PAGE_SIZE, filteredOptions.length);
+        renderList();
+      }, { signal });
+
+      document.addEventListener('click', (event) => {
+        const target = event.target as Node | null;
+        if (!target || !this.contains(target)) {
+          setOpen(false);
+        }
+      }, { signal });
+
+      window.addEventListener('pageshow', () => {
+        const selectedValue = nativeSelect.value;
+        setSelected(selectedValue);
+        renderList();
+      }, { signal });
+
+      setOpen(false);
+    }
+
+    disconnectedCallback() {
+      this.cleanupController?.abort();
+    }
+  }
+
+  if (!customElements.get('illustry-language-select')) {
+    customElements.define('illustry-language-select', IllustryLanguageSelect);
+  }
+</script>

@@ -1,38 +1,38 @@
 ---
 title: Entonnoir
-description: Funnel doc
+description: Document sur l'entonnoir
 ---
 
-The **Funnel** visualization is a powerful tool for tracking the progression and conversion rates of a series of stages in a process. It provides a visual representation of how entities move through different stages of a defined workflow.
+La visualisation **Funnel** est un outil puissant pour suivre la progression et les taux de conversion d'une série d'étapes d'un processus. Il fournit une représentation visuelle de la façon dont les entités évoluent à travers les différentes étapes d'un flux de travail défini.
 
 
 
-## Funnel Data Structure
+## Structure des données de l'entonnoir
 
-To represent a Funnel, you can use the following `FunnelData` interface:
+Pour représenter un entonnoir, vous pouvez utiliser l'interface `FunnelData` suivante :
 
 ```typescript
 {{FunnelData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Performance Metrics:** Funnel Charts are excellent for visualizing performance metrics, enabling teams to track and improve key indicators.
-
-- **Segmented Analysis:** Each stage in the funnel allows for segmented analysis, helping identify specific areas of improvement or success.
-
-- **Predictive Insights:** Funnel Charts can provide predictive insights into future performance based on historical conversion rates.
-
-#### Cons
-
-- **Challenge with Complex Processes:** In scenarios where processes involve numerous intricate branches or loops, Funnel Charts may struggle to represent the complexity effectively.
+- **valeurs :** Un dictionnaire dans lequel chaque clé est une catégorie ou une dimension et la valeur correspondante est une valeur numérique.
 
 
-## Funnel Example
+### Avantages et inconvénients
+
+#### Avantages
+- **Mesures de performance :** Les graphiques en entonnoir sont excellents pour visualiser les mesures de performance, permettant aux équipes de suivre et d'améliorer les indicateurs clés.
+
+- **Analyse segmentée :** Chaque étape de l'entonnoir permet une analyse segmentée, aidant à identifier les domaines spécifiques d'amélioration ou de réussite.
+
+- ** Insights prédictifs :** Les graphiques en entonnoir peuvent fournir des informations prédictives sur les performances futures en fonction des taux de conversion historiques.
+
+#### Inconvénients
+
+- **Défi lié aux processus complexes :** Dans les scénarios où les processus impliquent de nombreuses branches ou boucles complexes, les graphiques en entonnoir peuvent avoir du mal à représenter efficacement la complexité.
+
+
+## Exemple d'entonnoir
 
 ![Funnel Example](/Illustry-monorepo/funnel.gif)

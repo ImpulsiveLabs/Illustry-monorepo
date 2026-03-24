@@ -1,22 +1,22 @@
 ---
 title: Erste Schritte
-description: A guide into Illustry
+description: Eine Anleitung zu Illustry
 ---
 
-Illustry is a powerful web application built to serve as a visualization hub, seamlessly integrating various visualizations for diverse types of data. Illustry brings data exploration, theming, and filtering to life. With a user-friendly interface and advanced features, Illustry is designed to cater to a wide range of users.
+Illustry ist eine leistungsstarke Webanwendung, die als Visualisierungs-Hub dient und verschiedene Visualisierungen für verschiedene Datentypen nahtlos integriert. Illustry erweckt Datenexploration, Themengestaltung und Filterung zum Leben. Mit einer benutzerfreundlichen Oberfläche und erweiterten Funktionen ist Illustry darauf ausgelegt, ein breites Benutzerspektrum anzusprechen.
 
-## Key Technologies Used
+## Verwendete Schlüsseltechnologien
 
 - **Frontend:** Next 16
 - **Database:** MongoDB
 - **Server:** Node
 
-## Features
+## Merkmale
 
-- **Data Integration:** Supports various file formats, including JSON, XML, Excel, and CSV.
-- **Data Exploration:** Dive deep into your data with powerful exploration tools.
-- **Theming:** Customize the look and feel of your visualizations with ease.
-- **Filtering:** Easily filter and analyze data to extract meaningful insights.
-- **Playground:** Explore the capabilities of Illustry in the playground, where you can interact with the features and test different scenarios.
+- **Datenintegration:** Unterstützt verschiedene Dateiformate, einschließlich JSON, XML, Excel und CSV.
+- **Datenexploration:** Tauchen Sie mit leistungsstarken Explorationstools tief in Ihre Daten ein.
+- **Theming:** Passen Sie das Erscheinungsbild Ihrer Visualisierungen ganz einfach an.
+- **Filterung:** Filtern und analysieren Sie Daten ganz einfach, um aussagekräftige Erkenntnisse zu gewinnen.
+- **Spielplatz:** Entdecken Sie die Funktionen von Illustry auf dem Spielplatz, wo Sie mit den Funktionen interagieren und verschiedene Szenarien testen können.
 
-See [“manual setup instruction”](/Illustry-monorepo/guides/manual-setup-instruction/) for a quick installation guide to work with Illustry
+[Illustry manuell einrichten](../manual-setup-instruction/)

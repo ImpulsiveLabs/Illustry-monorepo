@@ -1,0 +1,85 @@
+---
+title: 시각화
+description: 시각화 문서
+---
+
+# 작업 공간의 시각화
+
+시각화 작업 시 시스템은 `VisualizationData` 인터페이스를 통해 유연한 데이터 구조를 지원합니다.
+
+## 시각화 데이터 구조
+
+시스템에서 시각화를 나타내려면 다음 `VisualizationData` 인터페이스를 사용할 수 있습니다.
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### 주요 속성
+- **projectName**: 활성 프로젝트입니다.
+- **유형:** 시각화 유형을 제공하는 문자열 또는 문자열 배열입니다(배열은 JSON에 대해서만 작동합니다).
+- **이름:** 시각화의 고유 식별자입니다.
+- **설명:** 시각화에 대한 추가 컨텍스트나 세부정보를 제공하는 선택적 필드입니다.
+- **createdAt:** 시각화가 처음 생성된 시기를 나타내는 타임스탬프입니다.
+- **updatedAt:** 시각화의 마지막 수정을 나타내는 타임스탬프입니다.
+- **isActive:** 프로젝트가 현재 활성화되어 있는지 여부를 지정하는 부울 플래그입니다.
+- **태그:** 시각화를 분류하는 데 사용되는 선택적 필드입니다.
+- **데이터:** 시각화가 표시할 데이터입니다.
+
+## 시각화 유형
+
+시스템은 다음 시각화 유형을 지원합니다.
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## 실제 사례
+
+Excel, XML, JSON 및 CSV과 같은 파일 형식을 활용하는 경우 시스템은 파일의 전체 세부 정보와 부분 세부 정보 모두와의 호환성을 보장합니다.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **예 1**: 모든 세부정보가 포함된 JSON 형식
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **예 2**: 부분 세부정보가 포함된 JSON 형식, 누락된 세부정보로 양식 작성
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **예 3**: 모든 세부정보가 포함된 Excel 형식, 필드 매핑 완료
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **예 4**: 부분 세부정보가 포함된 Excel 형식, 누락된 세부정보로 양식 작성
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **예 5**: 모든 세부정보가 포함된 CSV 형식, 필드 매핑 완료
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **예 6**: 부분 세부정보가 포함된 CSV 형식, 누락된 세부정보로 양식 작성
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **예 7**: 모든 세부정보가 포함된 XML 형식
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **예 8**: 부분 세부정보가 포함된 XML 형식, 누락된 세부정보로 양식을 완성하세요.
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

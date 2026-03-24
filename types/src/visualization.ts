@@ -116,7 +116,21 @@ enum VisualizationTypesEnum {
   TREEMAP = "treemap",
   SUNBURST = "sunburst",
   FUNNEL = "funnel",
-  TIMELINE = "timeline"
+  TIMELINE = "timeline",
+  EFFECT_SCATTER = "effectScatter",
+  CANDLESTICK = "candlestick",
+  RADAR = "radar",
+  HEATMAP = "heatmap",
+  TREE = "tree",
+  MAP = "map",
+  LINES = "lines",
+  GRAPH = "graph",
+  BOXPLOT = "boxplot",
+  PARALLEL = "parallel",
+  GAUGE = "gauge",
+  THEME_RIVER = "themeRiver",
+  PICTORIAL_BAR = "pictorialBar",
+  CUSTOM = "custom"
 }
 
 type VisualizationDataData = WordCloudData

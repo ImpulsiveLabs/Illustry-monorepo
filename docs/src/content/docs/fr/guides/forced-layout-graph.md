@@ -1,13 +1,13 @@
 ---
 title: Graphe en disposition de force
-description: Forced Layout Graph doc
+description: Document Graphique à mise en page forcée
 ---
 
-The **Forced Layout Graph** visualization is a dynamic and engaging representation of interconnected data. It uses a force-directed layout algorithm to visually convey relationships between entities within a dataset.
+La visualisation **Forced Layout Graph** est une représentation dynamique et attrayante de données interconnectées. Il utilise un algorithme de mise en page dirigé par force pour transmettre visuellement les relations entre les entités au sein d'un ensemble de données.
 
-## Forced Layout Graph Data Structure
+## Structure de données de graphique à mise en page forcée
 
-To represent a Forced Layout Graph, you can use the following `NodeLinkData` interface:
+Pour représenter un graphique à mise en page forcée, vous pouvez utiliser l'interface `NodeLinkData` suivante :
 
 ```typescript
 {{Node}}
@@ -17,26 +17,26 @@ To represent a Forced Layout Graph, you can use the following `NodeLinkData` int
 {{NodeLinkData}}
 
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **name :** Un identifiant unique pour le nœud.
+- **category :** Classifie le nœud dans un groupe ou un cluster spécifique.
+- **source :** Identifie le nœud source du lien.
+- **target :** Identifie le nœud cible du lien.
+- **value :** Représente une valeur numérique associée au lien qui suggère le degré de connexion des nœuds.
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Relationship Visualization:** Clearly represents relationships between entities through connected nodes and links.
+#### Avantages
+- **Visualisation des relations :** Représente clairement les relations entre les entités via des nœuds et des liens connectés.
 
-- **Dynamic Layout:** Utilizes a force-directed layout for an organic and visually appealing representation.
+- **Mise en page dynamique :** utilise une mise en page dirigée par la force pour une représentation organique et visuellement attrayante.
 
-#### Cons
-- **Complexity with Dense Graphs:** In densely interconnected graphs, visual clutter may affect readability.
+#### Inconvénients
+- **Complexité avec les graphiques denses :** Dans les graphiques densément interconnectés, l'encombrement visuel peut affecter la lisibilité.
 
-- **Limited to Network Data:** Most effective for visualizing network or relationship-based data; may not be suitable for all types of datasets.
+- **Limité aux données réseau :** Très efficace pour visualiser des données basées sur un réseau ou des relations ; peut ne pas convenir à tous les types d’ensembles de données.
 
-## Forced Layout Graph Example
+## Exemple de graphique à disposition forcée
 
 ![Forced Layout Graph Example](/Illustry-monorepo/forced-layout-graph.gif)

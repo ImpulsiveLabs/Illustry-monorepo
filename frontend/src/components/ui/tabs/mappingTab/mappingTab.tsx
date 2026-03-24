@@ -3,6 +3,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { useState } from 'react';
 import { FileTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
+import { useLocale } from '@/components/providers/locale-provider';
 import Icons from '@/components/icons';
 import { Button } from '../../button';
 import { TabsContent } from '../../tabs';
@@ -27,6 +28,7 @@ const MappingTab = ({
   form,
   router
 }: MappingTabProps) => {
+  const { t } = useLocale();
   const [fileDetails, setFileDetails] = useState<boolean>(false);
   const handleFullDetails = (value: boolean) => {
     setFileDetails(value);
@@ -49,8 +51,8 @@ const MappingTab = ({
                     aria-hidden="true"
                   />
                 )}
-                Add Visualizations
-                <span className="sr-only">Add Visualizations</span>
+                {t('mapping.addVisualizations')}
+                <span className="sr-only">{t('mapping.addVisualizations')}</span>
               </Button>
             </>
           );
@@ -69,8 +71,8 @@ const MappingTab = ({
                     aria-hidden="true"
                   />
                 )}
-                Add Visualizations
-                <span className="sr-only">Add Visualizations</span>
+                {t('mapping.addVisualizations')}
+                <span className="sr-only">{t('mapping.addVisualizations')}</span>
               </Button>
             </>
           );
@@ -91,8 +93,8 @@ const MappingTab = ({
                     aria-hidden="true"
                   />
                 )}
-                Add Visualizations
-                <span className="sr-only">Add Visualizations</span>
+                {t('mapping.addVisualizations')}
+                <span className="sr-only">{t('mapping.addVisualizations')}</span>
               </Button>
             </>
           );
@@ -114,7 +116,7 @@ const MappingTab = ({
                 <FormControl>
                   <div className=" flex flex-row items-center gap-2">
                     <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Does your file include all the details?
+                      {t('mapping.fileHasAllDetails')}
                     </p>
                     <Checkbox
                       className="ml-[3%] mt-[0.5%]"

@@ -1,0 +1,85 @@
+---
+title: Wizualizacje
+description: Wizualizacje doc
+---
+
+# Wizualizacje w Twoim miejscu pracy
+
+Podczas pracy z wizualizacjami system wspiera elastyczną strukturę danych poprzez interfejs `VisualizationData`:
+
+## Struktura danych wizualizacji
+
+Aby przedstawić wizualizację w swoim systemie, możesz użyć następującego interfejsu `VisualizationData`:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Kluczowe atrybuty
+- **projectName**: Aktywny projekt.
+- **typ:** Ciąg znaków lub tablica ciągów określająca typ wizualizacji (tablica działa tylko dla JSON).
+- **nazwa:** Unikalny identyfikator wizualizacji.
+- **opis:** Opcjonalne pole umożliwiające podanie dodatkowego kontekstu lub szczegółów wizualizacji.
+- **createdAt:** Znacznik czasu wskazujący, kiedy wizualizacja została pierwotnie utworzona.
+- **updatedAt:** Znacznik czasu wskazujący ostatnią modyfikację wizualizacji.
+- **isActive:** Flaga logiczna określająca, czy projekt jest aktualnie aktywny.
+- **tagi:** Opcjonalne pole służące do kategoryzacji wizualizacji.
+- **dane:** dane, które będzie prezentować wizualizacja
+
+## Typy wizualizacji
+
+System obsługuje następujące typy wizualizacji:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Praktyczny przykład
+
+Korzystając z formatów plików takich jak Excel, XML, JSON i CSV, system zapewnia zgodność zarówno z pełnymi, jak i częściowymi szczegółami pliku.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Przykład 1**: format JSON ze wszystkimi szczegółami
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Przykład 2**: format JSON z częściowymi danymi, uzupełnij formularz o brakujące szczegóły
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Przykład 3**: Format Excel ze wszystkimi szczegółami, dokończ mapowanie pól
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Przykład 4**: Format Excel z częściowymi szczegółami, uzupełnij formularz brakującymi szczegółami
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Przykład 5**: format CSV ze wszystkimi szczegółami, dokończ mapowanie pól
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Przykład 6**: format CSV z częściowymi danymi, uzupełnij formularz o brakujące szczegóły
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Przykład 7**: format XML ze wszystkimi szczegółami
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Przykład 8**: format XML z częściowymi danymi, uzupełnij formularz o brakujące szczegóły
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

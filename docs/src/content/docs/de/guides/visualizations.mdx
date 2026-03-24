@@ -1,15 +1,15 @@
 ---
 title: Visualisierungen
-description: Visualizations doc
+description: Visualisierungen-Dokument
 ---
 
-# Visualizations in Your Workspace
+# Visualisierungen in Ihrem Arbeitsbereich
 
-When working with visualizations, the system supports a flexible data structure through the `VisualizationData` interface:
+Bei der Arbeit mit Visualisierungen unterstützt das System eine flexible Datenstruktur über die Schnittstelle `VisualizationData`:
 
-## Visualization Data Structure
+## Visualisierungsdatenstruktur
 
-To represent a visualization in your system, you can use the following `VisualizationData` interface:
+Um eine Visualisierung in Ihrem System darzustellen, können Sie die folgende `VisualizationData`-Schnittstelle verwenden:
 
 ```typescript
 
@@ -17,69 +17,69 @@ To represent a visualization in your system, you can use the following `Visualiz
 
 ```
 
-### Key Attributes
-- **projectName**: The active project.
-- **type:** A string or a string array that provides the type of visualization(array works only for JSON's).
-- **name:** A unique identifier for the visualization.
-- **description:** An optional field to provide additional context or details about the visualization.
-- **createdAt:** The timestamp indicating when the visualization was initially created.
-- **updatedAt:** The timestamp indicating the last modification of the visualization.
-- **isActive:** A boolean flag specifying whether the project is currently active.
-- **tags:** An optional field used to categorize the visualizations.
-- **data:** The data that the visualization will present
+### Schlüsselattribute
+- **Projektname**: Das aktive Projekt.
+- **Typ:** Ein String oder ein String-Array, das den Typ der Visualisierung bereitstellt (Array funktioniert nur für JSON).
+- **Name:** Eine eindeutige Kennung für die Visualisierung.
+- **Beschreibung:** Ein optionales Feld, um zusätzlichen Kontext oder Details zur Visualisierung bereitzustellen.
+- **createdAt:** Der Zeitstempel, der angibt, wann die Visualisierung ursprünglich erstellt wurde.
+- **updatedAt:** Der Zeitstempel, der die letzte Änderung der Visualisierung angibt.
+- **isActive:** Ein boolesches Flag, das angibt, ob das Projekt derzeit aktiv ist.
+- **Tags:** Ein optionales Feld, das zur Kategorisierung der Visualisierungen verwendet wird.
+- **Daten:** Die Daten, die die Visualisierung präsentieren wird
 
-## Visualization Types
+## Visualisierungstypen
 
-The system supports the following visualization types:
+Das System unterstützt folgende Visualisierungsarten:
 
-- [**WORD_CLOUD**](/Illustry-monorepo/guides/word-cloud/)
-- [**FORCE_DIRECTED_GRAPH**](/Illustry-monorepo/guides/forced-layout-graph/)
-- [**SANKEY**](/Illustry-monorepo/guides/sankey/)
-- [**CALENDAR**](/Illustry-monorepo/guides/calendar/)
-- [**HIERARCHICAL_EDGE_BUNDLING**](/Illustry-monorepo/guides/hierarchical-edge-bundling/)
-- [**MATRIX**](/Illustry-monorepo/guides/matrix/)
-- [**LINE_CHART**](/Illustry-monorepo/guides/line-chart/)
-- [**BAR_CHART**](/Illustry-monorepo/guides/bar-chart/)
-- [**PIE_CHART**](/Illustry-monorepo/guides/pie-chart/)
-- [**SCATTER**](/Illustry-monorepo/guides/scatter/)
-- [**TREEMAP**](/Illustry-monorepo/guides/tree-map/)
-- [**SUNBURST**](/Illustry-monorepo/guides/sun-burst/)
-- [**FUNNEL**](/Illustry-monorepo/guides/funnel/)
-- [**TIMELINE**](/Illustry-monorepo/guides/timeline/)
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
 
-## Practical example
+## Praxisbeispiel
 
-When utilizing file formats like Excel, XML, JSON, and CSV, the system ensures compatibility with both complete and partial details in the file.
+Bei der Verwendung von Dateiformaten wie Excel, XML, JSON und CSV stellt das System die Kompatibilität sowohl mit vollständigen als auch teilweisen Details in der Datei sicher.
 All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
 
-- **Example 1**: JSON format with all the details
+- **Beispiel 1**: JSON-Format mit allen Details
 
 ![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
 
-- **Example 2**: JSON format with partial details, complete the form with the missing details
+- **Beispiel 2**: Format JSON mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
 
 ![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
 
-- **Example 3**: Excel format with all the details, complete the mapping of fields
+- **Beispiel 3**: Excel-Format mit allen Details, Vervollständigen Sie die Zuordnung der Felder
 
 ![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
 
-- **Example 4**: Excel format with partial details, complete the form with the missing details
+- **Beispiel 4**: Excel-Format mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
 
 ![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
 
-- **Example 5**: CSV format with all the details, complete the mapping of fields
+- **Beispiel 5**: CSV-Format mit allen Details, Vervollständigen Sie die Zuordnung der Felder
 
 ![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
 
-- **Example 6**: CSV format with partial details, complete the form with the missing details
+- **Beispiel 6**: Format CSV mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
 
 ![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
 
-- **Example 7**: XML format with all the details
+- **Beispiel 7**: XML-Format mit allen Details
 
 ![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
 
-- **Example 8**: XML format with partial details, complete the form with the missing details
+- **Beispiel 8**: Format XML mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
 
 ![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

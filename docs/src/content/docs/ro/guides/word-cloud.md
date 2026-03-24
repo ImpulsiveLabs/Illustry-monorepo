@@ -1,13 +1,13 @@
 ---
 title: Nor de cuvinte
-description: Word cloud doc
+description: Word cloud document
 ---
 
-The **Word Cloud** visualization is used for representing textual data in a visually engaging and informative way. It turns words into graphical elements, with the size of each word indicating its frequency or importance in the given dataset.
+Vizualizarea **Word Cloud** este folosită pentru a reprezenta datele textuale într-un mod captivant și informativ din punct de vedere vizual. Transformă cuvintele în elemente grafice, mărimea fiecărui cuvânt indicând frecvența sau importanța acestuia în setul de date dat.
 
-## Word Cloud Data Structure
+## Structura de date Word Cloud
 
-To represent a Word Cloud, you can use the following `WordCloudData` interface:
+Pentru a reprezenta un Word Cloud, puteți utiliza următoarea interfață `WordCloudData`:
 
 ```typescript
 {{WordType}}
@@ -15,24 +15,24 @@ To represent a Word Cloud, you can use the following `WordCloudData` interface:
 {{WordCloudData}}
 
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** The word itself.
-- **value:** A number that represents a metric to determine how important that word is.
+- **nume:** Cuvântul în sine.
+- **valoare:** un număr care reprezintă o valoare pentru a determina cât de important este acel cuvânt.
 
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Simplicity:** Word Clouds distill textual data into a simple and visually accessible format.
+#### Pro
+- **Simplitate:** Word Clouds distilează datele textuale într-un format simplu și accesibil vizual.
 
-- **Quick Analysis:** Users can rapidly analyze and identify the most significant words without delving into detailed text.
+- **Analiză rapidă:** Utilizatorii pot analiza și identifica rapid cuvintele cele mai semnificative fără a pătrunde în textul detaliat.
 
-#### Cons
-- **Loss of Context:** While Word Clouds highlight individual words, they may lack the context provided by full text or more complex visualizations.
+#### Contra
+- **Pierderea contextului:** În timp ce norii de cuvinte evidențiază cuvinte individuale, este posibil să le lipsească contextul oferit de textul integral sau de vizualizări mai complexe.
 
-- **Subjectivity:** Interpretation of a Word Cloud can be subjective, and the importance of a word might vary among individuals.
+- **Subiectivitate:** Interpretarea unui nor de cuvinte poate fi subiectivă, iar importanța unui cuvânt poate varia în funcție de indivizi.
 
-## Word Cloud Example
+## Exemplu de cloud de cuvinte
 
 ![Word Cloud Example](/Illustry-monorepo/word-cloud.gif)

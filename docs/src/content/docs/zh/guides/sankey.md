@@ -1,13 +1,13 @@
 ---
 title: 桑基图
-description: Sankey
+description: 桑基
 ---
 
-The **Sankey Diagram** visualization is a powerful tool for visualizing flow and relationships between entities in a dataset. It is particularly useful for showcasing the distribution and transformation of values across a system or process.
+**桑基图**可视化是一个强大的工具，用于可视化数据集中实体之间的流和关系。它对于展示系统或流程中的值的分布和转换特别有用。
 
-## Sankey Diagram Data Structure
+## 桑基图数据结构
 
-To represent a Sankey Diagram, you can use the following `NodeLinkData` interface:
+要表示桑基图，您可以使用以下 `NodeLinkData` 接口：
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Sankey Diagram, you can use the following `NodeLinkData` interfac
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **名称：** 节点的唯一标识符。
+- **类别：** 将节点分类到特定组或集群中。
+- **source:** 标识链接的源节点。
+- **target:** 标识链接的目标节点。
+- **值：** 表示与链接关联的数值，表明节点的连接强度。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Flow Representation:** Effectively visualizes the flow of values or quantities between entities in a system or process.
+#### 优点
+- **流表示：**有效地可视化系统或流程中实体之间的值或数量流。
 
-- **Insight into Distribution:** Offers insights into how values are distributed and transformed at each stage.
+- **洞察分配：** 深入了解每个阶段的价值如何分配和转换。
 
-#### Cons
-- **Complexity with Numerous Nodes:** Visual clutter may occur with an extensive number of nodes, affecting readability.
+#### 缺点
+- **大量节点的复杂性：**大量节点可能会出现视觉混乱，影响可读性。
 
-- **Specialized Use Case:** Primarily designed for visualizing flow and distribution; may not be suitable for all types of datasets.
+- **专业用例：** 主要设计用于可视化流量和分布；可能并不适合所有类型的数据集。
 
-## Sankey Diagram Example
+## 桑基图示例
 
 ![Sankey Diagram Example](/Illustry-monorepo/sankey.gif)

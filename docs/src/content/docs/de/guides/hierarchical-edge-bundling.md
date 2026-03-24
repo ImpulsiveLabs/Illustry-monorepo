@@ -1,13 +1,13 @@
 ---
 title: Hierarchisches Edge-Bundling
-description: Hierarchical Edge Bundling doc
+description: Hierarchisches Edge-Bündelungsdokument
 ---
 
-The **Hierarchical Edge Bundling** visualization is a sophisticated technique for depicting hierarchical relationships and connections within a dataset. It leverages edge bundling to reduce visual clutter while highlighting the structure of relationships in a hierarchical manner.
+Die **Hierarchical Edge Bundling**-Visualisierung ist eine ausgefeilte Technik zur Darstellung hierarchischer Beziehungen und Verbindungen innerhalb eines Datensatzes. Es nutzt Kantenbündelung, um visuelle Unordnung zu reduzieren und gleichzeitig die Struktur von Beziehungen auf hierarchische Weise hervorzuheben.
 
-## Hierarchical Edge Bundling Data Structure
+## Hierarchische Edge-Bündelungsdatenstruktur
 
-To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkData` interface:
+Um eine hierarchische Kantenbündelung darzustellen, können Sie die folgende `NodeLinkData`-Schnittstelle verwenden:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkDa
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **Name:** Eine eindeutige Kennung für den Knoten.
+- **Kategorie:** Kategorisiert den Knoten in eine bestimmte Gruppe oder einen bestimmten Cluster.
+- **Quelle:** Identifiziert den Quellknoten des Links.
+- **Ziel:** Identifiziert den Zielknoten des Links.
+- **Wert:** Stellt einen mit dem Link verknüpften numerischen Wert dar, der angibt, wie stark die Knoten miteinander verbunden sind.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Improved Aesthetics and Readability:** The bundled edges contribute to a cleaner and more aesthetically pleasing visualization. By reducing visual clutter, users can more easily interpret the relationships between nodes, enhancing overall readability.
+#### Vorteile
+- **Verbesserte Ästhetik und Lesbarkeit:** Die gebündelten Kanten tragen zu einer saubereren und ästhetisch ansprechenderen Visualisierung bei. Durch die Reduzierung der visuellen Unordnung können Benutzer die Beziehungen zwischen Knoten einfacher interpretieren und so die allgemeine Lesbarkeit verbessern.
 
-- **Enhanced Focus on Key Relationships:** Edge bundling allows users to focus on key relationships within the hierarchical structure, emphasizing the most significant connections. This can aid in identifying critical paths or central nodes in complex datasets.
+- **Verstärkter Fokus auf Schlüsselbeziehungen:** Edge-Bündelung ermöglicht es Benutzern, sich auf Schlüsselbeziehungen innerhalb der hierarchischen Struktur zu konzentrieren und die wichtigsten Verbindungen hervorzuheben. Dies kann bei der Identifizierung kritischer Pfade oder zentraler Knoten in komplexen Datensätzen hilfreich sein.
 
-#### Cons
-- **Difficulty in Identifying Parallel Paths:** Identifying parallel paths or connections in a densely bundled area may pose challenges for users. Distinguishing between closely packed edges representing different relationships can be complex, affecting the precision of analysis.
+#### Nachteile
+- **Schwierigkeit beim Identifizieren paralleler Pfade:** Das Identifizieren paralleler Pfade oder Verbindungen in einem dicht gebündelten Gebiet kann für Benutzer eine Herausforderung darstellen. Die Unterscheidung zwischen dicht gepackten Kanten, die unterschiedliche Beziehungen darstellen, kann komplex sein und die Genauigkeit der Analyse beeinträchtigen.
 
-- **Challenges with Directionality Perception:** Users may face difficulties in perceiving the directionality of bundled edges, particularly in scenarios where there is a high degree of overlap. This can impact the accurate interpretation of the flow of relationships.
+- **Herausforderungen bei der Wahrnehmung der Direktionalität:** Benutzer können Schwierigkeiten haben, die Direktionalität gebündelter Kanten wahrzunehmen, insbesondere in Szenarien mit einem hohen Grad an Überlappung. Dies kann Auswirkungen auf die genaue Interpretation des Beziehungsflusses haben.
 
-## Hierarchical Edge Bundling Example
+## Beispiel für hierarchische Kantenbündelung
 
 ![Hierarchical Edge Bundling Example](/Illustry-monorepo/hierarchical-edge-bundling.gif)

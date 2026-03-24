@@ -22,6 +22,7 @@ import {
   useMemo,
   useState
 } from 'react';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   Table,
   TableBody,
@@ -65,6 +66,7 @@ const DataTable = <TData, TValue>({
   newRowLink,
   deleteRowsAction
 }: DataTableProps<TData, TValue>) => {
+  const { t } = useLocale();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -265,7 +267,7 @@ const DataTable = <TData, TValue>({
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  {t('table.noResults')}
                 </TableCell>
               </TableRow>
             )}

@@ -19,6 +19,7 @@ import {
 import Textarea from '@/components/ui/textarea';
 import Icons from '@/components/icons';
 import { updateDashboard } from '@/app/_actions/dashboard';
+import { useLocale } from '@/components/providers/locale-provider';
 import MultiSelect from '../ui/multi-select';
 
 type UpdateDashboardFormProps = {
@@ -27,6 +28,7 @@ type UpdateDashboardFormProps = {
 }
 
 const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormProps) => {
+  const { t } = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const safeVisualizations = visualizations ?? {};
@@ -58,7 +60,7 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
       try {
         await updateDashboard({ ...finalData });
         form.reset();
-        toast.success('Dashboard updated successfully.');
+        toast.success(t('toast.dashboardUpdated'));
         router.push('/dashboards');
       } catch (err) {
         catchError(err);
@@ -68,7 +70,7 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Update Dashboard {dashboard?.name}</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('form.dashboard.updateTitle')} {dashboard?.name}</h2>
       <Form {...form}>
         <form
           className="grid w-full max-w-xl gap-5"
@@ -79,10 +81,10 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('common.description')}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Type Dashboard description here."
+                    placeholder={t('form.dashboard.descriptionPlaceholder')}
                     {...field}
                   />
                 </FormControl>
@@ -95,7 +97,7 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
             name="visualizations"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Visualizations</FormLabel>
+                <FormLabel>{t('form.dashboard.visualizations')}</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={visualizationOptions}
@@ -115,7 +117,7 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
                       field.onChange(formattedVisualizations);
                       form.setValue('visualizations', formattedVisualizations);
                     }}
-                    placeholder="Select visualizations"
+                    placeholder={t('form.dashboard.selectVisualizations')}
                     maxCount={5}
                   />
                 </FormControl>
@@ -130,8 +132,8 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
                 aria-hidden="true"
               />
             )}
-            Update Dashboard
-            <span className="sr-only">Update Dashboard</span>
+            {t('form.dashboard.updateAction')}
+            <span className="sr-only">{t('form.dashboard.updateAction')}</span>
           </Button>
         </form>
       </Form>

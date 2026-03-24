@@ -1,21 +1,21 @@
 ---
 title: Illustry manuell einrichten
-description: manual setup
+description: manuelle Einrichtung
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-## Prerequisites
+## Voraussetzungen
 
-Before installing Illustry Frontend, ensure that you have the following prerequisites:
+Stellen Sie vor der Installation von Illustry Frontend sicher, dass Sie die folgenden Voraussetzungen erfüllen:
 
-- Node version 18.17.0 or higher
+- Knotenversion 18.17.0 oder höher
 - MongoDB
 
-## Illustry backend
+## Illustry Backend
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### Vor Ort:
+Im Stammverzeichnis des Projekts wird eine Datei mit dem Namen `.env` benötigt, die die folgenden Felder enthält:
 
 ```
 MONGO_URL=mongodb:/127.0.0.1:27017/illustry
@@ -24,7 +24,7 @@ MONGO_USER=<your_personal_mongo_user>
 MONGO_PASSWORD=<your_personal_mongo_password>
 ILLUSTRY_PORT=7000 
 ```
-Run the following commands: 
+Führen Sie die folgenden Befehle aus:
 
 <Tabs>
 <TabItem label="npm">
@@ -50,24 +50,24 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
+#### Docker:
 
-Run the following commands:
+Führen Sie die folgenden Befehle aus:
 ```shell
 docker build -t illustrybackend .
 docker run -p 7000:7000 
 ```
 
-## Illustry frontend
+## Illustry Frontend
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### Vor Ort:
+Im Stammverzeichnis des Projekts wird eine Datei mit dem Namen `.env` benötigt, die die folgenden Felder enthält:
 
 ```
 NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
 ```
-Run the following commands: 
+Führen Sie die folgenden Befehle aus:
 
 <Tabs>
 <TabItem label="npm">
@@ -93,10 +93,10 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
-**Before running, create the backend image first!**
+#### Docker:
+**Bevor Sie es ausführen, erstellen Sie zuerst das Backend-Image!**
 
-Run the following commands:
+Führen Sie die folgenden Befehle aus:
 ```shell
 docker build -t illustryfrontend .
 docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend

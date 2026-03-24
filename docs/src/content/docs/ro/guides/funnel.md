@@ -1,38 +1,38 @@
 ---
-title: Funnel
-description: Funnel doc
+title: Pâlnie
+description: Pâlnie doc
 ---
 
-The **Funnel** visualization is a powerful tool for tracking the progression and conversion rates of a series of stages in a process. It provides a visual representation of how entities move through different stages of a defined workflow.
+Vizualizarea **Pâlnie** este un instrument puternic pentru urmărirea progresiei și ratelor de conversie a unei serii de etape dintr-un proces. Oferă o reprezentare vizuală a modului în care entitățile se deplasează prin diferite etape ale unui flux de lucru definit.
 
 
 
-## Funnel Data Structure
+## Structura datelor canalului
 
-To represent a Funnel, you can use the following `FunnelData` interface:
+Pentru a reprezenta o pâlnie, puteți utiliza următoarea interfață `FunnelData`:
 
 ```typescript
 {{FunnelData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Performance Metrics:** Funnel Charts are excellent for visualizing performance metrics, enabling teams to track and improve key indicators.
-
-- **Segmented Analysis:** Each stage in the funnel allows for segmented analysis, helping identify specific areas of improvement or success.
-
-- **Predictive Insights:** Funnel Charts can provide predictive insights into future performance based on historical conversion rates.
-
-#### Cons
-
-- **Challenge with Complex Processes:** In scenarios where processes involve numerous intricate branches or loops, Funnel Charts may struggle to represent the complexity effectively.
+- **valori:** un dicționar în care fiecare cheie este o categorie sau o dimensiune, iar valoarea corespunzătoare este o valoare numerică.
 
 
-## Funnel Example
+### Argumente pro şi contra
+
+#### Pro
+- **Metrici de performanță:** Diagramele funnel sunt excelente pentru vizualizarea valorilor de performanță, permițând echipelor să urmărească și să îmbunătățească indicatorii cheie.
+
+- **Analiza segmentată:** Fiecare etapă a pâlniei permite o analiză segmentată, ajutând la identificarea zonelor specifice de îmbunătățire sau de succes.
+
+- **Informații predictive:** Diagramele canal pot oferi informații predictive asupra performanței viitoare, pe baza ratelor de conversie istorice.
+
+#### Contra
+
+- **Provocare cu procese complexe:** în scenariile în care procesele implică numeroase ramuri sau bucle complicate, diagramele funnel pot avea dificultăți să reprezinte complexitatea în mod eficient.
+
+
+## Exemplu de pâlnie
 
 ![Funnel Example](/Illustry-monorepo/funnel.gif)

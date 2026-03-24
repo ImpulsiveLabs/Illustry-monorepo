@@ -16,9 +16,11 @@ import { createOrUpdateVisualization } from '@/app/_actions/visualization';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 import MappingTab from '../ui/tabs/mappingTab/mappingTab';
 import TypeTab from '../ui/tabs/typeTab/typeTab';
+import { useLocale } from '@/components/providers/locale-provider';
 import { CSVType, ExcelType, Inputs } from './types';
 
 const AddVisualizationForm = () => {
+  const { t } = useLocale();
   const router = useRouter();
   const [files, setFiles] = useState<ExtFile[]>([]);
   const [isPending, startTransition] = useTransition();
@@ -46,7 +48,7 @@ const AddVisualizationForm = () => {
       try {
         if (files.length > 0) {
           if (files.length > 10) {
-            throw Error('To many files max 10 accepted in parallel');
+            throw Error(t('form.visualization.maxFilesError'));
           }
           const formData = new FormData();
           const fileDetails: FileTypes.FileDetails = {
@@ -74,10 +76,10 @@ const AddVisualizationForm = () => {
           await createOrUpdateVisualization(formData);
           form.reset();
           setFiles([]);
-          toast.success('Visualizations added successfully.');
+          toast.success(t('toast.visualizationAdded'));
           router.push('/visualizations');
         } else {
-          toast.error('No files selected.');
+          toast.error(t('form.visualization.noFilesSelected'));
         }
       } catch (err) {
         catchError(err);
@@ -103,7 +105,7 @@ const AddVisualizationForm = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Add a new Visualization</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('form.visualization.addTitle')}</h2>
       <Form {...form}>
         <form
           className="grid w-full max-w-xl gap-5"
@@ -113,8 +115,8 @@ const AddVisualizationForm = () => {
         >
           <Tabs defaultValue="type" className="w-[100%]">
             <TabsList>
-              <TabsTrigger value="type">Type</TabsTrigger>
-              <TabsTrigger value="mapping">Mapping</TabsTrigger>
+              <TabsTrigger value="type">{t('common.type')}</TabsTrigger>
+              <TabsTrigger value="mapping">{t('form.visualization.mapping')}</TabsTrigger>
             </TabsList>
             <MappingTab
               selectedFileType={selectedFileType}

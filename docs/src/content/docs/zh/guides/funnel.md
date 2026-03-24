@@ -1,38 +1,38 @@
 ---
 title: 漏斗图
-description: Funnel doc
+description: 漏斗文档
 ---
 
-The **Funnel** visualization is a powerful tool for tracking the progression and conversion rates of a series of stages in a process. It provides a visual representation of how entities move through different stages of a defined workflow.
+**漏斗**可视化是一个强大的工具，用于跟踪流程中一系列阶段的进展和转化率。它提供了实体如何在定义的工作流程的不同阶段移动的可视化表示。
 
 
 
-## Funnel Data Structure
+## 漏斗数据结构
 
-To represent a Funnel, you can use the following `FunnelData` interface:
+要表示漏斗，您可以使用以下 `FunnelData` 接口：
 
 ```typescript
 {{FunnelData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Performance Metrics:** Funnel Charts are excellent for visualizing performance metrics, enabling teams to track and improve key indicators.
-
-- **Segmented Analysis:** Each stage in the funnel allows for segmented analysis, helping identify specific areas of improvement or success.
-
-- **Predictive Insights:** Funnel Charts can provide predictive insights into future performance based on historical conversion rates.
-
-#### Cons
-
-- **Challenge with Complex Processes:** In scenarios where processes involve numerous intricate branches or loops, Funnel Charts may struggle to represent the complexity effectively.
+- **values：** 一个字典，其中每个键是一个类别或维度，对应的值是一个数值。
 
 
-## Funnel Example
+### 优点和缺点
+
+#### 优点
+- **绩效指标：** 漏斗图非常适合可视化绩效指标，使团队能够跟踪和改进关键指标。
+
+- **分段分析：** 漏斗中的每个阶段都允许进行分段分析，帮助确定需要改进或成功的特定领域。
+
+- **预测洞察：** 漏斗图可以根据历史转化率提供对未来绩效的预测洞察。
+
+#### 缺点
+
+- **复杂流程的挑战：** 在流程涉及大量复杂分支或循环的场景中，漏斗图可能难以有效地表示复杂性。
+
+
+## 漏斗示例
 
 ![Funnel Example](/Illustry-monorepo/funnel.gif)

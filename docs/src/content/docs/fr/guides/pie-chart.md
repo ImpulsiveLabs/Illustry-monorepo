@@ -1,34 +1,34 @@
 ---
 title: Diagramme en secteurs
-description: Pie Chart doc
+description: Document Diagramme à secteurs
 ---
 
-The **Pie Chart** visualization is a concise and visually impactful way to represent the distribution of parts within a whole. It is particularly effective for displaying proportions and percentages in a circular format.
+La visualisation **Camembert** est une manière concise et visuellement percutante de représenter la répartition des parties au sein d'un tout. Il est particulièrement efficace pour afficher des proportions et des pourcentages dans un format circulaire.
 
 
-## Pie Chart Data Structure
+## Structure des données du graphique à secteurs
 
-To represent a Pie Chart, you can use the following `PieChartData` interface:
+Pour représenter un diagramme circulaire, vous pouvez utiliser l'interface `PieChartData` suivante :
 
 ```typescript
 {{PieChartData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Percentage Representation:** Pie Charts provide a clear representation of the percentage contribution of each category to the whole.
-
-- **Visual Simplicity:** The circular shape and simplicity of Pie Charts make them easy for users to understand at a glance.
-
-#### Cons
-- **Limited for Many Categories:** When dealing with numerous categories, Pie Charts can become crowded and challenging to interpret.
+- **valeurs :** Un dictionnaire dans lequel chaque clé est une catégorie ou une dimension et la valeur correspondante est une valeur numérique.
 
 
-## Pie Chart Example
+### Avantages et inconvénients
+
+#### Avantages
+- **Représentation en pourcentage :** Les diagrammes circulaires fournissent une représentation claire de la contribution en pourcentage de chaque catégorie à l'ensemble.
+
+- **Simplicité visuelle :** La forme circulaire et la simplicité des diagrammes circulaires les rendent faciles à comprendre par les utilisateurs en un coup d'œil.
+
+#### Inconvénients
+- **Limité pour de nombreuses catégories :** Lorsqu'il s'agit de nombreuses catégories, les diagrammes circulaires peuvent devenir encombrés et difficiles à interpréter.
+
+
+## Exemple de graphique à secteurs
 
 ![Pie Chart Example](/Illustry-monorepo/pie-chart.gif)

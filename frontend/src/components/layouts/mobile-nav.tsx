@@ -8,6 +8,7 @@ import {
 import siteConfig from '@/config/site';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import Icons from '@/components/icons';
@@ -91,6 +92,43 @@ const MobileNav = ({ items }: MobileNavProps) => {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const desktopMedia = window.matchMedia('(min-width: 1024px)');
+    const closeIfDesktop = () => {
+      if (desktopMedia.matches) {
+        setIsOpen(false);
+      }
+    };
+
+    const mediaListener = (event: MediaQueryListEvent) => {
+      if (event.matches) {
+        setIsOpen(false);
+      }
+    };
+
+    closeIfDesktop();
+    window.addEventListener('resize', closeIfDesktop);
+    if (typeof desktopMedia.addEventListener === 'function') {
+      desktopMedia.addEventListener('change', mediaListener);
+    } else {
+      desktopMedia.addListener(mediaListener);
+    }
+
+    return () => {
+      window.removeEventListener('resize', closeIfDesktop);
+      if (typeof desktopMedia.removeEventListener === 'function') {
+        desktopMedia.removeEventListener('change', mediaListener);
+      } else {
+        desktopMedia.removeListener(mediaListener);
+      }
+    };
+  }, []);
+
   if (!isMounted) {
     return <Icons.spinner
       className="mr-2 h-4 w-4 animate-spin"
@@ -99,28 +137,35 @@ const MobileNav = ({ items }: MobileNavProps) => {
   }
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild suppressHydrationWarning>
-        <Button
-          suppressHydrationWarning
-          variant="ghost"
-          className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent
-          focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden"
-        >
-          <Icons.menu className="h-6 w-6" />
-          <span className="sr-only">{t('common.toggleMenu')}</span>
-        </Button>
-      </SheetTrigger>
+      <HintTooltip text={t('tooltip.toggleMenu')}>
+        <div>
+          <SheetTrigger asChild suppressHydrationWarning>
+          <Button
+            suppressHydrationWarning
+            aria-label={t('common.toggleMenu')}
+            variant="ghost"
+            className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent
+            focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden"
+          >
+            <Icons.menu className="h-6 w-6" />
+            <span className="sr-only">{t('common.toggleMenu')}</span>
+          </Button>
+          </SheetTrigger>
+        </div>
+      </HintTooltip>
       <SheetContent side="left" className="pl-1 pr-0">
         <div className="px-7">
-          <Link
-            aria-label={t('common.home')}
-            href="/"
-            className="flex items-center"
-            onClick={() => setIsOpen(false)}
-          >
-            <Icons.logo className="mr-2 h-4 w-4" aria-hidden="true" />
-            <span className="font-bold">{siteConfig.name}</span>
-          </Link>
+          <HintTooltip text={t('tooltip.home')}>
+            <Link
+              aria-label={t('common.home')}
+              href="/"
+              className="flex items-center"
+              onClick={() => setIsOpen(false)}
+            >
+              <Icons.logo className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span className="font-bold">{siteConfig.name}</span>
+            </Link>
+          </HintTooltip>
         </div>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="pl-1 pr-7">

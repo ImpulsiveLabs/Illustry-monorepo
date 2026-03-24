@@ -1,16 +1,16 @@
 ---
 title: 仪表板
-description: Dashboards doc
+description: 仪表板文档
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Dashboards as Visual Workspaces
+# 作为可视化工作区的仪表板
 
-Dashboards act as versatile visual workspaces where you can organize and manage multiple visualizations related to your projects. They provide a dynamic and interactive environment for exploring, analyzing, and presenting data effectively.
+仪表板充当多功能可视化工作区，您可以在其中组织和管理与项目相关的多个可视化。它们提供了一个动态的交互式环境，用于有效地探索、分析和呈现数据。
 
-## Dashboard Data Structure
+## 仪表板数据结构
 
-To represent a dashboard in your system, you can use the following `DashboardData` interface:
+要表示系统中的仪表板，您可以使用以下 `DashboardData` 接口：
 
 ```typescript
 {{Layout}}
@@ -20,31 +20,31 @@ To represent a dashboard in your system, you can use the following `DashboardDat
 {{DashboardType}}
 
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the dashboard.
-- **projectName:** The name of the associated project for contextual linking.
-- **description:** An optional field providing additional context or details about the dashboard.
-- **createdAt:** The timestamp indicating when the dashboard was created.
-- **updatedAt:** The timestamp showing the last modification of the dashboard.
-- **visualizations:** A collection of visualizations included in the dashboard, either as key-value pairs or an array of visualization types.
-- **layouts:** A list of layout configurations that determine the position and size of visualizations within the dashboard. Each layout includes:
-  - **i:** A unique identifier for the visualization.
-  - **x, y:** Coordinates representing the visualization's position on the grid.
-  - **w, h:** The width and height of the visualization.
-  - **minW, minH:** Minimum width and height constraints.
+- **名称：** 仪表板的唯一标识符。
+- **projectName：** 用于上下文链接的关联项目的名称。
+- **描述：** 可选字段，提供有关仪表板的其他上下文或详细信息。
+- **createdAt：** 指示仪表板创建时间的时间戳。
+- **updatedAt：** 显示仪表板上次修改的时间戳。
+- **可视化：** 仪表板中包含的可视化集合，可以是键值对或可视化类型数组。
+- **布局：** 布局配置列表，用于确定仪表板中可视化的位置和大小。每个布局包括：
+  - **i：** 可视化的唯一标识符。
+  - **x, y:** 表示可视化在网格上的位置的坐标。
+  - **w、h：** 可视化的宽度和高度。
+  - **minW、minH：** 最小宽度和高度限制。
 
-### Dashboard Features
+### 仪表板功能
 
-Dashboards enable users to:
+仪表板使用户能够：
 
-- Drag and drop visualizations to rearrange them in the workspace.
-- Resize visualizations to fit specific data needs.
-- Maintain multiple layouts to cater to different use cases or audiences.
+- 拖放可视化以在工作区中重新排列它们。
+- 调整可视化大小以满足特定数据需求。
+- 维护多种布局以满足不同的用例或受众。
 
-By offering such flexibility, dashboards empower users to customize their visual workspaces according to the project's requirements.
+通过提供这种灵活性，仪表板使用户能够根据项目的要求自定义其可视化工作区。
 
-### Practical Example
+### 实际例子
 
 ![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
 

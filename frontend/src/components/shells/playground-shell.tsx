@@ -13,6 +13,7 @@ import {
 import Editor from '@monaco-editor/react';
 import siteConfig from '@/config/site';
 import { catchError } from '@/lib/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { Button } from '../ui/button';
 import PresetSelector from '../ui/playground/preset-selector';
 import Separator from '../ui/separator';
@@ -33,6 +34,7 @@ import MatrixShellView from './matrix/matrix-shell';
 import HierarchicalEdgeBundlingShellView from './hierarchical-edge-bundling/hierarchical-edge-bundling-shell';
 
 const PlaygroundShell = () => {
+  const { t } = useLocale();
   const [showDiagram, setShowDiagram] = useState<ShowDiagramState>({
     sankey: false,
     heb: false,
@@ -121,7 +123,7 @@ const PlaygroundShell = () => {
                 <AxisChartsShellView
                   fullScreen={true}
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.AxisChartData}
-                  legend={false}
+                  legend={true}
                   options={false}
                   type={'bar'}
                   filter={false}
@@ -131,7 +133,7 @@ const PlaygroundShell = () => {
                 <AxisChartsShellView
                   fullScreen={true}
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.AxisChartData}
-                  legend={false}
+                  legend={true}
                   options={false}
                   type={'line'}
                   filter={false}
@@ -141,7 +143,7 @@ const PlaygroundShell = () => {
                 <SankeyGraphShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.NodeLinkData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -149,7 +151,7 @@ const PlaygroundShell = () => {
               {key === 'heb' && isSubmitable && (
                 <HierarchicalEdgeBundlingShellView
                   data={siteConfig.nodeLink}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                   fullScreen={true}
@@ -158,7 +160,7 @@ const PlaygroundShell = () => {
               {key === 'flg' && isSubmitable && (
                 <ForcedLayoutGraphShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.NodeLinkData}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                   fullScreen={true}
@@ -167,7 +169,7 @@ const PlaygroundShell = () => {
               {key === 'matrix' && isSubmitable && (
                 <MatrixShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.NodeLinkData}
-                  legend={false}
+                  legend={true}
                   fullScreen={true}
                   options={false}
                   filter={false}
@@ -177,7 +179,7 @@ const PlaygroundShell = () => {
                 <WordCloudShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.WordCloudData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -186,7 +188,7 @@ const PlaygroundShell = () => {
                 <FunnelShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.FunnelData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -195,7 +197,7 @@ const PlaygroundShell = () => {
                 <PieChartShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.FunnelData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -204,7 +206,7 @@ const PlaygroundShell = () => {
                 <ScatterShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.ScatterData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -212,7 +214,7 @@ const PlaygroundShell = () => {
               {key === 'sunburst' && isSubmitable && (
                 <SunBurstShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.HierarchyData}
-                  legend={false}
+                  legend={true}
                   fullScreen={true}
                   options={false}
                   filter={false}
@@ -222,7 +224,7 @@ const PlaygroundShell = () => {
                 <TimelineShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.TimelineData}
                   fullScreen={true}
-                  legend={false}
+                  legend={true}
                   options={false}
                   filter={false}
                 />
@@ -230,7 +232,7 @@ const PlaygroundShell = () => {
               {key === 'treeMap' && isSubmitable && (
                 <TreeMapShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.HierarchyData}
-                  legend={false}
+                  legend={true}
                   fullScreen={true}
                   options={false}
                   filter={false}
@@ -239,7 +241,7 @@ const PlaygroundShell = () => {
               {key === 'calendar' && isSubmitable && (
                 <CalendarGraphShellView
                   data={JSON.parse(textareaValue as string) as VisualizationTypes.CalendarData}
-                  legend={false}
+                  legend={true}
                   fullScreen={true}
                   options={false}
                   filter={false}
@@ -289,7 +291,7 @@ const PlaygroundShell = () => {
                 className="w-full border-gray-300 bg-gray-50 rounded-3xl dark:border-gray-700 dark:bg-gray-800"
               />
               <div className="flex justify-center mt-4">
-                <Button onClick={handleSubmit}>Submit</Button>
+                <Button onClick={handleSubmit}>{t('common.submit')}</Button>
               </div>
             </div>
           </div>

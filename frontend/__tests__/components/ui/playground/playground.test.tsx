@@ -21,13 +21,13 @@ describe('playground components', () => {
 
         await user.click(screen.getByRole('button', { name: 'Actions' }));
         await user.click(screen.getByText('Content filter preferences'));
-        expect(screen.getByText('Playground Warnings')).toBeInTheDocument();
+        expect(screen.getByText(/Playground warnings/i)).toBeInTheDocument();
 
         await user.click(screen.getByText('Close', { selector: 'button' }));
 
         await user.click(screen.getByRole('button', { name: 'Actions' }));
         await user.click(screen.getByText('Delete preset'));
-        expect(screen.getByText('Are you sure absolutely sure?')).toBeInTheDocument();
+        expect(screen.getByText('Are you sure?')).toBeInTheDocument();
 
         await user.click(screen.getByRole('button', { name: 'Delete' }));
         expect(toastSpy).toHaveBeenCalledWith('This preset has been deleted.');
@@ -53,7 +53,7 @@ describe('playground components', () => {
         );
 
         await user.click(screen.getByRole('combobox', { name: 'Load a visualization...' }));
-        await user.click(screen.getByText('line-chart'));
+        await user.click(screen.getByText('Line Chart'));
 
         expect(setShowDiagram).toHaveBeenCalledTimes(1);
         const updater = setShowDiagram.mock.calls[0][0] as (prev: Record<string, boolean>) => Record<string, boolean>;
@@ -66,7 +66,7 @@ describe('playground components', () => {
         expect(setIsSubmitable).toHaveBeenCalledWith(false);
 
         await waitFor(() => {
-            expect(screen.getByRole('combobox')).toHaveTextContent('line-chart');
+            expect(screen.getByRole('combobox')).toHaveTextContent('Line Chart');
         });
     });
 

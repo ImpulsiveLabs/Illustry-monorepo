@@ -3,11 +3,11 @@ title: Diagrama Sankey
 description: Sankey
 ---
 
-The **Sankey Diagram** visualization is a powerful tool for visualizing flow and relationships between entities in a dataset. It is particularly useful for showcasing the distribution and transformation of values across a system or process.
+Vizualizarea **Sankey Diagram** este un instrument puternic pentru vizualizarea fluxului și a relațiilor dintre entitățile dintr-un set de date. Este deosebit de util pentru prezentarea distribuției și transformării valorilor într-un sistem sau proces.
 
-## Sankey Diagram Data Structure
+## Structura de date a diagramei Sankey
 
-To represent a Sankey Diagram, you can use the following `NodeLinkData` interface:
+Pentru a reprezenta o diagramă Sankey, puteți utiliza următoarea interfață `NodeLinkData`:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Sankey Diagram, you can use the following `NodeLinkData` interfac
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **nume:** Un identificator unic pentru nod.
+- **categorie:** Clasifică nodul într-un anumit grup sau cluster.
+- **sursa:** Identifică nodul sursă al legăturii.
+- **țintă:** Identifică nodul țintă al legăturii.
+- **valoare:** reprezintă o valoare numerică asociată cu legătura care sugerează cât de puternic sunt conectate nodurile.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Flow Representation:** Effectively visualizes the flow of values or quantities between entities in a system or process.
+#### Pro
+- **Reprezentare flux:** Vizualizează eficient fluxul de valori sau cantități între entitățile dintr-un sistem sau proces.
 
-- **Insight into Distribution:** Offers insights into how values are distributed and transformed at each stage.
+- **Perspectivă asupra distribuției:** oferă informații despre modul în care valorile sunt distribuite și transformate în fiecare etapă.
 
-#### Cons
-- **Complexity with Numerous Nodes:** Visual clutter may occur with an extensive number of nodes, affecting readability.
+#### Contra
+- **Complexitate cu numeroase noduri:** Dezordinea vizuală poate apărea cu un număr mare de noduri, afectând lizibilitatea.
 
-- **Specialized Use Case:** Primarily designed for visualizing flow and distribution; may not be suitable for all types of datasets.
+- **Caz de utilizare specializat:** Proiectat în primul rând pentru vizualizarea fluxului și distribuției; poate să nu fie potrivit pentru toate tipurile de seturi de date.
 
-## Sankey Diagram Example
+## Exemplu de diagramă Sankey
 
 ![Sankey Diagram Example](/Illustry-monorepo/sankey.gif)

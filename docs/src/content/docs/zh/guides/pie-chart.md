@@ -1,34 +1,34 @@
 ---
 title: 饼图
-description: Pie Chart doc
+description: 饼图文档
 ---
 
-The **Pie Chart** visualization is a concise and visually impactful way to represent the distribution of parts within a whole. It is particularly effective for displaying proportions and percentages in a circular format.
+**饼图**可视化是一种简洁且具有视觉冲击力的方式来表示整体中各部分的分布。它对于以圆形格式显示比例和百分比特别有效。
 
 
-## Pie Chart Data Structure
+## 饼图数据结构
 
-To represent a Pie Chart, you can use the following `PieChartData` interface:
+要表示饼图，您可以使用以下 `PieChartData` 接口：
 
 ```typescript
 {{PieChartData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an numerical value. 
-
-
-### Pros and Cons
-
-#### Pros
-- **Percentage Representation:** Pie Charts provide a clear representation of the percentage contribution of each category to the whole.
-
-- **Visual Simplicity:** The circular shape and simplicity of Pie Charts make them easy for users to understand at a glance.
-
-#### Cons
-- **Limited for Many Categories:** When dealing with numerous categories, Pie Charts can become crowded and challenging to interpret.
+- **values：** 一个字典，其中每个键是一个类别或维度，对应的值是一个数值。
 
 
-## Pie Chart Example
+### 优点和缺点
+
+#### 优点
+- **百分比表示：** 饼图清楚地表示了每个类别对整体的百分比贡献。
+
+- **视觉简单性：** 饼图的圆形形状和简单性使用户一目了然。
+
+#### 缺点
+- **对许多类别的限制：** 当处理众多类别时，饼图可能会变得拥挤且难以解释。
+
+
+## 饼图示例
 
 ![Pie Chart Example](/Illustry-monorepo/pie-chart.gif)

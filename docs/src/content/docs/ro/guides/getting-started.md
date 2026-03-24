@@ -1,22 +1,22 @@
 ---
 title: Primii pasi
-description: A guide into Illustry
+description: Un ghid în Illustry
 ---
 
-Illustry is a powerful web application built to serve as a visualization hub, seamlessly integrating various visualizations for diverse types of data. Illustry brings data exploration, theming, and filtering to life. With a user-friendly interface and advanced features, Illustry is designed to cater to a wide range of users.
+Illustry este o aplicație web puternică, construită pentru a servi drept centru de vizualizare, integrând fără probleme diverse vizualizări pentru diverse tipuri de date. Illustry aduce la viață explorarea datelor, tematică și filtrare. Cu o interfață ușor de utilizat și funcții avansate, Illustry este conceput pentru a satisface o gamă largă de utilizatori.
 
-## Key Technologies Used
+## Tehnologii cheie utilizate
 
 - **Frontend:** Next 16
 - **Database:** MongoDB
 - **Server:** Node
 
-## Features
+## Caracteristici
 
-- **Data Integration:** Supports various file formats, including JSON, XML, Excel, and CSV.
-- **Data Exploration:** Dive deep into your data with powerful exploration tools.
-- **Theming:** Customize the look and feel of your visualizations with ease.
-- **Filtering:** Easily filter and analyze data to extract meaningful insights.
-- **Playground:** Explore the capabilities of Illustry in the playground, where you can interact with the features and test different scenarios.
+- **Integrarea datelor:** acceptă diferite formate de fișiere, inclusiv JSON, XML, Excel și CSV.
+- **Explorarea datelor:** Aprofundați-vă în datele dvs. cu instrumente puternice de explorare.
+- **Tematică:** Personalizați cu ușurință aspectul vizualizărilor dvs.
+- **Filtrare:** Filtrați și analizați cu ușurință datele pentru a extrage informații semnificative.
+- **Teren de joacă:** Explorați capacitățile lui Illustry în locul de joacă, unde puteți interacționa cu funcțiile și testa diferite scenarii.
 
-See [“manual setup instruction”](/Illustry-monorepo/guides/manual-setup-instruction/) for a quick installation guide to work with Illustry
+[Configurare manuala Illustry](../manual-setup-instruction/)

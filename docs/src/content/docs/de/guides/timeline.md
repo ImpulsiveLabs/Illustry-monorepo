@@ -1,14 +1,14 @@
 ---
 title: Zeitachse
-description: Timeline doc
+description: Timeline-Dokument
 ---
 
-The **Timeline** is a versatile visualization that displays events or activities chronologically over time. It offers a comprehensive view of historical or future occurrences, providing insights into patterns, durations, and relationships.
+Die **Timeline** ist eine vielseitige Visualisierung, die Ereignisse oder Aktivitäten chronologisch im Zeitverlauf anzeigt. Es bietet einen umfassenden Überblick über historische oder zukünftige Ereignisse und liefert Einblicke in Muster, Dauer und Zusammenhänge.
 
 
-## Timeline Data Structure
+## Timeline-Datenstruktur
 
-To represent a Timeline Data, you can use the following `TimelineData` interface:
+Um Zeitleistendaten darzustellen, können Sie die folgende `TimelineData`-Schnittstelle verwenden:
 
 ```typescript
 {{TimelineEventTag}}
@@ -17,41 +17,41 @@ To represent a Timeline Data, you can use the following `TimelineData` interface
 
 {{TimelineData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
 #### TimelineEventTag
-- **name:** The name of the tag associated with a Timeline event.
+- **Name:** Der Name des Tags, das einem Timeline-Ereignis zugeordnet ist.
 
 #### TimelineEvent
-- **summary:** A brief summary or title of the event.
-- **date:** The date when the event occurred.
-- **type:** The type or category of the event.
-- **author:** The author or creator of the event.
-- **tags:** An array of tags associated with the event.
-- **description:** A detailed description of the event.
+- **Zusammenfassung:** Eine kurze Zusammenfassung oder ein Titel der Veranstaltung.
+- **Datum:** Das Datum, an dem das Ereignis aufgetreten ist.
+- **Typ:** Der Typ oder die Kategorie des Ereignisses.
+- **Autor:** Der Autor oder Ersteller der Veranstaltung.
+- **Tags:** Ein Array von Tags, die mit dem Ereignis verknüpft sind.
+- **Beschreibung:** Eine detaillierte Beschreibung des Ereignisses.
 
 #### TimelineData
-- **[date]:** The date key representing a specific date range.
-  - **summary:**
-    - **title:** A summary title for the date range.
-  - **events:** An array of `TimelineEvent` objects associated with that date.
+- **[Datum]:** Der Datumsschlüssel, der einen bestimmten Datumsbereich darstellt.
+  - **Zusammenfassung:**
+    - **Titel:** Ein zusammenfassender Titel für den Datumsbereich.
+  - **Ereignisse:** Ein Array von `TimelineEvent`-Objekten, die diesem Datum zugeordnet sind.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Chronological Understanding:** Timelines offer a chronological representation of events, providing a clear understanding of the sequence in which they occurred.
+#### Vorteile
+- **Chronologisches Verständnis:** Zeitleisten bieten eine chronologische Darstellung von Ereignissen und ermöglichen ein klares Verständnis der Reihenfolge, in der sie stattgefunden haben.
 
-- **Event Categorization:** The ability to categorize events using tags allows for organized and efficient grouping, aiding in the analysis of specific types of events.
+- **Ereigniskategorisierung:** Die Möglichkeit, Ereignisse mithilfe von Tags zu kategorisieren, ermöglicht eine organisierte und effiziente Gruppierung und hilft bei der Analyse bestimmter Ereignistypen.
 
-- **Flexible Visualization:** Timelines are flexible and can adapt to various types of data, making them suitable for representing a wide range of events and activities.
+- **Flexible Visualisierung:** Zeitleisten sind flexibel und können an verschiedene Datentypen angepasst werden, sodass sie für die Darstellung einer Vielzahl von Ereignissen und Aktivitäten geeignet sind.
 
-#### Cons
-- **Potential Crowding:** In timelines with a high density of events, there is a risk of visual clutter and potential difficulty in distinguishing individual events.
+#### Nachteile
+- **Potenzielles Gedränge:** In Zeitleisten mit einer hohen Ereignisdichte besteht die Gefahr visueller Unordnung und potenzieller Schwierigkeiten bei der Unterscheidung einzelner Ereignisse.
 
-- **Limited for Certain Data Types:** While timelines are versatile, they may not be the most effective for representing certain complex relationships or data structures.
+- **Eingeschränkt für bestimmte Datentypen:** Zeitleisten sind zwar vielseitig, für die Darstellung bestimmter komplexer Beziehungen oder Datenstrukturen sind sie jedoch möglicherweise nicht besonders effektiv.
 
-- **Subjectivity in Event Importance:** The importance of events may be subjective, and their representation on a timeline might not capture the nuanced significance perceived by individuals..
+- **Subjektivität bei der Bedeutung von Ereignissen:** Die Bedeutung von Ereignissen kann subjektiv sein und ihre Darstellung auf einer Zeitachse erfasst möglicherweise nicht die differenzierte Bedeutung, die von Einzelpersonen wahrgenommen wird.
 
-## Timeline Example
+## Beispiel für eine Zeitleiste
 
 ![Timeline Example](/Illustry-monorepo/timeline.gif)

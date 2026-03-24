@@ -10,6 +10,7 @@ import {
   Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card';
 import { updateDashboard } from '@/app/_actions/dashboard';
+import { useLocale } from '@/components/providers/locale-provider';
 import HubShell from './hub-shell';
 
 const ResponsiveGridLayout = WidthProvider(Responsive) as unknown as React.FC<Record<string, unknown>>;
@@ -20,6 +21,7 @@ type VisualizationData = {
 type ResponsiveLayouts = Record<string, DashboardTypes.Layout[]>;
 
 const ResizableDashboard = ({ dashboard }: VisualizationData) => {
+  const { t } = useLocale();
   const router = useRouter();
   const { layouts = [], visualizations = [] } = dashboard as DashboardTypes.DashboardType;
   const initialLayout = useMemo(() => (layouts?.length ? layouts
@@ -141,6 +143,45 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     router.push(url);
   };
 
+  const getTypeLabel = useCallback(
+    (type: VisualizationTypes.VisualizationTypesEnum | VisualizationTypes.VisualizationTypesEnum[]) => {
+      const normalizedType = Array.isArray(type) ? type[0] : type;
+      switch (normalizedType) {
+      case VisualizationTypes.VisualizationTypesEnum.LINE_CHART:
+        return t('viz.lineChart');
+      case VisualizationTypes.VisualizationTypesEnum.BAR_CHART:
+        return t('viz.barChart');
+      case VisualizationTypes.VisualizationTypesEnum.PIE_CHART:
+        return t('viz.pieChart');
+      case VisualizationTypes.VisualizationTypesEnum.CALENDAR:
+        return t('viz.calendar');
+      case VisualizationTypes.VisualizationTypesEnum.SCATTER:
+        return t('viz.scatter');
+      case VisualizationTypes.VisualizationTypesEnum.TREEMAP:
+        return t('viz.treemap');
+      case VisualizationTypes.VisualizationTypesEnum.SUNBURST:
+        return t('viz.sunburst');
+      case VisualizationTypes.VisualizationTypesEnum.FUNNEL:
+        return t('viz.funnel');
+      case VisualizationTypes.VisualizationTypesEnum.TIMELINE:
+        return t('viz.timeline');
+      case VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD:
+        return t('viz.wordCloud');
+      case VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH:
+        return t('viz.forcedLayoutGraph');
+      case VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING:
+        return t('viz.hierarchicalEdgeBundling');
+      case VisualizationTypes.VisualizationTypesEnum.SANKEY:
+        return t('viz.sankey');
+      case VisualizationTypes.VisualizationTypesEnum.MATRIX:
+        return t('viz.matrix');
+      default:
+        return Array.isArray(type) ? type.join(', ') : type;
+      }
+    },
+    [t]
+  );
+
   return (
     <div className="p-4">
       <ResponsiveGridLayout
@@ -180,7 +221,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
                   onClick={() => handleCardClick(viz)}
                 >
                   <CardTitle className="text-center">
-                    {viz.name} ({(viz.type as string).charAt(0).toUpperCase() + viz.type.slice(1)} Chart)
+                    {viz.name} ({getTypeLabel(viz.type)})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="h-[calc(100%-4rem)] overflow-hidden">

@@ -1,13 +1,13 @@
 ---
 title: Wortwolke
-description: Word cloud doc
+description: Word-Cloud-Dokument
 ---
 
-The **Word Cloud** visualization is used for representing textual data in a visually engaging and informative way. It turns words into graphical elements, with the size of each word indicating its frequency or importance in the given dataset.
+Die **Wortwolke**-Visualisierung wird verwendet, um Textdaten auf visuell ansprechende und informative Weise darzustellen. Es wandelt Wörter in grafische Elemente um, wobei die Größe jedes Wortes seine Häufigkeit oder Bedeutung im gegebenen Datensatz angibt.
 
-## Word Cloud Data Structure
+## Word Cloud-Datenstruktur
 
-To represent a Word Cloud, you can use the following `WordCloudData` interface:
+Um eine Wortwolke darzustellen, können Sie die folgende `WordCloudData`-Schnittstelle verwenden:
 
 ```typescript
 {{WordType}}
@@ -15,24 +15,24 @@ To represent a Word Cloud, you can use the following `WordCloudData` interface:
 {{WordCloudData}}
 
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** The word itself.
-- **value:** A number that represents a metric to determine how important that word is.
+- **Name:** Das Wort selbst.
+- **Wert:** Eine Zahl, die einen Messwert darstellt, um zu bestimmen, wie wichtig das Wort ist.
 
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Simplicity:** Word Clouds distill textual data into a simple and visually accessible format.
+#### Vorteile
+- **Einfachheit:** Word Clouds destillieren Textdaten in ein einfaches und visuell zugängliches Format.
 
-- **Quick Analysis:** Users can rapidly analyze and identify the most significant words without delving into detailed text.
+- **Schnelle Analyse:** Benutzer können die wichtigsten Wörter schnell analysieren und identifizieren, ohne sich mit detaillierten Texten befassen zu müssen.
 
-#### Cons
-- **Loss of Context:** While Word Clouds highlight individual words, they may lack the context provided by full text or more complex visualizations.
+#### Nachteile
+- **Kontextverlust:** Während Wortwolken einzelne Wörter hervorheben, fehlt ihnen möglicherweise der Kontext, der durch Volltext oder komplexere Visualisierungen bereitgestellt wird.
 
-- **Subjectivity:** Interpretation of a Word Cloud can be subjective, and the importance of a word might vary among individuals.
+- **Subjektivität:** Die Interpretation einer Wortwolke kann subjektiv sein und die Bedeutung eines Wortes kann von Person zu Person unterschiedlich sein.
 
-## Word Cloud Example
+## Beispiel für eine Wortwolke
 
 ![Word Cloud Example](/Illustry-monorepo/word-cloud.gif)

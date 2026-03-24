@@ -1,14 +1,14 @@
 ---
 title: 时间线
-description: Timeline doc
+description: 时间线文档
 ---
 
-The **Timeline** is a versatile visualization that displays events or activities chronologically over time. It offers a comprehensive view of historical or future occurrences, providing insights into patterns, durations, and relationships.
+**时间轴**是一种多功能可视化，可按时间顺序显示事件或活动。它提供了历史或未来事件的全面视图，提供了对模式、持续时间和关系的见解。
 
 
-## Timeline Data Structure
+## 时间轴数据结构
 
-To represent a Timeline Data, you can use the following `TimelineData` interface:
+要表示时间轴数据，您可以使用以下 `TimelineData` 接口：
 
 ```typescript
 {{TimelineEventTag}}
@@ -17,41 +17,41 @@ To represent a Timeline Data, you can use the following `TimelineData` interface
 
 {{TimelineData}}
 ```
-### Key Attributes
+### 关键属性
 
-#### TimelineEventTag
-- **name:** The name of the tag associated with a Timeline event.
+#### 时间线事件标签
+- **名称：** 与时间轴事件关联的标签的名称。
 
-#### TimelineEvent
-- **summary:** A brief summary or title of the event.
-- **date:** The date when the event occurred.
-- **type:** The type or category of the event.
-- **author:** The author or creator of the event.
-- **tags:** An array of tags associated with the event.
-- **description:** A detailed description of the event.
+#### 时间线事件
+- **摘要：** 活动的简短摘要或标题。
+- **日期：** 事件发生的日期。
+- **类型：** 事件的类型或类别。
+- **作者：** 事件的作者或创建者。
+- **标签：** 与事件关联的标签数组。
+- **描述：** 事件的详细描述。
 
-#### TimelineData
-- **[date]:** The date key representing a specific date range.
-  - **summary:**
-    - **title:** A summary title for the date range.
-  - **events:** An array of `TimelineEvent` objects associated with that date.
+#### 时间线数据
+- **[date]:** 代表特定日期范围的日期键。
+  - **概括：**
+    - **标题：** 日期范围的摘要标题。
+  - **事件：** 与该日期关联的 `TimelineEvent` 对象数组。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Chronological Understanding:** Timelines offer a chronological representation of events, providing a clear understanding of the sequence in which they occurred.
+#### 优点
+- **时间顺序理解：**时间线提供了事件的时间顺序表示，提供了对事件发生顺序的清晰理解。
 
-- **Event Categorization:** The ability to categorize events using tags allows for organized and efficient grouping, aiding in the analysis of specific types of events.
+- **事件分类：** 使用标签对事件进行分类的能力可以实现有组织且高效的分组，有助于分析特定类型的事件。
 
-- **Flexible Visualization:** Timelines are flexible and can adapt to various types of data, making them suitable for representing a wide range of events and activities.
+- **灵活的可视化：** 时间线非常灵活，可以适应各种类型的数据，使其适合表示各种事件和活动。
 
-#### Cons
-- **Potential Crowding:** In timelines with a high density of events, there is a risk of visual clutter and potential difficulty in distinguishing individual events.
+#### 缺点
+- **潜在的拥挤：** 在事件密度高的时间轴中，存在视觉混乱的风险以及区分单个事件的潜在困难。
 
-- **Limited for Certain Data Types:** While timelines are versatile, they may not be the most effective for representing certain complex relationships or data structures.
+- **仅限于某些数据类型：**虽然时间线用途广泛，但它们对于表示某些复杂关系或数据结构可能不是最有效的。
 
-- **Subjectivity in Event Importance:** The importance of events may be subjective, and their representation on a timeline might not capture the nuanced significance perceived by individuals..
+- **事件重要性的主观性：**事件的重要性可能是主观的，它们在时间线上的表示可能无法捕捉到个人感知到的细微差别的重要性。
 
-## Timeline Example
+## 时间轴示例
 
 ![Timeline Example](/Illustry-monorepo/timeline.gif)

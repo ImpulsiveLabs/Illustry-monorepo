@@ -1,13 +1,13 @@
 ---
 title: Regroupement hierarchique des aretes
-description: Hierarchical Edge Bundling doc
+description: Document sur le regroupement hiérarchique des périphéries
 ---
 
-The **Hierarchical Edge Bundling** visualization is a sophisticated technique for depicting hierarchical relationships and connections within a dataset. It leverages edge bundling to reduce visual clutter while highlighting the structure of relationships in a hierarchical manner.
+La visualisation **Hierarchical Edge Bundling** est une technique sophistiquée permettant de représenter les relations et les connexions hiérarchiques au sein d'un ensemble de données. Il exploite le regroupement des bords pour réduire l’encombrement visuel tout en mettant en évidence la structure des relations de manière hiérarchique.
 
-## Hierarchical Edge Bundling Data Structure
+## Structure de données de regroupement hiérarchique
 
-To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkData` interface:
+Pour représenter un regroupement hiérarchique de périphérie, vous pouvez utiliser l'interface `NodeLinkData` suivante :
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkDa
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **name :** Un identifiant unique pour le nœud.
+- **category :** Classifie le nœud dans un groupe ou un cluster spécifique.
+- **source :** Identifie le nœud source du lien.
+- **target :** Identifie le nœud cible du lien.
+- **value :** Représente une valeur numérique associée au lien qui suggère le degré de connexion des nœuds.
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Improved Aesthetics and Readability:** The bundled edges contribute to a cleaner and more aesthetically pleasing visualization. By reducing visual clutter, users can more easily interpret the relationships between nodes, enhancing overall readability.
+#### Avantages
+- **Esthétique et lisibilité améliorées :** Les bords regroupés contribuent à une visualisation plus propre et plus esthétique. En réduisant l'encombrement visuel, les utilisateurs peuvent interpréter plus facilement les relations entre les nœuds, améliorant ainsi la lisibilité globale.
 
-- **Enhanced Focus on Key Relationships:** Edge bundling allows users to focus on key relationships within the hierarchical structure, emphasizing the most significant connections. This can aid in identifying critical paths or central nodes in complex datasets.
+- **Amélioration de l'accent mis sur les relations clés :** Le regroupement Edge permet aux utilisateurs de se concentrer sur les relations clés au sein de la structure hiérarchique, en mettant l'accent sur les connexions les plus importantes. Cela peut aider à identifier les chemins critiques ou les nœuds centraux dans des ensembles de données complexes.
 
-#### Cons
-- **Difficulty in Identifying Parallel Paths:** Identifying parallel paths or connections in a densely bundled area may pose challenges for users. Distinguishing between closely packed edges representing different relationships can be complex, affecting the precision of analysis.
+#### Inconvénients
+- **Difficulté à identifier les chemins parallèles :** L'identification de chemins ou de connexions parallèles dans une zone densément regroupée peut poser des défis aux utilisateurs. Faire la distinction entre des arêtes très rapprochées représentant différentes relations peut s'avérer complexe, affectant la précision de l'analyse.
 
-- **Challenges with Directionality Perception:** Users may face difficulties in perceiving the directionality of bundled edges, particularly in scenarios where there is a high degree of overlap. This can impact the accurate interpretation of the flow of relationships.
+- **Défis liés à la perception de la directionnalité :** Les utilisateurs peuvent rencontrer des difficultés à percevoir la directionnalité des bords regroupés, en particulier dans les scénarios où il existe un degré élevé de chevauchement. Cela peut avoir un impact sur l’interprétation précise du flux des relations.
 
-## Hierarchical Edge Bundling Example
+## Exemple de regroupement hiérarchique des bords
 
 ![Hierarchical Edge Bundling Example](/Illustry-monorepo/hierarchical-edge-bundling.gif)

@@ -13,6 +13,7 @@ import { wordCloudWords } from '@/lib/filter/wordcloud';
 import { scatterWords } from '@/lib/filter/scatter';
 import { timelineWords } from '@/lib/filter/timeline';
 import { hierarchyWords } from '@/lib/filter/hierarchy';
+import { useLocale } from '@/components/providers/locale-provider';
 import { Button } from './button';
 
 type CollapsableSearchBarProps<T> = {
@@ -28,6 +29,7 @@ const CollapsableSearchBar = <
     setFilteredData,
     type
   }: CollapsableSearchBarProps<T>) => {
+  const { t } = useLocale();
   const [initialData] = React.useState(() => data);
   const [searchValue, setSearchValue] = React.useState('');
   const [isInputClicked, setIsInputClicked] = React.useState(false);
@@ -106,6 +108,7 @@ const CollapsableSearchBar = <
         <input
           type="search"
           value={searchValue}
+          placeholder={t('table.filterPlaceholder')}
           onChange={handleInputChange}
           onFocus={handleFocus}
           onBlur={handleBlur}
@@ -121,7 +124,7 @@ const CollapsableSearchBar = <
             size="default"
             className="ml-2"
           >
-            Filter
+            {t('common.filter')}
           </Button>
         )}
         {isInputClicked && (
@@ -132,7 +135,7 @@ const CollapsableSearchBar = <
             size="default"
             className="ml-2"
           >
-            Refresh
+            {t('common.refresh')}
           </Button>
         )}
         <svg

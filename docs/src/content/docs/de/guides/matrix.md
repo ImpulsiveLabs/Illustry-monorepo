@@ -1,13 +1,13 @@
 ---
 title: Matrix
-description: Matrix doc
+description: Matrix-Dokument
 ---
 
-The **Matrix** visualization is a multi dimensional visualizations, where nodes of 2 categories can be visualized as complementary one with the other
+Bei der **Matrix**-Visualisierung handelt es sich um eine mehrdimensionale Visualisierung, bei der Knoten zweier Kategorien als komplementär zueinander visualisiert werden können
 
-## Matrix Data Structure
+## Matrix-Datenstruktur
 
-To represent a Matrix, you can use the following `NodeLinkData` interface:
+Um eine Matrix darzustellen, können Sie die folgende `NodeLinkData`-Schnittstelle verwenden:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Matrix, you can use the following `NodeLinkData` interface:
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **labels:** Are an array of name values that represent specific attributes of the node.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **Name:** Eine eindeutige Kennung für den Knoten.
+- **Kategorie:** Kategorisiert den Knoten in eine bestimmte Gruppe oder einen bestimmten Cluster.
+- **Labels:** Sind ein Array von Namenswerten, die bestimmte Attribute des Knotens darstellen.
+- **Quelle:** Identifiziert den Quellknoten des Links.
+- **Ziel:** Identifiziert den Zielknoten des Links.
+- **Wert:** Stellt einen mit dem Link verknüpften numerischen Wert dar, der angibt, wie stark die Knoten miteinander verbunden sind.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Large Data:** Very large amount of data can be displayed on a single window.
+#### Vorteile
+- **Große Datenmenge:** Sehr große Datenmengen können in einem einzigen Fenster angezeigt werden.
 
-- **Filtering:** Filtering on the rows and on the columns.
+- **Filterung:** Filterung nach Zeilen und Spalten.
 
-#### Cons
-- **Scroll needed:** Too many data could need a scroll in order to see them all.
+#### Nachteile
+- **Scrollen erforderlich:** Bei zu vielen Daten könnte ein Scrollen erforderlich sein, um sie alle zu sehen.
 
 
-## Matrix Example
+## Matrixbeispiel
 
 ![Matrix Example](/Illustry-monorepo/matrix.gif)

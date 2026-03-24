@@ -1,14 +1,14 @@
 ---
 title: Nuage de points
-description: Scatter doc
+description: Document dispersé
 ---
 
-The **Scatter Plot** visualization is a powerful tool for visualizing the relationships between two numerical variables. It uses points on a Cartesian plane to represent individual data points, making it easy to identify patterns, correlations, and outliers.
+La visualisation **Scatter Plot** est un outil puissant pour visualiser les relations entre deux variables numériques. Il utilise des points sur un plan cartésien pour représenter des points de données individuels, ce qui facilite l'identification de modèles, de corrélations et de valeurs aberrantes.
 
 
-## Scatter Plot Data Structure
+## Structure des données du nuage de points
 
-To represent a Scatter Plot, you can use the following `ScatterData` interface:
+Pour représenter un nuage de points, vous pouvez utiliser l'interface `ScatterData` suivante :
 
 ```typescript
 {{ScatterPoint}}
@@ -16,23 +16,23 @@ To represent a Scatter Plot, you can use the following `ScatterData` interface:
 {{ScatterData}}
 ```
 
-### Key Attributes
+### Attributs clés
 
-- **value:** An array of two numerical values [x, y], representing the coordinates of a data point on the X and Y axes.
-- **values:** A string indicating the category or group to which the data point belongs.
+- **valeur :** un tableau de deux valeurs numériques [x, y], représentant les coordonnées d'un point de données sur les axes X et Y.
+- **values :** Une chaîne indiquant la catégorie ou le groupe auquel appartient le point de données.
 
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Relationship Identification:** Scatter Plots excel at revealing relationships, patterns, and trends between two numerical variables.
+#### Avantages
+- **Identification des relations :** Les nuages ​​de points excellent dans la révélation des relations, des modèles et des tendances entre deux variables numériques.
 
-- **Outlier Detection:** Outliers, or data points that deviate significantly from the norm, are easily identified on a Scatter Plot.
+- **Détection des valeurs aberrantes :** Les valeurs aberrantes, ou les points de données qui s'écartent considérablement de la norme, sont facilement identifiés sur un nuage de points.
 
-#### Cons
+#### Inconvénients
 
-- **Potential Overplotting:** In cases with a high density of data points, overplotting may occur, affecting the visibility of individual points.
+- **Surtraçage potentiel :** Dans les cas où la densité de points de données est élevée, un surtraçage peut se produire, affectant la visibilité des points individuels.
 
-## Scatter Plot Example
+## Exemple de nuage de points
 
 ![Scatter Plot Example](/Illustry-monorepo/scatter.gif)

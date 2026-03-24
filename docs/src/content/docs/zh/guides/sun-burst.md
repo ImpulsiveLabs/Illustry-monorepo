@@ -1,39 +1,39 @@
 ---
-title: 旭日图
-description: Sun Burst doc
+title: 太阳爆发
+description: 太阳爆发 doc
 ---
 
-The **Sun Burst Chart** visualization is a dynamic and engaging representation of hierarchical data. It uses a radial layout to convey the hierarchy of elements and their relationships within a dataset.
+**太阳爆发图**可视化是分层数据的动态且引人入胜的表示。它使用径向布局来传达元素的层次结构及其在数据集中的关系。
 
 
-## Sun Burst Data Structure
+## 太阳爆发数据结构
 
-To represent a Map Data, you can use the following `HierarchyData` interface:
+要表示地图数据，您可以使用以下 `HierarchyData` 接口：
 
 ```typescript
 {{HierarchyNode}}
 
 {{HierarchyData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** The node name.
-- **value:** A number that represents a metric to determine how big that node is.
-- **category:**  Describes the category or type to which the node belongs.
-- **children:**  This property is optional and represents an array of HierarchyNode objects. It signifies that the node can have child nodes, creating a hierarchical structure. Each child node follows the same HierarchyNode structure, allowing the representation of a tree-like hierarchy.
+- **名称：** 节点名称。
+- **值：** 代表确定该节点有多大的指标的数字。
+- **category:** 描述节点所属的类别或类型。
+- **children：** 该属性是可选的，表示 HierarchyNode 对象的数组。它表示该节点可以有子节点，从而创建层次结构。每个子节点都遵循相同的 HierarchyNode 结构，允许表示树状层次结构。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Hierarchical Understanding:** Sunbursts excel in displaying hierarchical data structures, providing a visual hierarchy that aids in understanding relationships between different levels.
+#### 优点
+- **分层理解：** Sunbursts 擅长显示分层数据结构，提供可视化层次结构，有助于理解不同级别之间的关系。
 
-- **Radial Layout:** The radial layout provides a visually appealing and organized representation of hierarchical structures.
+- **径向布局：** 径向布局提供了层次结构的视觉吸引力和组织性表示。
 
-#### Cons
-- **Potential Clutter:** In cases with a large number of segments, the chart may become cluttered, affecting readability.
+#### 缺点
+- **潜在的混乱：** 如果有大量段，图表可能会变得混乱，影响可读性。
 
-- **Limited to Hierarchical Data:** Treemaps are most effective when visualizing hierarchical data; for non-hierarchical datasets, alternative visualizations may be more suitable.
+- **仅限于分层数据：** 在可视化分层数据时，树形图最有效；对于非分层数据集，替代可视化可能更合适。
 
-## Sun Burst Example
+## 太阳爆发示例
 
 ![Sun Burst Example](/Illustry-monorepo/sun-burst.gif)

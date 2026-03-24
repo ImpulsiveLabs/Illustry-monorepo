@@ -1,35 +1,35 @@
 ---
 title: Grafic cu bare
-description: Bar Chart doc
+description: Diagramă cu bare doc
 ---
 
-The **Bar Chart** visualization is a versatile and effective tool for representing categorical data in a visually engaging manner. It uses horizontal or vertical bars to show the values of different categories, making it easy for users to compare and understand data distributions.
+Vizualizarea **Grafic cu bare** este un instrument versatil și eficient pentru reprezentarea datelor categorice într-o manieră captivantă din punct de vedere vizual. Folosește bare orizontale sau verticale pentru a afișa valorile diferitelor categorii, facilitând compararea și înțelegerea distribuțiilor de date pentru utilizatori.
 
-## Bar Chart Data Structure
+## Structura datelor diagramei cu bare
 
-To represent a Bar Chart, you can use the following `AxisChartData` interface:
+Pentru a reprezenta o diagramă cu bare, puteți utiliza următoarea interfață `AxisChartData`:
 
 ```typescript
 {{AxisChartData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **headers:** An array of strings representing the categories or dimensions along one of the axis.
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an array of numerical values along the other axis. 
+- **anteturi:** o matrice de șiruri reprezentând categoriile sau dimensiunile de-a lungul uneia dintre axe.
+- **valori:** un dicționar în care fiecare cheie este o categorie sau o dimensiune, iar valoarea corespunzătoare este o matrice de valori numerice de-a lungul celeilalte axe.
 
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Multi-Dimensional Comparison:** Bar Charts excel at comparing multiple dimensions simultaneously, providing a comprehensive view of the data.
+#### Pro
+- **Comparație multi-dimensională:** Diagramele cu bare excelează la compararea mai multor dimensiuni simultan, oferind o vedere cuprinzătoare a datelor.
 
-- **Clear Value Representation:** Numerical values are clearly represented along both the X and Y axes, making it easy for users to interpret and compare.
+- **Reprezentare clară a valorii:** Valorile numerice sunt reprezentate clar de-a lungul axelor X și Y, facilitând interpretarea și compararea utilizatorilor.
 
-#### Cons
-- **Complexity with Excessive Categories:** When dealing with a large number of categories or dimensions, the visualization may become crowded and challenging to interpret.
+#### Contra
+- **Complexitate cu categorii excesive:** Când aveți de-a face cu un număr mare de categorii sau dimensiuni, vizualizarea poate deveni aglomerată și dificil de interpretat.
 
-- **Limited for Categorical Data:** Bar Charts are most effective for numerical data and may not be the optimal choice for representing categorical data.
+- **Limitat pentru date categorice:** Diagramele cu bare sunt cele mai eficiente pentru date numerice și este posibil să nu fie alegerea optimă pentru reprezentarea datelor categoriale.
 
-## Bar Chart Example
+## Exemplu de diagramă cu bare
 
 ![Bar Chart Example](/Illustry-monorepo/bar-chart.gif)

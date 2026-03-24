@@ -2,6 +2,7 @@
 import { UseFormReturn } from 'react-hook-form';
 import { VisualizationTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   FormField,
   FormItem,
@@ -27,7 +28,9 @@ const VisualizationType = ({
   form,
   router,
   exclude
-}: VisualizationTypeProp) => (
+}: VisualizationTypeProp) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="col-span-1">
         <FormField
@@ -35,7 +38,7 @@ const VisualizationType = ({
           name="type"
           render={() => (
             <FormItem>
-              <FormLabel>Type</FormLabel>
+              <FormLabel>{t('common.type')}</FormLabel>
               <FormControl>
                 <Select
                   value={form.getValues('type')}
@@ -45,57 +48,57 @@ const VisualizationType = ({
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Type" />
+                    <SelectValue placeholder={t('common.type')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD}>
-                      WordCloud
+                      {t('viz.wordCloud')}
                     </SelectItem>
                     <SelectItem
                       value={VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH}
                     >
-                      Forced Layout Graph
+                      {t('viz.forcedLayoutGraph')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.SANKEY}>
-                      Sankey
+                      {t('viz.sankey')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.CALENDAR}>
-                      Calendar
+                      {t('viz.calendar')}
                     </SelectItem>
                     <SelectItem
                       value={VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING}
                     >
-                      Hierarchical Edge Bundling
+                      {t('viz.hierarchicalEdgeBundling')}
                     </SelectItem>
                     {!exclude && (
                       <SelectItem value={VisualizationTypes.VisualizationTypesEnum.MATRIX}>
-                        Matrix
+                        {t('viz.matrix')}
                       </SelectItem>
                     )}
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.LINE_CHART}>
-                      Line Chart
+                      {t('viz.lineChart')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.BAR_CHART}>
-                      Bar Chart
+                      {t('viz.barChart')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.PIE_CHART}>
-                      Pie Chart
+                      {t('viz.pieChart')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.SCATTER}>
-                      Scatter
+                      {t('viz.scatter')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.TREEMAP}>
-                      Treemap
+                      {t('viz.treemap')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.SUNBURST}>
-                      Sunburst
+                      {t('viz.sunburst')}
                     </SelectItem>
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.FUNNEL}>
-                      Funnel
+                      {t('viz.funnel')}
                     </SelectItem>
                     {!exclude && (
                       <SelectItem value={VisualizationTypes.VisualizationTypesEnum.TIMELINE}>
-                        Timeline
+                        {t('viz.timeline')}
                       </SelectItem>
                     )}
                   </SelectContent>
@@ -107,6 +110,7 @@ const VisualizationType = ({
         />
       </div>
     </>
-);
+  );
+};
 
 export default VisualizationType;

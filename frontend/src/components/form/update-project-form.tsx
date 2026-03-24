@@ -20,6 +20,7 @@ import {
 import Textarea from '@/components/ui/textarea';
 import Icons from '@/components/icons';
 import { updateProject } from '@/app/_actions/project';
+import { useLocale } from '@/components/providers/locale-provider';
 
 import Checkbox from '../ui/checkbox';
 
@@ -28,6 +29,7 @@ type UpdateProjectFormProps = {
   project?: ProjectTypes.ProjectUpdate;
 }
 const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
+  const { t } = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -46,7 +48,7 @@ const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
         if (project && project.name) {
           await updateProject({ name: project.name, ...data } as ProjectTypes.ProjectUpdate);
 
-          toast.success('Project updated successfully.');
+          toast.success(t('toast.projectUpdated'));
           router.push('/projects');
           form.reset();
         }
@@ -58,7 +60,7 @@ const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Update Project {project?.name}</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('form.project.updateTitle')} {project?.name}</h2>
       <Form {...form}>
         <form
           className="grid w-full max-w-xl gap-5"
@@ -70,10 +72,10 @@ const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('common.description')}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Type project description here."
+                    placeholder={t('form.project.descriptionPlaceholder')}
                     {...field}
                   />
                 </FormControl>
@@ -93,7 +95,7 @@ const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
                   />
                 </FormControl>
                 <FormMessage />
-                <FormLabel>Make this project active</FormLabel>
+                <FormLabel>{t('form.project.makeActive')}</FormLabel>
               </FormItem>
             )}
           />
@@ -104,8 +106,8 @@ const UpdateProjectForm = ({ project }: UpdateProjectFormProps) => {
                 aria-hidden="true"
               />
             )}
-            Update Project
-            <span className="sr-only">Update Project</span>
+            {t('form.project.updateAction')}
+            <span className="sr-only">{t('form.project.updateAction')}</span>
           </Button>
         </form>
       </Form>

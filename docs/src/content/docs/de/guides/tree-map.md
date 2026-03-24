@@ -1,44 +1,44 @@
 ---
-title: Treemap
-description: Tree Map doc
+title: Baumkarte
+description: Baumkartendokument
 ---
 
-The **Tree Map** visualization is a dynamic and hierarchical way of representing data that provides a clear overview of complex structures. By utilizing nested rectangles, the Treemap efficiently visualizes hierarchical data relationships, making it an invaluable tool for conveying both the whole and the parts within a dataset.
+Die **Tree Map**-Visualisierung ist eine dynamische und hierarchische Art der Datendarstellung, die einen klaren Überblick über komplexe Strukturen bietet. Durch die Verwendung verschachtelter Rechtecke visualisiert die Treemap hierarchische Datenbeziehungen effizient und macht sie zu einem unschätzbar wertvollen Werkzeug für die Darstellung sowohl des Ganzen als auch der Teile innerhalb eines Datensatzes.
 
-## Tree Map Data Structure
+## Datenstruktur der Baumkarte
 
-To represent a Tree Map Data, you can use the following `HierarchyData` interface:
+Um Baumkartendaten darzustellen, können Sie die folgende `HierarchyData`-Schnittstelle verwenden:
 
 ```typescript
 {{HierarchyNode}}
 
 {{HierarchyData}}
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** The node name.
-- **value:** A number that represents a metric to determine how big that node is.
-- **category:**  Describes the category or type to which the node belongs.
-- **children:**  This property is optional and represents an array of HierarchyNode objects. It signifies that the node can have child nodes, creating a hierarchical structure. Each child node follows the same HierarchyNode structure, allowing the representation of a tree-like hierarchy.
+- **Name:** Der Knotenname.
+- **Wert:** Eine Zahl, die eine Metrik darstellt, um zu bestimmen, wie groß dieser Knoten ist.
+- **Kategorie:** Beschreibt die Kategorie oder den Typ, zu dem der Knoten gehört.
+- **Kinder:** Diese Eigenschaft ist optional und stellt ein Array von HierarchyNode-Objekten dar. Es bedeutet, dass der Knoten untergeordnete Knoten haben kann, wodurch eine hierarchische Struktur entsteht. Jeder untergeordnete Knoten folgt derselben HierarchyNode-Struktur und ermöglicht so die Darstellung einer baumartigen Hierarchie.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Hierarchical Understanding:** Treemaps excel in displaying hierarchical data structures, providing a visual hierarchy that aids in understanding relationships between different levels.
+#### Vorteile
+- **Hierarchisches Verständnis:** Baumkarten zeichnen sich durch die Darstellung hierarchischer Datenstrukturen aus und bieten eine visuelle Hierarchie, die das Verständnis der Beziehungen zwischen verschiedenen Ebenen erleichtert.
 
-- **Proportional Representation:** The proportional sizing of rectangles allows for an intuitive representation of the relative values or sizes of different data categories.
+- **Proportionale Darstellung:** Die proportionale Größe von Rechtecken ermöglicht eine intuitive Darstellung der relativen Werte oder Größen verschiedener Datenkategorien.
 
-- **Space Efficiency:** Treemaps efficiently use space, enabling users to visualize large datasets without cluttering the screen.
+- **Platzeffizienz:** Treemaps nutzen den Platz effizient und ermöglichen Benutzern die Visualisierung großer Datensätze, ohne den Bildschirm zu überladen.
 
-- **Quick Identification of Patterns:** Users can swiftly identify patterns, outliers, and concentrations within the dataset through the visual arrangement of rectangles.
+- **Schnelle Identifizierung von Mustern:** Benutzer können Muster, Ausreißer und Konzentrationen innerhalb des Datensatzes durch die visuelle Anordnung von Rechtecken schnell identifizieren.
 
-#### Cons
-- **Complexity with Overlapping Labels:** In cases where labels overlap, especially in densely populated Treemaps, readability can be a challenge.
+#### Nachteile
+- **Komplexität bei überlappenden Beschriftungen:** In Fällen, in denen sich Beschriftungen überlappen, insbesondere in dicht besiedelten Treemaps, kann die Lesbarkeit eine Herausforderung darstellen.
 
-- **Difficulty in Precision:** While Treemaps provide a broad overview, achieving precise comparisons between individual data points might be challenging due to the hierarchical nature.
+- **Schwierigkeit bei der Präzision:** Während Treemaps einen umfassenden Überblick bieten, kann es aufgrund der hierarchischen Natur schwierig sein, präzise Vergleiche zwischen einzelnen Datenpunkten zu erzielen.
 
-- **Limited to Hierarchical Data:** Treemaps are most effective when visualizing hierarchical data; for non-hierarchical datasets, alternative visualizations may be more suitable.
+- **Beschränkt auf hierarchische Daten:** Baumkarten sind am effektivsten bei der Visualisierung hierarchischer Daten; Für nicht hierarchische Datensätze sind alternative Visualisierungen möglicherweise besser geeignet.
 
-## Tree Map Example
+## Beispiel für eine Baumkarte
 
 ![Tree Map Example](/Illustry-monorepo/tree-map.gif)

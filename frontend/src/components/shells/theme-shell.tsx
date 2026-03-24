@@ -7,6 +7,8 @@ import {
 } from 'react';
 import { VisualizationTypes, UtilTypes } from '@illustry/types';
 import siteConfig from '@/config/site';
+import { useLocale } from '@/components/providers/locale-provider';
+import Input from '@/components/ui/input';
 import {
   ThemeColors,
   useThemeColors,
@@ -51,11 +53,105 @@ type ShowDiagramState = {
   matrix?: boolean;
 }
 
+type ThemeSectionConfig = {
+  id: string;
+  showDiagramKey?: keyof ShowDiagramState;
+  translationKey: string;
+  visualization?: string;
+}
+
+const THEME_SECTIONS: ThemeSectionConfig[] = [
+  {
+    id: 'defaultSchemes',
+    translationKey: 'theme.defaultSchemes'
+  },
+  {
+    id: 'sankey',
+    showDiagramKey: 'sankey',
+    translationKey: 'theme.sankeyDiagram',
+    visualization: 'sankey'
+  },
+  {
+    id: 'calendar',
+    showDiagramKey: 'calendar',
+    translationKey: 'theme.calendar',
+    visualization: 'calendar'
+  },
+  {
+    id: 'flg',
+    showDiagramKey: 'flg',
+    translationKey: 'theme.forcedLayoutGraph',
+    visualization: 'flg'
+  },
+  {
+    id: 'heb',
+    showDiagramKey: 'heb',
+    translationKey: 'theme.hierarchicalEdgeBundling',
+    visualization: 'heb'
+  },
+  {
+    id: 'wordCloud',
+    showDiagramKey: 'wordCloud',
+    translationKey: 'theme.wordCloud',
+    visualization: 'wordcloud'
+  },
+  {
+    id: 'lineChart',
+    showDiagramKey: 'lineChart',
+    translationKey: 'theme.lineChart',
+    visualization: 'lineChart'
+  },
+  {
+    id: 'barChart',
+    showDiagramKey: 'barChart',
+    translationKey: 'theme.barChart',
+    visualization: 'barChart'
+  },
+  {
+    id: 'pieChart',
+    showDiagramKey: 'pieChart',
+    translationKey: 'theme.pieChart',
+    visualization: 'pieChart'
+  },
+  {
+    id: 'scatter',
+    showDiagramKey: 'scatter',
+    translationKey: 'theme.scatter',
+    visualization: 'scatter'
+  },
+  {
+    id: 'treeMap',
+    showDiagramKey: 'treeMap',
+    translationKey: 'theme.treeMap',
+    visualization: 'treeMap'
+  },
+  {
+    id: 'sunburst',
+    showDiagramKey: 'sunburst',
+    translationKey: 'theme.sunburst',
+    visualization: 'sunburst'
+  },
+  {
+    id: 'funnel',
+    showDiagramKey: 'funnel',
+    translationKey: 'theme.funnel',
+    visualization: 'funnel'
+  }
+];
+
+const normalizeSearchValue = (value: string) => value
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
 const ThemeShell = () => {
+  const { t } = useLocale();
   const colorPalette: { [key: string]: string[] } = siteConfig.colorPallets;
   const activeTheme = useThemeColors();
   const themeDispatch = useThemeColorsDispach();
   const [selectedSchemeName, setSelectedSchemeName] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState('');
+  const [sectionSearch, setSectionSearch] = useState('');
   const [showDiagram, setShowDiagram] = useState<ShowDiagramState>({
     sankey: false,
     heb: false,
@@ -72,6 +168,17 @@ const ThemeShell = () => {
     matrix: false,
     timeline: false
   });
+
+  const filteredSections = useMemo(() => {
+    const normalizedQuery = normalizeSearchValue(sectionSearch.trim());
+
+    if (!normalizedQuery) {
+      return THEME_SECTIONS;
+    }
+
+    return THEME_SECTIONS.filter((section) => normalizeSearchValue(t(section.translationKey)).startsWith(normalizedQuery));
+  }, [sectionSearch, t]);
+
   const findMatchingScheme = useMemo(() => {
     const activeColors = activeTheme.sankey.light.colors;
     const foundEntry = Object.entries(colorPalette).find(
@@ -83,6 +190,7 @@ const ThemeShell = () => {
   useEffect(() => {
     setSelectedSchemeName(findMatchingScheme);
   }, [findMatchingScheme]);
+
   const handleApplyTheme = (themeName: string) => {
     const appliedThemeColors: UtilTypes.DeepPartial<ThemeColors> = {
       flg: {
@@ -134,6 +242,7 @@ const ThemeShell = () => {
         light: { colors: colorPalette[themeName] }
       }
     };
+
     if (themeDispatch) {
       themeDispatch({
         type: 'apply',
@@ -142,6 +251,7 @@ const ThemeShell = () => {
       setSelectedSchemeName(themeName);
     }
   };
+
   const handleColorChange = (
     newColor: string,
     index: number,
@@ -161,6 +271,7 @@ const ThemeShell = () => {
       }, 200);
     }
   };
+
   const handleColorAdd = (visualization: string, theme: string) => {
     const updatedTheme = { ...activeTheme };
     // @ts-ignore
@@ -173,6 +284,7 @@ const ThemeShell = () => {
       setSelectedSchemeName(null);
     }
   };
+
   const handleColorDelete = (visualization: string, theme: string) => {
     const updatedTheme = { ...activeTheme };
     // @ts-ignore
@@ -185,235 +297,79 @@ const ThemeShell = () => {
       setSelectedSchemeName(null);
     }
   };
+
   const setShowDiagramHandler = (keyToSet?: keyof ShowDiagramState) => {
     setShowDiagram((prev) => {
-      // Create a new object with all keys set to false
       const newState = Object.fromEntries(
         Object.keys(prev).map((key) => [key, false])
       );
+
       if (keyToSet) {
-        // Set the specified key to true
         newState[keyToSet] = true;
       }
+
       return newState as unknown as ShowDiagramState;
     });
   };
+
+  const handleSectionSelect = (section: ThemeSectionConfig) => {
+    setActiveSection((previous) => {
+      const next = previous === section.id ? '' : section.id;
+      setShowDiagramHandler(next ? section.showDiagramKey : undefined);
+      return next;
+    });
+  };
+
   return (
     <div className="flex h-screen">
-      <ScrollArea className="fixed w-1/4 p-4 overflow-y-auto h-screen border-r-4">
-        <Accordion type="single" collapsible>
-          <AccordionItem value="item-1" onClick={() => setShowDiagramHandler()}>
-            <AccordionTrigger className="cursor-pointer">
-              Default Schemes
-            </AccordionTrigger>
-            <AccordionContent>
-              <DefaultThemesAccordion
-                colorPalette={colorPalette}
-                handleApplyTheme={handleApplyTheme}
-                selectedSchemeName={selectedSchemeName}
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem
-            value="item-2"
-            onClick={() => setShowDiagramHandler('sankey')}
-          >
-            <AccordionTrigger className="cursor-pointer">
-              Sankey Diagram
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="sankey"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem
-            value="item-3"
-            onClick={() => setShowDiagramHandler('calendar')}
-          >
-            <AccordionTrigger className="cursor-pointer">
-              Calendar
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="calendar"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem
-            value="item-4"
-            onClick={() => setShowDiagramHandler('flg')}
-          >
-            <AccordionTrigger className="cursor-pointer">
-              Forced-Layout-Graph
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="flg"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-5">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('heb')}
-            >
-              Hierarchical-Edge-Bundling
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="heb"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-6">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('wordCloud')}
-            >
-              Word-Cloud
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="wordcloud"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-7">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('lineChart')}
-            >
-              Line-Chart
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="lineChart"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-8">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('barChart')}
-            >
-              Bar-Chart
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="barChart"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-9">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('pieChart')}
-            >
-              Pie-Chart
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="pieChart"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-10">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('scatter')}
-            >
-              Scatter
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="scatter"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-11">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('treeMap')}
-            >
-              TreeMap
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="treeMap"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-12">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('sunburst')}
-            >
-              Sunburst
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="sunburst"
-              />
-            </AccordionContent>
-          </AccordionItem>
-          <AccordionItem value="item-13">
-            <AccordionTrigger
-              className="cursor-pointer"
-              onClick={() => setShowDiagramHandler('funnel')}
-            >
-              Funnel
-            </AccordionTrigger>
-            <AccordionContent>
-              <GenericThemesAccordion
-                handleColorChange={handleColorChange}
-                handleColorDelete={handleColorDelete}
-                handleColorAdd={handleColorAdd}
-                visualization="funnel"
-              />
-            </AccordionContent>
-          </AccordionItem>
+      <ScrollArea className="fixed h-screen w-1/4 overflow-y-auto border-r-4 p-4">
+        <div className="mb-3">
+          <Input
+            value={sectionSearch}
+            onChange={(event) => setSectionSearch(event.target.value)}
+            placeholder={t('theme.searchTypes')}
+            aria-label={t('theme.searchTypes')}
+            className="h-9"
+          />
+        </div>
+        <Accordion type="single" collapsible value={activeSection}>
+          {filteredSections.map((section) => (
+            <AccordionItem key={section.id} value={section.id}>
+              <AccordionTrigger
+                className="cursor-pointer"
+                onClick={() => handleSectionSelect(section)}
+              >
+                {t(section.translationKey)}
+              </AccordionTrigger>
+              <AccordionContent>
+                {section.visualization ? (
+                  <GenericThemesAccordion
+                    handleColorChange={handleColorChange}
+                    handleColorDelete={handleColorDelete}
+                    handleColorAdd={handleColorAdd}
+                    visualization={section.visualization}
+                  />
+                ) : (
+                  <DefaultThemesAccordion
+                    colorPalette={colorPalette}
+                    handleApplyTheme={handleApplyTheme}
+                    selectedSchemeName={selectedSchemeName}
+                  />
+                )}
+              </AccordionContent>
+            </AccordionItem>
+          ))}
         </Accordion>
+        {filteredSections.length === 0 && (
+          <p className="pt-3 text-sm text-muted-foreground">{t('theme.noMatchingTypes')}</p>
+        )}
       </ScrollArea>
       {showDiagram.sankey && (
         <div className="flex-grow p-4">
           <SankeyGraphShellView
             fullScreen={true}
             data={siteConfig.nodeLink}
-            legend={false}
+            legend={true}
             options={false}
             filter={false}
           />
@@ -424,7 +380,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <CalendarGraphShellView
               data={{ calendar: siteConfig.calendar }}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -437,7 +393,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <ForcedLayoutGraphShellView
               data={siteConfig.nodeLink}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -450,7 +406,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <WordCloudShellView
               data={{ words: siteConfig.words }}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -463,7 +419,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <HierarchicalEdgeBundlingShellView
               data={siteConfig.nodeLink}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -476,7 +432,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <AxisChartsShellView
               data={siteConfig.axisChart}
-              legend={false}
+              legend={true}
               options={false}
               type={'line'}
               filter={false}
@@ -490,7 +446,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <AxisChartsShellView
               data={siteConfig.axisChart}
-              legend={false}
+              legend={true}
               options={false}
               type={'bar'}
               filter={false}
@@ -504,7 +460,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <PieChartShellView
               data={siteConfig.pieChart}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -517,7 +473,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <FunnelShellView
               data={siteConfig.funnel}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -530,7 +486,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <ScatterShellView
               data={siteConfig.scatter as VisualizationTypes.ScatterData}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -543,7 +499,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <TreeMapShellView
               data={siteConfig.hierarchy as VisualizationTypes.HierarchyData}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}
@@ -556,7 +512,7 @@ const ThemeShell = () => {
           <Suspense fallback={<Fallback />}>
             <SunBurstShellView
               data={siteConfig.hierarchy as VisualizationTypes.HierarchyData}
-              legend={false}
+              legend={true}
               options={false}
               filter={false}
               fullScreen={true}

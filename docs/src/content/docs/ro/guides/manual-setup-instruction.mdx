@@ -1,21 +1,21 @@
 ---
 title: Configurare manuala Illustry
-description: manual setup
+description: setare manuală
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-## Prerequisites
+## Cerințe preliminare
 
-Before installing Illustry Frontend, ensure that you have the following prerequisites:
+Înainte de a instala Illustry Frontend, asigurați-vă că aveți următoarele cerințe preliminare:
 
-- Node version 18.17.0 or higher
+- Node versiunea 18.17.0 sau mai recentă
 - MongoDB
 
 ## Illustry backend
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### Local:
+Este necesar un fișier numit `.env` la rădăcina proiectului, care conține următoarele câmpuri:
 
 ```
 MONGO_URL=mongodb:/127.0.0.1:27017/illustry
@@ -24,7 +24,7 @@ MONGO_USER=<your_personal_mongo_user>
 MONGO_PASSWORD=<your_personal_mongo_password>
 ILLUSTRY_PORT=7000 
 ```
-Run the following commands: 
+Rulați următoarele comenzi:
 
 <Tabs>
 <TabItem label="npm">
@@ -50,9 +50,9 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
+#### Docher:
 
-Run the following commands:
+Rulați următoarele comenzi:
 ```shell
 docker build -t illustrybackend .
 docker run -p 7000:7000 
@@ -61,13 +61,13 @@ docker run -p 7000:7000
 ## Illustry frontend
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### Local:
+Este necesar un fișier numit `.env` la rădăcina proiectului, care conține următoarele câmpuri:
 
 ```
 NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
 ```
-Run the following commands: 
+Rulați următoarele comenzi:
 
 <Tabs>
 <TabItem label="npm">
@@ -93,10 +93,10 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
-**Before running, create the backend image first!**
+#### Docher:
+**Înainte de a rula, creați mai întâi imaginea de backend!**
 
-Run the following commands:
+Rulați următoarele comenzi:
 ```shell
 docker build -t illustryfrontend .
 docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend

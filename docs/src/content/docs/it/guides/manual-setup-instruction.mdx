@@ -1,0 +1,103 @@
+---
+title: Come impostare manualmente Illustry
+description: configurazione manuale
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Prerequisiti
+
+Prima di installare Illustry Frontend, assicurati di disporre dei seguenti prerequisiti:
+
+- Versione del nodo 18.17.0 o successiva
+- MongoDB
+
+## Illustry back-end
+
+
+#### A livello locale:
+È necessario un file denominato `.env` alla radice del progetto contenente i seguenti campi:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+Esegui i seguenti comandi:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### Finestra mobile:
+
+Esegui i seguenti comandi:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## Illustry frontend
+
+
+#### A livello locale:
+È necessario un file denominato `.env` alla radice del progetto contenente i seguenti campi:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+Esegui i seguenti comandi:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### Finestra mobile:
+**Prima di eseguire, crea prima l'immagine backend!**
+
+Esegui i seguenti comandi:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

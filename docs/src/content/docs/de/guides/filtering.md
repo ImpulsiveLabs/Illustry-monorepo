@@ -1,71 +1,71 @@
 ---
-title: Filterung
+title: Filtern
 description: Filter
 ---
 
-Our visualization tool introduces a parsed syntax language, a linguistic magic wand for data crafting. 🚀
+Unser Visualisierungstool führt eine analysierte Syntaxsprache ein, einen sprachlichen Zauberstab für die Datenerstellung. 🚀
 
-Illustry is providing some common constructions and some specific words in order for the syntax to be correctly parsed:
+Illustry stellt einige allgemeine Konstruktionen und einige spezifische Wörter bereit, damit die Syntax korrekt analysiert werden kann:
 
-### Constructions
+### Konstruktionen
 - &&
-- '>' (greater than)
-- '<' (less than)
-- '=' (equal)
-- '>=' (greater than or equal)
-- '<=' (less than or equal)
-- '!=' (not equal)
+- '>' (größer als)
+- '<' (kleiner als)
+- '=' (gleich)
+- '>=' (größer oder gleich)
+- '<=' (kleiner oder gleich)
+- '!=' (ungleich)
 
-## Bar Chart / Line Chart
+## Balkendiagramm / Liniendiagramm
 
-### Accepted Words
-- headers
-- values
+### Akzeptierte Wörter
+- Kopfzeilen
+- Werte
 
-## Calendar
+## Kalender
 
-### Accepted Words
-- categories
-- dates
+### Akzeptierte Wörter
+- Kategorien
+- Termine
 
-## Funnel / Pie Chart
+## Trichter-/Kreisdiagramm
 
-### Accepted Words
-- values
+### Akzeptierte Wörter
+- Werte
 
-## Treemap / Sunburst
+## Baumkarte / Sunburst
 
-### Accepted Words
-- values
-- categories
+### Akzeptierte Wörter
+- Werte
+- Kategorien
 
-## Hierarchical-Edge-Bundling / Forced-Layout-Graph / Sankey Diagram
+## Hierarchical-Edge-Bundling / Forced-Layout-Graph / Sankey-Diagramm
 
-### Accepted Words
-- values
-- categories
-- targets
-- names
+### Akzeptierte Wörter
+- Werte
+- Kategorien
+- Ziele
+- Namen
 
-## Scatter
+## Streuen
 
-### Accepted Words
-- categories
-- xCoord
-- yCoord
+### Akzeptierte Wörter
+- Kategorien
+- xKoord
+- yKoord
 
-## Timeline
+## Zeitleiste
 
-### Accepted Words
-- types
-- dates
-- authors
+### Akzeptierte Wörter
+- Typen
+- Termine
+- Autoren
 
-## Wordcloud
+## Wortwolke
 
-### Accepted Words
-- values
+### Akzeptierte Wörter
+- Werte
 
-## Example filtering
+## Beispielfilterung
 
 ![Example filtering](/Illustry-monorepo/filtering.gif)

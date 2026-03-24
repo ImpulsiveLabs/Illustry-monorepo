@@ -1,71 +1,71 @@
 ---
-title: 筛选
-description: Filter
+title: 过滤
+description: 筛选
 ---
 
-Our visualization tool introduces a parsed syntax language, a linguistic magic wand for data crafting. 🚀
+我们的可视化工具引入了解析语法语言，这是用于数据制作的语言魔杖。 🚀
 
-Illustry is providing some common constructions and some specific words in order for the syntax to be correctly parsed:
+Illustry 提供了一些常见的结构和一些特定的单词，以便正确解析语法：
 
-### Constructions
+### 建筑
 - &&
-- '>' (greater than)
-- '<' (less than)
-- '=' (equal)
-- '>=' (greater than or equal)
-- '<=' (less than or equal)
-- '!=' (not equal)
+- '>'（大于）
+- '<'（小于）
+- '='（等于）
+- '>='（大于或等于）
+- '<='（小于或等于）
+- '!='（不等于）
 
-## Bar Chart / Line Chart
+## 条形图/折线图
 
-### Accepted Words
-- headers
-- values
+### 接受的词
+- 标头
+- 价值观
 
-## Calendar
+## 日历
 
-### Accepted Words
-- categories
-- dates
+### 接受的词
+- 类别
+- 日期
 
-## Funnel / Pie Chart
+## 漏斗图/饼图
 
-### Accepted Words
-- values
+### 接受的词
+- 价值观
 
-## Treemap / Sunburst
+## 树状图/旭日
 
-### Accepted Words
-- values
-- categories
+### 接受的词
+- 价值观
+- 类别
 
-## Hierarchical-Edge-Bundling / Forced-Layout-Graph / Sankey Diagram
+## 分层边缘捆绑/强制布局图/桑基图
 
-### Accepted Words
-- values
-- categories
-- targets
-- names
+### 接受的词
+- 价值观
+- 类别
+- 目标
+- 名字
 
-## Scatter
+## 分散
 
-### Accepted Words
-- categories
-- xCoord
-- yCoord
+### 接受的词
+- 类别
+- x坐标
+- y坐标
 
-## Timeline
+## 时间轴
 
-### Accepted Words
-- types
-- dates
-- authors
+### 接受的词
+- 类型
+- 日期
+- 作者
 
-## Wordcloud
+## 词云
 
-### Accepted Words
-- values
+### 接受的词
+- 价值观
 
-## Example filtering
+## 过滤示例
 
 ![Example filtering](/Illustry-monorepo/filtering.gif)

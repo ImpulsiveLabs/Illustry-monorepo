@@ -20,6 +20,7 @@ import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
 import Icons from '@/components/icons';
 import { createDashboard } from '@/app/_actions/dashboard';
+import { useLocale } from '@/components/providers/locale-provider';
 import MultiSelect from '../ui/multi-select';
 
 type AddDashboardFormProps = {
@@ -27,6 +28,7 @@ type AddDashboardFormProps = {
 }
 
 const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
+  const { t } = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const form = useForm<DashboardTypes.DashboardCreate>({
@@ -50,7 +52,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
       try {
         await createDashboard({ ...finalData });
         form.reset();
-        toast.success('Dashboard added successfully.');
+        toast.success(t('toast.dashboardAdded'));
         router.push('/dashboards');
       } catch (err) {
         catchError(err);
@@ -60,7 +62,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Add a new Dashboard</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('form.dashboard.addTitle')}</h2>
       <Form {...form}>
         <form
           className="grid w-full max-w-xl gap-5"
@@ -71,9 +73,9 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>{t('common.name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Type Dashboard name here." {...field} />
+                  <Input placeholder={t('form.dashboard.namePlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -84,10 +86,10 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('common.description')}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Type Dashboard description here."
+                    placeholder={t('form.dashboard.descriptionPlaceholder')}
                     {...field}
                   />
                 </FormControl>
@@ -100,7 +102,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
             name="visualizations"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Visualizations</FormLabel>
+                <FormLabel>{t('form.dashboard.visualizations')}</FormLabel>
                 <FormControl>
                   <MultiSelect
                     options={visualizationOptions}
@@ -119,7 +121,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
                       field.onChange(formattedVisualizations);
                       form.setValue('visualizations', formattedVisualizations);
                     }}
-                    placeholder="Select visualizations"
+                    placeholder={t('form.dashboard.selectVisualizations')}
                     maxCount={5}
                   />
                 </FormControl>
@@ -134,8 +136,8 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
                 aria-hidden="true"
               />
             )}
-            Add Dashboard
-            <span className="sr-only">Add Dashboard</span>
+            {t('form.dashboard.addAction')}
+            <span className="sr-only">{t('form.dashboard.addAction')}</span>
           </Button>
         </form>
       </Form>

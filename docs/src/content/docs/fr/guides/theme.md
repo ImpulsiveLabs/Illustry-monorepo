@@ -1,29 +1,29 @@
 ---
 title: Appliquer des themes
-description: Theme
+description: Thème
 ---
 
-Illustry provides a powerful theme customization feature that allows users to tailor the look and feel of their visualizations. Whether you prefer a dark or light mode, you have the flexibility to choose from predefined themes or fine-tune the colors for each type of visualization.
+Illustry fournit une puissante fonctionnalité de personnalisation de thème qui permet aux utilisateurs d'adapter l'apparence de leurs visualisations. Que vous préfériez un mode sombre ou clair, vous avez la possibilité de choisir parmi des thèmes prédéfinis ou d'affiner les couleurs pour chaque type de visualisation.
 
-## Predefined Themes
+## Thèmes prédéfinis
 
-Illustry comes with a set of predefined themes that you can easily apply to your workspace. These themes are crafted to ensure a harmonious and visually appealing experience. You can switch between themes effortlessly to find the one that suits your preferences.
+Illustry est livré avec un ensemble de thèmes prédéfinis que vous pouvez facilement appliquer à votre espace de travail. Ces thèmes sont conçus pour garantir une expérience harmonieuse et visuellement attrayante. Vous pouvez basculer facilement entre les thèmes pour trouver celui qui correspond à vos préférences.
 
-## Custom Theme Editing
+## Édition de thème personnalisé
 
-For users who want more control over the aesthetics of their visualizations, Illustry offers a custom theme editing feature. This allows you to choose specific colors for different elements in each type of visualization. Whether it's adjusting background colors, chart hues, or text shades, you have the creative freedom to design your workspace to perfection.
+Pour les utilisateurs qui souhaitent plus de contrôle sur l'esthétique de leurs visualisations, Illustry propose une fonctionnalité d'édition de thème personnalisée. Cela vous permet de choisir des couleurs spécifiques pour différents éléments dans chaque type de visualisation. Qu'il s'agisse d'ajuster les couleurs d'arrière-plan, les teintes des graphiques ou les nuances du texte, vous disposez de la liberté créative de concevoir votre espace de travail à la perfection.
 
-## Dark and Light Modes
+## Modes sombre et clair
 
-Illustry supports both dark and light modes, catering to different preferences and ensuring optimal visibility in various environments. You can seamlessly switch between modes to adapt to your working conditions and enhance the overall user experience.
+Illustry prend en charge les modes sombre et clair, répondant à différentes préférences et garantissant une visibilité optimale dans divers environnements. Vous pouvez basculer en toute transparence entre les modes pour vous adapter à vos conditions de travail et améliorer l'expérience utilisateur globale.
 
-## How to Access the Theme Feature
+## Comment accéder à la fonctionnalité Thème
 
-1. Navigate to the "Theme" section in the Illustry dashboard.
-2. Choose a predefined theme or enter the custom theme editor.
-3. Select the type of visualization you want to theme.
-4. Adjust colors and settings according to your preferences.
+1. Accédez à la section « Thème » dans le tableau de bord Illustry.
+2. Choisissez un thème prédéfini ou entrez dans l'éditeur de thème personnalisé.
+3. Sélectionnez le type de visualisation que vous souhaitez thématiser.
+4. Ajustez les couleurs et les paramètres selon vos préférences.
 
-## Practical example
+## Exemple pratique
 
 ![Theme](/Illustry-monorepo/theme.gif)

@@ -1,14 +1,14 @@
 ---
 title: Cronologie
-description: Timeline doc
+description: Cronologie doc
 ---
 
-The **Timeline** is a versatile visualization that displays events or activities chronologically over time. It offers a comprehensive view of historical or future occurrences, providing insights into patterns, durations, and relationships.
+**Cronologia** este o vizualizare versatilă care afișează evenimente sau activități cronologic de-a lungul timpului. Oferă o vedere cuprinzătoare a evenimentelor istorice sau viitoare, oferind perspective asupra tiparelor, duratelor și relațiilor.
 
 
-## Timeline Data Structure
+## Structura de date cronologică
 
-To represent a Timeline Data, you can use the following `TimelineData` interface:
+Pentru a reprezenta date cronologice, puteți utiliza următoarea interfață `TimelineData`:
 
 ```typescript
 {{TimelineEventTag}}
@@ -17,41 +17,41 @@ To represent a Timeline Data, you can use the following `TimelineData` interface
 
 {{TimelineData}}
 ```
-### Key Attributes
+### Atribute cheie
 
 #### TimelineEventTag
-- **name:** The name of the tag associated with a Timeline event.
+- **nume:** Numele etichetei asociate unui eveniment Timeline.
 
 #### TimelineEvent
-- **summary:** A brief summary or title of the event.
-- **date:** The date when the event occurred.
-- **type:** The type or category of the event.
-- **author:** The author or creator of the event.
-- **tags:** An array of tags associated with the event.
-- **description:** A detailed description of the event.
+- **rezumat:** Un scurt rezumat sau titlul evenimentului.
+- **data:** Data la care a avut loc evenimentul.
+- **tip:** Tipul sau categoria evenimentului.
+- **autor:** Autorul sau creatorul evenimentului.
+- **etichete:** o serie de etichete asociate evenimentului.
+- **descriere:** O descriere detaliată a evenimentului.
 
 #### TimelineData
-- **[date]:** The date key representing a specific date range.
-  - **summary:**
-    - **title:** A summary title for the date range.
-  - **events:** An array of `TimelineEvent` objects associated with that date.
+- **[data]:** Tasta de dată care reprezintă un anumit interval de date.
+  - **rezumat:**
+    - **titlu:** Un titlu rezumativ pentru intervalul de date.
+  - **evenimente:** o matrice de `TimelineEvent` obiecte asociate cu data respectivă.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Chronological Understanding:** Timelines offer a chronological representation of events, providing a clear understanding of the sequence in which they occurred.
+#### Pro
+- **Înțelegerea cronologică:** Cronologia oferă o reprezentare cronologică a evenimentelor, oferind o înțelegere clară a secvenței în care au avut loc.
 
-- **Event Categorization:** The ability to categorize events using tags allows for organized and efficient grouping, aiding in the analysis of specific types of events.
+- **Categorizarea evenimentelor:** Abilitatea de a clasifica evenimentele folosind etichete permite o grupare organizată și eficientă, ajutând la analiza unor tipuri specifice de evenimente.
 
-- **Flexible Visualization:** Timelines are flexible and can adapt to various types of data, making them suitable for representing a wide range of events and activities.
+- **Vizualizare flexibilă:** Cronologia este flexibilă și se poate adapta la diferite tipuri de date, făcându-le potrivite pentru a reprezenta o gamă largă de evenimente și activități.
 
-#### Cons
-- **Potential Crowding:** In timelines with a high density of events, there is a risk of visual clutter and potential difficulty in distinguishing individual events.
+#### Contra
+- **Aglomerare potențială:** În cronologie cu o densitate mare de evenimente, există riscul dezordinei vizuale și dificultăți potențiale în distingerea evenimentelor individuale.
 
-- **Limited for Certain Data Types:** While timelines are versatile, they may not be the most effective for representing certain complex relationships or data structures.
+- **Limitat pentru anumite tipuri de date:** Deși cronologia este versatile, este posibil să nu fie cele mai eficiente pentru a reprezenta anumite relații complexe sau structuri de date.
 
-- **Subjectivity in Event Importance:** The importance of events may be subjective, and their representation on a timeline might not capture the nuanced significance perceived by individuals..
+- **Subiectivitate în importanța evenimentului:** Importanța evenimentelor poate fi subiectivă, iar reprezentarea lor pe o linie temporală ar putea să nu capteze semnificația nuanțată percepută de indivizi.
 
-## Timeline Example
+## Exemplu de cronologie
 
 ![Timeline Example](/Illustry-monorepo/timeline.gif)

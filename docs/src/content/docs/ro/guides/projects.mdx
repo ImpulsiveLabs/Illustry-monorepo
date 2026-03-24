@@ -1,34 +1,34 @@
 ---
 title: Proiecte
-description: Projects doc
+description: Proiecte doc
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Project as a Workspace
+# Proiect ca spațiu de lucru
 
-In this system, a project serves as the fundamental building block, acting as a dedicated workspace for your endeavors. Each project encapsulates the essential elements of your work, providing a structured environment for data visualization and analysis.
+În acest sistem, un proiect servește ca element fundamental, acționând ca un spațiu de lucru dedicat pentru eforturile dvs. Fiecare proiect încapsulează elementele esențiale ale muncii tale, oferind un mediu structurat pentru vizualizarea și analiza datelor.
 
-## Project Data Structure
+## Structura datelor proiectului
 
-To represent a project in your system, you can use the following `ProjectData` interface:
+Pentru a reprezenta un proiect în sistemul dvs., puteți utiliza următoarea interfață `ProjectData`:
 
 ```typescript
 {{ProjectData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** A unique identifier for the project.
-- **description:** An optional field to provide additional context or details about the project.
-- **createdAt:** The timestamp indicating when the project was initially created.
-- **updatedAt:** The timestamp indicating the last modification of the project.
-- **isActive:** A boolean flag specifying whether the project is currently active.
+- **nume:** Un identificator unic pentru proiect.
+- **descriere:** Un câmp opțional pentru a furniza context suplimentar sau detalii despre proiect.
+- **createdAt:** Timpul care indică momentul în care proiectul a fost creat inițial.
+- **updatedAt:** Timpul care indică ultima modificare a proiectului.
+- **isActive:** Un semnal boolean care specifică dacă proiectul este activ în prezent.
 
-## Project Activation
+## Activarea proiectului
 
-It's important to note that only one project can be active at a given time. This ensures a focused and organized workspace, allowing users to concentrate on a specific project and its associated visualizations.
+Este important să rețineți că un singur proiect poate fi activ la un moment dat. Acest lucru asigură un spațiu de lucru concentrat și organizat, permițând utilizatorilor să se concentreze asupra unui anumit proiect și vizualizărilor asociate acestuia.
 
-By structuring your work in this manner, you create a cohesive and manageable environment for your projects, facilitating efficient data analysis and visualization within a dedicated workspace.
+Structurând munca în acest mod, creați un mediu coerent și gestionabil pentru proiectele dvs., facilitând analiza și vizualizarea eficientă a datelor într-un spațiu de lucru dedicat.
 
-## Practical example
+## Exemplu practic
 
 ![Project in Action](/Illustry-monorepo/projects.gif)

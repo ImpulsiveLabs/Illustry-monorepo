@@ -1,16 +1,16 @@
 ---
 title: Tableaux de bord
-description: Dashboards doc
+description: Documentation sur les tableaux de bord
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-# Dashboards as Visual Workspaces
+# Tableaux de bord comme espaces de travail visuels
 
-Dashboards act as versatile visual workspaces where you can organize and manage multiple visualizations related to your projects. They provide a dynamic and interactive environment for exploring, analyzing, and presenting data effectively.
+Les tableaux de bord agissent comme des espaces de travail visuels polyvalents dans lesquels vous pouvez organiser et gérer plusieurs visualisations liées à vos projets. Ils offrent un environnement dynamique et interactif pour explorer, analyser et présenter efficacement les données.
 
-## Dashboard Data Structure
+## Structure des données du tableau de bord
 
-To represent a dashboard in your system, you can use the following `DashboardData` interface:
+Pour représenter un tableau de bord dans votre système, vous pouvez utiliser l'interface `DashboardData` suivante :
 
 ```typescript
 {{Layout}}
@@ -20,31 +20,31 @@ To represent a dashboard in your system, you can use the following `DashboardDat
 {{DashboardType}}
 
 ```
-### Key Attributes
+### Attributs clés
 
-- **name:** A unique identifier for the dashboard.
-- **projectName:** The name of the associated project for contextual linking.
-- **description:** An optional field providing additional context or details about the dashboard.
-- **createdAt:** The timestamp indicating when the dashboard was created.
-- **updatedAt:** The timestamp showing the last modification of the dashboard.
-- **visualizations:** A collection of visualizations included in the dashboard, either as key-value pairs or an array of visualization types.
-- **layouts:** A list of layout configurations that determine the position and size of visualizations within the dashboard. Each layout includes:
-  - **i:** A unique identifier for the visualization.
-  - **x, y:** Coordinates representing the visualization's position on the grid.
-  - **w, h:** The width and height of the visualization.
-  - **minW, minH:** Minimum width and height constraints.
+- **name :** Un identifiant unique pour le tableau de bord.
+- **projectName :** Nom du projet associé pour la liaison contextuelle.
+- **description :** Un champ facultatif fournissant un contexte ou des détails supplémentaires sur le tableau de bord.
+- **createdAt :** L'horodatage indiquant la date de création du tableau de bord.
+- **updatedAt :** L'horodatage affichant la dernière modification du tableau de bord.
+- **visualisations :** une collection de visualisations incluses dans le tableau de bord, soit sous forme de paires clé-valeur, soit sous forme d'un tableau de types de visualisation.
+- **mises en page :** liste de configurations de mise en page qui déterminent la position et la taille des visualisations dans le tableau de bord. Chaque mise en page comprend :
+  - **i :** Un identifiant unique pour la visualisation.
+  - **x, y :** Coordonnées représentant la position de la visualisation sur la grille.
+  - **w, h :** La largeur et la hauteur de la visualisation.
+  - **minW, minH :** Contraintes minimales de largeur et de hauteur.
 
-### Dashboard Features
+### Fonctionnalités du tableau de bord
 
-Dashboards enable users to:
+Les tableaux de bord permettent aux utilisateurs de :
 
-- Drag and drop visualizations to rearrange them in the workspace.
-- Resize visualizations to fit specific data needs.
-- Maintain multiple layouts to cater to different use cases or audiences.
+- Faites glisser et déposez les visualisations pour les réorganiser dans l'espace de travail.
+- Redimensionnez les visualisations pour répondre à des besoins de données spécifiques.
+- Conservez plusieurs mises en page pour répondre à différents cas d'utilisation ou publics.
 
-By offering such flexibility, dashboards empower users to customize their visual workspaces according to the project's requirements.
+En offrant une telle flexibilité, les tableaux de bord permettent aux utilisateurs de personnaliser leurs espaces de travail visuels en fonction des exigences du projet.
 
-### Practical Example
+### Exemple pratique
 
 ![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
 

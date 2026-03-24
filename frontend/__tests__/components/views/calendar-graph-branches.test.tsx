@@ -1,11 +1,10 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render } from '@testing-library/react';
 
-const { computeCalendarSpy, computeColorsSpy, computeLegendColorsSpy, computePropertiesSpy, echartsPropsSpy } = vi.hoisted(() => ({
+const { computeCalendarSpy, computeColorsSpy, computePropertiesSpy, echartsPropsSpy } = vi.hoisted(() => ({
   computeCalendarSpy: vi.fn(),
   computeColorsSpy: vi.fn(),
-  computeLegendColorsSpy: vi.fn(),
   computePropertiesSpy: vi.fn(),
   echartsPropsSpy: vi.fn()
 }));
@@ -22,12 +21,7 @@ vi.mock('@/components/providers/theme-provider', () => ({
 vi.mock('@/lib/visualizations/calendar/helper', () => ({
   computeCalendar: (...args: any[]) => computeCalendarSpy(...args),
   computeColors: (...args: any[]) => computeColorsSpy(...args),
-  computeLegendColors: (...args: any[]) => computeLegendColorsSpy(...args),
   computePropertiesForToolTip: (...args: any[]) => computePropertiesSpy(...args)
-}));
-
-vi.mock('@/components/ui/legend', () => ({
-  default: ({ legendData }: any) => <div data-testid="legend">{JSON.stringify(legendData)}</div>
 }));
 
 vi.mock('@/components/views/generic/echarts', () => ({
@@ -43,12 +37,10 @@ describe('CalendarGraphView branches', () => {
   beforeEach(() => {
     computeCalendarSpy.mockReset();
     computeColorsSpy.mockReset();
-    computeLegendColorsSpy.mockReset();
     computePropertiesSpy.mockReset();
     echartsPropsSpy.mockReset();
 
     computeColorsSpy.mockReturnValue(['#aaa']);
-    computeLegendColorsSpy.mockReturnValue([{ label: 'x', color: '#aaa' }]);
     computePropertiesSpy.mockImplementation((properties: any, value: number) => `prop:${JSON.stringify(properties)}:${value}`);
   });
 
@@ -74,11 +66,11 @@ describe('CalendarGraphView branches', () => {
       />
     );
 
-    expect(screen.getByTestId('legend')).toBeInTheDocument();
-
     const props = echartsPropsSpy.mock.calls.at(-1)?.[0];
     expect(props.style).toEqual({ height: '560px' });
     expect(props.option.visualMap.textStyle.color).toBe('#888');
+    expect(props.option.legend.show).toBe(true);
+    expect(props.option.visualMap.top).toBeGreaterThan(props.option.legend.top);
 
     const formatter = props.option.tooltip.formatter as (params: any) => string;
     expect(formatter({ data: ['2024-01-01'] })).toContain('prop:{"foo":"bar"}:1');
@@ -105,10 +97,11 @@ describe('CalendarGraphView branches', () => {
       />
     );
 
-    expect(screen.queryByTestId('legend')).not.toBeInTheDocument();
-
     const props = echartsPropsSpy.mock.calls.at(-1)?.[0];
     expect(props.style).toEqual({ height: '100%' });
     expect(props.option.visualMap.textStyle.color).toBe('#333');
+    expect(props.option.legend.show).toBe(false);
+    expect(props.option.legend.data).toEqual(['work']);
+    expect(props.option.series.some((series: { name: string }) => series.name === 'work')).toBe(true);
   });
 });

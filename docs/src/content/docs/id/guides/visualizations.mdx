@@ -1,0 +1,85 @@
+---
+title: Visualisasi
+description: Dokumen visualisasi
+---
+
+# Visualisasi di Ruang Kerja Anda
+
+Saat bekerja dengan visualisasi, sistem mendukung struktur data yang fleksibel melalui antarmuka `VisualizationData`:
+
+## Struktur Data Visualisasi
+
+Untuk mewakili visualisasi di sistem Anda, Anda dapat menggunakan antarmuka `VisualizationData` berikut:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Atribut Utama
+- **projectName**: Proyek aktif.
+- **type:** String atau array string yang menyediakan tipe visualisasi (array hanya berfungsi untuk JSON).
+- **nama:** Pengenal unik untuk visualisasi.
+- **deskripsi:** Bidang opsional untuk memberikan konteks atau detail tambahan tentang visualisasi.
+- **createdAt:** Stempel waktu yang menunjukkan kapan visualisasi pertama kali dibuat.
+- **updatedAt:** Stempel waktu yang menunjukkan modifikasi visualisasi terakhir.
+- **isActive:** Tanda boolean yang menentukan apakah proyek sedang aktif.
+- **tags:** Bidang opsional yang digunakan untuk mengkategorikan visualisasi.
+- **data:** Data yang akan disajikan visualisasi
+
+## Jenis Visualisasi
+
+Sistem mendukung jenis visualisasi berikut:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Contoh praktis
+
+Saat menggunakan format file seperti Excel, XML, JSON, dan CSV, sistem memastikan kompatibilitas dengan detail lengkap dan sebagian dalam file.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Contoh 1**: format JSON dengan semua detailnya
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Contoh 2**: format JSON dengan detail sebagian, lengkapi formulir dengan detail yang hilang
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Contoh 3**: Format Excel dengan semua detailnya, lengkapi pemetaan bidang
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Contoh 4**: Format Excel dengan detail sebagian, lengkapi formulir dengan detail yang hilang
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Contoh 5**: format CSV dengan semua detailnya, selesaikan pemetaan bidang
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Contoh 6**: format CSV dengan detail sebagian, lengkapi formulir dengan detail yang hilang
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Contoh 7**: format XML dengan semua detailnya
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Contoh 8**: format XML dengan detail sebagian, lengkapi formulir dengan detail yang hilang
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

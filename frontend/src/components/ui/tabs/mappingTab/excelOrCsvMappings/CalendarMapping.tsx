@@ -1,4 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from '@/components/providers/locale-provider';
 import Input from '@/components/ui/input';
 import { Inputs } from '@/components/form/types';
 
@@ -8,13 +9,15 @@ type ExcelOrCsvCalendarMappingProps = {
 
 const ExcelOrCsvCalendarMapping = ({
   form
-}: ExcelOrCsvCalendarMappingProps) => (
+}: ExcelOrCsvCalendarMappingProps) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Dates:</div>
+        <div className="w-20">{t('mapping.dates')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Dates"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.dates') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -26,10 +29,10 @@ const ExcelOrCsvCalendarMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Values:</div>
+        <div className="w-20">{t('mapping.values')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Values"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.values') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -41,10 +44,10 @@ const ExcelOrCsvCalendarMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Categories:</div>
+        <div className="w-20">{t('mapping.categories')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Categories"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.categories') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -56,10 +59,10 @@ const ExcelOrCsvCalendarMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Properties:</div>
+        <div className="w-20">{t('mapping.properties')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Properties"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.properties') || ''}
             onChange={(e) => {
               const { value } = e.target;
@@ -69,6 +72,7 @@ const ExcelOrCsvCalendarMapping = ({
         </div>
       </div>
     </>
-);
+  );
+};
 
 export default ExcelOrCsvCalendarMapping;

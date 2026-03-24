@@ -1,13 +1,13 @@
 ---
 title: 力导向图
-description: Forced Layout Graph doc
+description: 强制布局图文档
 ---
 
-The **Forced Layout Graph** visualization is a dynamic and engaging representation of interconnected data. It uses a force-directed layout algorithm to visually convey relationships between entities within a dataset.
+**强制布局图**可视化是互连数据的动态且引人入胜的表示。它使用力导向布局算法来直观地传达数据集中实体之间的关系。
 
-## Forced Layout Graph Data Structure
+## 强制布局图数据结构
 
-To represent a Forced Layout Graph, you can use the following `NodeLinkData` interface:
+要表示强制布局图，您可以使用以下 `NodeLinkData` 接口：
 
 ```typescript
 {{Node}}
@@ -17,26 +17,26 @@ To represent a Forced Layout Graph, you can use the following `NodeLinkData` int
 {{NodeLinkData}}
 
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **名称：** 节点的唯一标识符。
+- **类别：** 将节点分类到特定组或集群中。
+- **source:** 标识链接的源节点。
+- **target:** 标识链接的目标节点。
+- **值：** 表示与链接关联的数值，表明节点的连接强度。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Relationship Visualization:** Clearly represents relationships between entities through connected nodes and links.
+#### 优点
+- **关系可视化：**通过连接的节点和链接清晰地表示实体之间的关系。
 
-- **Dynamic Layout:** Utilizes a force-directed layout for an organic and visually appealing representation.
+- **动态布局：** 利用力导向布局实现有机且具有视觉吸引力的表示。
 
-#### Cons
-- **Complexity with Dense Graphs:** In densely interconnected graphs, visual clutter may affect readability.
+#### 缺点
+- **密集图的复杂性：**在密集互连的图中，视觉混乱可能会影响可读性。
 
-- **Limited to Network Data:** Most effective for visualizing network or relationship-based data; may not be suitable for all types of datasets.
+- **仅限于网络数据：**对于可视化网络或基于关系的数据最有效；可能并不适合所有类型的数据集。
 
-## Forced Layout Graph Example
+## 强制布局图示例
 
 ![Forced Layout Graph Example](/Illustry-monorepo/forced-layout-graph.gif)

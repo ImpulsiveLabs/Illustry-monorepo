@@ -20,9 +20,11 @@ import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
 import Icons from '@/components/icons';
 import { createProject } from '@/app/_actions/project';
+import { useLocale } from '@/components/providers/locale-provider';
 import Checkbox from '../ui/checkbox';
 
 const AddProjectForm = () => {
+  const { t } = useLocale();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
@@ -40,7 +42,7 @@ const AddProjectForm = () => {
       try {
         await createProject({ ...data });
 
-        toast.success('Project added successfully.');
+        toast.success(t('toast.projectAdded'));
         router.push('/projects');
         form.reset();
 
@@ -52,7 +54,7 @@ const AddProjectForm = () => {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold mb-4">Add a new Project</h2>
+      <h2 className="text-2xl font-bold mb-4">{t('form.project.addTitle')}</h2>
       <Form {...form}>
         <form
           className="grid w-full max-w-xl gap-5"
@@ -64,9 +66,9 @@ const AddProjectForm = () => {
             name="name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>{t('common.name')}</FormLabel>
                 <FormControl>
-                  <Input placeholder="Type project name here." {...field} />
+                  <Input placeholder={t('form.project.namePlaceholder')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -77,10 +79,10 @@ const AddProjectForm = () => {
             name="description"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Description</FormLabel>
+                <FormLabel>{t('common.description')}</FormLabel>
                 <FormControl>
                   <Textarea
-                    placeholder="Type project description here."
+                    placeholder={t('form.project.descriptionPlaceholder')}
                     {...field}
                   />
                 </FormControl>
@@ -100,7 +102,7 @@ const AddProjectForm = () => {
                   />
                 </FormControl>
                 <FormMessage />
-                <FormLabel>Make this project active</FormLabel>
+                <FormLabel>{t('form.project.makeActive')}</FormLabel>
               </FormItem>
             )}
           />
@@ -111,8 +113,8 @@ const AddProjectForm = () => {
                 aria-hidden="true"
               />
             )}
-            Add Project
-            <span className="sr-only">Add Project</span>
+            {t('form.project.addAction')}
+            <span className="sr-only">{t('form.project.addAction')}</span>
           </Button>
         </form>
       </Form>

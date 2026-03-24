@@ -2,6 +2,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import React from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '@/lib/utils';
+import { useLocale } from '@/components/providers/locale-provider';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -61,7 +62,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       onValueChange,
       variant,
       defaultValue = [],
-      placeholder = 'Select options',
+      placeholder,
       animation = 0,
       maxCount = 3,
       modalPopover = false,
@@ -70,6 +71,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     },
     ref
   ) => {
+    const { t } = useLocale();
     const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
     const [isAnimating, setIsAnimating] = React.useState(false);
@@ -192,7 +194,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
               </div>
             ) : (
               <div className="flex items-center justify-between w-full mx-auto">
-                <span className="text-sm text-muted-foreground mx-3">{placeholder}</span>
+                <span className="text-sm text-muted-foreground mx-3">{placeholder || t('multiSelect.selectOptions')}</span>
                 <Icons.chevronDown className="h-4 cursor-pointer text-muted-foreground mx-2" />
               </div>
             )}
@@ -204,9 +206,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
           onEscapeKeyDown={() => setIsPopoverOpen(false)}
         >
           <Command>
-            <CommandInput placeholder="Search..." onKeyDown={handleInputKeyDown} />
+            <CommandInput placeholder={t('multiSelect.search')} onKeyDown={handleInputKeyDown} />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
+              <CommandEmpty>{t('table.noResults')}</CommandEmpty>
               <CommandGroup>
                 <Virtuoso
                   style={{ height: '300px' }}
@@ -225,7 +227,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                           >
                             <Icons.checkIcon className="h-4 w-4" />
                           </div>
-                          <span>(Select All)</span>
+                          <span>({t('multiSelect.selectAll')})</span>
                         </CommandItem>
                       );
                     }
@@ -259,7 +261,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                   {selectedValues.length > 0 && (
                     <>
                       <CommandItem onSelect={handleClear} className="flex-1 justify-center cursor-pointer">
-                        Clear
+                        {t('table.clear')}
                       </CommandItem>
                       <div className="flex min-h-6 h-full bg-border w-px" />
                     </>
@@ -268,7 +270,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                     onSelect={() => setIsPopoverOpen(false)}
                     className="flex-1 justify-center cursor-pointer max-w-full"
                   >
-                    Close
+                    {t('table.close')}
                   </CommandItem>
                 </div>
               </CommandGroup>

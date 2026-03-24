@@ -13,6 +13,7 @@ import {
   navigationMenuTriggerStyle
 } from '@/components/ui/navigation-menu';
 import Icons from '@/components/icons';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import ThemeToggle from './theme-toggle';
 import { useActiveProject } from '../providers/active-project-provider';
 import { useLocale } from '../providers/locale-provider';
@@ -58,16 +59,18 @@ const MainNav = ({ items }: MainNavProps) => {
   }
   return (
     <div className="hidden gap-6 lg:flex">
-      <Link
-        aria-label={t('common.home')}
-        href="/"
-        className="hidden items-center space-x-2 lg:flex"
-      >
-        <Icons.logo className="h-6 w-6" aria-hidden="true" />
-        <span className="hidden font-bold lg:inline-block">
-          {siteConfig.name}
-        </span>
-      </Link>
+      <HintTooltip text={t('tooltip.home')}>
+        <Link
+          aria-label={t('common.home')}
+          href="/"
+          className="hidden items-center space-x-2 lg:flex"
+        >
+          <Icons.logo className="h-6 w-6" aria-hidden="true" />
+          <span className="hidden font-bold lg:inline-block">
+            {siteConfig.name}
+          </span>
+        </Link>
+      </HintTooltip>
       <NavigationMenu>
         <NavigationMenuList>
           {items?.map((item) => {

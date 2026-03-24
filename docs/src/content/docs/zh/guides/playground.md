@@ -1,29 +1,29 @@
 ---
 title: 演练场
-description: Playground
+description: 操场
 ---
 
-Illustry offers a powerful Data Playground, allowing users to interactively test and visualize their JSON data before saving it. This feature is designed to provide a convenient and efficient way to see how different visualizations would look with your specific dataset. The playground also includes a data validation mechanism to ensure that your JSON conforms to the expected structure.
-### Real-Time Visualization
+Illustry 提供了一个强大的数据游乐场，允许用户在保存之前以交互方式测试和可视化其 JSON 数据。此功能旨在提供一种便捷有效的方式来查看不同的可视化效果在特定数据集上的外观。 Playground 还包括一个数据验证机制，以确保您的 JSON 符合预期的结构。
+### 实时可视化
 
-The Illustry Data Playground provides a real-time visualization of your JSON data. As you input or modify the data, the corresponding visualizations update dynamically, giving you immediate feedback on how your data will be presented.
+Illustry Data Playground 提供 JSON 数据的实时可视化。当您输入或修改数据时，相应的可视化效果会动态更新，为您提供有关数据呈现方式的即时反馈。
 
-## How to Use the Data Playground
+## 如何使用数据游乐场
 
-1. Navigate to the "Data Playground" section in the Illustry application.
-2. Paste or input your JSON data into the provided editor.
-3. Select the type of visualization you want to test.
-4. View the real-time visualization and make adjustments to your data as needed.
-5. Review any validation messages to ensure your data is correctly formatted.
-6. Save your data or copy the validated JSON for use in your projects.
+1. 导航到 Illustry 应用程序中的“Data Playground”部分。
+2. 将您的 JSON 数据粘贴或输入到提供的编辑器中。
+3. 选择您要测试的可视化类型。
+4. 查看实时可视化并根据需要调整数据。
+5. 查看所有验证消息以确保您的数据格式正确。
+6. 保存您的数据或复制经过验证的 JSON 以在您的项目中使用。
 
-## Why Use the Data Playground?
+## 为什么要使用数据游乐场？
 
-- **Visualize on the Fly:** See how your data will look in different visualizations without the need to save or commit changes.
-- **Data Validation:** Ensure that your JSON data adheres to the expected structure, reducing errors and streamlining your workflow.
-- **Experimentation:** Test various datasets and explore the capabilities of Illustry's visualizations in a risk-free environment.
+- **动态可视化：** 查看数据在不同可视化中的外观，无需保存或提交更改。
+- **数据验证：** 确保您的 JSON 数据符合预期结构，减少错误并简化工作流程。
+- **实验：** 在无风险的环境中测试各种数据集并探索 Illustry 可视化的功能。
 
 
-## Practical example
+## 实际例子
 
 ![Playground](/Illustry-monorepo/playground.gif)

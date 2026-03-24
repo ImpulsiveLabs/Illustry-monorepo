@@ -3,12 +3,12 @@ title: Grafic scatter
 description: Scatter doc
 ---
 
-The **Scatter Plot** visualization is a powerful tool for visualizing the relationships between two numerical variables. It uses points on a Cartesian plane to represent individual data points, making it easy to identify patterns, correlations, and outliers.
+Vizualizarea **Scatter Plot** este un instrument puternic pentru vizualizarea relațiilor dintre două variabile numerice. Folosește puncte de pe un plan cartezian pentru a reprezenta puncte de date individuale, facilitând identificarea modelelor, corelațiilor și valorii aberante.
 
 
-## Scatter Plot Data Structure
+## Structura datelor diagramei de dispersie
 
-To represent a Scatter Plot, you can use the following `ScatterData` interface:
+Pentru a reprezenta un diagramă de dispersie, puteți utiliza următoarea interfață `ScatterData`:
 
 ```typescript
 {{ScatterPoint}}
@@ -16,23 +16,23 @@ To represent a Scatter Plot, you can use the following `ScatterData` interface:
 {{ScatterData}}
 ```
 
-### Key Attributes
+### Atribute cheie
 
-- **value:** An array of two numerical values [x, y], representing the coordinates of a data point on the X and Y axes.
-- **values:** A string indicating the category or group to which the data point belongs.
+- **valoare:** O matrice de două valori numerice [x, y], reprezentând coordonatele unui punct de date pe axele X și Y.
+- **valori:** Un șir care indică categoria sau grupul căruia îi aparține punctul de date.
 
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Relationship Identification:** Scatter Plots excel at revealing relationships, patterns, and trends between two numerical variables.
+#### Pro
+- **Identificarea relațiilor:** Scatter Plots excelează la dezvăluirea relațiilor, modelelor și tendințelor dintre două variabile numerice.
 
-- **Outlier Detection:** Outliers, or data points that deviate significantly from the norm, are easily identified on a Scatter Plot.
+- **Detecție valori aberante:** valorile aberante sau punctele de date care se abat semnificativ de la normă, sunt ușor identificate pe un diagramă de dispersie.
 
-#### Cons
+#### Contra
 
-- **Potential Overplotting:** In cases with a high density of data points, overplotting may occur, affecting the visibility of individual points.
+- **Potențial supraplotare:** În cazurile cu o densitate mare de puncte de date, poate apărea supraplotarea, care afectează vizibilitatea punctelor individuale.
 
-## Scatter Plot Example
+## Exemplu de diagramă de dispersie
 
 ![Scatter Plot Example](/Illustry-monorepo/scatter.gif)

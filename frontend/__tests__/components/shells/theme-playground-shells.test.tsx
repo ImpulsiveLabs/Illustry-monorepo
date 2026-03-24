@@ -123,7 +123,7 @@ vi.mock('@/components/ui/playground/preset-selector', () => ({
     )
 }));
 
-vi.mock('@/components/shells/sankey/sankey-shell', () => ({ default: () => <div data-testid="sankey-shell" /> }));
+vi.mock('@/components/shells/sankey/sankey-shell', () => ({ default: ({ legend }: any) => <div data-testid="sankey-shell">{String(legend)}</div> }));
 vi.mock('@/components/shells/wordcloud/wordcloud-shell', () => ({ default: () => <div data-testid="wordcloud-shell" /> }));
 vi.mock('@/components/shells/treemap/treemap-shell', () => ({ default: () => <div data-testid="treemap-shell" /> }));
 vi.mock('@/components/shells/sunburst/sunburst-shell', () => ({ default: () => <div data-testid="sunburst-shell" /> }));
@@ -132,7 +132,7 @@ vi.mock('@/components/shells/pie-chart/piechart-shell', () => ({ default: () => 
 vi.mock('@/components/shells/forced-layout-graph/forced-layout-graph-shell', () => ({ default: () => <div data-testid="flg-shell" /> }));
 vi.mock('@/components/shells/calendar/calendar-shell', () => ({ default: () => <div data-testid="calendar-shell" /> }));
 vi.mock('@/components/shells/funnel/funnel-shell', () => ({ default: () => <div data-testid="funnel-shell" /> }));
-vi.mock('@/components/shells/axis/axis-shell', () => ({ default: ({ type }: any) => <div data-testid={`axis-${type}`} /> }));
+vi.mock('@/components/shells/axis/axis-shell', () => ({ default: ({ type, legend }: any) => <div data-testid={`axis-${type}`}>{String(legend)}</div> }));
 vi.mock('@/components/shells/hierarchical-edge-bundling/hierarchical-edge-bundling-shell', () => ({ default: () => <div data-testid="heb-shell" /> }));
 vi.mock('@/components/shells/matrix/matrix-shell', () => ({ default: () => <div data-testid="matrix-shell" /> }));
 vi.mock('@/components/shells/timeline/timeline-shell', () => ({ default: () => <div data-testid="timeline-shell" /> }));
@@ -156,26 +156,28 @@ describe('theme + playground shells', () => {
 
         await user.click(screen.getByText('Sankey Diagram'));
         expect(screen.getByTestId('sankey-shell')).toBeInTheDocument();
+        expect(screen.getByTestId('sankey-shell')).toHaveTextContent('true');
 
-        await user.click(screen.getByText('Forced-Layout-Graph'));
+        await user.click(screen.getByText('Forced Layout Graph'));
         expect(screen.getByTestId('flg-shell')).toBeInTheDocument();
 
-        await user.click(screen.getByText('Hierarchical-Edge-Bundling'));
+        await user.click(screen.getByText('Hierarchical Edge Bundling'));
         expect(screen.getByTestId('heb-shell')).toBeInTheDocument();
 
-        await user.click(screen.getByText('Word-Cloud'));
+        await user.click(screen.getByText('Word Cloud'));
         expect(screen.getByTestId('wordcloud-shell')).toBeInTheDocument();
 
-        await user.click(screen.getByText('Line-Chart'));
+        await user.click(screen.getByText('Line Chart'));
         expect(screen.getByTestId('axis-line')).toBeInTheDocument();
+        expect(screen.getByTestId('axis-line')).toHaveTextContent('true');
 
-        await user.click(screen.getByText('Bar-Chart'));
+        await user.click(screen.getByText('Bar Chart'));
         expect(screen.getByTestId('axis-bar')).toBeInTheDocument();
 
         await user.click(screen.getByText('Funnel'));
         expect(screen.getByTestId('funnel-shell')).toBeInTheDocument();
 
-        await user.click(screen.getByText('Pie-Chart'));
+        await user.click(screen.getByText('Pie Chart'));
         expect(screen.getByTestId('pie-shell')).toBeInTheDocument();
 
         await user.click(screen.getByText('Scatter'));
@@ -200,6 +202,21 @@ describe('theme + playground shells', () => {
         await waitFor(() => {
             expect(themeDispatch).toHaveBeenCalled();
         });
+    });
+
+    it('filters sections by translated names and opens the expected preview', async () => {
+        const user = userEvent.setup();
+        render(<ThemeShell />);
+
+        await user.type(
+            screen.getByRole('textbox', { name: 'Search visualization types...' }),
+            'sankey'
+        );
+
+        await user.click(screen.getByText('Sankey Diagram'));
+
+        expect(screen.getByTestId('sankey-shell')).toBeInTheDocument();
+        expect(screen.queryByText('Calendar')).not.toBeInTheDocument();
     });
 
     const presetCases: Array<[string, string]> = [
@@ -227,6 +244,16 @@ describe('theme + playground shells', () => {
 
         expect(screen.getByTestId(testId)).toBeInTheDocument();
         expect(validateWithSchemaSpy).toHaveBeenCalled();
+    });
+
+    it('uses legend=true for playground example preview', async () => {
+        const user = userEvent.setup();
+        render(<PlaygroundShell />);
+
+        await user.click(screen.getByRole('button', { name: 'preset-line' }));
+        await user.click(screen.getByRole('button', { name: 'Submit' }));
+
+        expect(screen.getByTestId('axis-line')).toHaveTextContent('true');
     });
 
     it('handles invalid json submit in playground', async () => {

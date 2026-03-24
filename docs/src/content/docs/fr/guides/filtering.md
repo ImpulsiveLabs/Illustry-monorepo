@@ -1,71 +1,71 @@
 ---
-title: Filtrage
-description: Filter
+title: Filtration
+description: Filtre
 ---
 
-Our visualization tool introduces a parsed syntax language, a linguistic magic wand for data crafting. 🚀
+Notre outil de visualisation introduit un langage de syntaxe analysée, une baguette magique linguistique pour la création de données. 🚀
 
-Illustry is providing some common constructions and some specific words in order for the syntax to be correctly parsed:
+Illustry fournit quelques constructions courantes et quelques mots spécifiques afin que la syntaxe soit correctement analysée :
 
 ### Constructions
 - &&
-- '>' (greater than)
-- '<' (less than)
-- '=' (equal)
-- '>=' (greater than or equal)
-- '<=' (less than or equal)
-- '!=' (not equal)
+- '>' (supérieur à)
+- '<' (inférieur à)
+- '=' (égal)
+- '>=' (supérieur ou égal)
+- '<=' (inférieur ou égal)
+- '!=' (pas égal)
 
-## Bar Chart / Line Chart
+## Graphique à barres/graphique linéaire
 
-### Accepted Words
-- headers
-- values
+### Mots acceptés
+- en-têtes
+- valeurs
 
-## Calendar
+## Calendrier
 
-### Accepted Words
-- categories
-- dates
+### Mots acceptés
+- catégories
+- rendez-vous
 
-## Funnel / Pie Chart
+## Entonnoir/graphique circulaire
 
-### Accepted Words
-- values
+### Mots acceptés
+- valeurs
 
 ## Treemap / Sunburst
 
-### Accepted Words
-- values
-- categories
+### Mots acceptés
+- valeurs
+- catégories
 
-## Hierarchical-Edge-Bundling / Forced-Layout-Graph / Sankey Diagram
+## Regroupement hiérarchique des bords / Graphique à mise en page forcée / Diagramme de Sankey
 
-### Accepted Words
-- values
-- categories
-- targets
-- names
+### Mots acceptés
+- valeurs
+- catégories
+- cibles
+- noms
 
-## Scatter
+## Dispersion
 
-### Accepted Words
-- categories
+### Mots acceptés
+- catégories
 - xCoord
 - yCoord
 
-## Timeline
+## Chronologie
 
-### Accepted Words
-- types
-- dates
-- authors
+### Mots acceptés
+- genres
+- rendez-vous
+- auteurs
 
-## Wordcloud
+## Nuage de mots
 
-### Accepted Words
-- values
+### Mots acceptés
+- valeurs
 
-## Example filtering
+## Exemple de filtrage
 
 ![Example filtering](/Illustry-monorepo/filtering.gif)

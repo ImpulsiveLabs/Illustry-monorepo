@@ -1,0 +1,34 @@
+---
+title: Dự án
+description: Tài liệu dự án
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dự án như một không gian làm việc
+
+Trong hệ thống này, dự án đóng vai trò là khối xây dựng cơ bản, hoạt động như một không gian làm việc dành riêng cho những nỗ lực của bạn. Mỗi dự án gói gọn các yếu tố thiết yếu trong công việc của bạn, cung cấp một môi trường có cấu trúc để trực quan hóa và phân tích dữ liệu.
+
+## Cấu trúc dữ liệu dự án
+
+Để thể hiện một dự án trong hệ thống của bạn, bạn có thể sử dụng giao diện `ProjectData` sau:
+
+```typescript
+{{ProjectData}}
+```
+### Thuộc tính chính
+
+- **tên:** Mã định danh duy nhất cho dự án.
+- **mô tả:** Trường tùy chọn để cung cấp bối cảnh hoặc thông tin chi tiết bổ sung về dự án.
+- **createdAt:** Dấu thời gian cho biết thời điểm dự án được tạo lần đầu.
+- **updateAt:** Dấu thời gian cho biết lần sửa đổi cuối cùng của dự án.
+- **isActive:** Cờ boolean xác định xem dự án hiện có đang hoạt động hay không.
+
+## Kích hoạt dự án
+
+Điều quan trọng cần lưu ý là chỉ có một dự án có thể hoạt động tại một thời điểm nhất định. Điều này đảm bảo không gian làm việc tập trung và có tổ chức, cho phép người dùng tập trung vào một dự án cụ thể và các hình ảnh trực quan liên quan của nó.
+
+Bằng cách cấu trúc công việc của bạn theo cách này, bạn tạo ra một môi trường gắn kết và dễ quản lý cho các dự án của mình, tạo điều kiện thuận lợi cho việc phân tích và trực quan hóa dữ liệu hiệu quả trong một không gian làm việc chuyên dụng.
+
+## Ví dụ thực tế
+
+![Project in Action](/Illustry-monorepo/projects.gif)

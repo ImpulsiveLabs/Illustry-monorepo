@@ -1,14 +1,14 @@
 ---
 title: Streudiagramm
-description: Scatter doc
+description: Scatter-Dokument
 ---
 
-The **Scatter Plot** visualization is a powerful tool for visualizing the relationships between two numerical variables. It uses points on a Cartesian plane to represent individual data points, making it easy to identify patterns, correlations, and outliers.
+Die **Streudiagramm**-Visualisierung ist ein leistungsstarkes Werkzeug zur Visualisierung der Beziehungen zwischen zwei numerischen Variablen. Es verwendet Punkte auf einer kartesischen Ebene, um einzelne Datenpunkte darzustellen und erleichtert so die Identifizierung von Mustern, Korrelationen und Ausreißern.
 
 
-## Scatter Plot Data Structure
+## Datenstruktur des Streudiagramms
 
-To represent a Scatter Plot, you can use the following `ScatterData` interface:
+Um ein Streudiagramm darzustellen, können Sie die folgende `ScatterData`-Schnittstelle verwenden:
 
 ```typescript
 {{ScatterPoint}}
@@ -16,23 +16,23 @@ To represent a Scatter Plot, you can use the following `ScatterData` interface:
 {{ScatterData}}
 ```
 
-### Key Attributes
+### Schlüsselattribute
 
-- **value:** An array of two numerical values [x, y], representing the coordinates of a data point on the X and Y axes.
-- **values:** A string indicating the category or group to which the data point belongs.
+- **Wert:** Ein Array aus zwei numerischen Werten [x, y], die die Koordinaten eines Datenpunkts auf der X- und Y-Achse darstellen.
+- **Werte:** Eine Zeichenfolge, die die Kategorie oder Gruppe angibt, zu der der Datenpunkt gehört.
 
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Relationship Identification:** Scatter Plots excel at revealing relationships, patterns, and trends between two numerical variables.
+#### Vorteile
+- **Beziehungsidentifizierung:** Streudiagramme zeichnen sich dadurch aus, dass sie Beziehungen, Muster und Trends zwischen zwei numerischen Variablen aufdecken.
 
-- **Outlier Detection:** Outliers, or data points that deviate significantly from the norm, are easily identified on a Scatter Plot.
+- **Ausreißererkennung:** Ausreißer oder Datenpunkte, die erheblich von der Norm abweichen, können in einem Streudiagramm leicht identifiziert werden.
 
-#### Cons
+#### Nachteile
 
-- **Potential Overplotting:** In cases with a high density of data points, overplotting may occur, affecting the visibility of individual points.
+- **Mögliche Überzeichnung:** In Fällen mit einer hohen Dichte an Datenpunkten kann es zu Überzeichnungen kommen, die die Sichtbarkeit einzelner Punkte beeinträchtigen.
 
-## Scatter Plot Example
+## Beispiel für ein Streudiagramm
 
 ![Scatter Plot Example](/Illustry-monorepo/scatter.gif)

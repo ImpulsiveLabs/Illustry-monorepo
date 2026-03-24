@@ -1,0 +1,85 @@
+---
+title: ভিজ্যুয়ালাইজেশন
+description: ভিজ্যুয়ালাইজেশন ডক
+---
+
+# আপনার কর্মক্ষেত্রে ভিজ্যুয়ালাইজেশন
+
+ভিজ্যুয়ালাইজেশনের সাথে কাজ করার সময়, সিস্টেমটি `VisualizationData` ইন্টারফেসের মাধ্যমে একটি নমনীয় ডেটা কাঠামো সমর্থন করে:
+
+## ভিজ্যুয়ালাইজেশন ডেটা স্ট্রাকচার
+
+আপনার সিস্টেমে একটি ভিজ্যুয়ালাইজেশন প্রতিনিধিত্ব করতে, আপনি নিম্নলিখিত `VisualizationData` ইন্টারফেস ব্যবহার করতে পারেন:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### মূল বৈশিষ্ট্য
+- **প্রজেক্টের নাম**: সক্রিয় প্রকল্প।
+- **টাইপ:** একটি স্ট্রিং বা একটি স্ট্রিং অ্যারে যা ভিজ্যুয়ালাইজেশনের ধরন প্রদান করে (অ্যারে শুধুমাত্র JSON এর জন্য কাজ করে)।
+- **নাম:** ভিজ্যুয়ালাইজেশনের জন্য একটি অনন্য শনাক্তকারী।
+- **বর্ণনা:** অতিরিক্ত প্রসঙ্গ বা ভিজ্যুয়ালাইজেশন সম্পর্কে বিশদ প্রদান করার জন্য একটি ঐচ্ছিক ক্ষেত্র।
+- **createdAt:** টাইমস্ট্যাম্প নির্দেশ করে যখন ভিজ্যুয়ালাইজেশনটি প্রাথমিকভাবে তৈরি করা হয়েছিল।
+- **আপডেটএট:** টাইমস্ট্যাম্প যা ভিজ্যুয়ালাইজেশনের শেষ পরিবর্তনকে নির্দেশ করে।
+- **isActive:** একটি বুলিয়ান পতাকা নির্দিষ্ট করে যে প্রকল্পটি বর্তমানে সক্রিয় কিনা।
+- **ট্যাগ:** একটি ঐচ্ছিক ক্ষেত্র যা ভিজ্যুয়ালাইজেশনকে শ্রেণীবদ্ধ করতে ব্যবহৃত হয়।
+- **ডেটা:** ভিজ্যুয়ালাইজেশন যে ডেটা উপস্থাপন করবে
+
+## ভিজ্যুয়ালাইজেশন প্রকার
+
+সিস্টেম নিম্নলিখিত ভিজ্যুয়ালাইজেশন ধরনের সমর্থন করে:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## ব্যবহারিক উদাহরণ
+
+Excel, XML, JSON, এবং CSV এর মতো ফাইল ফরম্যাট ব্যবহার করার সময়, সিস্টেমটি ফাইলের সম্পূর্ণ এবং আংশিক বিবরণের সাথে সামঞ্জস্যপূর্ণতা নিশ্চিত করে।
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **উদাহরণ 1**: সমস্ত বিবরণ সহ JSON বিন্যাস
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **উদাহরণ 2**: আংশিক বিবরণ সহ JSON বিন্যাস, অনুপস্থিত বিবরণ সহ ফর্মটি সম্পূর্ণ করুন
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **উদাহরণ 3**: সমস্ত বিবরণ সহ এক্সেল বিন্যাস, ক্ষেত্রগুলির ম্যাপিং সম্পূর্ণ করুন
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **উদাহরণ 4**: আংশিক বিবরণ সহ এক্সেল বিন্যাস, অনুপস্থিত বিবরণ সহ ফর্মটি সম্পূর্ণ করুন
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **উদাহরণ 5**: সমস্ত বিবরণ সহ CSV বিন্যাস, ক্ষেত্রগুলির ম্যাপিং সম্পূর্ণ করুন
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **উদাহরণ ৬**: আংশিক বিবরণ সহ CSV বিন্যাস, অনুপস্থিত বিবরণ সহ ফর্মটি সম্পূর্ণ করুন
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **উদাহরণ 7**: সমস্ত বিবরণ সহ XML বিন্যাস
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **উদাহরণ 8**: আংশিক বিবরণ সহ XML বিন্যাস, অনুপস্থিত বিবরণ সহ ফর্মটি সম্পূর্ণ করুন
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

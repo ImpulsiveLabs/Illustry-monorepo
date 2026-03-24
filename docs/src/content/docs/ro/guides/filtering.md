@@ -1,71 +1,71 @@
 ---
 title: Filtrare
-description: Filter
+description: Filtra
 ---
 
-Our visualization tool introduces a parsed syntax language, a linguistic magic wand for data crafting. 🚀
+Instrumentul nostru de vizualizare introduce un limbaj de sintaxă analizată, o baghetă magică lingvistică pentru elaborarea datelor. 🚀
 
-Illustry is providing some common constructions and some specific words in order for the syntax to be correctly parsed:
+Illustry oferă câteva construcții comune și câteva cuvinte specifice pentru ca sintaxa să fie analizată corect:
 
-### Constructions
+### Constructii
 - &&
-- '>' (greater than)
-- '<' (less than)
-- '=' (equal)
-- '>=' (greater than or equal)
-- '<=' (less than or equal)
-- '!=' (not equal)
+- „>” (mai mare decât)
+- „<” (mai puțin decât)
+- '=' (egal)
+- „>=” (mai mare sau egal)
+- „<=” (mai mic sau egal)
+- '!=' (nu este egal)
 
-## Bar Chart / Line Chart
+## Diagramă cu bare / Diagramă cu linii
 
-### Accepted Words
-- headers
-- values
+### Cuvinte acceptate
+- antete
+- valorile
 
-## Calendar
+## Calendaristic
 
-### Accepted Words
-- categories
-- dates
+### Cuvinte acceptate
+- categorii
+- date
 
-## Funnel / Pie Chart
+## Pâlnie / Diagramă circulară
 
-### Accepted Words
-- values
+### Cuvinte acceptate
+- valorile
 
-## Treemap / Sunburst
+## Harta copacului / Sunburst
 
-### Accepted Words
-- values
-- categories
+### Cuvinte acceptate
+- valorile
+- categorii
 
-## Hierarchical-Edge-Bundling / Forced-Layout-Graph / Sankey Diagram
+## Ierarhic-Edge-Bundling / Forțat-Layout-Graph / Diagrama Sankey
 
-### Accepted Words
-- values
-- categories
-- targets
-- names
+### Cuvinte acceptate
+- valorile
+- categorii
+- tinte
+- nume
 
-## Scatter
+## Împrăştia
 
-### Accepted Words
-- categories
+### Cuvinte acceptate
+- categorii
 - xCoord
 - yCoord
 
-## Timeline
+## Cronologie
 
-### Accepted Words
-- types
-- dates
-- authors
+### Cuvinte acceptate
+- tipuri
+- date
+- autorii
 
 ## Wordcloud
 
-### Accepted Words
-- values
+### Cuvinte acceptate
+- valorile
 
-## Example filtering
+## Exemplu de filtrare
 
 ![Example filtering](/Illustry-monorepo/filtering.gif)

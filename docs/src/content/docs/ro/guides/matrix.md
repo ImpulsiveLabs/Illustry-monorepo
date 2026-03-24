@@ -3,11 +3,11 @@ title: Matrice
 description: Matrix doc
 ---
 
-The **Matrix** visualization is a multi dimensional visualizations, where nodes of 2 categories can be visualized as complementary one with the other
+Vizualizarea **Matrix** este o vizualizare multidimensională, în care nodurile din 2 categorii pot fi vizualizate ca fiind complementare unul cu celălalt
 
-## Matrix Data Structure
+## Structura datelor matriceale
 
-To represent a Matrix, you can use the following `NodeLinkData` interface:
+Pentru a reprezenta o matrice, puteți utiliza următoarea interfață `NodeLinkData`:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Matrix, you can use the following `NodeLinkData` interface:
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **labels:** Are an array of name values that represent specific attributes of the node.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **nume:** Un identificator unic pentru nod.
+- **categorie:** Clasifică nodul într-un anumit grup sau cluster.
+- **etichete:** sunt o matrice de valori de nume care reprezintă atribute specifice ale nodului.
+- **sursa:** Identifică nodul sursă al legăturii.
+- **țintă:** Identifică nodul țintă al legăturii.
+- **valoare:** reprezintă o valoare numerică asociată cu legătura care sugerează cât de puternic sunt conectate nodurile.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Large Data:** Very large amount of data can be displayed on a single window.
+#### Pro
+- **Date mari:** O cantitate foarte mare de date poate fi afișată într-o singură fereastră.
 
-- **Filtering:** Filtering on the rows and on the columns.
+- **Filtrare:** Filtrare pe rânduri și pe coloane.
 
-#### Cons
-- **Scroll needed:** Too many data could need a scroll in order to see them all.
+#### Contra
+- **Defilare necesară:** Prea multe date ar putea avea nevoie de un defilare pentru a le vedea pe toate.
 
 
-## Matrix Example
+## Exemplu de matrice
 
 ![Matrix Example](/Illustry-monorepo/matrix.gif)

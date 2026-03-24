@@ -1,13 +1,13 @@
 ---
 title: Kraftbasiertes Graph-Layout
-description: Forced Layout Graph doc
+description: Dokument zum Diagramm mit erzwungenem Layout
 ---
 
-The **Forced Layout Graph** visualization is a dynamic and engaging representation of interconnected data. It uses a force-directed layout algorithm to visually convey relationships between entities within a dataset.
+Die Visualisierung **Forced Layout Graph** ist eine dynamische und ansprechende Darstellung miteinander verbundener Daten. Es verwendet einen erzwungenen Layout-Algorithmus, um Beziehungen zwischen Entitäten innerhalb eines Datensatzes visuell darzustellen.
 
-## Forced Layout Graph Data Structure
+## Datenstruktur des Diagramms mit erzwungenem Layout
 
-To represent a Forced Layout Graph, you can use the following `NodeLinkData` interface:
+Um ein Diagramm mit erzwungenem Layout darzustellen, können Sie die folgende `NodeLinkData`-Schnittstelle verwenden:
 
 ```typescript
 {{Node}}
@@ -17,26 +17,26 @@ To represent a Forced Layout Graph, you can use the following `NodeLinkData` int
 {{NodeLinkData}}
 
 ```
-### Key Attributes
+### Schlüsselattribute
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **Name:** Eine eindeutige Kennung für den Knoten.
+- **Kategorie:** Kategorisiert den Knoten in eine bestimmte Gruppe oder einen bestimmten Cluster.
+- **Quelle:** Identifiziert den Quellknoten des Links.
+- **Ziel:** Identifiziert den Zielknoten des Links.
+- **Wert:** Stellt einen mit dem Link verknüpften numerischen Wert dar, der angibt, wie stark die Knoten miteinander verbunden sind.
 
-### Pros and Cons
+### Für und Wider
 
-#### Pros
-- **Relationship Visualization:** Clearly represents relationships between entities through connected nodes and links.
+#### Vorteile
+- **Beziehungsvisualisierung:** Stellt Beziehungen zwischen Entitäten durch verbundene Knoten und Links klar dar.
 
-- **Dynamic Layout:** Utilizes a force-directed layout for an organic and visually appealing representation.
+- **Dynamisches Layout:** Verwendet ein erzwungenes Layout für eine organische und optisch ansprechende Darstellung.
 
-#### Cons
-- **Complexity with Dense Graphs:** In densely interconnected graphs, visual clutter may affect readability.
+#### Nachteile
+- **Komplexität bei dichten Diagrammen:** In dicht verbundenen Diagrammen kann visuelle Unordnung die Lesbarkeit beeinträchtigen.
 
-- **Limited to Network Data:** Most effective for visualizing network or relationship-based data; may not be suitable for all types of datasets.
+- **Beschränkt auf Netzwerkdaten:** Am effektivsten für die Visualisierung von Netzwerk- oder beziehungsbasierten Daten; ist möglicherweise nicht für alle Arten von Datensätzen geeignet.
 
-## Forced Layout Graph Example
+## Beispiel für ein Diagramm mit erzwungenem Layout
 
 ![Forced Layout Graph Example](/Illustry-monorepo/forced-layout-graph.gif)

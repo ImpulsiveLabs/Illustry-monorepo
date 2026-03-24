@@ -1,13 +1,13 @@
 ---
 title: 层次边捆绑图
-description: Hierarchical Edge Bundling doc
+description: 分层边缘捆绑文档
 ---
 
-The **Hierarchical Edge Bundling** visualization is a sophisticated technique for depicting hierarchical relationships and connections within a dataset. It leverages edge bundling to reduce visual clutter while highlighting the structure of relationships in a hierarchical manner.
+**分层边缘捆绑**可视化是一种复杂的技术，用于描述数据集中的分层关系和连接。它利用边缘捆绑来减少视觉混乱，同时以分层方式突出关系结构。
 
-## Hierarchical Edge Bundling Data Structure
+## 分层边缘捆绑数据结构
 
-To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkData` interface:
+要表示分层边缘捆绑，您可以使用以下 `NodeLinkData` 接口：
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkDa
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **名称：** 节点的唯一标识符。
+- **类别：** 将节点分类到特定组或集群中。
+- **source:** 标识链接的源节点。
+- **target:** 标识链接的目标节点。
+- **值：** 表示与链接关联的数值，表明节点的连接强度。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Improved Aesthetics and Readability:** The bundled edges contribute to a cleaner and more aesthetically pleasing visualization. By reducing visual clutter, users can more easily interpret the relationships between nodes, enhancing overall readability.
+#### 优点
+- **改善美观性和可读性：** 捆绑的边缘有助于实现更清晰、更美观的可视化效果。通过减少视觉混乱，用户可以更轻松地解释节点之间的关系，从而增强整体可读性。
 
-- **Enhanced Focus on Key Relationships:** Edge bundling allows users to focus on key relationships within the hierarchical structure, emphasizing the most significant connections. This can aid in identifying critical paths or central nodes in complex datasets.
+- **增强对关键关系的关注：**边缘捆绑允许用户关注层次结构中的关键关系，强调最重要的连接。这可以帮助识别复杂数据集中的关键路径或中心节点。
 
-#### Cons
-- **Difficulty in Identifying Parallel Paths:** Identifying parallel paths or connections in a densely bundled area may pose challenges for users. Distinguishing between closely packed edges representing different relationships can be complex, affecting the precision of analysis.
+#### 缺点
+- **识别并行路径的困难：**识别密集区域中的并行路径或连接可能会给用户带来挑战。区分代表不同关系的紧密堆积的边可能很复杂，影响分析的精度。
 
-- **Challenges with Directionality Perception:** Users may face difficulties in perceiving the directionality of bundled edges, particularly in scenarios where there is a high degree of overlap. This can impact the accurate interpretation of the flow of relationships.
+- **方向性感知的挑战：** 用户可能在感知捆绑边缘的方向性时面临困难，特别是在高度重叠的情况下。这可能会影响对关系流的准确解释。
 
-## Hierarchical Edge Bundling Example
+## 分层边缘捆绑示例
 
 ![Hierarchical Edge Bundling Example](/Illustry-monorepo/hierarchical-edge-bundling.gif)

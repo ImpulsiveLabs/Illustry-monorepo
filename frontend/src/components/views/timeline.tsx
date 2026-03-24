@@ -9,6 +9,7 @@ import 'react-vertical-timeline-component/style.min.css';
 import { ChevronLeftIcon, ChevronRightIcon } from '@radix-ui/react-icons';
 import { formatDate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
 import { useLocale } from '@/components/providers/locale-provider';
 import ViewTooltip from './shared/view-tooltip';
@@ -72,28 +73,32 @@ const TimelineView = ({ data, fullScreen }: TimelineProp) => {
         ))}
       </VerticalTimelineFC>
       <div className="flex justify-center mt-4 mb-6">
-        <Button
-          suppressHydrationWarning
-          aria-label="Go to previous page"
-          variant="outline"
-          size="icon"
-          className="hidden h-6 w-6 lg:flex"
-          onClick={handlePreviousPage}
-          disabled={currentPage === 0}
-        >
-          <ChevronLeftIcon className="h-3 w-3" aria-hidden="true" />
-        </Button>
-        <Button
-          suppressHydrationWarning
-          aria-label="Go to next page"
-          variant="outline"
-          size="icon"
-          className="h-6 w-6"
-          onClick={handleNextPage}
-          disabled={endIndex >= sortedKeys.length}
-        >
-          <ChevronRightIcon className="h-3 w-3" aria-hidden="true" />
-        </Button>
+        <HintTooltip text={t('tooltip.goToPreviousPage')}>
+          <Button
+            suppressHydrationWarning
+            aria-label={t('tooltip.goToPreviousPage')}
+            variant="outline"
+            size="icon"
+            className="hidden h-6 w-6 lg:flex"
+            onClick={handlePreviousPage}
+            disabled={currentPage === 0}
+          >
+            <ChevronLeftIcon className="h-3 w-3" aria-hidden="true" />
+          </Button>
+        </HintTooltip>
+        <HintTooltip text={t('tooltip.goToNextPage')}>
+          <Button
+            suppressHydrationWarning
+            aria-label={t('tooltip.goToNextPage')}
+            variant="outline"
+            size="icon"
+            className="h-6 w-6"
+            onClick={handleNextPage}
+            disabled={endIndex >= sortedKeys.length}
+          >
+            <ChevronRightIcon className="h-3 w-3" aria-hidden="true" />
+          </Button>
+        </HintTooltip>
       </div>
     </div>
   );

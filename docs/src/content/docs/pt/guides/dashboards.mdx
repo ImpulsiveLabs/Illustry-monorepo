@@ -1,0 +1,51 @@
+---
+title: Painéis
+description: Documento de painéis
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Painéis como espaços de trabalho visuais
+
+Os painéis atuam como espaços de trabalho visuais versáteis onde você pode organizar e gerenciar diversas visualizações relacionadas aos seus projetos. Eles fornecem um ambiente dinâmico e interativo para explorar, analisar e apresentar dados de forma eficaz.
+
+## Estrutura de dados do painel
+
+Para representar um painel em seu sistema, você pode usar a seguinte interface `DashboardData`:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Atributos principais
+
+- **nome:** Um identificador exclusivo para o painel.
+- **projectName:** O nome do projeto associado para vinculação contextual.
+- **descrição:** um campo opcional que fornece contexto ou detalhes adicionais sobre o painel.
+- **createdAt:** O carimbo de data/hora que indica quando o painel foi criado.
+- **updatedAt:** O carimbo de data/hora que mostra a última modificação do painel.
+- **visualizações:** uma coleção de visualizações incluídas no painel, como pares de valores-chave ou como uma variedade de tipos de visualização.
+- **layouts:** uma lista de configurações de layout que determinam a posição e o tamanho das visualizações no painel. Cada layout inclui:
+  - **i:** Um identificador exclusivo para a visualização.
+  - **x, y:** Coordenadas que representam a posição da visualização na grade.
+  - **w, h:** A largura e a altura da visualização.
+  - **minW, minH:** Restrições mínimas de largura e altura.
+
+### Recursos do painel
+
+Os painéis permitem que os usuários:
+
+- Arraste e solte visualizações para reorganizá-las na área de trabalho.
+- Redimensione as visualizações para atender às necessidades específicas de dados.
+- Mantenha vários layouts para atender a diferentes casos de uso ou públicos.
+
+Ao oferecer essa flexibilidade, os painéis permitem que os usuários personalizem seus espaços de trabalho visuais de acordo com os requisitos do projeto.
+
+### Exemplo prático
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

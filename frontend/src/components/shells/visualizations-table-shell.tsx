@@ -22,6 +22,7 @@ import {
 import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '../providers/locale-provider';
 
 type VisualizationsTableShellProps = {
   data?: VisualizationTypes.VisualizationType[];
@@ -32,6 +33,7 @@ const VisualizationsTableShell = ({
   data,
   pageCount
 }: VisualizationsTableShellProps) => {
+  const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowProperties, setSelectedRowProperties] = useState<
     { name: string; type: VisualizationTypes.VisualizationTypesEnum }[]
@@ -59,7 +61,7 @@ const VisualizationsTableShell = ({
                 );
               }
             }}
-            aria-label="Select all"
+            aria-label={t('tooltip.selectAllRows')}
             className="translate-y-[2px]"
           />
         ),
@@ -83,7 +85,7 @@ const VisualizationsTableShell = ({
                   ))
               );
             }}
-            aria-label="Select row"
+            aria-label={t('tooltip.selectRow')}
             className="translate-y-[2px]"
           />
         ),
@@ -93,25 +95,25 @@ const VisualizationsTableShell = ({
       {
         accessorKey: 'name',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Name" />
+          <DataTableColumnHeader column={column} title={t('common.name')} />
         )
       },
       {
         accessorKey: 'description',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Description" />
+          <DataTableColumnHeader column={column} title={t('common.description')} />
         )
       },
       {
         accessorKey: 'type',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Type" />
+          <DataTableColumnHeader column={column} title={t('common.type')} />
         )
       },
       {
         accessorKey: 'tags',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Tags" />
+          <DataTableColumnHeader column={column} title={t('table.tags')} />
         ),
         cell: ({ cell }) => {
           const tags = cell.getValue();
@@ -142,7 +144,7 @@ const VisualizationsTableShell = ({
       {
         accessorKey: 'createdAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Created At" />
+          <DataTableColumnHeader column={column} title={t('table.createdAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -150,7 +152,7 @@ const VisualizationsTableShell = ({
       {
         accessorKey: 'updatedAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Updated At" />
+          <DataTableColumnHeader column={column} title={t('table.updatedAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -162,7 +164,7 @@ const VisualizationsTableShell = ({
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label={t('tooltip.openRowMenu')}
                 variant="ghost"
                 className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
               >
@@ -174,7 +176,7 @@ const VisualizationsTableShell = ({
                 <Link
                   href={`/visualizationhub?name=${row.original.name}&type=${row.original.type}`}
                 >
-                  View
+                  {t('table.view')}
                 </Link>
               </DropdownMenuItem>
 
@@ -191,8 +193,8 @@ const VisualizationsTableShell = ({
                         type: row.original.type
                       }),
                       {
-                        loading: 'Deleting...',
-                        success: () => { router.refresh(); return 'Visualization deleted successfully.' },
+                        loading: t('table.deleting'),
+                        success: () => { router.refresh(); return t('toast.visualizationDeleted'); },
                         error: (err: unknown) => catchError(err)
                       }
                     );
@@ -200,7 +202,7 @@ const VisualizationsTableShell = ({
                 }}
                 disabled={isPending}
               >
-                Delete
+                {t('table.delete')}
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -208,7 +210,7 @@ const VisualizationsTableShell = ({
         )
       }
     ],
-    [data, isPending]
+    [data, isPending, t]
   );
 
   const deleteSelectedRows = () => {
@@ -220,11 +222,11 @@ const VisualizationsTableShell = ({
         }))
       ),
       {
-        loading: 'Deleting...',
+        loading: t('table.deleting'),
         success: () => {
           setSelectedRowProperties([]);
           router.refresh();
-          return 'Visualizations deleted successfully.';
+          return t('toast.visualizationsDeleted');
         },
         error: (err: unknown) => {
           setSelectedRowProperties([]);

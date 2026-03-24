@@ -1,4 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from '@/components/providers/locale-provider';
 import Input from '@/components/ui/input';
 import { Inputs } from '@/components/form/types';
 
@@ -8,13 +9,15 @@ type ExcelOrCsvPieChartFunnelMappingProps = {
 
 const ExcelOrCsvPieChartFunnelMapping = ({
   form
-}: ExcelOrCsvPieChartFunnelMappingProps) => (
+}: ExcelOrCsvPieChartFunnelMappingProps) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Names:</div>
+        <div className="w-20">{t('mapping.names')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column numbers for Names"
+            placeholder={t('mapping.placeholder.columnNumbers')}
             defaultValue={form.getValues('mapping.names') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -26,10 +29,10 @@ const ExcelOrCsvPieChartFunnelMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Values:</div>
+        <div className="w-20">{t('mapping.values')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column numbers for Values"
+            placeholder={t('mapping.placeholder.columnNumbers')}
             defaultValue={form.getValues('mapping.values') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -41,6 +44,7 @@ const ExcelOrCsvPieChartFunnelMapping = ({
         </div>
       </div>
     </>
-);
+  );
+};
 
 export default ExcelOrCsvPieChartFunnelMapping;

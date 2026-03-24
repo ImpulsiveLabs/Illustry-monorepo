@@ -1,35 +1,35 @@
 ---
 title: 折线图
-description: Line Chart doc
+description: 折线图文档
 ---
 
-The **Line Chart** visualization is a versatile tool for representing trends and patterns in numerical data over time. It is widely used for visualizing the relationship between two continuous variables and highlighting trends or fluctuations.
+**折线图**可视化是一种多功能工具，用于表示数值数据随时间变化的趋势和模式。它广泛用于可视化两个连续变量之间的关系并突出显示趋势或波动。
 
-## Line Chart Data Structure
+## 折线图数据结构
 
-To represent a Line Chart, you can use the following `AxisChartData` interface:
+要表示折线图，您可以使用以下 `AxisChartData` 接口：
 
 ```typescript
 {{AxisChartData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **headers:** An array of strings representing the categories or dimensions along one of the axis.
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an array of numerical values along the other axis. 
+- **headers：** 表示沿某个轴的类别或维度的字符串数组。
+- **值：** 字典，其中每个键是一个类别或维度，对应的值是沿另一个轴的数值数组。
 
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Multi-Dimensional Comparison:** Line Charts excel at comparing multiple dimensions simultaneously, providing a comprehensive view of the data.
+#### 优点
+- **多维度比较：** 折线图擅长同时比较多个维度，提供全面的数据视图。
 
-- **Clear Value Representation:** Numerical values are clearly represented along both the X and Y axes, making it easy for users to interpret and compare.
+- **清晰的值表示：** 数值沿 X 轴和 Y 轴清晰地表示，使用户易于解释和比较。
 
-#### Cons
-- **Complexity with Excessive Categories:** When dealing with a large number of categories or dimensions, the visualization may become crowded and challenging to interpret.
+#### 缺点
+- **类别过多导致复杂性：** 当处理大量类别或维度时，可视化可能会变得拥挤且难以解释。
 
-- **Limited for Categorical Data:** Line Charts are most effective for numerical data and may not be the optimal choice for representing categorical data.
+- **仅限于分类数据：** 折线图对于数值数据最有效，但可能不是表示分类数据的最佳选择。
 
-## Line Chart Example
+## 折线图示例
 
 ![Line Chart Example](/Illustry-monorepo/line-chart.gif)

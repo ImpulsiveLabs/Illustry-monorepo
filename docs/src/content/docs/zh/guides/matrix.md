@@ -1,13 +1,13 @@
 ---
 title: 矩阵图
-description: Matrix doc
+description: 矩阵文档
 ---
 
-The **Matrix** visualization is a multi dimensional visualizations, where nodes of 2 categories can be visualized as complementary one with the other
+**矩阵**可视化是一种多维可视化，其中 2 个类别的节点可以可视化为与另一个类别互补的节点
 
-## Matrix Data Structure
+## 矩阵数据结构
 
-To represent a Matrix, you can use the following `NodeLinkData` interface:
+要表示矩阵，您可以使用以下 `NodeLinkData` 接口：
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Matrix, you can use the following `NodeLinkData` interface:
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **labels:** Are an array of name values that represent specific attributes of the node.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **名称：** 节点的唯一标识符。
+- **类别：** 将节点分类到特定组或集群中。
+- **标签：** 是代表节点特定属性的名称值数组。
+- **source:** 标识链接的源节点。
+- **target:** 标识链接的目标节点。
+- **值：** 表示与链接关联的数值，表明节点的连接强度。
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Large Data:** Very large amount of data can be displayed on a single window.
+#### 优点
+- **大数据：** 单个窗口上可以显示非常大量的数据。
 
-- **Filtering:** Filtering on the rows and on the columns.
+- **过滤：** 对行和列进行过滤。
 
-#### Cons
-- **Scroll needed:** Too many data could need a scroll in order to see them all.
+#### 缺点
+- **需要滚动：**太多的数据可能需要滚动才能看到全部。
 
 
-## Matrix Example
+## 矩阵示例
 
 ![Matrix Example](/Illustry-monorepo/matrix.gif)

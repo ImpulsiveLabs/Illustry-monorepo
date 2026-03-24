@@ -1,21 +1,21 @@
 ---
 title: 如何手动配置 Illustry
-description: manual setup
+description: 手动设置
 ---
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-## Prerequisites
+## 先决条件
 
-Before installing Illustry Frontend, ensure that you have the following prerequisites:
+在安装 Illustry 前端之前，请确保满足以下先决条件：
 
-- Node version 18.17.0 or higher
+- 节点版本 18.17.0 或更高版本
 - MongoDB
 
-## Illustry backend
+## Illustry 后端
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### 本地：
+项目根目录下需要一个名为 `.env` 的文件，其中包含以下字段：
 
 ```
 MONGO_URL=mongodb:/127.0.0.1:27017/illustry
@@ -24,7 +24,7 @@ MONGO_USER=<your_personal_mongo_user>
 MONGO_PASSWORD=<your_personal_mongo_password>
 ILLUSTRY_PORT=7000 
 ```
-Run the following commands: 
+运行以下命令：
 
 <Tabs>
 <TabItem label="npm">
@@ -50,24 +50,24 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
+#### 码头工人：
 
-Run the following commands:
+运行以下命令：
 ```shell
 docker build -t illustrybackend .
 docker run -p 7000:7000 
 ```
 
-## Illustry frontend
+## Illustry 前端
 
 
-#### Locally:
-A file named `.env` is needed at the root of the project containing the following fields:
+#### 本地：
+项目根目录下需要一个名为 `.env` 的文件，其中包含以下字段：
 
 ```
 NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
 ```
-Run the following commands: 
+运行以下命令：
 
 <Tabs>
 <TabItem label="npm">
@@ -93,10 +93,10 @@ yarn && yarn build:ts && yarn start:dev
 </TabItem>
 </Tabs>
 
-#### Docker: 
-**Before running, create the backend image first!**
+#### 码头工人：
+**运行前，先创建后端镜像！**
 
-Run the following commands:
+运行以下命令：
 ```shell
 docker build -t illustryfrontend .
 docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend

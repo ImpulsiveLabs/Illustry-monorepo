@@ -1,40 +1,40 @@
 ---
 title: Calendrier
-description: Calendar doc
+description: Document de calendrier
 ---
 
-The **Calendar** visualization is a unique representation designed to provide insights into temporal relationships within a dataset. It offers a distinctive approach to visualizing events, occurrences, or entities over time.
+La visualisation **Calendrier** est une représentation unique conçue pour fournir des informations sur les relations temporelles au sein d'un ensemble de données. Il offre une approche distinctive pour visualiser des événements, des occurrences ou des entités au fil du temps.
 
-## Calendar Data Structure
+## Structure des données du calendrier
 
-To represent a Calendar, you can use the following `CalendarData` interface:
+Pour représenter un calendrier, vous pouvez utiliser l'interface `CalendarData` suivante :
 
 ```typescript
 {{CalendarType}}
 
 {{CalendarData}}
 ```
-### Key Attributes
+### Attributs clés
 
-- **date:** A unique date of a specific year.
-- **value:** How impactful that date was for the event.
-- **category:** Categorizes the dates into a specific events.
+- **date :** Une date unique d'une année spécifique.
+- **valeur :** Quelle a été l'impact de cette date sur l'événement.
+- **category :** Classifie les dates dans des événements spécifiques.
 
 
-### Pros and Cons
+### Avantages et inconvénients
 
-#### Pros
-- **Relationship Visualization:** The calendar visualization provides an intuitive and user-friendly way to explore temporal relationships, making it easy for users to understand patterns over time.
+#### Avantages
+- **Visualisation des relations :** La visualisation du calendrier offre un moyen intuitif et convivial d'explorer les relations temporelles, permettant ainsi aux utilisateurs de comprendre facilement les modèles au fil du temps.
 
-- **Compact Representation:** A calendar optimizes space by presenting events in a compact format, allowing users to view a significant amount of temporal data without overwhelming visuals.
+- **Représentation compacte :** Un calendrier optimise l'espace en présentant les événements dans un format compact, permettant aux utilisateurs de visualiser une quantité importante de données temporelles sans surcharger les visuels.
 
-- **Multiple years:** If the events are happening on a multi-year timespan more calendar visualizations will be displayed.
+- **Plusieurs années :** Si les événements se produisent sur une période de plusieurs années, davantage de visualisations de calendrier seront affichées.
 
-#### Cons
-- **Complexity with Dense Graphs:** Due to its compact nature, a calendar may provide limited space for detailing each event. In scenarios requiring extensive information, additional interactions or supplementary views may be necessary.
+#### Inconvénients
+- **Complexité avec les graphiques denses :** En raison de sa nature compacte, un calendrier peut offrir un espace limité pour détailler chaque événement. Dans les scénarios nécessitant des informations détaillées, des interactions supplémentaires ou des vues supplémentaires peuvent être nécessaires.
 
-- **Not Ideal for Dense Event Overlaps:** In cases where multiple events overlap closely in time, the visualization might face challenges in maintaining clarity and preventing overlap-related visual clutter.
+- **Pas idéal pour les chevauchements d'événements denses :** Dans les cas où plusieurs événements se chevauchent étroitement dans le temps, la visualisation peut avoir du mal à maintenir la clarté et à éviter l'encombrement visuel lié au chevauchement.
 
-## Calendar Example
+## Exemple de calendrier
 
 ![Calendar Example](/Illustry-monorepo/calendar.gif)

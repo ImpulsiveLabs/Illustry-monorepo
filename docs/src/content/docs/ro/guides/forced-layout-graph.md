@@ -1,13 +1,13 @@
 ---
 title: Graf cu layout fortat
-description: Forced Layout Graph doc
+description: Doc. Grafic cu aspect forțat
 ---
 
-The **Forced Layout Graph** visualization is a dynamic and engaging representation of interconnected data. It uses a force-directed layout algorithm to visually convey relationships between entities within a dataset.
+Vizualizarea **Forced Layout Graph** este o reprezentare dinamică și captivantă a datelor interconectate. Utilizează un algoritm de layout direcționat prin forță pentru a transmite vizual relațiile dintre entitățile dintr-un set de date.
 
-## Forced Layout Graph Data Structure
+## Structura datelor grafice cu aspect forțat
 
-To represent a Forced Layout Graph, you can use the following `NodeLinkData` interface:
+Pentru a reprezenta un grafic de layout forțat, puteți utiliza următoarea interfață `NodeLinkData`:
 
 ```typescript
 {{Node}}
@@ -17,26 +17,26 @@ To represent a Forced Layout Graph, you can use the following `NodeLinkData` int
 {{NodeLinkData}}
 
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **nume:** Un identificator unic pentru nod.
+- **categorie:** Clasifică nodul într-un anumit grup sau cluster.
+- **sursa:** Identifică nodul sursă al legăturii.
+- **țintă:** Identifică nodul țintă al legăturii.
+- **valoare:** reprezintă o valoare numerică asociată cu legătura care sugerează cât de puternic sunt conectate nodurile.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Relationship Visualization:** Clearly represents relationships between entities through connected nodes and links.
+#### Pro
+- **Vizualizarea relațiilor:** reprezintă clar relațiile dintre entități prin noduri și legături conectate.
 
-- **Dynamic Layout:** Utilizes a force-directed layout for an organic and visually appealing representation.
+- **Aspect dinamic:** Utilizează un aspect direcționat forțat pentru o reprezentare organică și atrăgătoare vizual.
 
-#### Cons
-- **Complexity with Dense Graphs:** In densely interconnected graphs, visual clutter may affect readability.
+#### Contra
+- **Complexitate cu grafice dense:** În graficele dens interconectate, dezordinea vizuală poate afecta lizibilitatea.
 
-- **Limited to Network Data:** Most effective for visualizing network or relationship-based data; may not be suitable for all types of datasets.
+- **Limitat la date de rețea:** Cel mai eficient pentru vizualizarea datelor bazate pe rețea sau relații; poate să nu fie potrivit pentru toate tipurile de seturi de date.
 
-## Forced Layout Graph Example
+## Exemplu de grafic cu aspect forțat
 
 ![Forced Layout Graph Example](/Illustry-monorepo/forced-layout-graph.gif)

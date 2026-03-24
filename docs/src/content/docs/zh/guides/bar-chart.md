@@ -1,35 +1,35 @@
 ---
 title: 柱状图
-description: Bar Chart doc
+description: 条形图文档
 ---
 
-The **Bar Chart** visualization is a versatile and effective tool for representing categorical data in a visually engaging manner. It uses horizontal or vertical bars to show the values of different categories, making it easy for users to compare and understand data distributions.
+**条形图**可视化是一种多功能且有效的工具，用于以视觉上引人入胜的方式表示分类数据。它使用水平或垂直条来显示不同类别的值，方便用户比较和了解数据分布。
 
-## Bar Chart Data Structure
+## 条形图数据结构
 
-To represent a Bar Chart, you can use the following `AxisChartData` interface:
+要表示条形图，您可以使用以下 `AxisChartData` 接口：
 
 ```typescript
 {{AxisChartData}}
 ```
-### Key Attributes
+### 关键属性
 
-- **headers:** An array of strings representing the categories or dimensions along one of the axis.
-- **values:** A dictionary where each key is a category or dimension, and the corresponding value is an array of numerical values along the other axis. 
+- **headers：** 表示沿某个轴的类别或维度的字符串数组。
+- **值：** 字典，其中每个键是一个类别或维度，对应的值是沿另一个轴的数值数组。
 
 
-### Pros and Cons
+### 优点和缺点
 
-#### Pros
-- **Multi-Dimensional Comparison:** Bar Charts excel at comparing multiple dimensions simultaneously, providing a comprehensive view of the data.
+#### 优点
+- **多维度比较：** 条形图擅长同时比较多个维度，提供全面的数据视图。
 
-- **Clear Value Representation:** Numerical values are clearly represented along both the X and Y axes, making it easy for users to interpret and compare.
+- **清晰的值表示：** 数值沿 X 轴和 Y 轴清晰地表示，使用户易于解释和比较。
 
-#### Cons
-- **Complexity with Excessive Categories:** When dealing with a large number of categories or dimensions, the visualization may become crowded and challenging to interpret.
+#### 缺点
+- **类别过多导致复杂性：** 当处理大量类别或维度时，可视化可能会变得拥挤且难以解释。
 
-- **Limited for Categorical Data:** Bar Charts are most effective for numerical data and may not be the optimal choice for representing categorical data.
+- **仅限于分类数据：** 条形图对于数值数据最有效，但可能不是表示分类数据的最佳选择。
 
-## Bar Chart Example
+## 条形图示例
 
 ![Bar Chart Example](/Illustry-monorepo/bar-chart.gif)

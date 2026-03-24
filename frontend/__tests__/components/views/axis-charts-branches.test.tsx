@@ -2,9 +2,8 @@ import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 
-const { constructSeriesSpy, legendSpy, echartsPropsSpy } = vi.hoisted(() => ({
+const { constructSeriesSpy, echartsPropsSpy } = vi.hoisted(() => ({
   constructSeriesSpy: vi.fn(() => [{ type: 'bar' }]),
-  legendSpy: vi.fn(() => [{ label: 'k', color: '#1' }]),
   echartsPropsSpy: vi.fn()
 }));
 
@@ -22,12 +21,7 @@ vi.mock('@/components/providers/theme-provider', () => ({
 }));
 
 vi.mock('@/lib/visualizations/chart/helper', () => ({
-  constructSeries: (...args: any[]) => constructSeriesSpy(...args),
-  computeLegendColors: (...args: any[]) => legendSpy(...args)
-}));
-
-vi.mock('@/components/ui/legend', () => ({
-  default: ({ legendData }: any) => <div data-testid="legend">{JSON.stringify(legendData)}</div>
+  constructSeries: (...args: any[]) => constructSeriesSpy(...args)
 }));
 
 vi.mock('@/components/views/generic/echarts', () => ({
@@ -42,7 +36,6 @@ import AxisChartView from '@/components/views/axis-charts';
 describe('AxisChartView branches', () => {
   beforeEach(() => {
     constructSeriesSpy.mockClear();
-    legendSpy.mockClear();
     echartsPropsSpy.mockClear();
   });
 
@@ -68,11 +61,13 @@ describe('AxisChartView branches', () => {
     const barOption = echartsPropsSpy.mock.calls.at(-1)?.[0].option;
     expect(constructSeriesSpy.mock.calls.at(-1)?.[1]).toEqual(['#bar-light']);
     expect(barOption.xAxis[0].boundaryGap).toBe(true);
+    expect(barOption.legend.show).toBe(false);
     bar.unmount();
 
     render(<AxisChartView data={data} type="line" legend={false} options={{}} fullScreen={false} />);
     const lineOption = echartsPropsSpy.mock.calls.at(-1)?.[0].option;
     expect(constructSeriesSpy.mock.calls.at(-1)?.[1]).toEqual(['#line-light']);
     expect(lineOption.xAxis[0].boundaryGap).toBe(false);
+    expect(lineOption.legend.show).toBe(false);
   });
 });

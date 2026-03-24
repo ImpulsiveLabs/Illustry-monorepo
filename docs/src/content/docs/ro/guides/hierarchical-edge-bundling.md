@@ -1,13 +1,13 @@
 ---
 title: Grupare ierarhica a muchiilor
-description: Hierarchical Edge Bundling doc
+description: Ierarhic Edge Bundling doc
 ---
 
-The **Hierarchical Edge Bundling** visualization is a sophisticated technique for depicting hierarchical relationships and connections within a dataset. It leverages edge bundling to reduce visual clutter while highlighting the structure of relationships in a hierarchical manner.
+Vizualizarea **Hierarhical Edge Bundling** este o tehnică sofisticată pentru a descrie relațiile ierarhice și conexiunile într-un set de date. Utilizează gruparea marginilor pentru a reduce dezordinea vizuală, evidențiind în același timp structura relațiilor într-o manieră ierarhică.
 
-## Hierarchical Edge Bundling Data Structure
+## Structura de date de grupare ierarhică de margine
 
-To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkData` interface:
+Pentru a reprezenta un grup ierarhic Edge, puteți utiliza următoarea interfață `NodeLinkData`:
 
 ```typescript
 {{Node}}
@@ -16,26 +16,26 @@ To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkDa
 
 {{NodeLinkData}}
 ```
-### Key Attributes
+### Atribute cheie
 
-- **name:** A unique identifier for the node.
-- **category:** Categorizes the node into a specific group or cluster.
-- **source:** Identifies the source node of the link.
-- **target:** Identifies the target node of the link.
-- **value:** Represents a numerical value associated with the link that suggests how strongly connected the nodes are.
+- **nume:** Un identificator unic pentru nod.
+- **categorie:** Clasifică nodul într-un anumit grup sau cluster.
+- **sursa:** Identifică nodul sursă al legăturii.
+- **țintă:** Identifică nodul țintă al legăturii.
+- **valoare:** reprezintă o valoare numerică asociată cu legătura care sugerează cât de puternic sunt conectate nodurile.
 
-### Pros and Cons
+### Argumente pro şi contra
 
-#### Pros
-- **Improved Aesthetics and Readability:** The bundled edges contribute to a cleaner and more aesthetically pleasing visualization. By reducing visual clutter, users can more easily interpret the relationships between nodes, enhancing overall readability.
+#### Pro
+- **Estetică și lizibilitate îmbunătățite:** Marginile grupate contribuie la o vizualizare mai curată și mai plăcută din punct de vedere estetic. Prin reducerea dezordinei vizuale, utilizatorii pot interpreta mai ușor relațiile dintre noduri, îmbunătățind lizibilitatea generală.
 
-- **Enhanced Focus on Key Relationships:** Edge bundling allows users to focus on key relationships within the hierarchical structure, emphasizing the most significant connections. This can aid in identifying critical paths or central nodes in complex datasets.
+- ** Focalizare îmbunătățită asupra relațiilor cheie:** Gruparea Edge permite utilizatorilor să se concentreze asupra relațiilor cheie din structura ierarhică, punând accent pe cele mai semnificative conexiuni. Acest lucru poate ajuta la identificarea căilor critice sau a nodurilor centrale în seturi de date complexe.
 
-#### Cons
-- **Difficulty in Identifying Parallel Paths:** Identifying parallel paths or connections in a densely bundled area may pose challenges for users. Distinguishing between closely packed edges representing different relationships can be complex, affecting the precision of analysis.
+#### Contra
+- **Dificultate în identificarea căilor paralele:** Identificarea căilor paralele sau a conexiunilor într-o zonă dens grupată poate reprezenta provocări pentru utilizatori. Distincția între muchiile strâns împachetate care reprezintă diferite relații poate fi complexă, afectând precizia analizei.
 
-- **Challenges with Directionality Perception:** Users may face difficulties in perceiving the directionality of bundled edges, particularly in scenarios where there is a high degree of overlap. This can impact the accurate interpretation of the flow of relationships.
+- **Provocări legate de percepția direcționalității:** Utilizatorii pot întâmpina dificultăți în a percepe direcționalitatea marginilor grupate, în special în scenariile în care există un grad ridicat de suprapunere. Acest lucru poate afecta interpretarea corectă a fluxului de relații.
 
-## Hierarchical Edge Bundling Example
+## Exemplu de grupare a marginilor ierarhice
 
 ![Hierarchical Edge Bundling Example](/Illustry-monorepo/hierarchical-edge-bundling.gif)

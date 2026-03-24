@@ -1,0 +1,34 @@
+---
+title: Proyek
+description: Dokumen proyek
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Proyeksikan sebagai Ruang Kerja
+
+Dalam sistem ini, sebuah proyek berfungsi sebagai landasan fundamental, bertindak sebagai ruang kerja khusus untuk usaha Anda. Setiap proyek merangkum elemen penting pekerjaan Anda, menyediakan lingkungan terstruktur untuk visualisasi dan analisis data.
+
+## Struktur Data Proyek
+
+Untuk mewakili proyek di sistem Anda, Anda dapat menggunakan antarmuka `ProjectData` berikut:
+
+```typescript
+{{ProjectData}}
+```
+### Atribut Utama
+
+- **nama:** Pengidentifikasi unik untuk proyek tersebut.
+- **deskripsi:** Bidang opsional untuk memberikan konteks atau detail tambahan tentang proyek.
+- **createdAt:** Stempel waktu yang menunjukkan kapan proyek pertama kali dibuat.
+- **updatedAt:** Stempel waktu yang menunjukkan modifikasi terakhir proyek.
+- **isActive:** Tanda boolean yang menentukan apakah proyek sedang aktif.
+
+## Aktivasi Proyek
+
+Penting untuk diperhatikan bahwa hanya satu proyek yang dapat aktif pada waktu tertentu. Hal ini memastikan ruang kerja terfokus dan terorganisir, memungkinkan pengguna berkonsentrasi pada proyek tertentu dan visualisasi terkait.
+
+Dengan menyusun pekerjaan Anda dengan cara ini, Anda menciptakan lingkungan yang kohesif dan mudah dikelola untuk proyek Anda, memfasilitasi analisis dan visualisasi data yang efisien dalam ruang kerja khusus.
+
+## Contoh praktis
+
+![Project in Action](/Illustry-monorepo/projects.gif)

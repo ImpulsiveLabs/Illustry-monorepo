@@ -1,6 +1,7 @@
 import { UseFormReturn } from 'react-hook-form';
 import { FileTypes, VisualizationTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   FormField,
   FormItem,
@@ -34,13 +35,15 @@ type ExcelOrCsvVisualizationMappingProps = {
 
 const ExcelOrCsvVisualizationMapping = ({
   form
-}: ExcelOrCsvVisualizationMappingProps) => (
+}: ExcelOrCsvVisualizationMappingProps) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Visualization Name:</div>
+        <div className="w-20">{t('mapping.visualizationName')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Visualization Name"
+            placeholder={t('mapping.placeholder.columnNumber')}
             onChange={(e) => {
               setTimeout(() => {
                 const { value } = e.target;
@@ -51,10 +54,10 @@ const ExcelOrCsvVisualizationMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Visualization Description:</div>
+        <div className="w-20">{t('mapping.visualizationDescription')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Visualization Description"
+            placeholder={t('mapping.placeholder.columnNumber')}
             onChange={(e) => {
               setTimeout(() => {
                 const { value } = e.target;
@@ -65,10 +68,10 @@ const ExcelOrCsvVisualizationMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Visualization Tags:</div>
+        <div className="w-20">{t('mapping.visualizationTags')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Visualization Tags"
+            placeholder={t('mapping.placeholder.columnNumber')}
             onChange={(e) => {
               const { value } = e.target;
               form.setValue('mapping.visualizationTags', value);
@@ -77,7 +80,8 @@ const ExcelOrCsvVisualizationMapping = ({
         </div>
       </div>
     </>
-);
+  );
+};
 
 const ExcelOrCsvMappingTab = ({
   form,
@@ -85,6 +89,7 @@ const ExcelOrCsvMappingTab = ({
   fileDetails,
   selectedFileType
 }: ExcelMappingTabProps) => {
+  const { t } = useLocale();
   const renderMapping = (type: VisualizationTypes.VisualizationTypesEnum) => {
     if (type) {
       switch (type) {
@@ -162,10 +167,10 @@ const ExcelOrCsvMappingTab = ({
           name="sheets"
           render={() => (
             <FormItem>
-              <FormLabel>Sheets number</FormLabel>
+              <FormLabel>{t('mapping.sheetsNumber')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="How many sheets to include"
+                  placeholder={t('mapping.sheetsPlaceholder')}
                   defaultValue={form.getValues('sheets') || '1'}
                   onChange={(e) => {
                     setTimeout(() => {
@@ -185,10 +190,10 @@ const ExcelOrCsvMappingTab = ({
           name="separator"
           render={() => (
             <FormItem>
-              <FormLabel>Separator</FormLabel>
+              <FormLabel>{t('mapping.separator')}</FormLabel>
               <FormControl>
                 <Input
-                  placeholder="Separator"
+                  placeholder={t('mapping.separator')}
                   defaultValue={form.getValues('separator') || ','}
                   onChange={(e) => {
                     setTimeout(() => {
@@ -213,7 +218,7 @@ const ExcelOrCsvMappingTab = ({
                 <FormControl>
                   <div className=" flex flex-row items-center gap-2">
                     <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                      Include headers?
+                      {t('mapping.includeHeaders')}
                     </p>
                     <Checkbox
                       className="ml-[3%] mt-[0.5%]"
@@ -233,7 +238,7 @@ const ExcelOrCsvMappingTab = ({
           name="mapping"
           render={() => (
             <FormItem>
-              <FormLabel>Mapping</FormLabel>
+              <FormLabel>{t('mapping.title')}</FormLabel>
               <FormControl>
                 {renderMapping(
                   form.getValues('type') as VisualizationTypes.VisualizationTypesEnum
