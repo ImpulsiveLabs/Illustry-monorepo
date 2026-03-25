@@ -26,7 +26,7 @@ describe('DataTablePagination', () => {
 
         render(<DataTablePagination table={table} pageSizeOptions={[10, 20]} />);
 
-        expect(screen.getByText('2 of 20 row(s) selected.')).toBeInTheDocument();
+        expect(screen.getByText('2 / 20 rows selected')).toBeInTheDocument();
         expect(screen.getByText('Page 2 of 5')).toBeInTheDocument();
 
         await user.click(screen.getByRole('button', { name: 'Go to first page' }));

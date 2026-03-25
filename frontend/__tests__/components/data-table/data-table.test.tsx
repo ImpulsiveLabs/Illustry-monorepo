@@ -79,7 +79,7 @@ describe('DataTable', () => {
             />
         );
 
-        expect(screen.getByText('No results.')).toBeInTheDocument();
+        expect(screen.getByText('No results found.')).toBeInTheDocument();
         expect(screen.getByTestId('toolbar')).toBeInTheDocument();
         expect(screen.getByTestId('pagination')).toBeInTheDocument();
 
@@ -118,7 +118,7 @@ describe('DataTable', () => {
             />
         );
 
-        expect(screen.getByText('No results.')).toBeInTheDocument();
+        expect(screen.getByText('No results found.')).toBeInTheDocument();
 
         await waitFor(() => {
             expect(push).toHaveBeenCalled();

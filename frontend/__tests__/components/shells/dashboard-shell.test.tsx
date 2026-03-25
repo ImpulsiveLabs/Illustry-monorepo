@@ -87,7 +87,7 @@ describe('ResizableDashboard', () => {
         );
 
         expect(screen.getAllByTestId('hub-shell')).toHaveLength(2);
-        await user.click(screen.getByText('Sales (Bar-chart Chart)'));
+        await user.click(screen.getByText('Sales (Bar Chart)'));
         expect(push).toHaveBeenCalledWith('/visualizationhub?name=Sales&type=bar-chart');
     });
 

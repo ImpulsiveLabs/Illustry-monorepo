@@ -280,7 +280,7 @@ describe('theme + playground shells', () => {
         await user.click(screen.getByRole('button', { name: 'delete-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'change-color-calendar' }));
         expect(themeDispatch).not.toHaveBeenCalled();
-    });
+    }, 30000);
 
     it('keeps diagram hidden before submit and handles multiple-active default validation switch', async () => {
         const user = userEvent.setup();

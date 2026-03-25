@@ -10,7 +10,7 @@ describe('NotFound Page', () => {
 
     expect(screen.getByText('Oops! Not Found')).toBeInTheDocument();
     expect(
-      screen.getByText("Sorry, we couldn't find the requested resource.")
+      screen.getByText('Sorry, we could not find the requested resource.')
     ).toBeInTheDocument();
   });
 

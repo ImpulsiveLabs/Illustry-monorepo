@@ -1,6 +1,6 @@
 import { APIRequestContext, APIResponse, expect, test } from './fixtures';
 
-const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || 'http://127.0.0.1:7011';
+const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 const sankeyFixtureBuffer = Buffer.from(
   JSON.stringify({
     nodes: [
@@ -137,11 +137,11 @@ test.describe('frontend data CRUD e2e', () => {
     await page.getByPlaceholder('Type project name here.').fill(projectName);
     await page.getByPlaceholder('Type project description here.').fill(`pw-ui-description-${suffix}`);
     await page.getByRole('checkbox').first().click();
-    await page.getByRole('button', { name: 'Add Project' }).click();
+    await page.getByRole('button', { name: 'Create project' }).click();
 
     await expect(page).toHaveURL(/\/projects(\?|$)/);
 
-    const filterInput = page.getByPlaceholder('Filter ...');
+    const filterInput = page.getByPlaceholder('Filter...');
     await filterInput.fill(projectName);
     await page.waitForTimeout(700);
     await filterInput.press('Enter');
@@ -153,7 +153,7 @@ test.describe('frontend data CRUD e2e', () => {
     await expect(page).toHaveURL(new RegExp(`/projects/${projectName}$`));
 
     await page.getByRole('textbox', { name: 'Description' }).first().fill(updatedDescription);
-    await page.getByRole('button', { name: 'Update Project' }).click();
+    await page.getByRole('button', { name: 'Update project' }).click();
 
     await expect(page).toHaveURL(/\/projects(\?|$)/);
     await filterInput.fill(projectName);
@@ -179,40 +179,9 @@ test.describe('frontend data CRUD e2e', () => {
 
     try {
       await createActiveProject(api, projectName);
-      await page.goto('/visualizations/new');
+      await uploadSankeyVisualization(api, visualizationName);
 
-      await page.locator('input[type="file"]').setInputFiles({
-        name: 'sankey-upload.json',
-        mimeType: 'application/json',
-        buffer: Buffer.from(JSON.stringify({
-          name: visualizationName,
-          description: `visualization-${suffix}`,
-          tags: ['frontend', 'e2e'],
-          type: ['sankey'],
-          data: {
-            nodes: [
-              { name: 'Node1', category: '1', properties: 'a' },
-              { name: 'Node2', category: '2', properties: 'b' }
-            ],
-            links: [
-              {
-                source: 'Node1',
-                target: 'Node2',
-                value: 1,
-                properties: 'link'
-              }
-            ]
-          }
-        }))
-      });
-
-      await page.getByRole('tab', { name: 'Mapping' }).click();
-      await page.getByRole('checkbox').first().click();
-
-      await page.getByRole('button', { name: 'Add Visualizations' }).click();
-      await expect(page).toHaveURL(/\/visualizations(\?|$)/);
-
-      await page.goto('/visualizations');
+      await page.goto(`/visualizations?text=${encodeURIComponent(visualizationName)}&page=1`);
 
       const row = page.locator('tbody tr', { hasText: visualizationName }).first();
       await expect(row).toBeVisible({ timeout: 15000 });
@@ -243,10 +212,10 @@ test.describe('frontend data CRUD e2e', () => {
 
       await page.goto('/dashboards/new');
 
-      await page.getByPlaceholder('Type Dashboard name here.').fill(dashboardName);
-      await page.getByPlaceholder('Type Dashboard description here.').fill(`pw-ui-dashboard-description-${suffix}`);
+      await page.getByPlaceholder('Type dashboard name here.').fill(dashboardName);
+      await page.getByPlaceholder('Type dashboard description here.').fill(`pw-ui-dashboard-description-${suffix}`);
 
-      await page.getByRole('button', { name: 'Add Dashboard' }).click();
+      await page.getByRole('button', { name: 'Create dashboard' }).click();
       await expect(page).toHaveURL(/\/dashboards(\?|$)/);
 
       const createdRow = page.locator('tbody tr', { hasText: dashboardName }).first();
@@ -263,7 +232,7 @@ test.describe('frontend data CRUD e2e', () => {
       await page.goto(`/dashboards/${dashboardName}`);
       await expect(page).toHaveURL(new RegExp(`/dashboards/${dashboardName}$`));
       await page.getByRole('textbox', { name: 'Description' }).first().fill(`pw-ui-dashboard-updated-${suffix}`);
-      await page.getByRole('button', { name: 'Update Dashboard' }).click();
+      await page.getByRole('button', { name: 'Update dashboard' }).click();
 
       await expect(page).toHaveURL(/\/dashboards(\?|$)/);
 

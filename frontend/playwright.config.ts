@@ -1,17 +1,19 @@
 import { defineConfig, devices } from '@playwright/test';
 
 const backendPort = process.env.E2E_BACKEND_PORT || '7011';
+const frontendPort = process.env.E2E_FRONTEND_PORT || '3100';
 const backendBaseURL = `http://127.0.0.1:${backendPort}`;
+const frontendBaseURL = `http://127.0.0.1:${frontendPort}`;
 
 export default defineConfig({
   testDir: './e2e',
-  fullyParallel: true,
+  fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  workers: 1,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://127.0.0.1:3000',
+    baseURL: frontendBaseURL,
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'retain-on-failure'
@@ -30,7 +32,7 @@ export default defineConfig({
     {
       command: 'cd .. && yarn workspace @impulsivelabs/illustry-server start:dev',
       port: +backendPort,
-      reuseExistingServer: !process.env.CI,
+      reuseExistingServer: false,
       timeout: 240000,
       env: {
         NODE_ENV: 'test',
@@ -41,9 +43,9 @@ export default defineConfig({
       }
     },
     {
-      command: 'yarn start:dev --port 3000',
-      url: 'http://127.0.0.1:3000',
-      reuseExistingServer: !process.env.CI,
+      command: `yarn start:dev --port ${frontendPort}`,
+      url: frontendBaseURL,
+      reuseExistingServer: false,
       timeout: 120000,
       env: {
         BACKEND_INTERNAL_URL: backendBaseURL,

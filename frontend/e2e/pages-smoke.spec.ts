@@ -1,6 +1,6 @@
 import { APIRequestContext, APIResponse, expect, test } from './fixtures';
 
-const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || 'http://127.0.0.1:7011';
+const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 
 const parseBody = async (response: APIResponse): Promise<unknown> => {
   const raw = await response.text();

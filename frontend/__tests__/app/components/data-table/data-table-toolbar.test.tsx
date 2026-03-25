@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 import DataTableToolbar from '@/components/data-table/data-table-toolbar';
@@ -55,8 +55,9 @@ describe('DataTableToolbar', () => {
             />
         );
 
-        await user.type(screen.getByPlaceholderText('Filter ...'), 'abc');
-        await user.click(screen.getByRole('button', { name: 'magnifying glass' }));
+        const filterInput = screen.getByPlaceholderText('Filter...');
+        await user.type(filterInput, 'abc');
+        fireEvent.submit(filterInput.closest('form') as HTMLFormElement);
 
         expect(push).toHaveBeenCalledTimes(1);
         const [path, options] = push.mock.calls[0];
@@ -100,7 +101,7 @@ describe('DataTableToolbar', () => {
             />
         );
 
-        await user.click(screen.getByRole('button', { name: 'magnifying glass' }));
+        fireEvent.submit(screen.getByPlaceholderText('Filter...').closest('form') as HTMLFormElement);
 
         expect(push).toHaveBeenCalledTimes(1);
         const [path] = push.mock.calls[0];

@@ -34,7 +34,7 @@ describe('DashboardNotFound', () => {
     const errorCard = screen.getByTestId('error-card');
     expect(errorCard).toBeInTheDocument();
     expect(errorCard).toHaveTextContent('Dashboard not found');
-    expect(errorCard).toHaveTextContent('The Dashboard may have expired');
+    expect(errorCard).toHaveTextContent('The dashboard may have expired.');
     expect(errorCard).toHaveTextContent('Go to Dashboards');
     expect(screen.getByRole('link', { name: 'Go to Dashboards' })).toHaveAttribute(
       'href',

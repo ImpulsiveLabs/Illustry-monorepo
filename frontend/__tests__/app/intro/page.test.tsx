@@ -22,7 +22,7 @@ describe('Home', () => {
     render(<Home />);
 
     // Check the mocked Typewriter is rendered with correct words
-    expect(screen.getByTestId('typewriter-mock')).toHaveTextContent('Understand, Learn about, Visualize');
+    expect(screen.getByTestId('typewriter-mock')).toHaveTextContent('Understand, Learn, Visualize');
 
     // Check for the static text after Typewriter
     expect(screen.getByText(/your data!/i)).toBeInTheDocument();

@@ -24,9 +24,9 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvAxisChartMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column numbers for Data, coma separated'), { target: { value: '1,2' } });
+        fireEvent.change(screen.getByPlaceholderText('Column numbers, comma separated'), { target: { value: '1,2' } });
         vi.runAllTimers();
-        fireEvent.change(screen.getByPlaceholderText('Column number for Headers'), { target: { value: '3' } });
+        fireEvent.change(screen.getByPlaceholderText('Column number'), { target: { value: '3' } });
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.data', '1,2');
         expect(form.setValue).toHaveBeenCalledWith('mapping.headers', '3');
@@ -37,10 +37,11 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvCalendarMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column number for Dates'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Values'), { target: { value: '2' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Categories'), { target: { value: '3' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Properties'), { target: { value: '4' } });
+        const inputs = screen.getAllByPlaceholderText('Column number');
+        fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(inputs[1] as HTMLElement, { target: { value: '2' } });
+        fireEvent.change(inputs[2] as HTMLElement, { target: { value: '3' } });
+        fireEvent.change(inputs[3] as HTMLElement, { target: { value: '4' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.dates', '1');
@@ -54,11 +55,12 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvHierarchyMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column number for Names'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Values'), { target: { value: '2' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Categories'), { target: { value: '3' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Properties'), { target: { value: '4' } });
-        fireEvent.change(screen.getByPlaceholderText('Column numbers for Children, coma separated'), { target: { value: '5,6' } });
+        const singleColumnInputs = screen.getAllByPlaceholderText('Column number');
+        fireEvent.change(singleColumnInputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(singleColumnInputs[1] as HTMLElement, { target: { value: '2' } });
+        fireEvent.change(singleColumnInputs[2] as HTMLElement, { target: { value: '3' } });
+        fireEvent.change(singleColumnInputs[3] as HTMLElement, { target: { value: '4' } });
+        fireEvent.change(screen.getByPlaceholderText('Column numbers, comma separated'), { target: { value: '5,6' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.names', '1');
@@ -73,12 +75,13 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvNodeLinkMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column number for Categories'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Nodes'), { target: { value: '2' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Properties'), { target: { value: '3' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Sources'), { target: { value: '4' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Targets'), { target: { value: '5' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Values'), { target: { value: '6' } });
+        const inputs = screen.getAllByPlaceholderText('Column number');
+        fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(inputs[1] as HTMLElement, { target: { value: '2' } });
+        fireEvent.change(inputs[2] as HTMLElement, { target: { value: '3' } });
+        fireEvent.change(inputs[3] as HTMLElement, { target: { value: '4' } });
+        fireEvent.change(inputs[4] as HTMLElement, { target: { value: '5' } });
+        fireEvent.change(inputs[5] as HTMLElement, { target: { value: '6' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.categories', '1');
@@ -94,8 +97,9 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvPieChartFunnelMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column numbers for Names'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column numbers for Values'), { target: { value: '2' } });
+        const inputs = screen.getAllByPlaceholderText('Column numbers, comma separated');
+        fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(inputs[1] as HTMLElement, { target: { value: '2' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.names', '1');
@@ -107,9 +111,10 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvScatterMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column number for Categories'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column numbers for Values, coma separated'), { target: { value: '2,3' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Properties'), { target: { value: '4' } });
+        const singleColumnInputs = screen.getAllByPlaceholderText('Column number');
+        fireEvent.change(singleColumnInputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(screen.getByPlaceholderText('Column numbers, comma separated'), { target: { value: '2,3' } });
+        fireEvent.change(singleColumnInputs[1] as HTMLElement, { target: { value: '4' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.categories', '1');
@@ -122,9 +127,10 @@ describe('excel/csv mapping subcomponents', () => {
         const form = createForm();
         render(<ExcelOrCsvWordCloudMapping form={form as any} />);
 
-        fireEvent.change(screen.getByPlaceholderText('Column number for Names'), { target: { value: '1' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Values'), { target: { value: '2' } });
-        fireEvent.change(screen.getByPlaceholderText('Column number for Properties'), { target: { value: '3' } });
+        const inputs = screen.getAllByPlaceholderText('Column number');
+        fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
+        fireEvent.change(inputs[1] as HTMLElement, { target: { value: '2' } });
+        fireEvent.change(inputs[2] as HTMLElement, { target: { value: '3' } });
         vi.runAllTimers();
 
         expect(form.setValue).toHaveBeenCalledWith('mapping.names', '1');

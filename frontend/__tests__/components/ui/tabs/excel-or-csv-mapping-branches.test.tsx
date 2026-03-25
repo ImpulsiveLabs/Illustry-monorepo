@@ -36,19 +36,19 @@ afterEach(() => {
 describe('ExcelOrCsvMappingTab branches', () => {
   it('renders grouped node-link mappings for sankey and hierarchical-edge-bundling', () => {
     const sankey = renderWithForm({ type: VisualizationTypes.VisualizationTypesEnum.SANKEY }, FileTypes.FileType.EXCEL, false);
-    expect(screen.getByPlaceholderText('Column number for Nodes')).toBeInTheDocument();
+    expect(screen.getByText('Nodes:')).toBeInTheDocument();
     sankey.unmount();
 
     renderWithForm({ type: VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING }, FileTypes.FileType.EXCEL, false);
-    expect(screen.getByPlaceholderText('Column number for Targets')).toBeInTheDocument();
+    expect(screen.getByText('Targets:')).toBeInTheDocument();
   });
 
   it('renders default mapping-only block when visualization type is not mapped', () => {
     renderWithForm({ type: VisualizationTypes.VisualizationTypesEnum.TIMELINE }, FileTypes.FileType.CSV, true);
 
-    expect(screen.getByPlaceholderText('Column number for Visualization Name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Column number for Visualization Description')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Column number for Visualization Tags')).toBeInTheDocument();
+    expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
+    expect(screen.getByText('Visualization Description:')).toBeInTheDocument();
+    expect(screen.getByText('Visualization Tags:')).toBeInTheDocument();
   });
 
   it('handles undefined type by rendering no specific mapping controls', () => {
@@ -59,31 +59,31 @@ describe('ExcelOrCsvMappingTab branches', () => {
   });
 
   it.each([
-    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Column number for Names'],
-    [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Column number for Dates'],
-    [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Column number for Headers'],
-    [VisualizationTypes.VisualizationTypesEnum.FUNNEL, 'Column numbers for Values'],
-    [VisualizationTypes.VisualizationTypesEnum.SUNBURST, 'Column numbers for Children, coma separated']
-  ])('hides visualization metadata mapping when fileDetails is false for %s', (type, markerPlaceholder) => {
+    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Names:'],
+    [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
+    [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Headers:'],
+    [VisualizationTypes.VisualizationTypesEnum.FUNNEL, 'Values:'],
+    [VisualizationTypes.VisualizationTypesEnum.SUNBURST, 'Children:']
+  ])('hides visualization metadata mapping when fileDetails is false for %s', (type, markerLabel) => {
     renderWithForm({ type }, FileTypes.FileType.CSV, false);
 
-    expect(screen.getByPlaceholderText(markerPlaceholder)).toBeInTheDocument();
-    expect(screen.queryByPlaceholderText('Column number for Visualization Name')).not.toBeInTheDocument();
+    expect(screen.getByText(markerLabel)).toBeInTheDocument();
+    expect(screen.queryByText('Visualization Name:')).not.toBeInTheDocument();
   });
 
   it.each([
-    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Column number for Values'],
-    [VisualizationTypes.VisualizationTypesEnum.SANKEY, 'Column number for Nodes'],
-    [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Column number for Dates'],
-    [VisualizationTypes.VisualizationTypesEnum.LINE_CHART, 'Column number for Headers'],
-    [VisualizationTypes.VisualizationTypesEnum.PIE_CHART, 'Column numbers for Values'],
-    [VisualizationTypes.VisualizationTypesEnum.TREEMAP, 'Column numbers for Children, coma separated']
-  ])('shows visualization metadata mapping when fileDetails is true for %s', (type, markerPlaceholder) => {
+    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Values:'],
+    [VisualizationTypes.VisualizationTypesEnum.SANKEY, 'Nodes:'],
+    [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
+    [VisualizationTypes.VisualizationTypesEnum.LINE_CHART, 'Headers:'],
+    [VisualizationTypes.VisualizationTypesEnum.PIE_CHART, 'Values:'],
+    [VisualizationTypes.VisualizationTypesEnum.TREEMAP, 'Children:']
+  ])('shows visualization metadata mapping when fileDetails is true for %s', (type, markerLabel) => {
     renderWithForm({ type }, FileTypes.FileType.CSV, true);
 
-    expect(screen.getByPlaceholderText(markerPlaceholder)).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Column number for Visualization Name')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Column number for Visualization Description')).toBeInTheDocument();
+    expect(screen.getByText(markerLabel)).toBeInTheDocument();
+    expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
+    expect(screen.getByText('Visualization Description:')).toBeInTheDocument();
   });
 
   it('updates sheets/separator and includeHeaders via form state', () => {
@@ -135,18 +135,12 @@ describe('ExcelOrCsvMappingTab branches', () => {
       true
     );
 
-    fireEvent.change(
-      screen.getByPlaceholderText('Column number for Visualization Name'),
-      { target: { value: '7' } }
-    );
-    fireEvent.change(
-      screen.getByPlaceholderText('Column number for Visualization Description'),
-      { target: { value: '8' } }
-    );
-    fireEvent.change(
-      screen.getByPlaceholderText('Column number for Visualization Tags'),
-      { target: { value: '9' } }
-    );
+    const mappingRows = ['Visualization Name:', 'Visualization Description:', 'Visualization Tags:']
+      .map((label) => screen.getByText(label).closest('div')?.parentElement as HTMLElement)
+      .map((row) => row.querySelector('input') as HTMLInputElement);
+    fireEvent.change(mappingRows[0] as HTMLInputElement, { target: { value: '7' } });
+    fireEvent.change(mappingRows[1] as HTMLInputElement, { target: { value: '8' } });
+    fireEvent.change(mappingRows[2] as HTMLInputElement, { target: { value: '9' } });
 
     act(() => {
       vi.runAllTimers();
