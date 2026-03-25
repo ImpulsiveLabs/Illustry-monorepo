@@ -9198,10 +9198,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"flatted@npm:3.4.1":
-  version: 3.4.1
-  resolution: "flatted@npm:3.4.1"
-  checksum: 10/39a308e2ef82d2d8c80ebc74b67d4ff3f668be168137b649440b6735eb9c115d1e0c13ab0d9958b3d2ea9c85087ab7e14c14aa6f625a22b2916d89bbd91bc4a0
+"flatted@npm:3.4.2":
+  version: 3.4.2
+  resolution: "flatted@npm:3.4.2"
+  checksum: 10/a9e78fe5c2c1fcd98209a015ccee3a6caa953e01729778e83c1fe92e68601a63e1e69cd4e573010ca99eaf585a581b80ccf1018b99283e6cbc2117bcba1e030f
   languageName: node
   linkType: hard
 
@@ -9673,9 +9673,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"h3@npm:1.15.6":
-  version: 1.15.6
-  resolution: "h3@npm:1.15.6"
+"h3@npm:1.15.9":
+  version: 1.15.9
+  resolution: "h3@npm:1.15.9"
   dependencies:
     cookie-es: "npm:^1.2.2"
     crossws: "npm:^0.3.5"
@@ -9686,7 +9686,7 @@ __metadata:
     radix3: "npm:^1.1.2"
     ufo: "npm:^1.6.3"
     uncrypto: "npm:^0.1.3"
-  checksum: 10/abed5e03c6e036af70f56c265af867a4553d044fbaf98adae87d209f32ccd74ee3748d5cdd82e20e94d8640f4686fb3d31c7130e52bf1d0cb9c2cb151f6353de
+  checksum: 10/c786efdcf1307ef0415b592b3935f64e11cafe7d3ccb3ec6aba52332bee26463b9c165b82ae23fe42488f5c56c146ef2c5da8f5f00ded520cc24a89793c9ab7b
   languageName: node
   linkType: hard
 

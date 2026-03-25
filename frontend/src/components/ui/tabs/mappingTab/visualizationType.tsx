@@ -42,8 +42,8 @@ const VisualizationType = ({
               <FormControl>
                 <Select
                   value={form.getValues('type')}
-                  onValueChange={(value: VisualizationTypes.VisualizationTypesEnum) => {
-                    form.setValue('type', value);
+                  onValueChange={(value: string) => {
+                    form.setValue('type', value as any); //Only for the moment untill all the values from the enum are added in the select, then we can remove the "as any"
                     router.refresh();
                   }}
                 >
