@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import { buildTypePlaceholderMap, createTypePlaceholderRemarkPlugin } from './type-placeholders.mjs';
 
 const docsLocales = {
   root: { label: 'English', lang: 'en' },
@@ -34,6 +35,8 @@ const docsLocales = {
 const docsRoot = path.dirname(fileURLToPath(import.meta.url));
 const docsContentRoot = path.join(docsRoot, 'src', 'content', 'docs');
 const nonRootLocales = Object.keys(docsLocales).filter((locale) => locale !== 'root');
+const typePlaceholders = buildTypePlaceholderMap(docsRoot);
+const typePlaceholderRemarkPlugin = createTypePlaceholderRemarkPlugin(typePlaceholders);
 
 const getDocFilePath = (docPath, locale = 'root') => {
   const localePrefix = locale === 'root' ? '' : `${locale}/`;
@@ -71,6 +74,9 @@ const visualizationsGroupTranslations = buildGroupTranslations('guides/visualiza
 export default defineConfig({
   site: 'https://impulsivelabs.github.io',
   base: '/Illustry-monorepo',
+  markdown: {
+    remarkPlugins: [typePlaceholderRemarkPlugin]
+  },
   integrations: [
     starlight({
       title: 'Illustry',
