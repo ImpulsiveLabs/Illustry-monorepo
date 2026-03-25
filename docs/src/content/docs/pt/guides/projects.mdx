@@ -1,0 +1,34 @@
+---
+title: Projetos
+description: Documento de projetos
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Projeto como espaço de trabalho
+
+Neste sistema, um projeto serve como alicerce fundamental, atuando como um espaço de trabalho dedicado para seus empreendimentos. Cada projeto encapsula os elementos essenciais do seu trabalho, fornecendo um ambiente estruturado para visualização e análise de dados.
+
+## Estrutura de dados do projeto
+
+Para representar um projeto em seu sistema, você pode usar a seguinte interface `ProjectData`:
+
+```typescript
+{{ProjectData}}
+```
+### Atributos principais
+
+- **nome:** Um identificador exclusivo para o projeto.
+- **descrição:** Um campo opcional para fornecer contexto ou detalhes adicionais sobre o projeto.
+- **createdAt:** O carimbo de data/hora que indica quando o projeto foi criado inicialmente.
+- **updatedAt:** O carimbo de data/hora que indica a última modificação do projeto.
+- **isActive:** Um sinalizador booleano que especifica se o projeto está ativo no momento.
+
+## Ativação do Projeto
+
+É importante observar que apenas um projeto pode estar ativo por vez. Isso garante um espaço de trabalho focado e organizado, permitindo que os usuários se concentrem em um projeto específico e nas visualizações associadas.
+
+Ao estruturar seu trabalho dessa maneira, você cria um ambiente coeso e gerenciável para seus projetos, facilitando a análise e visualização eficiente de dados em um espaço de trabalho dedicado.
+
+## Exemplo prático
+
+![Project in Action](/Illustry-monorepo/projects.gif)

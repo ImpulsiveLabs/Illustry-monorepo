@@ -1,5 +1,6 @@
 import { UseFormReturn } from 'react-hook-form';
 import { Inputs } from '@/components/form/types';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   FormField,
   FormItem,
@@ -16,7 +17,9 @@ type VisualizationDetailsProp = {
 
 const VisualizationDetails = ({
   form
-}: VisualizationDetailsProp) => (
+}: VisualizationDetailsProp) => {
+  const { t } = useLocale();
+  return (
   <>
     <div className="col-span-1">
       <FormField
@@ -24,10 +27,10 @@ const VisualizationDetails = ({
         name="name"
         render={() => (
           <FormItem>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>{t('common.name')}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Type project name here."
+                placeholder={t('mapping.namePlaceholder')}
                 defaultValue={form.getValues('name') || ''}
                 onChange={(e) => {
                   setTimeout(() => {
@@ -48,10 +51,10 @@ const VisualizationDetails = ({
         name="tags"
         render={() => (
           <FormItem>
-            <FormLabel>Tags</FormLabel>
+            <FormLabel>{t('table.tags')}</FormLabel>
             <FormControl>
               <Input
-                placeholder="Type comma-separated tags."
+                placeholder={t('mapping.tagsPlaceholder')}
                 defaultValue={form.getValues('tags') || ''}
                 onChange={(e) => {
                   setTimeout(() => {
@@ -72,10 +75,10 @@ const VisualizationDetails = ({
         name="description"
         render={() => (
           <FormItem>
-            <FormLabel>Description</FormLabel>
+            <FormLabel>{t('common.description')}</FormLabel>
             <FormControl>
               <Textarea
-                placeholder="Type project description here."
+                placeholder={t('mapping.descriptionPlaceholder')}
                 defaultValue={form.getValues('description') || ''}
                 onChange={(e) => {
                   setTimeout(() => {
@@ -92,6 +95,7 @@ const VisualizationDetails = ({
     </div>
 
   </>
-);
+  );
+};
 
 export default VisualizationDetails;

@@ -1,0 +1,103 @@
+---
+title: วิธีการตั้งค่า Illustry ด้วยตนเอง
+description: การตั้งค่าด้วยตนเอง
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## ข้อกำหนดเบื้องต้น
+
+ก่อนที่จะติดตั้ง Illustry ส่วนหน้า ตรวจสอบให้แน่ใจว่าคุณมีข้อกำหนดเบื้องต้นต่อไปนี้:
+
+- โหนดเวอร์ชัน 18.17.0 หรือสูงกว่า
+- MongoDB
+
+## Illustry แบ็กเอนด์
+
+
+#### ในพื้นที่:
+จำเป็นต้องมีไฟล์ชื่อ `.env` ที่รากของโปรเจ็กต์ซึ่งมีฟิลด์ต่อไปนี้:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+รันคำสั่งต่อไปนี้:
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+#### นักเทียบท่า:
+
+รันคำสั่งต่อไปนี้:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## Illustry ส่วนหน้า
+
+
+#### ในพื้นที่:
+จำเป็นต้องมีไฟล์ชื่อ `.env` ที่รากของโปรเจ็กต์ซึ่งมีฟิลด์ต่อไปนี้:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+รันคำสั่งต่อไปนี้:
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+__ต็อก_0__
+__ต็อก_0__
+
+#### นักเทียบท่า:
+**ก่อนรันให้สร้างภาพแบ็คเอนด์ก่อน!**
+
+รันคำสั่งต่อไปนี้:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

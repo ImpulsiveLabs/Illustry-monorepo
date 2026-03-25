@@ -1,0 +1,37 @@
+---
+title: Illustry에 오신 것을 환영합니다.
+description: 일러스트를 시작해 보세요.
+template: splash
+hero:
+  tagline: 항상 필요했던 시각화 허브.
+  image:
+    file: ../../../assets/illustry.webp
+  actions:
+    - text: 💻 시작하기
+      link: ./guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: 📈 시각화에 대해 알아보기
+      link: ./guides/visualizations/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## 시각화의 힘을 발견하세요
+
+<CardGrid stagger>
+	<Card title="📊 시각화의 세계에 빠져보세요">
+		매혹적인 시각화를 탐색하고 원시 데이터를 통찰력 있는 그래픽으로 변환하는 기술과 과학을 알아보세요. 놀라운 차트부터 몰입도 높은 그래프까지, 숫자를 뛰어넘는 방식으로 데이터를 이해하는 여정을 시작하세요.
+	</Card>
+	<Card title="📂 다양한 파일 형식 지원">
+		우리 애플리케이션의 다양성을 탐험해보세요! 🚀 JSON, XML, CSV 및 Excel을 포함한 다양한 파일 형식을 원활하게 지원하므로 데이터를 손쉽게 분석하세요.
+	</Card>
+	<Card title="🔍 통찰력 맞춤화: 개인화된 데이터 탐색을 위한 정밀 필터링">
+		강력한 필터링 기능으로 데이터 탐색 경험을 개선하세요! 🔗 가장 중요한 정보를 쉽게 범위를 좁혀 집중할 수 있습니다. 날짜, 카테고리, 맞춤 기준 등 통찰력을 맞춤화하고 데이터에서 의미 있는 패턴을 찾아내는 능력을 활용하세요.
+	</Card>
+	<Card title="🎮 데이터 놀이터: 실시간으로 데이터를 탐색하고 테스트하고 플레이해 보세요!">
+		탐색과 상호작용이 만나는 데이터 놀이터로 들어가 보세요! 🚀 실제 데이터를 실시간으로 테스트하고 실험해 보세요. 실무 경험을 쌓고, 필터를 실험하고, 쉽게 통찰력을 얻으세요. 데이터 탐색을 흥미롭고 즐거운 경험으로 만들어주는 공간입니다!
+	</Card>
+</CardGrid>

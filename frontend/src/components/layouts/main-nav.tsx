@@ -13,8 +13,11 @@ import {
   navigationMenuTriggerStyle
 } from '@/components/ui/navigation-menu';
 import Icons from '@/components/icons';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import ThemeToggle from './theme-toggle';
 import { useActiveProject } from '../providers/active-project-provider';
+import { useLocale } from '../providers/locale-provider';
+import LocaleSwitcher from './locale-switcher';
 
 type NavItem = {
   title: string;
@@ -30,6 +33,20 @@ type MainNavProps = {
 const MainNav = ({ items }: MainNavProps) => {
   const [isMounted, setIsMounted] = useState(false);
   const activeProject = useActiveProject();
+  const { t } = useLocale();
+
+  const getNavigationLabel = (item: NavItem) => {
+    const hrefMap: Record<string, string> = {
+      '/projects': 'nav.projects',
+      '/visualizations': 'nav.visualizations',
+      '/dashboards': 'nav.dashboards',
+      '/theme': 'nav.theme',
+      '/playground': 'nav.playground'
+    };
+
+    const key = item.href ? hrefMap[item.href] : undefined;
+    return key ? t(key) : item.title;
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -42,16 +59,18 @@ const MainNav = ({ items }: MainNavProps) => {
   }
   return (
     <div className="hidden gap-6 lg:flex">
-      <Link
-        aria-label="Home"
-        href="/"
-        className="hidden items-center space-x-2 lg:flex"
-      >
-        <Icons.logo className="h-6 w-6" aria-hidden="true" />
-        <span className="hidden font-bold lg:inline-block">
-          {siteConfig.name}
-        </span>
-      </Link>
+      <HintTooltip text={t('tooltip.home')}>
+        <Link
+          aria-label={t('common.home')}
+          href="/"
+          className="hidden items-center space-x-2 lg:flex"
+        >
+          <Icons.logo className="h-6 w-6" aria-hidden="true" />
+          <span className="hidden font-bold lg:inline-block">
+            {siteConfig.name}
+          </span>
+        </Link>
+      </HintTooltip>
       <NavigationMenu>
         <NavigationMenuList>
           {items?.map((item) => {
@@ -68,7 +87,7 @@ const MainNav = ({ items }: MainNavProps) => {
                     )}
                   >
                     <NavigationMenuTrigger className="h-auto capitalize">
-                      {item.title}
+                      {getNavigationLabel(item)}
                     </NavigationMenuTrigger>
                   </Link>
                 </NavigationMenuLink>
@@ -78,6 +97,7 @@ const MainNav = ({ items }: MainNavProps) => {
         </NavigationMenuList>
       </NavigationMenu>
       <div className="flex flex-1 items-center justify-end space-x-4">
+        <LocaleSwitcher />
         <ThemeToggle />
       </div>
     </div>

@@ -1,9 +1,12 @@
+'use client';
+
 import { CheckIcon, PlusCircledIcon } from '@radix-ui/react-icons';
 import { type Column } from '@tanstack/react-table';
 import { ComponentType } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import {
   Command,
   CommandEmpty,
@@ -18,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
+import { useLocale } from '@/components/providers/locale-provider';
 import Separator from '@/components/ui/separator';
 
 type Option = {
@@ -37,60 +41,65 @@ const DataTableFacetedFilter = <TData, TValue>({
   title,
   options
 }: DataTableFacetedFilterProps<TData, TValue>) => {
+  const { t } = useLocale();
   const selectedValues = new Set(column?.getFilterValue() as string[]);
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          suppressHydrationWarning
-          aria-label="Filter rows"
-          variant="outline"
-          size="sm"
-          className="h-8 border-dashed"
-        >
-          <PlusCircledIcon className="mr-2 h-4 w-4" aria-hidden="true" />
-          {title}
-          {selectedValues?.size > 0 && (
-            <>
-              <Separator orientation="vertical" className="mx-2 h-4" />
-              <Badge
-                variant="secondary"
-                className="rounded-sm px-1 font-normal lg:hidden"
-              >
-                {selectedValues.size}
-              </Badge>
-              <div className="hidden space-x-1 lg:flex">
-                {selectedValues.size > 2 ? (
+      <HintTooltip text={t('tooltip.filterRows')}>
+        <div>
+          <PopoverTrigger asChild>
+            <Button
+              suppressHydrationWarning
+              aria-label={t('tooltip.filterRows')}
+              variant="outline"
+              size="sm"
+              className="h-8 border-dashed"
+            >
+              <PlusCircledIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+              {title}
+              {selectedValues?.size > 0 && (
+                <>
+                  <Separator orientation="vertical" className="mx-2 h-4" />
                   <Badge
                     variant="secondary"
-                    className="rounded-sm px-1 font-normal ml-1"
+                    className="rounded-sm px-1 font-normal lg:hidden"
                   >
-                    {selectedValues.size} selected
+                    {selectedValues.size}
                   </Badge>
-                ) : (
-                  options
-                    .filter((option) => selectedValues.has(option.value))
-                    .map((option) => (
+                  <div className="hidden space-x-1 lg:flex">
+                    {selectedValues.size > 2 ? (
                       <Badge
                         variant="secondary"
-                        key={option.value}
                         className="rounded-sm px-1 font-normal ml-1"
                       >
-                        {option.label}
+                        {selectedValues.size} {t('table.selected')}
                       </Badge>
-                    ))
-                )}
-              </div>
-            </>
-          )}
-        </Button>
-      </PopoverTrigger>
+                    ) : (
+                      options
+                        .filter((option) => selectedValues.has(option.value))
+                        .map((option) => (
+                          <Badge
+                            variant="secondary"
+                            key={option.value}
+                            className="rounded-sm px-1 font-normal ml-1"
+                          >
+                            {option.label}
+                          </Badge>
+                        ))
+                    )}
+                  </div>
+                </>
+              )}
+            </Button>
+          </PopoverTrigger>
+        </div>
+      </HintTooltip>
       <PopoverContent className="w-[200px] p-0" align="start">
         <Command>
           <CommandInput placeholder={title} />
           <CommandList>
-            <CommandEmpty>No results found.</CommandEmpty>
+            <CommandEmpty>{t('table.noResults')}</CommandEmpty>
             <CommandGroup>
               {options.map((option) => {
                 const isSelected = selectedValues.has(option.value);
@@ -138,7 +147,7 @@ const DataTableFacetedFilter = <TData, TValue>({
                     onSelect={() => column?.setFilterValue(undefined)}
                     className="justify-center text-center"
                   >
-                    Clear filters
+                    {t('table.clearFilters')}
                   </CommandItem>
                 </CommandGroup>
               </>

@@ -8,10 +8,12 @@ import {
   ComponentType, MouseEventHandler, useCallback, useState, useTransition
 } from 'react';
 import { Button } from '@/components/ui/button';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import Input from '@/components/ui/input';
 import DataTableFacetedFilter from '@/components/data-table/data-table-faceted-filter';
 import DataTableViewOptions from '@/components/data-table/data-table-view-options';
 import useDebounce from '@/lib/hooks/use-debounce';
+import { useLocale } from '@/components/providers/locale-provider';
 import ActionButton from '../ui/table-action-button';
 
 type SearchButtonProps = {
@@ -22,7 +24,7 @@ const SearchButton = ({ containerStyles }: SearchButtonProps) => (
   <button type="submit" className={`-ml-3 z-10 ${containerStyles}`}>
     <Image
       src="/magnifying-glass.svg"
-      alt="magnifying glass"
+      alt=""
       width={40}
       height={40}
       className="object-contain "
@@ -64,6 +66,7 @@ const DataTableToolbar = <TData, >({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const debouncedText = useDebounce(text, 500);
+  const { t } = useLocale();
 
   // Create query string
   const createQueryString = useCallback(
@@ -103,7 +106,7 @@ const DataTableToolbar = <TData, >({
           className="flex items-center space-x-2" // Added flex container
         >
           <Input
-            placeholder={'Filter ...'}
+            placeholder={t('table.filterPlaceholder')}
             value={text}
             onChange={(event) => setText(event.target.value)}
             className="h-8 w-[150px] lg:w-[250px]"
@@ -122,16 +125,18 @@ const DataTableToolbar = <TData, >({
             )
           )}
         {isFiltered && (
-          <Button
-            suppressHydrationWarning
-            aria-label="Reset filters"
-            variant="ghost"
-            className="h-8 px-2 lg:px-3"
-            onClick={() => table.resetColumnFilters()}
-          >
-            Reset
-            <Cross2Icon className="ml-2 h-4 w-4" />
-          </Button>
+          <HintTooltip text={t('tooltip.resetFilters')}>
+            <Button
+              suppressHydrationWarning
+              aria-label={t('tooltip.resetFilters')}
+              variant="ghost"
+              className="h-8 px-2 lg:px-3"
+              onClick={() => table.resetColumnFilters()}
+            >
+              {t('table.reset')}
+              <Cross2Icon className="ml-2 h-4 w-4" />
+            </Button>
+          </HintTooltip>
         )}
       </div>
       <div className="flex items-center space-x-2">

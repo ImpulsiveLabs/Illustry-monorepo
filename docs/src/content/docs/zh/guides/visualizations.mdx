@@ -1,0 +1,85 @@
+---
+title: 可视化
+description: 可视化文档
+---
+
+# 工作空间中的可视化
+
+使用可视化时，系统通过 `VisualizationData` 接口支持灵活的数据结构：
+
+## 可视化数据结构
+
+要在系统中表示可视化，您可以使用以下 `VisualizationData` 接口：
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### 关键属性
+- **项目名称**：活动项目。
+- **类型：** 提供可视化类型的字符串或字符串数​​组（数组仅适用于 JSON's）。
+- **名称：** 可视化的唯一标识符。
+- **描述：** 可选字段，用于提供有关可视化的其他上下文或详细信息。
+- **createdAt：** 指示可视化最初创建时间的时间戳。
+- **updatedAt：** 指示可视化的最后一次修改的时间戳。
+- **isActive：** 一个布尔标志，指定项目当前是否处于活动状态。
+- **标签：** 用于对可视化进行分类的可选字段。
+- **数据：** 可视化将呈现的数据
+
+## 可视化类型
+
+系统支持以下可视化类型：
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## 实际例子
+
+当使用 Excel、XML、JSON 和 CSV 等文件格式时，系统可确保与文件中的完整和部分详细信息兼容。
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **示例 1**：包含所有详细信息的 JSON 格式
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **示例 2**：包含部分详细信息的 JSON 格式，填写缺少详细信息的表格
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **示例3**：Excel格式包含所有详细信息，完成字段的映射
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **示例 4**：包含部分详细信息的 Excel 格式，填写缺少详细信息的表格
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **示例5**：CSV格式包含所有详细信息，完成字段的映射
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **示例 6**：包含部分详细信息的 CSV 格式，填写缺少详细信息的表格
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **示例 7**：包含所有详细信息的 XML 格式
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **示例 8**：包含部分详细信息的 XML 格式，填写缺少详细信息的表格
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

@@ -38,12 +38,7 @@ vi.mock('@/components/views/generic/echarts', () => ({
     })
 }));
 
-vi.mock('@/components/ui/legend', () => ({
-    default: ({ legendData }: any) => <div data-testid="legend">{JSON.stringify(legendData)}</div>
-}));
-
 vi.mock('@/lib/visualizations/chart/helper', () => ({
-    computeLegendColors: vi.fn(() => [{ key: 'k', color: '#1' }]),
     constructSeries: vi.fn(() => [{ type: 'bar' }])
 }));
 
@@ -53,7 +48,6 @@ vi.mock('@/lib/visualizations/calendar/helper', () => ({
         series: [{ type: 'heatmap' }]
     })),
     computeColors: vi.fn(() => ['#1']),
-    computeLegendColors: vi.fn(() => [{ label: 'legend', color: '#1' }]),
     computePropertiesForToolTip: vi.fn(() => 'tooltip')
 }));
 
@@ -72,7 +66,6 @@ vi.mock('@/lib/visualizations/node-link/helper', () => ({
 }));
 
 vi.mock('@/lib/visualizations/pieFunnel/helper', () => ({
-    computeLegendColors: vi.fn(() => [{ label: 'l', color: '#1' }]),
     computeValues: vi.fn(() => [{ value: 1, name: 'A' }])
 }));
 
@@ -90,7 +83,8 @@ vi.mock('@/lib/visualizations/hierarchy-charts/helper', () => ({
 
 vi.mock('@/lib/visualizations/word-cloud/helper', () => ({
     computeWords: vi.fn(() => [{ name: 'word', value: 2 }]),
-    computePropertiesForToolTip: vi.fn(() => 'tooltip')
+    computePropertiesForToolTip: vi.fn(() => 'tooltip'),
+    calculateMeanValue: vi.fn(() => 1)
 }));
 
 import AxisChartView from '@/components/views/axis-charts';
@@ -118,17 +112,33 @@ describe('Core Views', () => {
     it('renders all chart views with echarts and optional legends', async () => {
         const common = { legend: true, options: {}, fullScreen: false } as any;
         const { rerender } = render(<AxisChartView data={{ headers: ['x'], values: [[1]] } as any} type="bar" {...common} />);
-        expect(screen.getByTestId('legend')).toBeInTheDocument();
+        let latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.show).toBe(true);
+        expect(latest.option.legend.type).toBe('scroll');
 
         rerender(<CalendarGraphView categories={['A']} calendar={[{ date: '2020-01-01', value: 1 }] as any} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.calendar[0].top).toBeGreaterThan(latest.option.legend.top);
         rerender(<ForcedLayoutGraphView nodes={[{ id: 'a' }] as any} links={[{ source: 'a', target: 'a' }] as any} {...common} />);
         rerender(<FunnelView data={{ values: [] } as any} {...common} />);
         rerender(<PieView data={{ values: [] } as any} {...common} />);
         rerender(<SankeyGraphView nodes={[{ id: 'a' }] as any} links={[{ source: 'a', target: 'a' }] as any} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.data.length).toBeGreaterThan(0);
+        expect(latest.option.series.some((series: { id?: string }) => series.id === 'legend-proxy')).toBe(true);
         rerender(<ScatterView points={[[1, 2]] as any} categories={['A']} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.data.length).toBeGreaterThan(0);
+        expect(latest.option.series[0].name).toBe('A');
         rerender(<SunburstView nodes={[{ name: 'n' }] as any} categories={['A']} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.data.length).toBeGreaterThan(0);
         rerender(<TreeMapView nodes={[{ name: 'n' }] as any} categories={['A']} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.data.length).toBeGreaterThan(0);
         rerender(<WordCloudView words={[{ text: 'x', value: 1 }] as any} {...common} />);
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(latest.option.legend.data.length).toBeGreaterThan(0);
 
         expect(screen.getByTestId('echarts')).toBeInTheDocument();
         expect(echartsPropsSpy).toHaveBeenCalled();
@@ -233,5 +243,53 @@ describe('Core Views', () => {
         latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
         expect(latest.option.tooltip.formatter({ data: { properties: { a: 1 }, value: 1 } })).toBe('tooltip');
         expect(latest.style).toEqual({ height: '73.5vh' });
+    });
+
+    it('handles native legend selection events for sunburst, treemap and wordcloud', () => {
+        localStorage.setItem('theme', 'light');
+
+        const common = { legend: true, options: {}, fullScreen: false } as any;
+        const { rerender } = render(
+            <SunburstView
+                nodes={[{ name: 'Group A', value: 1, category: 'A' }, { name: 'Group B', value: 2, category: 'B' }] as any}
+                categories={['A', 'B']}
+                {...common}
+            />
+        );
+
+        let latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(typeof latest.onEvents.legendselectchanged).toBe('function');
+        latest.onEvents.legendselectchanged({ selected: { 'Group A': true, 'Group B': false } });
+
+        rerender(
+            <TreeMapView
+                nodes={[{ name: 'Group A', value: 1, category: 'A' }, { name: 'Group B', value: 2, category: 'B' }] as any}
+                categories={['A', 'B']}
+                {...common}
+            />
+        );
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(typeof latest.onEvents.legendselectchanged).toBe('function');
+        latest.onEvents.legendselectchanged({ selected: { 'Group A': false, 'Group B': true } });
+
+        rerender(
+            <WordCloudView
+                words={[
+                    { name: 'Alpha', value: 10 },
+                    { name: 'Beta', value: 8 }
+                ] as any}
+                {...common}
+            />
+        );
+        latest = echartsPropsSpy.mock.calls.at(-1)?.[0];
+        expect(typeof latest.onEvents.legendselectchanged).toBe('function');
+        latest.onEvents.legendselectchanged({ selected: { '>100% avg': true, '75-100% avg': false } });
+        expect(latest.option.legend.data).toEqual([
+            '0-25% avg',
+            '25-50% avg',
+            '50-75% avg',
+            '75-100% avg',
+            '>100% avg'
+        ]);
     });
 });

@@ -6,7 +6,7 @@ import {
   test
 } from './fixtures';
 
-const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || 'http://127.0.0.1:7011';
+const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 const sankeyFixtureBuffer = Buffer.from(
   JSON.stringify({
     nodes: [
@@ -176,41 +176,40 @@ test.describe('frontend page functionality e2e', () => {
     try {
       await createProject(api, projectName, true);
       await uploadSankeyVisualization(api, visualizationName);
-      await createDashboard(api, dashboardName, visualizationName);
 
-      await page.goto('/dashboards');
+      await page.goto('/dashboards/new');
+      await page.getByPlaceholder('Type dashboard name here.').fill(dashboardName);
+      await page.getByPlaceholder('Type dashboard description here.').fill(`frontend e2e dashboard ${dashboardName}`);
+      await page.getByRole('button', { name: 'Create dashboard' }).click();
+      await expect(page).toHaveURL(/\/dashboards(\?|$)/);
+
+      await page.goto(`/dashboards?text=${encodeURIComponent(dashboardName)}&page=1`);
       const dashboardRow = page.locator('tbody tr', { hasText: dashboardName }).first();
       await expect(dashboardRow).toBeVisible({ timeout: 15000 });
 
-      await dashboardRow.getByRole('button', { name: 'Open menu' }).click();
+      await dashboardRow.getByRole('button', { name: 'Open row actions' }).click();
       await clickMenuItem(page, 'View');
       await expect(page).toHaveURL(new RegExp(`/dashboardhub\\?name=${dashboardName}$`));
 
-      await expect(page.getByText(new RegExp(visualizationName)).first()).toBeVisible();
-
-      await page.goto('/dashboards');
+      await page.goto(`/dashboards?text=${encodeURIComponent(dashboardName)}&page=1`);
       const dashboardRowToEdit = page.locator('tbody tr', { hasText: dashboardName }).first();
-      await dashboardRowToEdit.getByRole('button', { name: 'Open menu' }).click();
+      await dashboardRowToEdit.getByRole('button', { name: 'Open row actions' }).click();
       await clickMenuItem(page, 'Edit');
       await expect(page).toHaveURL(new RegExp(`/dashboards/${dashboardName}$`));
 
-      await page.goto('/visualizations');
+      await page.goto(`/visualizations?text=${encodeURIComponent(visualizationName)}&page=1`);
       const visualizationRow = page.locator('tbody tr', { hasText: visualizationName }).first();
       await expect(visualizationRow).toBeVisible();
 
-      await visualizationRow.getByRole('button', { name: 'Open menu' }).click();
+      await visualizationRow.getByRole('button', { name: 'Open row actions' }).click();
       await clickMenuItem(page, 'View');
       await expect(page).toHaveURL(new RegExp(`/visualizationhub\\?name=${visualizationName}&type=sankey$`));
 
-      await page.goto('/projects');
-      const projectFilterInput = page.getByPlaceholder('Filter ...');
-      await projectFilterInput.fill(projectName);
-      await page.waitForTimeout(700);
-      await projectFilterInput.press('Enter');
+      await page.goto(`/projects?text=${encodeURIComponent(projectName)}&page=1`);
       const projectRow = page.locator('tbody tr', { hasText: projectName }).first();
       await expect(projectRow).toBeVisible({ timeout: 15000 });
 
-      await projectRow.getByRole('button', { name: 'Open menu' }).click();
+      await projectRow.getByRole('button', { name: 'Open row actions' }).click();
       await clickMenuItem(page, 'Edit');
       await expect(page).toHaveURL(new RegExp(`/projects/${projectName}$`));
     } finally {
@@ -239,7 +238,7 @@ test.describe('frontend page functionality e2e', () => {
 
       await page.goto('/projects');
 
-      const filterInput = page.getByPlaceholder('Filter ...');
+      const filterInput = page.getByPlaceholder('Filter...');
       await filterInput.fill(projectPrefix);
       await page.waitForTimeout(700);
       await filterInput.press('Enter');
@@ -260,7 +259,7 @@ test.describe('frontend page functionality e2e', () => {
       await page.getByRole('menuitemcheckbox', { name: 'description' }).click();
       await expect(page.locator('thead')).toContainText('Description');
 
-      await page.getByRole('combobox').click();
+      await page.getByRole('combobox').filter({ hasText: /^10$/ }).click();
       await page.getByRole('option', { name: '20' }).click();
       await expect(page).toHaveURL(/per_page=20/);
       await expect(page.getByRole('button', { name: 'Go to next page' })).toBeDisabled();

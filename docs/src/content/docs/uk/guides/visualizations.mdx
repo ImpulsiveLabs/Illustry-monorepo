@@ -1,0 +1,85 @@
+---
+title: Візуалізації
+description: Візуалізації док
+---
+
+# Візуалізації у вашому робочому просторі
+
+При роботі з візуалізаціями система підтримує гнучку структуру даних через інтерфейс `VisualizationData`:
+
+## Структура даних візуалізації
+
+Щоб представити візуалізацію у вашій системі, ви можете використовувати такий інтерфейс `VisualizationData`:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Ключові атрибути
+- **projectName**: активний проект.
+- **type:** Рядок або масив рядків, який забезпечує тип візуалізації (масив працює лише для JSON).
+- **name:** Унікальний ідентифікатор візуалізації.
+- **опис:** необов’язкове поле для надання додаткового контексту або деталей про візуалізацію.
+- **createdAt:** Мітка часу, яка вказує, коли візуалізацію було створено вперше.
+- **updatedAt:** Мітка часу, що вказує на останню модифікацію візуалізації.
+- **isActive:** Логічний прапор, який визначає, чи активний проект наразі.
+- **теги:** необов’язкове поле, яке використовується для класифікації візуалізацій.
+- **data:** Дані, які відобразить візуалізація
+
+## Види візуалізації
+
+Система підтримує наступні види візуалізації:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Практичний приклад
+
+У разі використання таких форматів файлів, як Excel, XML, JSON та CSV, система забезпечує сумісність як із повними, так і з частковими деталями у файлі.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Приклад 1**: формат JSON з усіма деталями
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Приклад 2**: формат JSON з частковими деталями, заповніть форму відсутніми деталями
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Приклад 3**: Формат Excel із усіма деталями, завершення зіставлення полів
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Приклад 4**: Формат Excel із частковими деталями, доповніть форму відсутніми деталями
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Приклад 5**: формат CSV з усіма деталями, завершення зіставлення полів
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Приклад 6**: формат CSV з частковими деталями, заповніть форму відсутніми деталями
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Приклад 7**: формат XML з усіма деталями
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Приклад 8**: формат XML з частковими деталями, заповніть форму відсутніми деталями
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

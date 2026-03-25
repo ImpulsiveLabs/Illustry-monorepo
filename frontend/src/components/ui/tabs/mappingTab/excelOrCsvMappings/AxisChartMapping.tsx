@@ -1,4 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from '@/components/providers/locale-provider';
 import Input from '@/components/ui/input';
 import { Inputs } from '@/components/form/types';
 
@@ -8,13 +9,15 @@ type ExcelOrCsvAxisChartMappingProps = {
 
 const ExcelOrCsvAxisChartMapping = ({
   form
-}: ExcelOrCsvAxisChartMappingProps) => (
+}: ExcelOrCsvAxisChartMappingProps) => {
+  const { t } = useLocale();
+  return (
     <>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Data:</div>
+        <div className="w-20">{t('mapping.data')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column numbers for Data, coma separated"
+            placeholder={t('mapping.placeholder.columnNumbers')}
             defaultValue={form.getValues('mapping.data') || ''}
             onChange={(e) => {
               setTimeout(() => {
@@ -26,10 +29,10 @@ const ExcelOrCsvAxisChartMapping = ({
         </div>
       </div>
       <div className="flex items-center space-x-4">
-        <div className="w-20">Headers:</div>
+        <div className="w-20">{t('mapping.headers')}:</div>
         <div className="flex-grow">
           <Input
-            placeholder="Column number for Headers"
+            placeholder={t('mapping.placeholder.columnNumber')}
             defaultValue={form.getValues('mapping.headers') || ''}
             onChange={(e) => {
               const { value } = e.target;
@@ -39,6 +42,7 @@ const ExcelOrCsvAxisChartMapping = ({
         </div>
       </div>
     </>
-);
+  );
+};
 
 export default ExcelOrCsvAxisChartMapping;

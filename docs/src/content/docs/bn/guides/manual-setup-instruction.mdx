@@ -1,0 +1,103 @@
+---
+title: কিভাবে আই. ও. সি. তৈরি করতে হবে
+description: ম্যানুয়াল পেজ
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## পূর্বনির্দিষ্ট
+
+ইমপ্ল্যান্টার সম্মুখপ্রান্তের আগে, আপনাকে নিম্নলিখিত শর্তগুলো নিশ্চিত করতে হবে:
+
+- নড সংস্করণ ১৮১৭.০ বা উচ্চতম
+- মনোগোবি
+
+## ব্যাক- এন্ডName
+
+
+#### স্থানীয়:
+নিম্নলিখিত ক্ষেত্রগুলির মধ্যে অন্তর্ভুক্ত ফাইলের মূল স্থানে XXQLQXXZ উপস্থিত থাকা আবশ্যক:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+নিম্নলিখিত কমান্ড সঞ্চালন করুন:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### ডকার:
+
+নিম্নলিখিত কমান্ড সঞ্চালন করুন:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## ইলটিকাল সম্মুখপ্রান্ত
+
+
+#### স্থানীয়:
+নিম্নলিখিত ক্ষেত্রগুলির মধ্যে অন্তর্ভুক্ত ফাইলের মূল স্থানে XXQLQXXZ উপস্থিত থাকা আবশ্যক:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+নিম্নলিখিত কমান্ড সঞ্চালন করুন:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### ডকার:
+**Phole চলমান হওয়ার পূর্বে, ব্যাক-এন্ড ছবিটি প্রথমে নির্মাণ করুন
+
+নিম্নলিখিত কমান্ড সঞ্চালন করুন:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

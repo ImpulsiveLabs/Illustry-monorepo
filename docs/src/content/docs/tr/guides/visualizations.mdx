@@ -1,0 +1,85 @@
+---
+title: Görselleştirmeler
+description: Görselleştirmeler belgesi
+---
+
+# Çalışma Alanınızdaki Görselleştirmeler
+
+Görselleştirmelerle çalışırken sistem, `VisualizationData` arayüzü aracılığıyla esnek bir veri yapısını destekler:
+
+## Görselleştirme Veri Yapısı
+
+Sisteminizde bir görselleştirmeyi temsil etmek için aşağıdaki `VisualizationData` arayüzünü kullanabilirsiniz:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Anahtar Nitelikler
+- **projeAdı**: Etkin proje.
+- **tür:** Görselleştirme türünü sağlayan bir dize veya dize dizisi (dizi yalnızca JSON'ler için çalışır).
+- **ad:** Görselleştirme için benzersiz bir tanımlayıcı.
+- **açıklama:** Görselleştirmeyle ilgili ek bağlam veya ayrıntılar sağlayan isteğe bağlı bir alan.
+- **createdAt:** Görselleştirmenin ilk olarak ne zaman oluşturulduğunu gösteren zaman damgası.
+- **updatedAt:** Görselleştirmedeki son değişikliği gösteren zaman damgası.
+- **isActive:** Projenin şu anda etkin olup olmadığını belirten bir boole bayrağı.
+- **etiketler:** Görselleştirmeleri kategorilere ayırmak için kullanılan isteğe bağlı bir alan.
+- **veri:** Görselleştirmenin sunacağı veriler
+
+## Görselleştirme Türleri
+
+Sistem aşağıdaki görselleştirme türlerini destekler:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Pratik örnek
+
+Excel, XML, JSON ve CSV gibi dosya formatlarını kullanırken sistem, dosyadaki hem tam hem de kısmi ayrıntılarla uyumluluğu sağlar.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Örnek 1**: Tüm ayrıntıları içeren JSON biçimi
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Örnek 2**: Kısmi ayrıntılar içeren JSON biçimi, formu eksik ayrıntılarla doldurun
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Örnek 3**: Tüm ayrıntıları içeren Excel formatı, alanların eşlemesini tamamlayın
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Örnek 4**: Kısmi ayrıntılara sahip Excel biçimi, formu eksik ayrıntılarla doldurun
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Örnek 5**: CSV biçimi tüm ayrıntılarıyla birlikte, alanların eşlemesini tamamlayın
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Örnek 6**: Kısmi ayrıntılar içeren CSV biçimi, formu eksik ayrıntılarla doldurun
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Örnek 7**: Tüm ayrıntılarıyla birlikte XML biçimi
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Örnek 8**: Kısmi ayrıntılar içeren XML biçimi, eksik ayrıntılarla formu doldurun
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

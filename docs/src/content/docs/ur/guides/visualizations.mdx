@@ -1,0 +1,85 @@
+---
+title: تصورات
+description: ویژولائزیشن ڈاک
+---
+
+# آپ کے کام کی جگہ میں تصورات
+
+تصورات کے ساتھ کام کرتے وقت، نظام `VisualizationData` انٹرفیس کے ذریعے ڈیٹا کے لچکدار ڈھانچے کی حمایت کرتا ہے:
+
+## ویژولائزیشن ڈیٹا سٹرکچر
+
+اپنے سسٹم میں تصور کی نمائندگی کرنے کے لیے، آپ درج ذیل `VisualizationData` انٹرفیس استعمال کر سکتے ہیں:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### کلیدی صفات
+- **پروجیکٹ کا نام**: فعال پروجیکٹ۔
+- **type:** ایک سٹرنگ یا سٹرنگ اری جو تصور کی قسم فراہم کرتی ہے (صف صرف JSON's کے لیے کام کرتی ہے)۔
+- **نام:** تصور کے لیے ایک منفرد شناخت کنندہ۔
+- **تفصیل:** اضافی سیاق و سباق یا تصور کے بارے میں تفصیلات فراہم کرنے کے لیے ایک اختیاری فیلڈ۔
+- **createdAt:** ٹائم اسٹیمپ اس بات کی نشاندہی کرتا ہے کہ ابتدائی طور پر تصور کب بنایا گیا تھا۔
+- **updatedAt:** ٹائم اسٹیمپ جو ویژولائزیشن کی آخری ترمیم کی نشاندہی کرتا ہے۔
+- **isActive:** ایک بولین جھنڈا یہ بتاتا ہے کہ آیا پروجیکٹ فی الحال فعال ہے۔
+- **ٹیگز:** ایک اختیاری فیلڈ جو تصورات کی درجہ بندی کرنے کے لیے استعمال ہوتی ہے۔
+- **ڈیٹا:** وہ ڈیٹا جو تصور پیش کرے گا۔
+
+## تصور کی اقسام
+
+نظام مندرجہ ذیل تصور کی اقسام کی حمایت کرتا ہے:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## عملی مثال
+
+ایکسل، XML، JSON، اور CSV جیسے فائل فارمیٹس کا استعمال کرتے وقت، سسٹم فائل میں مکمل اور جزوی دونوں تفصیلات کے ساتھ مطابقت کو یقینی بناتا ہے۔
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **مثال 1**: تمام تفصیلات کے ساتھ JSON فارمیٹ
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **مثال 2**: جزوی تفصیلات کے ساتھ JSON فارمیٹ، غائب تفصیلات کے ساتھ فارم مکمل کریں
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **مثال 3**: تمام تفصیلات کے ساتھ ایکسل فارمیٹ، فیلڈز کی میپنگ مکمل کریں۔
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **مثال 4**: جزوی تفصیلات کے ساتھ ایکسل فارمیٹ، غائب تفصیلات کے ساتھ فارم کو مکمل کریں۔
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **مثال 5**: تمام تفصیلات کے ساتھ CSV فارمیٹ، فیلڈز کی میپنگ مکمل کریں
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **مثال 6**: جزوی تفصیلات کے ساتھ CSV فارمیٹ، گمشدہ تفصیلات کے ساتھ فارم مکمل کریں
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **مثال 7**: تمام تفصیلات کے ساتھ XML فارمیٹ
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **مثال 8**: جزوی تفصیلات کے ساتھ XML فارمیٹ، غائب تفصیلات کے ساتھ فارم مکمل کریں
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

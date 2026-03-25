@@ -6,6 +6,8 @@ import { PopoverProps } from '@radix-ui/react-popover';
 import { cn } from '@/lib/utils';
 import { ShowDiagramState } from '@/components/shells/theme-shell';
 import siteConfig from '@/config/site';
+import { useLocale } from '@/components/providers/locale-provider';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '../popover';
 import { Button } from '../button';
 import {
@@ -27,6 +29,28 @@ type PresetSelectorProps = {
   setIsSubmitable: Dispatch<SetStateAction<boolean>>;
 } & PopoverProps
 
+const PRESET_TRANSLATION_KEYS: Record<string, string> = {
+  'word-cloud': 'viz.wordCloud',
+  'force-directed-graph': 'viz.forcedLayoutGraph',
+  sankey: 'viz.sankey',
+  calendar: 'viz.calendar',
+  'hierarchical-edge-bundling': 'viz.hierarchicalEdgeBundling',
+  matrix: 'viz.matrix',
+  'line-chart': 'viz.lineChart',
+  'bar-chart': 'viz.barChart',
+  'pie-chart': 'viz.pieChart',
+  scatter: 'viz.scatter',
+  treemap: 'viz.treemap',
+  sunburst: 'viz.sunburst',
+  funnel: 'viz.funnel',
+  timeline: 'viz.timeline'
+};
+
+const normalizeSearchValue = (value: string) => value
+  .normalize('NFD')
+  .replace(/[\u0300-\u036f]/g, '')
+  .toLowerCase();
+
 const PresetSelector = ({
   presets,
   setShowDiagram,
@@ -34,8 +58,13 @@ const PresetSelector = ({
   setIsSubmitable,
   ...props
 }: PresetSelectorProps) => {
+  const { t } = useLocale();
   const [open, setOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState<VisualizationPresentation>();
+  const getPresetLabel = (presetName: string) => {
+    const translationKey = PRESET_TRANSLATION_KEYS[presetName];
+    return translationKey ? t(translationKey) : presetName;
+  };
   const toShowDiagram = (name: string) => {
     switch (name) {
       case 'hierarchical-edge-bundling':
@@ -124,26 +153,41 @@ const PresetSelector = ({
   };
   return (
     <Popover open={open} onOpenChange={setOpen} {...props}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-label="Load a visualization..."
-          aria-expanded={open}
-          className="flex-1 justify-between md:max-w-[200px] lg:max-w-[300px]"
-        >
-          {selectedPreset ? selectedPreset.name : 'Select visualization'}
-          <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
+      <HintTooltip text={t('tooltip.loadVisualization')}>
+        <div>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-label={t('tooltip.loadVisualization')}
+              aria-expanded={open}
+              className="flex-1 justify-between md:max-w-[200px] lg:max-w-[300px]"
+            >
+              {selectedPreset ? getPresetLabel(selectedPreset.name) : t('playground.selectVisualization')}
+              <CaretSortIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </PopoverTrigger>
+        </div>
+      </HintTooltip>
       <PopoverContent className="w-[300px] p-0">
-        <Command>
-          <CommandInput placeholder="Search presets..." />
-          <CommandEmpty>No presets found.</CommandEmpty>
-          <CommandGroup heading="Examples">
+        <Command
+          filter={(value, search) => {
+            const normalizedSearch = normalizeSearchValue(search.trim());
+
+            if (!normalizedSearch) {
+              return 1;
+            }
+
+            return normalizeSearchValue(value).startsWith(normalizedSearch) ? 1 : 0;
+          }}
+        >
+          <CommandInput placeholder={t('playground.searchPresets')} />
+          <CommandEmpty>{t('playground.noPresets')}</CommandEmpty>
+          <CommandGroup heading={t('playground.examples')}>
             {presets.map((preset) => (
               <CommandItem
                 key={preset.id}
+                value={getPresetLabel(preset.name)}
                 onSelect={() => {
                   const presetData = toShowDiagram(preset.name);
                   setSelectedPreset(preset);
@@ -153,7 +197,7 @@ const PresetSelector = ({
                   setIsSubmitable(false);
                 }}
               >
-                {preset.name}
+                {getPresetLabel(preset.name)}
                 <CheckIcon
                   className={cn(
                     'ml-auto h-4 w-4',

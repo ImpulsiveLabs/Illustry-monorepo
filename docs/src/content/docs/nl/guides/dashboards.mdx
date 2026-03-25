@@ -1,0 +1,51 @@
+---
+title: Dashboards
+description: Dashboards-doc
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dashboards als visuele werkruimten
+
+Dashboards fungeren als veelzijdige visuele werkruimten waar u meerdere visualisaties met betrekking tot uw projecten kunt organiseren en beheren. Ze bieden een dynamische en interactieve omgeving voor het effectief verkennen, analyseren en presenteren van gegevens.
+
+## Dashboardgegevensstructuur
+
+Om een ​​dashboard in uw systeem weer te geven, kunt u de volgende `DashboardData` interface gebruiken:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Belangrijkste kenmerken
+
+- **naam:** Een unieke identificatie voor het dashboard.
+- **projectName:** De naam van het gekoppelde project voor contextuele koppeling.
+- **beschrijving:** Een optioneel veld dat aanvullende context of details over het dashboard biedt.
+- **createdAt:** De tijdstempel die aangeeft wanneer het dashboard is gemaakt.
+- **updatedAt:** Het tijdstempel dat de laatste wijziging van het dashboard weergeeft.
+- **visualisaties:** Een verzameling visualisaties die in het dashboard is opgenomen, als sleutel-waardeparen of als een reeks visualisatietypen.
+- **lay-outs:** Een lijst met lay-outconfiguraties die de positie en grootte van visualisaties binnen het dashboard bepalen. Elke lay-out omvat:
+  - **i:** Een unieke identificatie voor de visualisatie.
+  - **x, y:** Coördinaten die de positie van de visualisatie op het raster vertegenwoordigen.
+  - **w, h:** De breedte en hoogte van de visualisatie.
+  - **minW, minH:** Minimale beperkingen voor breedte en hoogte.
+
+### Dashboardfuncties
+
+Met dashboards kunnen gebruikers:
+
+- Versleep visualisaties om ze opnieuw in de werkruimte te rangschikken.
+- Pas het formaat van visualisaties aan om aan specifieke gegevensbehoeften te voldoen.
+- Onderhoud meerdere lay-outs om tegemoet te komen aan verschillende gebruiksscenario's of doelgroepen.
+
+Door dergelijke flexibiliteit te bieden, stellen dashboards gebruikers in staat hun visuele werkruimten aan te passen aan de vereisten van het project.
+
+### Praktisch voorbeeld
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

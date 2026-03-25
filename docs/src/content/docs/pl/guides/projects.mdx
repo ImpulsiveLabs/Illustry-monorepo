@@ -1,0 +1,34 @@
+---
+title: Projektowanie
+description: Projekty dok
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Projekt jako przestrzeń robocza
+
+W tym systemie projekt stanowi podstawowy element konstrukcyjny, pełniąc funkcję dedykowanej przestrzeni roboczej dla Twoich przedsięwzięć. Każdy projekt zawiera istotne elementy Twojej pracy, zapewniając zorganizowane środowisko do wizualizacji i analizy danych.
+
+## Struktura danych projektu
+
+Aby reprezentować projekt w swoim systemie, możesz użyć następującego interfejsu `ProjectData`:
+
+```typescript
+{{ProjectData}}
+```
+### Kluczowe atrybuty
+
+- **nazwa:** Unikalny identyfikator projektu.
+- **opis:** Opcjonalne pole umożliwiające podanie dodatkowego kontekstu lub szczegółów projektu.
+- **createdAt:** Znacznik czasu wskazujący, kiedy projekt został pierwotnie utworzony.
+- **updatedAt:** Znacznik czasu wskazujący ostatnią modyfikację projektu.
+- **isActive:** Flaga logiczna określająca, czy projekt jest aktualnie aktywny.
+
+## Aktywacja projektu
+
+Należy pamiętać, że w danym momencie aktywny może być tylko jeden projekt. Zapewnia to skupioną i zorganizowaną przestrzeń pracy, pozwalając użytkownikom skoncentrować się na konkretnym projekcie i związanych z nim wizualizacjach.
+
+Organizując swoją pracę w ten sposób, tworzysz spójne i łatwe w zarządzaniu środowisko dla swoich projektów, ułatwiając wydajną analizę i wizualizację danych w dedykowanym obszarze roboczym.
+
+## Praktyczny przykład
+
+![Project in Action](/Illustry-monorepo/projects.gif)

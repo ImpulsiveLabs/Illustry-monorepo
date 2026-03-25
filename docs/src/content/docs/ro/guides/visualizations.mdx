@@ -1,0 +1,85 @@
+---
+title: Vizualizări
+description: Vizualizări doc
+---
+
+# Vizualizări în spațiul dvs. de lucru
+
+Când lucrați cu vizualizări, sistemul acceptă o structură de date flexibilă prin interfața `VisualizationData`:
+
+## Structura datelor de vizualizare
+
+Pentru a reprezenta o vizualizare în sistemul dvs., puteți utiliza următoarea interfață `VisualizationData`:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Atribute cheie
+- **projectName**: proiectul activ.
+- **tip:** Un șir sau o matrice de șir care oferă tipul de vizualizare (matricea funcționează numai pentru JSON).
+- **nume:** Un identificator unic pentru vizualizare.
+- **descriere:** Un câmp opțional pentru a furniza context suplimentar sau detalii despre vizualizare.
+- **createdAt:** Timpul care indică momentul în care vizualizarea a fost creată inițial.
+- **updatedAt:** Timpul care indică ultima modificare a vizualizării.
+- **isActive:** Un semnal boolean care specifică dacă proiectul este activ în prezent.
+- **etichete:** un câmp opțional folosit pentru a clasifica vizualizările.
+- **date:** Datele pe care le va prezenta vizualizarea
+
+## Tipuri de vizualizare
+
+Sistemul acceptă următoarele tipuri de vizualizare:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Exemplu practic
+
+Când se utilizează formate de fișiere precum Excel, XML, JSON și CSV, sistemul asigură compatibilitatea cu detaliile complete și parțiale din fișier.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Exemplu 1**: format JSON cu toate detaliile
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Exemplu 2**: format JSON cu detalii parțiale, completați formularul cu detaliile lipsă
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Exemplu 3**: format Excel cu toate detaliile, completați maparea câmpurilor
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Exemplu 4**: format Excel cu detalii parțiale, completați formularul cu detaliile lipsă
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Exemplu 5**: format CSV cu toate detaliile, completați maparea câmpurilor
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Exemplu 6**: format CSV cu detalii parțiale, completați formularul cu detaliile lipsă
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Exemplu 7**: format XML cu toate detaliile
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Exemplu 8**: format XML cu detalii parțiale, completați formularul cu detaliile lipsă
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

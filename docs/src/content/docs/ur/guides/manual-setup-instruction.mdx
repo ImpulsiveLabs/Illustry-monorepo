@@ -1,0 +1,103 @@
+---
+title: دستی طور پر ترتیب دینے کا طریقہ Illustry
+description: دستی سیٹ اپ
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## شرطیں
+
+Illustry فرنٹ اینڈ کو انسٹال کرنے سے پہلے، یقینی بنائیں کہ آپ کے پاس درج ذیل شرائط ہیں:
+
+- نوڈ ورژن 18.17.0 یا اس سے زیادہ
+- مونگو ڈی بی
+
+## Illustry بیک اینڈ
+
+
+#### مقامی طور پر:
+پروجیکٹ کی جڑ میں `.env` نام کی فائل درکار ہے جس میں درج ذیل فیلڈز ہوں:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+درج ذیل کمانڈز چلائیں:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### ڈاکر:
+
+درج ذیل کمانڈز چلائیں:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## Illustry فرنٹ اینڈ
+
+
+#### مقامی طور پر:
+پروجیکٹ کی جڑ میں `.env` نام کی فائل درکار ہے جس میں درج ذیل فیلڈز ہوں:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+درج ذیل کمانڈز چلائیں:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### ڈاکر:
+**دوڑنے سے پہلے، پہلے بیک اینڈ امیج بنائیں!**
+
+درج ذیل کمانڈز چلائیں:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

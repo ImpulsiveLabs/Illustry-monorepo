@@ -1,6 +1,6 @@
 import { APIRequestContext, APIResponse, expect, test } from './fixtures';
 
-const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || 'http://127.0.0.1:7011';
+const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 
 const parseBody = async (response: APIResponse): Promise<unknown> => {
   const raw = await response.text();
@@ -96,7 +96,6 @@ test.describe('frontend additional main flows', () => {
   test('projects bulk delete from table action removes all selected rows', async ({ page, playwright }) => {
     test.skip(!!test.info().project.use.isMobile, 'Desktop-only table bulk flow.');
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-    const activeProjectName = `pw-ui-bulk-active-${suffix}`;
     const projectsToDelete = Array.from(
       { length: 3 },
       (_, index) => `pw-ui-bulk-delete-${suffix}-${index}`
@@ -105,16 +104,11 @@ test.describe('frontend additional main flows', () => {
     const api = await playwright.request.newContext({ baseURL: BACKEND_BASE_URL });
 
     try {
-      await createProject(api, activeProjectName, true);
-      for (const projectName of projectsToDelete) {
-        await createProject(api, projectName, false);
+      for (const [index, projectName] of projectsToDelete.entries()) {
+        await createProject(api, projectName, index === 0);
       }
 
-      await page.goto('/projects');
-      const filterInput = page.getByPlaceholder('Filter ...');
-      await filterInput.fill(`pw-ui-bulk-delete-${suffix}`);
-      await page.waitForTimeout(700);
-      await filterInput.press('Enter');
+      await page.goto(`/projects?text=${encodeURIComponent(`pw-ui-bulk-delete-${suffix}`)}&page=1`);
 
       await expect(page.locator('tbody tr', { hasText: projectsToDelete[0] as string })).toBeVisible({ timeout: 10000 });
       await page.getByRole('checkbox', { name: 'Select all' }).click();
@@ -127,7 +121,6 @@ test.describe('frontend additional main flows', () => {
       for (const projectName of projectsToDelete) {
         await deleteProjectSilently(api, projectName);
       }
-      await deleteProjectSilently(api, activeProjectName);
       await api.dispose();
     }
   });

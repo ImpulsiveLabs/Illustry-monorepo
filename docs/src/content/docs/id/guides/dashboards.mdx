@@ -1,0 +1,51 @@
+---
+title: Dasbor
+description: Dokumen dasbor
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dasbor sebagai Ruang Kerja Visual
+
+Dasbor bertindak sebagai ruang kerja visual serbaguna tempat Anda dapat mengatur dan mengelola berbagai visualisasi yang terkait dengan proyek Anda. Mereka menyediakan lingkungan yang dinamis dan interaktif untuk mengeksplorasi, menganalisis, dan menyajikan data secara efektif.
+
+## Struktur Data Dasbor
+
+Untuk mewakili dasbor di sistem Anda, Anda dapat menggunakan antarmuka `DashboardData` berikut:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Atribut Utama
+
+- **nama:** Pengenal unik untuk dasbor.
+- **projectName:** Nama proyek terkait untuk penautan kontekstual.
+- **deskripsi:** Bidang opsional yang memberikan konteks atau detail tambahan tentang dasbor.
+- **createdAt:** Stempel waktu yang menunjukkan kapan dasbor dibuat.
+- **updatedAt:** Stempel waktu yang menunjukkan modifikasi terakhir pada dasbor.
+- **visualisasi:** Kumpulan visualisasi yang disertakan di dasbor, baik sebagai pasangan nilai kunci atau serangkaian jenis visualisasi.
+- **tata letak:** Daftar konfigurasi tata letak yang menentukan posisi dan ukuran visualisasi dalam dasbor. Setiap tata letak meliputi:
+  - **i:** Pengenal unik untuk visualisasi.
+  - **x, y:** Koordinat yang mewakili posisi visualisasi pada grid.
+  - **w, h:** Lebar dan tinggi visualisasi.
+  - **minW, minH:** Batasan lebar dan tinggi minimum.
+
+### Fitur Dasbor
+
+Dasbor memungkinkan pengguna untuk:
+
+- Seret dan lepas visualisasi untuk mengatur ulang di ruang kerja.
+- Ubah ukuran visualisasi agar sesuai dengan kebutuhan data tertentu.
+- Pertahankan beberapa tata letak untuk memenuhi kasus penggunaan atau audiens yang berbeda.
+
+Dengan menawarkan fleksibilitas tersebut, dasbor memberdayakan pengguna untuk menyesuaikan ruang kerja visual mereka sesuai dengan kebutuhan proyek.
+
+### Contoh Praktis
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

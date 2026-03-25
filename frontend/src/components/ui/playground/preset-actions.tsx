@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import { Label } from '@radix-ui/react-dropdown-menu';
 import { toast } from 'sonner';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger
 } from '../dropdown-menu';
@@ -23,6 +24,7 @@ import {
 import Switch from '../switch';
 
 const PresetActions = () => {
+  const { t } = useLocale();
   const [open, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   return (
@@ -30,53 +32,50 @@ const PresetActions = () => {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button variant="secondary">
-            <span className="sr-only">Actions</span>
+            <span className="sr-only">{t('preset.actions')}</span>
             <DotsHorizontalIcon className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={() => setIsOpen(true)}>
-            Content filter preferences
+            {t('preset.contentFilterPreferences')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onSelect={() => setShowDeleteDialog(true)}
             className="text-red-600"
           >
-            Delete preset
+            {t('preset.deletePreset')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
       <Dialog open={open} onOpenChange={setIsOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Content filter preferences</DialogTitle>
+            <DialogTitle>{t('preset.contentFilterPreferences')}</DialogTitle>
             <DialogDescription>
-              The content filter flags text that may violate our content policy.
-              It&apos;s powered by our moderation endpoint which is free to use
-              to moderate your OpenAI API traffic. Learn more.
+              {t('preset.contentFilterDescription')}
             </DialogDescription>
           </DialogHeader>
           <div className="py-6">
             <h4 className="text-sm text-muted-foreground">
-              Playground Warnings
+              {t('preset.playgroundWarnings')}
             </h4>
             <div className="flex items-start justify-between space-x-4 pt-3">
               <Switch name="show" id="show" defaultChecked={true} />
               <Label className="grid gap-1 font-normal" >
                 <span className="font-semibold">
-                  Show a warning when content is flagged
+                  {t('preset.showWarningWhenFlagged')}
                 </span>
                 <span className="text-sm text-muted-foreground">
-                  A warning will be shown when sexual, hateful, violent or
-                  self-harm content is detected.
+                  {t('preset.warningDescription')}
                 </span>
               </Label>
             </div>
           </div>
           <DialogFooter>
             <Button variant="secondary" onClick={() => setIsOpen(false)}>
-              Close
+              {t('table.close')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -84,22 +83,21 @@ const PresetActions = () => {
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure absolutely sure?</AlertDialogTitle>
+            <AlertDialogTitle>{t('preset.deleteConfirmTitle')}</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This preset will no longer be
-              accessible by you or others you&apos;ve shared it with.
+              {t('preset.deleteConfirmDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('preset.cancel')}</AlertDialogCancel>
             <Button
               variant="destructive"
               onClick={() => {
                 setShowDeleteDialog(false);
-                toast('This preset has been deleted.');
+                toast(t('preset.deleted'));
               }}
             >
-              Delete
+              {t('table.delete')}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

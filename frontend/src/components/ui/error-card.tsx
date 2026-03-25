@@ -1,7 +1,10 @@
+'use client';
+
 import Link from 'next/link';
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   Card,
   CardContent,
@@ -25,11 +28,13 @@ const ErrorCard = ({
   title,
   description,
   retryLink,
-  retryLinkText = 'Go back',
+  retryLinkText,
   className,
   ...props
 }: ErrorCardProps) => {
+  const { t } = useLocale();
   const Icon = Icons[icon ?? 'warning'];
+  const resolvedRetryLinkText = retryLinkText ?? t('error.goBack');
 
   return (
     <Card className={cn('grid place-items-center', className)} {...props}>
@@ -52,8 +57,8 @@ const ErrorCard = ({
                 })
               )}
             >
-              {retryLinkText}
-              <span className="sr-only">{retryLinkText}</span>
+              {resolvedRetryLinkText}
+              <span className="sr-only">{resolvedRetryLinkText}</span>
             </div>
           </Link>
         </CardFooter>

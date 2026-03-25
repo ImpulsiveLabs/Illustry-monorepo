@@ -1,0 +1,37 @@
+---
+title: Bienvenue sur Illustry
+description: Commencez avec l'illustration.
+template: splash
+hero:
+  tagline: Le HUB de visualisation dont vous avez toujours eu besoin.
+  image:
+    file: ../../../assets/illustry.webp
+  actions:
+    - text: 💻 Commencer
+      link: ./guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: 📈 En savoir plus sur les visualisations
+      link: ./guides/visualizations/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Découvrez la puissance des visualisations
+
+<CardGrid stagger>
+	<Card title="📊 Plongez dans le monde des visualisations">
+		Explorez des visualisations captivantes et découvrez l'art et la science derrière la transformation de données brutes en graphiques perspicaces. Des tableaux époustouflants aux graphiques immersifs, embarquez pour une compréhension des données qui va au-delà des chiffres.
+	</Card>
+	<Card title="📂 De nombreux formats de fichiers pris en charge">
+		Découvrez la polyvalence de notre application ! 🚀 Analysez les données sans effort car nous prenons en charge de manière transparente plusieurs formats de fichiers, notamment JSON, XML, CSV et Excel.
+	</Card>
+	<Card title="🔍 Adaptez vos informations : filtrage de précision pour une exploration de données personnalisée">
+		Affinez votre expérience d'exploration de données grâce à nos puissantes capacités de filtrage ! 🔗 Affinez facilement et concentrez-vous sur les informations qui comptent le plus pour vous. Qu'il s'agisse de dates, de catégories ou de critères personnalisés, libérez la possibilité d'adapter vos informations et de découvrir des modèles significatifs dans vos données.
+	</Card>
+	<Card title="🎮 Data Playground : explorez, testez et jouez avec vos données en temps réel !">
+		Entrez dans notre terrain de jeu de données, où l'exploration rencontre l'interactivité ! 🚀 Testez et jouez avec vos données réelles en temps réel. Bénéficiez d'une expérience pratique, expérimentez des filtres et découvrez des informations sans effort. C'est votre espace pour faire de l'exploration des données une expérience engageante et agréable !
+	</Card>
+</CardGrid>

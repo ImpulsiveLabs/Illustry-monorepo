@@ -21,6 +21,7 @@ import Checkbox from '../ui/checkbox';
 import DataTable from '../data-table/data-table';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useRouter } from 'next/navigation';
+import { useLocale } from '../providers/locale-provider';
 
 type DashboardsTableShellProps = {
   data?: DashboardTypes.DashboardType[];
@@ -28,6 +29,7 @@ type DashboardsTableShellProps = {
 }
 
 const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) => {
+  const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
   const router = useRouter();
@@ -45,7 +47,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
                 setSelectedRowNames((prev) => (prev.length === data.length ? [] : data.map((row) => row.name)));
               }
             }}
-            aria-label="Select all"
+            aria-label={t('tooltip.selectAllRows')}
             className="translate-y-[2px]"
           />
         ),
@@ -58,7 +60,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
                 ? [...prev, row.original.name]
                 : prev.filter((id) => id !== row.original.name)));
             }}
-            aria-label="Select row"
+            aria-label={t('tooltip.selectRow')}
             className="translate-y-[2px]"
           />
         ),
@@ -68,19 +70,19 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
       {
         accessorKey: 'name',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Name" />
+          <DataTableColumnHeader column={column} title={t('common.name')} />
         )
       },
       {
         accessorKey: 'description',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Description" />
+          <DataTableColumnHeader column={column} title={t('common.description')} />
         )
       },
       {
         accessorKey: 'createdAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Created At" />
+          <DataTableColumnHeader column={column} title={t('table.createdAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -88,7 +90,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
       {
         accessorKey: 'updatedAt',
         header: ({ column }) => (
-          <DataTableColumnHeader column={column} title="Updated At" />
+          <DataTableColumnHeader column={column} title={t('table.updatedAt')} />
         ),
         cell: ({ cell }) => formatDate(cell.getValue() as Date),
         enableColumnFilter: false
@@ -99,7 +101,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                aria-label="Open menu"
+                aria-label={t('tooltip.openRowMenu')}
                 variant="ghost"
                 className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
               >
@@ -111,12 +113,12 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
                 <Link
                   href={`/dashboardhub?name=${row.original.name}`}
                 >
-                  View
+                  {t('table.view')}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/dashboards/${row.original.name}`}>Edit</Link>
+                <Link href={`/dashboards/${row.original.name}`}>{t('table.edit')}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -124,15 +126,15 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
                   startTransition(() => {
                     row.toggleSelected(false);
                     toast.promise(deleteDashboard(row.original.name), {
-                      loading: 'Deleting...',
-                      success: () => { router.refresh(); return 'Dashboard deleted successfully.'},
+                      loading: t('table.deleting'),
+                      success: () => { router.refresh(); return t('toast.dashboardDeleted');},
                       error: (err: unknown) => catchError(err)
                     });
                   });
                 }}
                 disabled={isPending}
               >
-                Delete
+                {t('table.delete')}
                 <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -140,18 +142,18 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
         )
       }
     ],
-    [data, isPending]
+    [data, isPending, t]
   );
 
   const deleteSelectedRows = () => {
     toast.promise(
       Promise.all(selectedRowNames.map((name) => deleteDashboard(name))),
       {
-        loading: 'Deleting...',
+        loading: t('table.deleting'),
         success: () => {
           setSelectedRowNames([]);
           router.refresh();
-          return 'Dashboards deleted successfully.';
+          return t('toast.dashboardsDeleted');
         },
         error: (err: unknown) => {
           setSelectedRowNames([]);

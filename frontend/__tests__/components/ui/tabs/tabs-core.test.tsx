@@ -80,7 +80,7 @@ describe('tabs mapping/type components', () => {
         ));
 
         expect(screen.getByText('Type')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Type project name here.')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Type visualization name here.')).toBeInTheDocument();
 
         jsonRender.unmount();
         renderWithForm((form) => (
@@ -98,9 +98,9 @@ describe('tabs mapping/type components', () => {
             description: ''
         });
 
-        fireEvent.change(screen.getByPlaceholderText('Type project name here.'), { target: { value: 'My Viz' } });
+        fireEvent.change(screen.getByPlaceholderText('Type visualization name here.'), { target: { value: 'My Viz' } });
         fireEvent.change(screen.getByPlaceholderText('Type comma-separated tags.'), { target: { value: 'a,b' } });
-        fireEvent.change(screen.getByPlaceholderText('Type project description here.'), { target: { value: 'desc' } });
+        fireEvent.change(screen.getByPlaceholderText('Type visualization description here.'), { target: { value: 'desc' } });
 
         act(() => {
             vi.runAllTimers();
@@ -238,17 +238,17 @@ describe('tabs mapping/type components', () => {
     });
 
     it('renders excel/csv mapping tab branches for each visualization type', () => {
-        const typesToPlaceholder: Array<[VisualizationTypes.VisualizationTypesEnum, string]> = [
-            [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Column number for Names'],
-            [VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH, 'Column number for Nodes'],
-            [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Column number for Dates'],
-            [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Column numbers for Data, coma separated'],
-            [VisualizationTypes.VisualizationTypesEnum.PIE_CHART, 'Column numbers for Values'],
-            [VisualizationTypes.VisualizationTypesEnum.SCATTER, 'Column numbers for Values, coma separated'],
-            [VisualizationTypes.VisualizationTypesEnum.TREEMAP, 'Column numbers for Children, coma separated']
+        const typesToMarker: Array<[VisualizationTypes.VisualizationTypesEnum, string]> = [
+            [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Names:'],
+            [VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH, 'Nodes:'],
+            [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
+            [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Data:'],
+            [VisualizationTypes.VisualizationTypesEnum.PIE_CHART, 'Values:'],
+            [VisualizationTypes.VisualizationTypesEnum.SCATTER, 'Values:'],
+            [VisualizationTypes.VisualizationTypesEnum.TREEMAP, 'Children:']
         ];
 
-        for (const [type, placeholder] of typesToPlaceholder) {
+        for (const [type, marker] of typesToMarker) {
             const renderResult = renderWithForm((form) => (
                 <ExcelOrCsvMappingTab
                     form={form}
@@ -258,7 +258,7 @@ describe('tabs mapping/type components', () => {
                 />
             ), { type, sheets: '1' });
 
-            expect(screen.getByPlaceholderText(placeholder)).toBeInTheDocument();
+            expect(screen.getByText(marker)).toBeInTheDocument();
             renderResult.unmount();
         }
 
@@ -271,7 +271,7 @@ describe('tabs mapping/type components', () => {
             />
         ), { type: VisualizationTypes.VisualizationTypesEnum.TIMELINE, separator: ',' });
 
-        expect(screen.getByPlaceholderText('Column number for Visualization Name')).toBeInTheDocument();
+        expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Separator')).toBeInTheDocument();
     });
 

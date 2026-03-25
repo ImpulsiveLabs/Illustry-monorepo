@@ -1,0 +1,85 @@
+---
+title: הדמיות
+description: מסמך הדמיות
+---
+
+# הדמיות בסביבת העבודה שלך
+
+בעבודה עם הדמיות, המערכת תומכת במבנה נתונים גמיש באמצעות ממשק `VisualizationData`:
+
+## מבנה נתונים להדמיה
+
+כדי לייצג הדמיה במערכת שלך, אתה יכול להשתמש בממשק `VisualizationData` הבא:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### תכונות מפתח
+- **שם הפרויקט**: הפרויקט הפעיל.
+- **סוג:** מחרוזת או מערך מחרוזת המספקים את סוג ההדמיה (המערך עובד רק עבור JSON's).
+- **שם:** מזהה ייחודי להמחשה.
+- **תיאור:** שדה אופציונלי לספק הקשר נוסף או פרטים על ההדמיה.
+- **createdAt:** חותמת הזמן המציינת מתי ההדמיה נוצרה לראשונה.
+- **updatedAt:** חותמת הזמן המציינת את השינוי האחרון של ההדמיה.
+- **isActive:** דגל בוליאני המציין אם הפרויקט פעיל כעת.
+- **תגים:** שדה אופציונלי המשמש לקטגוריות ההדמיות.
+- **נתונים:** הנתונים שההדמיה תציג
+
+## סוגי הדמיה
+
+המערכת תומכת בסוגי ההדמיה הבאים:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## דוגמה מעשית
+
+בעת שימוש בפורמטים של קבצים כמו Excel, XML, JSON ו-CSV, המערכת מבטיחה תאימות עם פרטים מלאים וחלקיים בקובץ כאחד.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **דוגמה 1**: פורמט JSON עם כל הפרטים
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **דוגמה 2**: פורמט JSON עם פרטים חלקיים, מלא את הטופס עם הפרטים החסרים
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **דוגמה 3**: פורמט אקסל עם כל הפרטים, השלימו את מיפוי השדות
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **דוגמה 4**: פורמט אקסל עם פרטים חלקיים, מלא את הטופס עם הפרטים החסרים
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **דוגמה 5**: פורמט CSV עם כל הפרטים, השלם את מיפוי השדות
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **דוגמה 6**: פורמט CSV עם פרטים חלקיים, מלא את הטופס עם הפרטים החסרים
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **דוגמה 7**: פורמט XML עם כל הפרטים
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **דוגמה 8**: פורמט XML עם פרטים חלקיים, מלא את הטופס עם הפרטים החסרים
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

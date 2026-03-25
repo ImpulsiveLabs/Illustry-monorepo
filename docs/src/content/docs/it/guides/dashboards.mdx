@@ -1,0 +1,51 @@
+---
+title: Cruscotti
+description: Cruscotti doc
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dashboard come spazi di lavoro visivi
+
+Le dashboard fungono da spazi di lavoro visivi versatili in cui puoi organizzare e gestire più visualizzazioni relative ai tuoi progetti. Forniscono un ambiente dinamico e interattivo per esplorare, analizzare e presentare i dati in modo efficace.
+
+## Struttura dei dati del dashboard
+
+Per rappresentare una dashboard nel tuo sistema, puoi utilizzare la seguente interfaccia `DashboardData`:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Attributi chiave
+
+- **nome:** un identificatore univoco per il dashboard.
+- **projectName:** il nome del progetto associato per il collegamento contestuale.
+- **descrizione:** un campo facoltativo che fornisce contesto aggiuntivo o dettagli sulla dashboard.
+- **createdAt:** il timestamp che indica quando è stata creata la dashboard.
+- **updatedAt:** Il timestamp che mostra l'ultima modifica del dashboard.
+- **visualizzazioni:** una raccolta di visualizzazioni incluse nella dashboard, come coppie chiave-valore o come matrice di tipi di visualizzazione.
+- **layout:** un elenco di configurazioni di layout che determinano la posizione e la dimensione delle visualizzazioni all'interno del dashboard. Ogni layout include:
+  - **i:** Un identificatore univoco per la visualizzazione.
+  - **x, y:** Coordinate che rappresentano la posizione della visualizzazione sulla griglia.
+  - **w, h:** La larghezza e l'altezza della visualizzazione.
+  - **LminL, Hmin:** Vincoli minimi di larghezza e altezza.
+
+### Funzionalità del cruscotto
+
+Le dashboard consentono agli utenti di:
+
+- Trascina e rilascia le visualizzazioni per riorganizzarle nell'area di lavoro.
+- Ridimensionare le visualizzazioni per soddisfare esigenze di dati specifiche.
+- Mantieni più layout per soddisfare casi d'uso o segmenti di pubblico diversi.
+
+Offrendo tale flessibilità, le dashboard consentono agli utenti di personalizzare i propri spazi di lavoro visivi in ​​base ai requisiti del progetto.
+
+### Esempio pratico
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

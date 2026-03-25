@@ -1,0 +1,37 @@
+---
+title: Bem-vindo ao Illustry
+description: Comece com a ilusão.
+template: splash
+hero:
+  tagline: O HUB de visualização que você sempre precisou.
+  image:
+    file: ../../../assets/illustry.webp
+  actions:
+    - text: 💻 Comece
+      link: ./guides/getting-started/
+      icon: right-arrow
+      variant: primary
+    - text: 📈 Aprenda sobre visualizações
+      link: ./guides/visualizations/
+      icon: right-arrow
+      variant: secondary
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Descubra o poder das visualizações
+
+<CardGrid stagger>
+	<Card title="📊 Mergulhe no mundo das visualizações">
+		Explore visualizações cativantes e descubra a arte e a ciência por trás da transformação de dados brutos em gráficos perspicazes. De gráficos impressionantes a gráficos imersivos, embarque em uma jornada de compreensão de dados de maneiras que vão além dos números.
+	</Card>
+	<Card title="📂 Muitos formatos de arquivo suportados">
+		Explore a versatilidade da nossa aplicação! 🚀 Analise dados sem esforço, pois oferecemos suporte perfeito a vários formatos de arquivo, incluindo JSON, XML, CSV e Excel.
+	</Card>
+	<Card title="🔍 Personalize seus insights: filtragem de precisão para exploração de dados personalizada">
+		Refine sua experiência de exploração de dados com nossos poderosos recursos de filtragem! 🔗 Limite e concentre-se facilmente nas informações que são mais importantes para você. Quer se trate de datas, categorias ou critérios personalizados, libere a capacidade de personalizar seus insights e descobrir padrões significativos em seus dados.
+	</Card>
+	<Card title="🎮 Data Playground: explore, teste e brinque com seus dados em tempo real!">
+		Entre em nosso playground de dados, onde a exploração encontra a interatividade! 🚀 Teste e brinque com seus dados reais em tempo real. Ganhe experiência prática, experimente filtros e descubra insights sem esforço. É o seu espaço para tornar a exploração de dados uma experiência envolvente e agradável!
+	</Card>
+</CardGrid>

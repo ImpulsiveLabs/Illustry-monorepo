@@ -31,6 +31,8 @@ import {
   ToolboxComponent
 } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
+import { useLocale } from '@/components/providers/locale-provider';
+import ViewTooltip from '@/components/views/shared/view-tooltip';
 
 // Initialize ECharts modules
 echarts.use([
@@ -63,17 +65,22 @@ type ReactEChartsProps<T> = {
   loading?: boolean;
   theme?: 'light' | 'dark';
   style?: React.CSSProperties;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onEvents?: Record<string, (...args: any[]) => void>;
+  helperText?: string;
 };
 
 // Updated ReactEcharts Component with forwardRef
 const ReactEcharts = forwardRef(<T, >(
   {
-    option, className, loading, theme, style
+    option, className, loading, theme, style, onEvents, helperText
   }: ReactEChartsProps<T>,
   ref: React.Ref<unknown> | undefined
 ) => {
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { t } = useLocale();
+  const tooltipText = helperText || t('tooltip.generic');
 
   useImperativeHandle(ref, () => ({
     getEchartsInstance: () => chartRef.current?.getEchartsInstance()
@@ -95,13 +102,17 @@ const ReactEcharts = forwardRef(<T, >(
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full w-full">
+    <div ref={containerRef} className="relative h-full w-full">
+      <div className="absolute right-2 top-2 z-20">
+        <ViewTooltip text={tooltipText} />
+      </div>
       <ReactECharts
         ref={chartRef}
         option={option}
         className={className}
         theme={theme}
         showLoading={loading}
+        onEvents={onEvents}
         style={{ height: '100%', width: '100%', ...style }}
       />
     </div>

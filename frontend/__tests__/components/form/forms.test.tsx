@@ -131,7 +131,7 @@ describe('form components', () => {
         await user.type(screen.getByPlaceholderText('Type project name here.'), 'My Project');
         await user.type(screen.getByPlaceholderText('Type project description here.'), 'Some description');
         await user.click(screen.getByRole('checkbox'));
-        await user.click(screen.getByRole('button', { name: /Add Project/i }));
+        await user.click(screen.getByRole('button', { name: /Create project/i }));
 
         await waitFor(() => {
             expect(createProject).toHaveBeenCalledWith({
@@ -151,7 +151,7 @@ describe('form components', () => {
         await user.clear(screen.getByPlaceholderText('Type project description here.'));
         await user.type(screen.getByPlaceholderText('Type project description here.'), 'new desc');
         await user.click(screen.getByRole('checkbox'));
-        await user.click(screen.getByRole('button', { name: /Update Project/i }));
+        await user.click(screen.getByRole('button', { name: /Update project/i }));
 
         await waitFor(() => {
             expect(updateProject).toHaveBeenCalledWith({
@@ -167,10 +167,10 @@ describe('form components', () => {
         const user = userEvent.setup();
         render(<AddDashboardForm visualizations={{ v1: 'Revenue (bar-chart)' }} />);
 
-        await user.type(screen.getByPlaceholderText('Type Dashboard name here.'), 'Dash 1');
-        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'Dashboard desc');
+        await user.type(screen.getByPlaceholderText('Type dashboard name here.'), 'Dash 1');
+        await user.type(screen.getByPlaceholderText('Type dashboard description here.'), 'Dashboard desc');
         await user.click(screen.getByRole('button', { name: 'set-visualizations' }));
-        await user.click(screen.getByRole('button', { name: /Add Dashboard/i }));
+        await user.click(screen.getByRole('button', { name: /Create dashboard/i }));
 
         await waitFor(() => {
             expect(createDashboard).toHaveBeenCalledWith(expect.objectContaining({
@@ -198,10 +198,10 @@ describe('form components', () => {
             />
         );
 
-        await user.clear(screen.getByPlaceholderText('Type Dashboard description here.'));
-        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'updated');
+        await user.clear(screen.getByPlaceholderText('Type dashboard description here.'));
+        await user.type(screen.getByPlaceholderText('Type dashboard description here.'), 'updated');
         await user.click(screen.getByRole('button', { name: 'set-visualizations' }));
-        await user.click(screen.getByRole('button', { name: /Update Dashboard/i }));
+        await user.click(screen.getByRole('button', { name: /Update dashboard/i }));
 
         await waitFor(() => {
             expect(updateDashboard).toHaveBeenCalledWith(expect.objectContaining({
@@ -216,10 +216,10 @@ describe('form components', () => {
         const user = userEvent.setup();
 
         render(<AddDashboardForm visualizations={undefined as any} />);
-        await user.type(screen.getByPlaceholderText('Type Dashboard name here.'), 'Dash Missing');
-        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'Desc');
+        await user.type(screen.getByPlaceholderText('Type dashboard name here.'), 'Dash Missing');
+        await user.type(screen.getByPlaceholderText('Type dashboard description here.'), 'Desc');
         await user.click(screen.getByRole('button', { name: 'set-invalid-visualizations' }));
-        await user.click(screen.getByRole('button', { name: /Add Dashboard/i }));
+        await user.click(screen.getByRole('button', { name: /Create dashboard/i }));
 
         await waitFor(() => {
             expect(createDashboard).toHaveBeenCalledWith(expect.objectContaining({
@@ -235,7 +235,7 @@ describe('form components', () => {
         );
         const invalidButtons = screen.getAllByRole('button', { name: 'set-invalid-visualizations' });
         await user.click(invalidButtons[invalidButtons.length - 1] as HTMLElement);
-        const updateButtons = screen.getAllByRole('button', { name: /Update Dashboard/i });
+        const updateButtons = screen.getAllByRole('button', { name: /Update dashboard/i });
         await user.click(updateButtons[updateButtons.length - 1] as HTMLElement);
 
         await waitFor(() => {
@@ -302,7 +302,7 @@ describe('form components', () => {
         render(<AddProjectForm />);
         await user.type(screen.getByPlaceholderText('Type project name here.'), 'Err Project');
         await user.type(screen.getByPlaceholderText('Type project description here.'), 'Desc');
-        await user.click(screen.getByRole('button', { name: /Add Project/i }));
+        await user.click(screen.getByRole('button', { name: /Create project/i }));
 
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
@@ -315,9 +315,9 @@ describe('form components', () => {
         updateDashboard.mockRejectedValueOnce(new Error('dash-update'));
 
         render(<AddDashboardForm visualizations={{ v1: 'Revenue (bar-chart)' }} />);
-        await user.type(screen.getByPlaceholderText('Type Dashboard name here.'), 'Dash Err');
-        await user.type(screen.getByPlaceholderText('Type Dashboard description here.'), 'Desc');
-        await user.click(screen.getByRole('button', { name: /Add Dashboard/i }));
+        await user.type(screen.getByPlaceholderText('Type dashboard name here.'), 'Dash Err');
+        await user.type(screen.getByPlaceholderText('Type dashboard description here.'), 'Desc');
+        await user.click(screen.getByRole('button', { name: /Create dashboard/i }));
 
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
@@ -329,7 +329,7 @@ describe('form components', () => {
                 visualizations={{}}
             />
         );
-        await user.click(screen.getAllByRole('button', { name: /Update Dashboard/i })[0] as HTMLElement);
+        await user.click(screen.getAllByRole('button', { name: /Update dashboard/i })[0] as HTMLElement);
 
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
@@ -341,13 +341,13 @@ describe('form components', () => {
         updateProject.mockRejectedValueOnce(new Error('project-update'));
 
         render(<UpdateProjectForm project={{ name: 'p2', description: 'old', isActive: false } as any} />);
-        await user.click(screen.getByRole('button', { name: /Update Project/i }));
+        await user.click(screen.getByRole('button', { name: /Update project/i }));
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
         });
 
         render(<UpdateProjectForm project={{ description: '', isActive: false } as any} />);
-        await user.click(screen.getAllByRole('button', { name: /Update Project/i })[1] as HTMLElement);
+        await user.click(screen.getAllByRole('button', { name: /Update project/i })[1] as HTMLElement);
         expect(updateProject).toHaveBeenCalledTimes(1);
     });
 
@@ -372,7 +372,7 @@ describe('form components', () => {
 
         const setButtons = screen.getAllByRole('button', { name: 'set-visualizations' });
         await user.click(setButtons[setButtons.length - 1] as HTMLElement);
-        const submitButtons = screen.getAllByRole('button', { name: /Update Dashboard/i });
+        const submitButtons = screen.getAllByRole('button', { name: /Update dashboard/i });
         await user.click(submitButtons[submitButtons.length - 1] as HTMLElement);
 
         await waitFor(() => {

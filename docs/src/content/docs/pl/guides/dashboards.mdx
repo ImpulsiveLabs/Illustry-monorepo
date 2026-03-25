@@ -1,0 +1,51 @@
+---
+title: Pulpity nawigacyjne
+description: Panele informacyjne – dokument
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Pulpity nawigacyjne jako wizualne obszary robocze
+
+Pulpity nawigacyjne pełnią rolę wszechstronnych wizualnych obszarów roboczych, w których można organizować i zarządzać wieloma wizualizacjami związanymi z projektami. Zapewniają dynamiczne i interaktywne środowisko do efektywnego eksplorowania, analizowania i prezentowania danych.
+
+## Struktura danych panelu kontrolnego
+
+Aby reprezentować dashboard w swoim systemie, możesz użyć następującego interfejsu `DashboardData`:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Kluczowe atrybuty
+
+- **name:** Unikalny identyfikator dashboardu.
+- **projectName:** nazwa powiązanego projektu na potrzeby łączenia kontekstowego.
+- **opis:** Opcjonalne pole zawierające dodatkowy kontekst lub szczegóły dotyczące dashboardu.
+- **createdAt:** Znacznik czasu wskazujący, kiedy utworzono panel kontrolny.
+- **updatedAt:** Znacznik czasu pokazujący ostatnią modyfikację pulpitu nawigacyjnego.
+- **wizualizacje:** zbiór wizualizacji zawartych w panelu kontrolnym w postaci par klucz-wartość lub tablicy typów wizualizacji.
+- **układy:** lista konfiguracji układu, które określają położenie i rozmiar wizualizacji w dashboardzie. Każdy układ zawiera:
+  - **i:** Unikalny identyfikator wizualizacji.
+  - **x, y:** Współrzędne reprezentujące pozycję wizualizacji na siatce.
+  - **w, h:** Szerokość i wysokość wizualizacji.
+  - **minW, minH:** Minimalne ograniczenia szerokości i wysokości.
+
+### Funkcje pulpitu nawigacyjnego
+
+Pulpity nawigacyjne umożliwiają użytkownikom:
+
+- Przeciągnij i upuść wizualizacje, aby zmienić ich rozmieszczenie w obszarze roboczym.
+- Zmień rozmiar wizualizacji, aby dopasować je do konkretnych potrzeb danych.
+- Utrzymuj wiele układów, aby zaspokoić potrzeby różnych przypadków użycia lub odbiorców.
+
+Oferując taką elastyczność, dashboardy umożliwiają użytkownikom dostosowywanie wizualnych przestrzeni roboczych zgodnie z wymaganiami projektu.
+
+### Praktyczny przykład
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

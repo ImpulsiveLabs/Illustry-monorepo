@@ -1,0 +1,34 @@
+---
+title: Projecten
+description: Projecten doc
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Project als werkruimte
+
+In dit systeem fungeert een project als de fundamentele bouwsteen en fungeert het als een speciale werkruimte voor uw inspanningen. Elk project omvat de essentiële elementen van uw werk en biedt een gestructureerde omgeving voor datavisualisatie en -analyse.
+
+## Structuur van projectgegevens
+
+Om een ​​project in uw systeem weer te geven, kunt u de volgende `ProjectData` interface gebruiken:
+
+```typescript
+{{ProjectData}}
+```
+### Belangrijkste kenmerken
+
+- **naam:** Een unieke identificatie voor het project.
+- **beschrijving:** Een optioneel veld om aanvullende context of details over het project te geven.
+- **createdAt:** De tijdstempel die aangeeft wanneer het project voor het eerst is gemaakt.
+- **updatedAt:** De tijdstempel die de laatste wijziging van het project aangeeft.
+- **isActive:** Een Booleaanse vlag die aangeeft of het project momenteel actief is.
+
+## Projectactivering
+
+Het is belangrijk op te merken dat er slechts één project tegelijk actief kan zijn. Dit zorgt voor een gerichte en georganiseerde werkruimte, waardoor gebruikers zich kunnen concentreren op een specifiek project en de bijbehorende visualisaties.
+
+Door uw werk op deze manier te structureren, creëert u een samenhangende en beheersbare omgeving voor uw projecten, waardoor efficiënte data-analyse en visualisatie binnen een speciale werkruimte mogelijk wordt.
+
+## Praktisch voorbeeld
+
+![Project in Action](/Illustry-monorepo/projects.gif)

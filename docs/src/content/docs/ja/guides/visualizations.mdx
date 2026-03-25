@@ -1,0 +1,85 @@
+---
+title: 視覚化
+description: 視覚化ドキュメント
+---
+
+# ワークスペースのビジュアライゼーション
+
+ビジュアライゼーションを操作する場合、システムは `VisualizationData` インターフェイスを通じて柔軟なデータ構造をサポートします。
+
+## 可視化データ構造
+
+システム内でビジュアライゼーションを表現するには、次の `VisualizationData` インターフェイスを使用できます。
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### 主要な属性
+- **projectName**: アクティブなプロジェクト。
+- **type:** 視覚化のタイプを提供する文字列または文字列配列 (配列は JSON でのみ機能します)。
+- **name:** ビジュアライゼーションの一意の識別子。
+- **説明:** ビジュアライゼーションに関する追加のコンテキストまたは詳細を提供するオプションのフィールド。
+- **createdAt:** ビジュアライゼーションが最初に作成された時間を示すタイムスタンプ。
+- **updatedAt:** ビジュアライゼーションの最終変更を示すタイムスタンプ。
+- **isActive:** プロジェクトが現在アクティブかどうかを指定するブール値のフラグ。
+- **タグ:** ビジュアライゼーションを分類するために使用されるオプションのフィールド。
+- **data:** ビジュアライゼーションが表示するデータ
+
+## 視覚化の種類
+
+システムは次の視覚化タイプをサポートしています。
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## 実践例
+
+Excel、XML、JSON、CSV などのファイル形式を利用する場合、システムはファイル内の完全な詳細と部分的な詳細の両方との互換性を保証します。
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **例 1**: すべての詳細を含む JSON 形式
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **例 2**: 部分的な詳細を含む JSON 形式。不足している詳細をフォームに記入します。
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **例 3**: すべての詳細を含む Excel 形式、フィールドのマッピングを完了する
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **例 4**: 部分的な詳細を含む Excel 形式。不足している詳細をフォームに記入します。
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **例 5**: すべての詳細を含む CSV 形式、フィールドのマッピングを完了する
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **例 6**: 部分的な詳細を含む CSV 形式。不足している詳細をフォームに記入します。
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **例 7**: すべての詳細を含む XML 形式
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **例 8**: 部分的な詳細を含む XML 形式。不足している詳細をフォームに記入します
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

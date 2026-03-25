@@ -3,11 +3,14 @@
 import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
-  computeLegendColors,
   constructSeries
 } from '@/lib/visualizations/chart/helper';
+import {
+  buildLegendOption,
+  getChartTopPadding
+} from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
-import Legend from '../ui/legend';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -22,12 +25,15 @@ const AxisChartView = ({
   data, type, legend, fullScreen
 }: AxisChartProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const themeMode = getStoredTheme() === 'dark' ? 'dark' : 'light';
   const chartTheme = type === 'bar' ? activeTheme.barChart : activeTheme.lineChart;
   const colors = chartTheme[themeMode].colors;
 
   const { headers, values } = data;
+  const legendItems = Object.keys(values || {});
   const option = {
+    legend: buildLegendOption(legend, legendItems),
     tooltip: {
       trigger: 'axis',
       axisPointer: {
@@ -39,6 +45,7 @@ const AxisChartView = ({
     },
 
     grid: {
+      top: getChartTopPadding(legend),
       left: '3%',
       right: '4%',
       bottom: '3%',
@@ -66,22 +73,18 @@ const AxisChartView = ({
   };
   const height = fullScreen ? '73.5vh' : '100%';
   return (
-    <>
-      <div className="relative mt-[4%] flex flex-col items-center">
-        {legend && (
-          <Legend legendData={computeLegendColors(data, colors as string[])} />
-        )}
-        <div className="w-full h-full">
-          <ReactEcharts
-            option={option}
-            className="w-full sm:h-120 lg:h-160"
-            style={{
-              height
-            }}
-          />
-        </div>
+    <div className="relative mt-[4%] flex flex-col items-center">
+      <div className="w-full h-full">
+        <ReactEcharts
+          option={option}
+          helperText={t('tooltip.axis')}
+          className="w-full sm:h-120 lg:h-160"
+          style={{
+            height
+          }}
+        />
       </div>
-    </>
+    </div>
   );
 };
 export default AxisChartView;

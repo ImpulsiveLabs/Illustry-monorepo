@@ -2,14 +2,21 @@
 
 'use client';
 
+import { useEffect, useMemo, useState } from 'react';
 import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
 import {
   computeNodesHierarchy
 } from '@/lib/visualizations/hierarchy-charts/helper';
-import { computeLegendColors } from '@/lib/visualizations/calendar/helper';
+import {
+  buildLegendProxySeries,
+  buildLegendOption,
+  buildLegendSelectedMap,
+  getChartTopPadding,
+  getLegendItems
+} from '@/lib/visualizations/legend/helper';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
-import Legend from '../ui/legend';
+import { useLocale } from '@/components/providers/locale-provider';
 import { useThemeColors } from '../providers/theme-provider';
 import ReactEcharts from './generic/echarts';
 
@@ -24,12 +31,55 @@ const SunburstView = ({
   nodes, categories, legend, fullScreen
 }: SunburstViewProp) => {
   const activeTheme = useThemeColors();
+  const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
   const colors = isDarkTheme
     ? activeTheme.sunburst.dark.colors
     : activeTheme.sunburst.light.colors;
+  const chartTop = getChartTopPadding(legend);
+  const legendItems = useMemo(
+    () => getLegendItems(nodes.map((node) => node.name)),
+    [nodes]
+  );
+  const [selectedLegendItems, setSelectedLegendItems] = useState<Record<string, boolean>>(
+    () => buildLegendSelectedMap(legendItems)
+  );
+
+  useEffect(() => {
+    setSelectedLegendItems(buildLegendSelectedMap(legendItems));
+  }, [legendItems]);
+
+  const filteredTopLevelNodes = useMemo(
+    () => nodes.filter((node) => selectedLegendItems[node.name] !== false),
+    [nodes, selectedLegendItems]
+  );
+  const categoryColorMap = useMemo(
+    () => categories.reduce<Record<string, string>>((accumulator, category, index) => {
+      accumulator[category] = colors[index % Math.max(colors.length, 1)] || '#888';
+      return accumulator;
+    }, {}),
+    [categories, colors]
+  );
+  const legendColorMap = useMemo(
+    () => legendItems.reduce<Record<string, string>>((accumulator, legendItem, index) => {
+      const node = nodes.find((currentNode) => currentNode.name === legendItem);
+      accumulator[legendItem] = (node && categoryColorMap[node.category]) || colors[index % Math.max(colors.length, 1)] || '#888';
+      return accumulator;
+    }, {}),
+    [legendItems, nodes, categoryColorMap, colors]
+  );
+
+  const onEvents = {
+    legendselectchanged: (params: { selected?: Record<string, boolean> }) => {
+      setSelectedLegendItems(params.selected || buildLegendSelectedMap(legendItems));
+    }
+  };
 
   const option = {
+    legend: {
+      ...buildLegendOption(legend, legendItems),
+      selected: selectedLegendItems
+    },
     tooltip: {
       trigger: 'item',
       triggerOn: 'mousemove',
@@ -40,20 +90,22 @@ const SunburstView = ({
     series: [
       {
         type: 'sunburst',
-        data: computeNodesHierarchy(nodes, categories, colors)
-      }
+        top: chartTop,
+        radius: legend ? '80%' : '95%',
+        data: computeNodesHierarchy(filteredTopLevelNodes, categories, colors)
+      },
+      buildLegendProxySeries(legendItems, legendColorMap)
     ]
   };
   const height = fullScreen ? '73.5vh' : '100%';
 
   return (
     <div className="relative mt-[4%] flex flex-col items-center">
-      {legend && (
-        <Legend legendData={computeLegendColors(categories, colors)} />
-      )}
       <div className="w-full h-full">
         <ReactEcharts
           option={option}
+          onEvents={onEvents}
+          helperText={t('tooltip.sunburst')}
           className="w-full sm:h-120 lg:h-160"
           style={{
             height

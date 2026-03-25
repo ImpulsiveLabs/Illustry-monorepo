@@ -1,0 +1,51 @@
+---
+title: Trang tổng quan
+description: Tài liệu về trang tổng quan
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Bảng thông tin dưới dạng không gian làm việc trực quan
+
+Bảng thông tin hoạt động như không gian làm việc trực quan linh hoạt, nơi bạn có thể sắp xếp và quản lý nhiều hình ảnh trực quan liên quan đến dự án của mình. Chúng cung cấp một môi trường năng động và tương tác để khám phá, phân tích và trình bày dữ liệu một cách hiệu quả.
+
+## Cấu trúc dữ liệu bảng điều khiển
+
+Để thể hiện một trang tổng quan trong hệ thống của bạn, bạn có thể sử dụng giao diện `DashboardData` sau:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Thuộc tính chính
+
+- **tên:** Giá trị nhận dạng duy nhất cho trang tổng quan.
+- **projectName:** Tên của dự án được liên kết để liên kết theo ngữ cảnh.
+- **mô tả:** Trường tùy chọn cung cấp ngữ cảnh hoặc thông tin chi tiết bổ sung về trang tổng quan.
+- **createdAt:** Dấu thời gian cho biết thời điểm tạo trang tổng quan.
+- **updateAt:** Dấu thời gian hiển thị lần sửa đổi cuối cùng của trang tổng quan.
+- **hình ảnh trực quan:** Một tập hợp các hình ảnh trực quan có trong trang tổng quan, dưới dạng cặp khóa-giá trị hoặc một loạt các loại hình ảnh trực quan.
+- **bố cục:** Danh sách cấu hình bố cục xác định vị trí và kích thước của hình ảnh trực quan trong trang tổng quan. Mỗi cách bố trí bao gồm:
+  - **i:** Mã định danh duy nhất cho hình ảnh trực quan.
+  - **x, y:** Tọa độ biểu thị vị trí của hình ảnh trực quan trên lưới.
+  - **w, h:** Chiều rộng và chiều cao của hình ảnh trực quan.
+  - **minW, minH:** Giới hạn chiều rộng và chiều cao tối thiểu.
+
+### Tính năng bảng điều khiển
+
+Trang tổng quan cho phép người dùng:
+
+- Kéo và thả trực quan hóa để sắp xếp lại chúng trong không gian làm việc.
+- Thay đổi kích thước trực quan hóa để phù hợp với nhu cầu dữ liệu cụ thể.
+- Duy trì nhiều bố cục để phục vụ cho các trường hợp sử dụng hoặc đối tượng khác nhau.
+
+Bằng cách cung cấp tính linh hoạt như vậy, bảng thông tin cho phép người dùng tùy chỉnh không gian làm việc trực quan của họ theo yêu cầu của dự án.
+
+### Ví dụ thực tế
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

@@ -19,4 +19,4 @@ Illustry is a powerful web application built to serve as a visualization hub, se
 - **Filtering:** Easily filter and analyze data to extract meaningful insights.
 - **Playground:** Explore the capabilities of Illustry in the playground, where you can interact with the features and test different scenarios.
 
-See [“manual setup instruction”](/Illustry-monorepo/guides/manual-setup-instruction/) for a quick installation guide to work with Illustry
+[How to manually setup Illustry](../manual-setup-instruction/)

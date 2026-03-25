@@ -163,8 +163,8 @@ describe('table shell action branches', () => {
         });
         expect(createdAtCell).toBeTruthy();
         expect(updatedAtCell).toBeTruthy();
-        expect(activeCell).toBe('active');
-        expect(inactiveCell).toBe('not active');
+        expect(activeCell).toBe('Active');
+        expect(inactiveCell).toBe('Not Active');
 
         const namedHeaders = latestDataTableProps.columns
             .filter((c: any) => ['name', 'description', 'createdAt', 'updatedAt', 'isActive'].includes(c.accessorKey))

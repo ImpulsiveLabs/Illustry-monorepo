@@ -1,0 +1,103 @@
+---
+title: كيفية إعداد الأمية يدويًا
+description: التجهيز اليدوي
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## الشروط المسبقة
+
+قبل تركيب "إيلوستري بلايدند" تأكد أن لديك الشروط المسبقة التالية:
+
+- النسخة العقدية 18-17.0 أو أعلى
+- MongoDB
+
+## Illustry الخلفية
+
+
+#### محليا:
+وثمة حاجة إلى ملف اسمه `.env` على أساس المشروع الذي يتضمن الميادين التالية:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+أديروا الأوامر التالية:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### دوكر:
+
+أديروا الأوامر التالية:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## Illustry الواجهة الأمامية
+
+
+#### محليا:
+وثمة حاجة إلى ملف اسمه `.env` على أساس المشروع الذي يتضمن الميادين التالية:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+أديروا الأوامر التالية:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### دوكر:
+** قبل الركض، خلق الصورة الخلفية أولا**
+
+أديروا الأوامر التالية:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

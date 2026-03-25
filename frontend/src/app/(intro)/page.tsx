@@ -1,13 +1,17 @@
+'use client';
+
 import React from 'react';
 import Balance from 'react-wrap-balancer';
 import Link from 'next/link';
 import Typewriter from '@/components/animatedText/Typewriter';
+import { useLocale } from '@/components/providers/locale-provider';
 import { Shell } from '@/components/shells/shell';
 import { buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const Home = () => {
-  const animatedText = ['Understand', 'Learn about', 'Visualize'];
+  const { t } = useLocale();
+  const animatedText = [t('home.wordUnderstand'), t('home.wordLearn'), t('home.wordVisualize')];
 
   return (
     <div className="flex flex-col items-center justify-center h-screen">
@@ -30,10 +34,10 @@ const Home = () => {
             />
           </h1>
           <h1 className="text-3xl font-bold leading-tight tracking-tighter md:text-5xl lg:text-6xl lg:leading-[1.1]  ">
-            &nbsp;&nbsp;your data!
+            &nbsp;&nbsp;{t('home.wordYourData')}
           </h1>
           <Balance className="max-w-[46rem] text-lg text-muted-foreground mt-[5%] sm:text-xl">
-            Take a look at the official documentation
+            {t('home.subtitle')}
           </Balance>
           <div className="flex flex-wrap items-center justify-center gap-4">
             <Link
@@ -44,7 +48,7 @@ const Home = () => {
                 })
               )}
             >
-              Documentation
+              {t('home.documentation')}
             </Link>
           </div>
         </section>

@@ -1,0 +1,85 @@
+---
+title: Visualisaties
+description: Visualisaties doc
+---
+
+# Visualisaties in uw werkruimte
+
+Bij het werken met visualisaties ondersteunt het systeem een ​​flexibele datastructuur via de `VisualizationData` interface:
+
+## Visualisatiegegevensstructuur
+
+Om een ​​visualisatie in uw systeem weer te geven, kunt u de volgende `VisualizationData` interface gebruiken:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Belangrijkste kenmerken
+- **projectName**: het actieve project.
+- **type:** Een string of een stringarray die het type visualisatie levert (array werkt alleen voor JSON's).
+- **naam:** Een unieke identificatie voor de visualisatie.
+- **beschrijving:** Een optioneel veld om aanvullende context of details over de visualisatie te bieden.
+- **createdAt:** Het tijdstempel dat aangeeft wanneer de visualisatie voor het eerst is gemaakt.
+- **updatedAt:** De tijdstempel die de laatste wijziging van de visualisatie aangeeft.
+- **isActive:** Een Booleaanse vlag die aangeeft of het project momenteel actief is.
+- **tags:** Een optioneel veld dat wordt gebruikt om de visualisaties te categoriseren.
+- **data:** De gegevens die de visualisatie zal presenteren
+
+## Visualisatietypen
+
+Het systeem ondersteunt de volgende visualisatietypen:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Praktisch voorbeeld
+
+Bij het gebruik van bestandsformaten zoals Excel, XML, JSON en CSV, garandeert het systeem compatibiliteit met zowel volledige als gedeeltelijke details in het bestand.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Voorbeeld 1**: JSON formaat met alle details
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Voorbeeld 2**: JSON formaat met gedeeltelijke details, vul het formulier in met de ontbrekende details
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Voorbeeld 3**: Excel-formaat met alle details, voltooi de toewijzing van velden
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Voorbeeld 4**: Excel-formaat met gedeeltelijke details, vul het formulier in met de ontbrekende details
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Voorbeeld 5**: CSV formaat met alle details, voltooi de toewijzing van velden
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Voorbeeld 6**: CSV formaat met gedeeltelijke details, vul het formulier in met de ontbrekende details
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Voorbeeld 7**: XML formaat met alle details
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Voorbeeld 8**: XML formaat met gedeeltelijke details, vul het formulier in met de ontbrekende details
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

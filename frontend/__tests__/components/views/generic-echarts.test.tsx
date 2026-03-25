@@ -4,6 +4,7 @@ import { act, render } from '@testing-library/react';
 
 const resizeSpy = vi.fn();
 const getInstance = vi.fn(() => ({ id: 'instance', resize: resizeSpy }));
+const echartsLibPropsSpy = vi.fn();
 
 vi.mock('echarts/core', () => ({
     default: {},
@@ -21,6 +22,7 @@ vi.mock('echarts/renderers', () => ({ SVGRenderer: {} }));
 
 vi.mock('echarts-for-react', () => ({
     default: React.forwardRef((props: any, ref) => {
+        echartsLibPropsSpy(props);
         React.useImperativeHandle(ref, () => ({
             getEchartsInstance: getInstance
         }));
@@ -33,6 +35,7 @@ import ReactEcharts from '@/components/views/generic/echarts';
 describe('ReactEcharts wrapper', () => {
     it('forwards props and exposes getEchartsInstance via ref', () => {
         const ref = createRef<any>();
+        const onEvents = { legendselectchanged: vi.fn() };
         const { getByTestId } = render(
             <ReactEcharts
                 ref={ref}
@@ -41,12 +44,14 @@ describe('ReactEcharts wrapper', () => {
                 loading
                 theme="dark"
                 style={{ height: '100px' }}
+                onEvents={onEvents}
             />
         );
 
         expect(getByTestId('echarts-lib')).toBeInTheDocument();
         expect(ref.current.getEchartsInstance()).toMatchObject({ id: 'instance' });
         expect(getInstance).toHaveBeenCalledTimes(1);
+        expect(echartsLibPropsSpy.mock.calls.at(-1)?.[0].onEvents).toBe(onEvents);
     });
 
     it('wires resize listeners and observer callbacks', () => {

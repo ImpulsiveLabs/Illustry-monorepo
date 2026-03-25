@@ -1,0 +1,51 @@
+---
+title: Dashboards
+description: Dashboards-Dokument
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Dashboards als visuelle Arbeitsbereiche
+
+Dashboards fungieren als vielseitige visuelle Arbeitsbereiche, in denen Sie mehrere Visualisierungen im Zusammenhang mit Ihren Projekten organisieren und verwalten können. Sie bieten eine dynamische und interaktive Umgebung zum effektiven Erkunden, Analysieren und Präsentieren von Daten.
+
+## Dashboard-Datenstruktur
+
+Um ein Dashboard in Ihrem System darzustellen, können Sie die folgende `DashboardData`-Schnittstelle verwenden:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Schlüsselattribute
+
+- **Name:** Eine eindeutige Kennung für das Dashboard.
+- **Projektname:** Der Name des zugehörigen Projekts für die kontextbezogene Verknüpfung.
+- **Beschreibung:** Ein optionales Feld, das zusätzlichen Kontext oder Details zum Dashboard bereitstellt.
+- **createdAt:** Der Zeitstempel, der angibt, wann das Dashboard erstellt wurde.
+- **updatedAt:** Der Zeitstempel, der die letzte Änderung des Dashboards anzeigt.
+- **Visualisierungen:** Eine Sammlung von Visualisierungen, die im Dashboard enthalten sind, entweder als Schlüssel-Wert-Paare oder als Array von Visualisierungstypen.
+- **Layouts:** Eine Liste von Layoutkonfigurationen, die die Position und Größe von Visualisierungen im Dashboard bestimmen. Jedes Layout beinhaltet:
+  - **i:** Eine eindeutige Kennung für die Visualisierung.
+  - **x, y:** Koordinaten, die die Position der Visualisierung im Raster darstellen.
+  - **w, h:** Die Breite und Höhe der Visualisierung.
+  - **minB, minH:** Mindesteinschränkungen für Breite und Höhe.
+
+### Dashboard-Funktionen
+
+Dashboards ermöglichen Benutzern Folgendes:
+
+- Ziehen Sie Visualisierungen per Drag-and-Drop, um sie im Arbeitsbereich neu anzuordnen.
+- Passen Sie die Größe von Visualisierungen an spezifische Datenanforderungen an.
+- Pflegen Sie mehrere Layouts, um unterschiedliche Anwendungsfälle oder Zielgruppen abzudecken.
+
+Durch diese Flexibilität ermöglichen Dashboards den Benutzern, ihre visuellen Arbeitsbereiche entsprechend den Projektanforderungen anzupassen.
+
+### Praxisbeispiel
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

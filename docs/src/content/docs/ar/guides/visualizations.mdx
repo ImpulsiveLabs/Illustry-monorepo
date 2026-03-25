@@ -1,0 +1,85 @@
+---
+title: تصورات
+description: وثيقة التصورات
+---
+
+# تصورات في مساحة العمل الخاصة بك
+
+عند العمل مع المرئيات، يدعم النظام بنية بيانات مرنة من خلال واجهة `VisualizationData`:
+
+## هيكل بيانات التصور
+
+لتمثيل تصور في نظامك، يمكنك استخدام واجهة `VisualizationData` التالية:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### السمات الرئيسية
+- **اسم المشروع**: المشروع النشط.
+- **النوع:** سلسلة أو مصفوفة سلسلة توفر نوع التصور (المصفوفة تعمل فقط مع JSON's).
+- **الاسم:** معرف فريد للتصور.
+- **الوصف:** حقل اختياري لتوفير سياق إضافي أو تفاصيل حول التمثيل المرئي.
+- **createdAt:** الطابع الزمني الذي يشير إلى وقت إنشاء التمثيل المرئي في البداية.
+- **updatedAt:** الطابع الزمني الذي يشير إلى التعديل الأخير للتصور.
+- **isActive:** علامة منطقية تحدد ما إذا كان المشروع نشطًا حاليًا.
+- **العلامات:** حقل اختياري يستخدم لتصنيف المرئيات.
+- **البيانات:** البيانات التي سيقدمها التصور
+
+## أنواع التصور
+
+يدعم النظام أنواع التصور التالية:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## مثال عملي
+
+عند استخدام تنسيقات الملفات مثل Excel وXML وJSON وCSV، يضمن النظام التوافق مع كل من التفاصيل الكاملة والجزئية في الملف.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **مثال 1**: تنسيق JSON مع كافة التفاصيل
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **مثال 2**: تنسيق JSON بتفاصيل جزئية، أكمل النموذج بالتفاصيل المفقودة
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **مثال 3**: تنسيق Excel مع كافة التفاصيل، أكمل تعيين الحقول
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **المثال 4**: تنسيق Excel بتفاصيل جزئية، أكمل النموذج بالتفاصيل المفقودة
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **المثال 5**: تنسيق CSV مع كافة التفاصيل، أكمل تعيين الحقول
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **مثال 6**: تنسيق CSV بتفاصيل جزئية، أكمل النموذج بالتفاصيل المفقودة
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **المثال 7**: تنسيق XML مع كافة التفاصيل
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **مثال 8**: تنسيق XML بتفاصيل جزئية، أكمل النموذج بالتفاصيل المفقودة
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

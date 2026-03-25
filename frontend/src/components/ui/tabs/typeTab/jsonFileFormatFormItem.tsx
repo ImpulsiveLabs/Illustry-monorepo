@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import { ExtFile } from '@files-ui/react';
 import { UseFormReturn } from 'react-hook-form';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   FormLabel,
   FormControl,
@@ -22,9 +23,11 @@ const JsonFileFormatter = ({
   acceptedFiles,
   updateFiles,
   removeFile
-}: VisualizationFileUploadProps) => (
+}: VisualizationFileUploadProps) => {
+  const { t } = useLocale();
+  return (
     <FormItem className="flex w-full flex-col gap-1.5">
-      <FormLabel>Files</FormLabel>
+      <FormLabel>{t('common.files')}</FormLabel>
       <FormControl>
         <FileUpload
           acceptedFiles={acceptedFiles}
@@ -38,5 +41,6 @@ const JsonFileFormatter = ({
       />
 
     </FormItem>
-);
+  );
+};
 export default JsonFileFormatter;

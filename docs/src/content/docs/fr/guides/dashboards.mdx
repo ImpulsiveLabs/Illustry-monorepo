@@ -1,0 +1,51 @@
+---
+title: Tableaux de bord
+description: Documentation sur les tableaux de bord
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Tableaux de bord comme espaces de travail visuels
+
+Les tableaux de bord agissent comme des espaces de travail visuels polyvalents dans lesquels vous pouvez organiser et gérer plusieurs visualisations liées à vos projets. Ils offrent un environnement dynamique et interactif pour explorer, analyser et présenter efficacement les données.
+
+## Structure des données du tableau de bord
+
+Pour représenter un tableau de bord dans votre système, vous pouvez utiliser l'interface `DashboardData` suivante :
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Attributs clés
+
+- **name :** Un identifiant unique pour le tableau de bord.
+- **projectName :** Nom du projet associé pour la liaison contextuelle.
+- **description :** Un champ facultatif fournissant un contexte ou des détails supplémentaires sur le tableau de bord.
+- **createdAt :** L'horodatage indiquant la date de création du tableau de bord.
+- **updatedAt :** L'horodatage affichant la dernière modification du tableau de bord.
+- **visualisations :** une collection de visualisations incluses dans le tableau de bord, soit sous forme de paires clé-valeur, soit sous forme d'un tableau de types de visualisation.
+- **mises en page :** liste de configurations de mise en page qui déterminent la position et la taille des visualisations dans le tableau de bord. Chaque mise en page comprend :
+  - **i :** Un identifiant unique pour la visualisation.
+  - **x, y :** Coordonnées représentant la position de la visualisation sur la grille.
+  - **w, h :** La largeur et la hauteur de la visualisation.
+  - **minW, minH :** Contraintes minimales de largeur et de hauteur.
+
+### Fonctionnalités du tableau de bord
+
+Les tableaux de bord permettent aux utilisateurs de :
+
+- Faites glisser et déposez les visualisations pour les réorganiser dans l'espace de travail.
+- Redimensionnez les visualisations pour répondre à des besoins de données spécifiques.
+- Conservez plusieurs mises en page pour répondre à différents cas d'utilisation ou publics.
+
+En offrant une telle flexibilité, les tableaux de bord permettent aux utilisateurs de personnaliser leurs espaces de travail visuels en fonction des exigences du projet.
+
+### Exemple pratique
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

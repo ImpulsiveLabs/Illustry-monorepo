@@ -1,0 +1,51 @@
+---
+title: Paneles de control
+description: Documento de paneles
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Paneles de control como espacios de trabajo visuales
+
+Los paneles actúan como espacios de trabajo visuales versátiles donde puede organizar y administrar múltiples visualizaciones relacionadas con sus proyectos. Proporcionan un entorno dinámico e interactivo para explorar, analizar y presentar datos de forma eficaz.
+
+## Estructura de datos del panel
+
+Para representar un panel en su sistema, puede utilizar la siguiente interfaz `DashboardData`:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Atributos clave
+
+- **nombre:** Un identificador único para el panel.
+- **projectName:** El nombre del proyecto asociado para el enlace contextual.
+- **descripción:** Un campo opcional que proporciona contexto adicional o detalles sobre el panel.
+- **createdAt:** La marca de tiempo que indica cuándo se creó el panel.
+- **updatedAt:** La marca de tiempo que muestra la última modificación del panel.
+- **visualizaciones:** Una colección de visualizaciones incluidas en el panel, ya sea como pares clave-valor o una serie de tipos de visualización.
+- **diseños:** Una lista de configuraciones de diseño que determinan la posición y el tamaño de las visualizaciones dentro del panel. Cada diseño incluye:
+  - **i:** Un identificador único para la visualización.
+  - **x, y:** Coordenadas que representan la posición de la visualización en la cuadrícula.
+  - **w, h:** El ancho y alto de la visualización.
+  - **minW, minH:** Restricciones mínimas de ancho y alto.
+
+### Funciones del panel
+
+Los paneles permiten a los usuarios:
+
+- Arrastre y suelte visualizaciones para reorganizarlas en el espacio de trabajo.
+- Cambie el tamaño de las visualizaciones para adaptarlas a necesidades de datos específicas.
+- Mantenga múltiples diseños para atender a diferentes casos de uso o audiencias.
+
+Al ofrecer tal flexibilidad, los paneles permiten a los usuarios personalizar sus espacios de trabajo visuales de acuerdo con los requisitos del proyecto.
+
+### Ejemplo práctico
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

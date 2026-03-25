@@ -1,0 +1,34 @@
+---
+title: Proiecte
+description: Proiecte doc
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Proiect ca spațiu de lucru
+
+În acest sistem, un proiect servește ca element fundamental, acționând ca un spațiu de lucru dedicat pentru eforturile dvs. Fiecare proiect încapsulează elementele esențiale ale muncii tale, oferind un mediu structurat pentru vizualizarea și analiza datelor.
+
+## Structura datelor proiectului
+
+Pentru a reprezenta un proiect în sistemul dvs., puteți utiliza următoarea interfață `ProjectData`:
+
+```typescript
+{{ProjectData}}
+```
+### Atribute cheie
+
+- **nume:** Un identificator unic pentru proiect.
+- **descriere:** Un câmp opțional pentru a furniza context suplimentar sau detalii despre proiect.
+- **createdAt:** Timpul care indică momentul în care proiectul a fost creat inițial.
+- **updatedAt:** Timpul care indică ultima modificare a proiectului.
+- **isActive:** Un semnal boolean care specifică dacă proiectul este activ în prezent.
+
+## Activarea proiectului
+
+Este important să rețineți că un singur proiect poate fi activ la un moment dat. Acest lucru asigură un spațiu de lucru concentrat și organizat, permițând utilizatorilor să se concentreze asupra unui anumit proiect și vizualizărilor asociate acestuia.
+
+Structurând munca în acest mod, creați un mediu coerent și gestionabil pentru proiectele dvs., facilitând analiza și vizualizarea eficientă a datelor într-un spațiu de lucru dedicat.
+
+## Exemplu practic
+
+![Project in Action](/Illustry-monorepo/projects.gif)

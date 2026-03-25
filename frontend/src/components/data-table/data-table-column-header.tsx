@@ -1,3 +1,5 @@
+'use client';
+
 import {
   ArrowDownIcon,
   ArrowUpIcon,
@@ -8,6 +10,7 @@ import { type Column } from '@tanstack/react-table';
 import React from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,22 +30,23 @@ const DataTableColumnHeader = <TData, TValue>({
   title,
   className
 }: DataTableColumnHeaderProps<TData, TValue>) => {
+  const { t } = useLocale();
   if (!column.getCanSort()) {
     return <div className={cn(className)}>{title}</div>;
   }
   const handleSorted = (columnProps: Column<TData, TValue>) => {
-    let areaLabelSortedColumn = 'Not sorted. Click to sort ascending.';
+    let areaLabelSortedColumn = t('tooltip.notSortedSortAscending');
     let arrowSortedColumn = (
       <CaretSortIcon className="ml-2 h-4 w-4" aria-hidden="true" />
     );
 
     if (columnProps.getIsSorted() === 'desc') {
-      areaLabelSortedColumn = 'Sorted descending. Click to sort ascending.';
+      areaLabelSortedColumn = t('tooltip.sortedDescendingSortAscending');
       arrowSortedColumn = (
         <ArrowDownIcon className="ml-2 h-4 w-4" aria-hidden="true" />
       );
     } else if (columnProps.getIsSorted() === 'asc') {
-      areaLabelSortedColumn = 'Sorted ascending. Click to sort descending.';
+      areaLabelSortedColumn = t('tooltip.sortedAscendingSortDescending');
       arrowSortedColumn = (
         <ArrowUpIcon className="ml-2 h-4 w-4" aria-hidden="true" />
       );
@@ -66,35 +70,35 @@ const DataTableColumnHeader = <TData, TValue>({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem
-            aria-label="Sort ascending"
+            aria-label={t('tooltip.sortAscending')}
             onClick={() => column.toggleSorting(false)}
           >
             <ArrowUpIcon
               className="mr-2 h-3.5 w-3.5 text-muted-foreground/70"
               aria-hidden="true"
             />
-            Asc
+            {t('table.asc')}
           </DropdownMenuItem>
           <DropdownMenuItem
-            aria-label="Sort descending"
+            aria-label={t('tooltip.sortDescending')}
             onClick={() => column.toggleSorting(true)}
           >
             <ArrowDownIcon
               className="mr-2 h-3.5 w-3.5 text-muted-foreground/70"
               aria-hidden="true"
             />
-            Desc
+            {t('table.desc')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            aria-label="Hide column"
+            aria-label={t('tooltip.hideColumn')}
             onClick={() => column.toggleVisibility(false)}
           >
             <EyeNoneIcon
               className="mr-2 h-3.5 w-3.5 text-muted-foreground/70"
               aria-hidden="true"
             />
-            Hide
+            {t('table.hide')}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

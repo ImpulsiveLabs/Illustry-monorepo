@@ -34,7 +34,7 @@ describe('ProjectNotFound', () => {
     const errorCard = screen.getByTestId('error-card');
     expect(errorCard).toBeInTheDocument();
     expect(errorCard).toHaveTextContent('Project not found');
-    expect(errorCard).toHaveTextContent('The Project may have expired');
+    expect(errorCard).toHaveTextContent('The project may have expired.');
     expect(errorCard).toHaveTextContent('Go to Projects');
     expect(screen.getByRole('link', { name: 'Go to Projects' })).toHaveAttribute(
       'href',

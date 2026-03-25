@@ -1,0 +1,85 @@
+---
+title: Visualisierungen
+description: Visualisierungen-Dokument
+---
+
+# Visualisierungen in Ihrem Arbeitsbereich
+
+Bei der Arbeit mit Visualisierungen unterstützt das System eine flexible Datenstruktur über die Schnittstelle `VisualizationData`:
+
+## Visualisierungsdatenstruktur
+
+Um eine Visualisierung in Ihrem System darzustellen, können Sie die folgende `VisualizationData`-Schnittstelle verwenden:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Schlüsselattribute
+- **Projektname**: Das aktive Projekt.
+- **Typ:** Ein String oder ein String-Array, das den Typ der Visualisierung bereitstellt (Array funktioniert nur für JSON).
+- **Name:** Eine eindeutige Kennung für die Visualisierung.
+- **Beschreibung:** Ein optionales Feld, um zusätzlichen Kontext oder Details zur Visualisierung bereitzustellen.
+- **createdAt:** Der Zeitstempel, der angibt, wann die Visualisierung ursprünglich erstellt wurde.
+- **updatedAt:** Der Zeitstempel, der die letzte Änderung der Visualisierung angibt.
+- **isActive:** Ein boolesches Flag, das angibt, ob das Projekt derzeit aktiv ist.
+- **Tags:** Ein optionales Feld, das zur Kategorisierung der Visualisierungen verwendet wird.
+- **Daten:** Die Daten, die die Visualisierung präsentieren wird
+
+## Visualisierungstypen
+
+Das System unterstützt folgende Visualisierungsarten:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Praxisbeispiel
+
+Bei der Verwendung von Dateiformaten wie Excel, XML, JSON und CSV stellt das System die Kompatibilität sowohl mit vollständigen als auch teilweisen Details in der Datei sicher.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Beispiel 1**: JSON-Format mit allen Details
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Beispiel 2**: Format JSON mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Beispiel 3**: Excel-Format mit allen Details, Vervollständigen Sie die Zuordnung der Felder
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Beispiel 4**: Excel-Format mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Beispiel 5**: CSV-Format mit allen Details, Vervollständigen Sie die Zuordnung der Felder
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Beispiel 6**: Format CSV mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Beispiel 7**: XML-Format mit allen Details
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Beispiel 8**: Format XML mit Teilangaben, füllen Sie das Formular mit den fehlenden Angaben aus
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

@@ -1,0 +1,85 @@
+---
+title: การแสดงภาพ
+description: เอกสารการแสดงภาพ
+---
+
+# การแสดงภาพข้อมูลในพื้นที่ทำงานของคุณ
+
+เมื่อทำงานกับการแสดงภาพ ระบบจะสนับสนุนโครงสร้างข้อมูลที่ยืดหยุ่นผ่านอินเทอร์เฟซ `VisualizationData`:
+
+## โครงสร้างข้อมูลการแสดงภาพ
+
+หากต้องการแสดงการแสดงภาพในระบบของคุณ คุณสามารถใช้อินเทอร์เฟซ `VisualizationData` ต่อไปนี้:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### คุณสมบัติที่สำคัญ
+- **ชื่อโครงการ**: โครงการที่ใช้งานอยู่
+- **ประเภท:** สตริงหรืออาร์เรย์สตริงที่ให้ประเภทของการแสดงภาพ (อาร์เรย์ใช้ได้กับ JSON's เท่านั้น)
+- **ชื่อ:** ตัวระบุที่ไม่ซ้ำกันสำหรับการแสดงภาพ
+- **คำอธิบาย:** ช่องที่ไม่บังคับเพื่อให้บริบทหรือรายละเอียดเพิ่มเติมเกี่ยวกับการแสดงภาพ
+- **createdAt:** การประทับเวลาที่ระบุเมื่อมีการสร้างการแสดงภาพครั้งแรก
+- **updatedAt:** การประทับเวลาซึ่งระบุการแก้ไขการแสดงภาพครั้งล่าสุด
+- **isActive:** ธงบูลีนที่ระบุว่าโปรเจ็กต์มีการใช้งานอยู่หรือไม่
+- **แท็ก:** ช่องที่ไม่บังคับซึ่งใช้เพื่อจัดหมวดหมู่การแสดงภาพ
+- **ข้อมูล:** ข้อมูลที่การแสดงภาพจะนำเสนอ
+
+## ประเภทการแสดงภาพ
+
+ระบบรองรับประเภทการแสดงภาพต่อไปนี้:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## ตัวอย่างการปฏิบัติ
+
+เมื่อใช้รูปแบบไฟล์ เช่น Excel, XML, JSON และ CSV ระบบจะรับประกันความเข้ากันได้กับรายละเอียดทั้งแบบเต็มและบางส่วนในไฟล์
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **ตัวอย่าง 1**: รูปแบบ JSON พร้อมรายละเอียดทั้งหมด
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **ตัวอย่าง 2**: รูปแบบ JSON ที่มีรายละเอียดบางส่วน กรอกแบบฟอร์มโดยไม่มีรายละเอียดที่ขาดหายไป
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **ตัวอย่างที่ 3**: รูปแบบ Excel ที่มีรายละเอียดทั้งหมด ทำการแมปฟิลด์ให้เสร็จสมบูรณ์
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **ตัวอย่างที่ 4**: รูปแบบ Excel ที่มีรายละเอียดบางส่วน กรอกแบบฟอร์มที่มีรายละเอียดที่ขาดหายไป
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **ตัวอย่าง 5**: รูปแบบ CSV พร้อมรายละเอียดทั้งหมด ทำการแมปฟิลด์ให้เสร็จสมบูรณ์
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **ตัวอย่าง 6**: รูปแบบ CSV ที่มีรายละเอียดบางส่วน กรอกแบบฟอร์มโดยไม่มีรายละเอียดที่ขาดหายไป
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **ตัวอย่าง 7**: รูปแบบ XML พร้อมรายละเอียดทั้งหมด
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **ตัวอย่าง 8**: รูปแบบ XML ที่มีรายละเอียดบางส่วน กรอกแบบฟอร์มโดยไม่มีรายละเอียดที่ขาดหายไป
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

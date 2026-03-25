@@ -3,6 +3,7 @@ import { UseFormReturn } from 'react-hook-form';
 import { ExtFile } from '@files-ui/react';
 import { FileTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   FormField,
   FormItem,
@@ -41,6 +42,7 @@ const TypeTab = ({
   updateFiles,
   removeFile
 }: TypeTabProps) => {
+  const { t } = useLocale();
   const renderFiles = (fileType: string) => {
     if (fileType) {
       switch (fileType) {
@@ -94,7 +96,7 @@ const TypeTab = ({
           name="fileType"
           render={({ field }) => (
             <FormItem className="w-full mb-[5%]">
-              <FormLabel>File Type</FormLabel>
+              <FormLabel>{t('common.fileType')}</FormLabel>
               <FormControl>
                 <Select
                   value={field.value?.toString()}
@@ -104,7 +106,7 @@ const TypeTab = ({
                   }}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select a File Type" />
+                    <SelectValue placeholder={t('typeTab.selectFileType')} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>

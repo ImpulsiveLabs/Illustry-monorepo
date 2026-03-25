@@ -1,0 +1,103 @@
+---
+title: Nasıl manuel olarak Illustry
+description: manuel kurulum
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+## Ön Koşullar
+
+Illustry Frontend yüklemeden önce, aşağıdaki ön koşullara sahip olmanızı sağlar:
+
+- Node Version 18.17.0 veya daha yüksek
+- MongoDB
+
+## Illustry arka uç
+
+
+#### Yerel olarak:
+“.env” isimli bir dosya, aşağıdaki alanları içeren projenin kökeninde gereklidir:
+
+```
+MONGO_URL=mongodb:/127.0.0.1:27017/illustry
+MONGO_TEST_URL=mongodb:/127.0.0.1:27017/illustrytest
+MONGO_USER=<your_personal_mongo_user>
+MONGO_PASSWORD=<your_personal_mongo_password>
+ILLUSTRY_PORT=7000 
+```
+Aşağıdaki komutları çalıştırın:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### Liman işçisi:
+
+Aşağıdaki komutları çalıştırın:
+```shell
+docker build -t illustrybackend .
+docker run -p 7000:7000 
+```
+
+## Illustry ön uç
+
+
+#### Yerel olarak:
+“.env” isimli bir dosya, aşağıdaki alanları içeren projenin kökeninde gereklidir:
+
+```
+NEXT_PUBLIC_BACKEND_PUBLIC_URL: http:/0.0.0.0:7000
+```
+Aşağıdaki komutları çalıştırın:
+
+<Tabs>
+<TabItem label="npm">
+
+```sh
+npm i && npm run build:ts && npm run start:dev
+```
+
+</TabItem>
+<TabItem label="pnpm">
+
+```sh
+pnpm install && pnpm run build:ts && pnpm run start:dev
+```
+
+</TabItem>
+<TabItem label="Yarn">
+
+```sh
+yarn && yarn build:ts && yarn start:dev
+```
+
+</TabItem>
+</Tabs>
+
+#### Liman işçisi:
+** Koşmadan önce, ilk önce arkadan görüntü oluşturun!**
+
+Aşağıdaki komutları çalıştırın:
+```shell
+docker build -t illustryfrontend .
+docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http:/ilustrybackend:7000 illustryfrontend
+```

@@ -39,7 +39,7 @@ describe('MainNav', () => {
             />
         );
 
-        const projectsLink = await screen.findByRole('link', { name: 'projects' });
+        const projectsLink = await screen.findByRole('link', { name: 'Projects' });
         const homeLink = screen.getByRole('link', { name: 'home' });
 
         expect(projectsLink).toHaveAttribute('aria-disabled', 'true');
@@ -58,7 +58,7 @@ describe('MainNav', () => {
             />
         );
 
-        const projectsLink = await screen.findByRole('link', { name: 'projects' });
+        const projectsLink = await screen.findByRole('link', { name: 'Projects' });
         expect(projectsLink).toHaveAttribute('aria-disabled', 'false');
         expect(projectsLink).not.toHaveClass('pointer-events-none');
     });

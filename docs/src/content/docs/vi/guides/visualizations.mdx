@@ -1,0 +1,85 @@
+---
+title: Trực quan hóa
+description: Tài liệu trực quan
+---
+
+# Trực quan hóa trong không gian làm việc của bạn
+
+Khi làm việc với trực quan hóa, hệ thống hỗ trợ cấu trúc dữ liệu linh hoạt thông qua giao diện `VisualizationData`:
+
+## Cấu trúc dữ liệu trực quan
+
+Để thể hiện hình ảnh trực quan trong hệ thống của bạn, bạn có thể sử dụng giao diện `VisualizationData` sau:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Thuộc tính chính
+- **tên dự án**: Dự án đang hoạt động.
+- **loại:** Một chuỗi hoặc một mảng chuỗi cung cấp kiểu trực quan hóa (mảng chỉ hoạt động với JSON's).
+- **name:** Mã định danh duy nhất cho hình ảnh trực quan.
+- **mô tả:** Trường tùy chọn để cung cấp ngữ cảnh hoặc thông tin chi tiết bổ sung về hình ảnh trực quan.
+- **createdAt:** Dấu thời gian cho biết thời điểm hình ảnh trực quan được tạo lần đầu.
+- **updateAt:** Dấu thời gian cho biết lần sửa đổi cuối cùng của hình ảnh trực quan.
+- **isActive:** Cờ boolean xác định xem dự án hiện có đang hoạt động hay không.
+- **tags:** Trường tùy chọn dùng để phân loại hình ảnh trực quan.
+- **dữ liệu:** Dữ liệu mà hình ảnh trực quan sẽ trình bày
+
+## Các loại trực quan
+
+Hệ thống hỗ trợ các kiểu hiển thị sau:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Ví dụ thực tế
+
+Khi sử dụng các định dạng tệp như Excel, XML, JSON và CSV, hệ thống sẽ đảm bảo khả năng tương thích với cả chi tiết đầy đủ và một phần trong tệp.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Ví dụ 1**: định dạng JSON với tất cả các chi tiết
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Ví dụ 2**: Định dạng JSON có một phần chi tiết, hãy điền thông tin chi tiết còn thiếu vào biểu mẫu
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Ví dụ 3**: Định dạng Excel với đầy đủ thông tin chi tiết, hoàn thiện việc ánh xạ các trường
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Ví dụ 4**: Định dạng Excel có một phần chi tiết, điền thông tin còn thiếu vào biểu mẫu
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Ví dụ 5**: định dạng CSV với tất cả các chi tiết, hoàn thành việc ánh xạ các trường
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Ví dụ 6**: Định dạng CSV có một phần chi tiết, hãy điền thông tin chi tiết còn thiếu vào biểu mẫu
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Ví dụ 7**: định dạng XML với tất cả các chi tiết
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Ví dụ 8**: Định dạng XML có một phần chi tiết, điền thông tin còn thiếu vào biểu mẫu
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)

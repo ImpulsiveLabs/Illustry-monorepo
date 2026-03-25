@@ -1,0 +1,34 @@
+---
+title: Projekte
+description: Projektdokument
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Projekt als Arbeitsbereich
+
+In diesem System dient ein Projekt als grundlegender Baustein und fungiert als dedizierter Arbeitsbereich für Ihre Bemühungen. Jedes Projekt fasst die wesentlichen Elemente Ihrer Arbeit zusammen und bietet eine strukturierte Umgebung für die Datenvisualisierung und -analyse.
+
+## Projektdatenstruktur
+
+Um ein Projekt in Ihrem System darzustellen, können Sie die folgende `ProjectData`-Schnittstelle verwenden:
+
+```typescript
+{{ProjectData}}
+```
+### Schlüsselattribute
+
+- **Name:** Eine eindeutige Kennung für das Projekt.
+- **Beschreibung:** Ein optionales Feld, um zusätzlichen Kontext oder Details zum Projekt bereitzustellen.
+- **createdAt:** Der Zeitstempel, der angibt, wann das Projekt ursprünglich erstellt wurde.
+- **updatedAt:** Der Zeitstempel, der die letzte Änderung des Projekts angibt.
+- **isActive:** Ein boolesches Flag, das angibt, ob das Projekt derzeit aktiv ist.
+
+## Projektaktivierung
+
+Es ist wichtig zu beachten, dass jeweils nur ein Projekt aktiv sein kann. Dies sorgt für einen fokussierten und organisierten Arbeitsbereich, sodass sich Benutzer auf ein bestimmtes Projekt und die damit verbundenen Visualisierungen konzentrieren können.
+
+Indem Sie Ihre Arbeit auf diese Weise strukturieren, schaffen Sie eine zusammenhängende und überschaubare Umgebung für Ihre Projekte und ermöglichen eine effiziente Datenanalyse und Visualisierung in einem speziellen Arbeitsbereich.
+
+## Praxisbeispiel
+
+![Project in Action](/Illustry-monorepo/projects.gif)

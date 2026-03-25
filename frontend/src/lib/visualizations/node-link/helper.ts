@@ -43,11 +43,12 @@ const computeNodesSankey = (
   });
   return nodes.map((node) => {
     const { name, category, properties } = node;
+    const colorKey = colorMapSchema.has(category) ? category : name;
     const finalNode: TransformerTypes.NodeWithStyling = {
       name,
       itemStyle: {
-        color: colorMapSchema.get(category),
-        borderColor: colorMapSchema.get(category)
+        color: colorMapSchema.get(colorKey),
+        borderColor: colorMapSchema.get(colorKey)
       }
     };
     if (properties) {

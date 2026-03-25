@@ -27,6 +27,6 @@ describe('Sheet', () => {
         expect(screen.getByText('Sheet title')).toBeInTheDocument();
         expect(screen.getByText('Sheet description')).toBeInTheDocument();
         expect(screen.getByText('Footer area')).toBeInTheDocument();
-        expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '×' })).toBeInTheDocument();
     });
 });

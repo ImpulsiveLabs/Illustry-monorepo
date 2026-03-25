@@ -1,0 +1,51 @@
+---
+title: Gösterge tabloları
+description: Gösterge tabloları belgesi
+---
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+# Görsel Çalışma Alanları Olarak Kontrol Panelleri
+
+Kontrol panelleri, projelerinizle ilgili birden fazla görselleştirmeyi düzenleyip yönetebileceğiniz çok yönlü görsel çalışma alanları görevi görür. Verileri etkili bir şekilde keşfetmek, analiz etmek ve sunmak için dinamik ve etkileşimli bir ortam sağlarlar.
+
+## Kontrol Paneli Veri Yapısı
+
+Sisteminizde bir kontrol panelini temsil etmek için aşağıdaki `DashboardData` arayüzünü kullanabilirsiniz:
+
+```typescript
+{{Layout}}
+
+{{DashboardData}}
+
+{{DashboardType}}
+
+```
+### Anahtar Nitelikler
+
+- **ad:** Kontrol paneli için benzersiz bir tanımlayıcı.
+- **projectName:** Bağlamsal bağlantı için ilişkili projenin adı.
+- **açıklama:** Kontrol paneliyle ilgili ek bağlam veya ayrıntılar sağlayan isteğe bağlı bir alan.
+- **createdAt:** Kontrol panelinin ne zaman oluşturulduğunu gösteren zaman damgası.
+- **updatedAt:** Kontrol panelindeki son değişikliği gösteren zaman damgası.
+- **görselleştirmeler:** Kontrol panelinde anahtar/değer çiftleri veya bir dizi görselleştirme türü olarak yer alan bir görselleştirme koleksiyonu.
+- **düzenler:** Kontrol panelindeki görselleştirmelerin konumunu ve boyutunu belirleyen düzen yapılandırmalarının listesi. Her düzen şunları içerir:
+  - **i:** Görselleştirme için benzersiz bir tanımlayıcı.
+  - **x, y:** Görselleştirmenin ızgaradaki konumunu temsil eden koordinatlar.
+  - **w, h:** Görselleştirmenin genişliği ve yüksekliği.
+  - **minW, minH:** Minimum genişlik ve yükseklik sınırlamaları.
+
+### Kontrol Paneli Özellikleri
+
+Kontrol panelleri kullanıcıların şunları yapmasını sağlar:
+
+- Çalışma alanında yeniden düzenlemek için görselleştirmeleri sürükleyip bırakın.
+- Belirli veri ihtiyaçlarına uyacak şekilde görselleştirmeleri yeniden boyutlandırın.
+- Farklı kullanım senaryolarına veya hedef kitlelere hitap etmek için birden fazla düzeni koruyun.
+
+Bu tür bir esneklik sunan kontrol panelleri, kullanıcılara görsel çalışma alanlarını projenin gereksinimlerine göre özelleştirme olanağı sağlar.
+
+### Pratik Örnek
+
+![Dashboard in Action](/Illustry-monorepo/dashboards.gif)
+
+

@@ -1,0 +1,85 @@
+---
+title: Οπτικοποιήσεις
+description: Οπτικοποιήσεις έγγρ
+---
+
+# Οπτικοποιήσεις στον χώρο εργασίας σας
+
+Όταν εργάζεστε με οπτικοποιήσεις, το σύστημα υποστηρίζει μια ευέλικτη δομή δεδομένων μέσω της διεπαφής `VisualizationData`:
+
+## Οπτικοποίηση Δομή Δεδομένων
+
+Για να αναπαραστήσετε μια οπτικοποίηση στο σύστημά σας, μπορείτε να χρησιμοποιήσετε την ακόλουθη διεπαφή `VisualizationData`:
+
+```typescript
+
+{{VisualizationData}}
+
+```
+
+### Βασικά Χαρακτηριστικά
+- **ProjectName**: Το ενεργό έργο.
+- **type:** Μια συμβολοσειρά ή ένας πίνακας συμβολοσειρών που παρέχει τον τύπο απεικόνισης (ο πίνακας λειτουργεί μόνο για JSON's).
+- **όνομα:** Ένα μοναδικό αναγνωριστικό για την οπτικοποίηση.
+- **περιγραφή:** Ένα προαιρετικό πεδίο για την παροχή πρόσθετου περιβάλλοντος ή λεπτομέρειες σχετικά με την οπτικοποίηση.
+- **createdAt:** Η χρονική σήμανση που υποδεικνύει πότε δημιουργήθηκε αρχικά η οπτικοποίηση.
+- **updatedAt:** Η χρονική σήμανση που υποδεικνύει την τελευταία τροποποίηση της απεικόνισης.
+- **isActive:** Μια δυαδική σημαία που προσδιορίζει εάν το έργο είναι ενεργό αυτήν τη στιγμή.
+- **ετικέτες:** Ένα προαιρετικό πεδίο που χρησιμοποιείται για την κατηγοριοποίηση των απεικονίσεων.
+- **δεδομένα:** Τα δεδομένα που θα παρουσιάσει η οπτικοποίηση
+
+## Τύποι οπτικοποίησης
+
+Το σύστημα υποστηρίζει τους ακόλουθους τύπους οπτικοποίησης:
+
+- [**WORD_CLOUD**](../word-cloud/)
+- [**FORCE_DIRECTED_GRAPH**](../forced-layout-graph/)
+- [**SANKEY**](../sankey/)
+- [**CALENDAR**](../calendar/)
+- [**HIERARCHICAL_EDGE_BUNDLING**](../hierarchical-edge-bundling/)
+- [**MATRIX**](../matrix/)
+- [**LINE_CHART**](../line-chart/)
+- [**BAR_CHART**](../bar-chart/)
+- [**PIE_CHART**](../pie-chart/)
+- [**SCATTER**](../scatter/)
+- [**TREEMAP**](../tree-map/)
+- [**SUNBURST**](../sun-burst/)
+- [**FUNNEL**](../funnel/)
+- [**TIMELINE**](../timeline/)
+
+## Πρακτικό παράδειγμα
+
+Κατά τη χρήση μορφών αρχείων όπως το Excel, XML, JSON και CSV, το σύστημα διασφαλίζει τη συμβατότητα τόσο με πλήρεις όσο και με μερικές λεπτομέρειες του αρχείου.
+All visualizations formats files can be downloaded from [here](/Illustry-monorepo/illustry_file_formats.zip)
+
+- **Παράδειγμα 1**: Μορφή JSON με όλες τις λεπτομέρειες
+
+![Visualizations JSON full details](/Illustry-monorepo/visualizations_json_full.gif)
+
+- **Παράδειγμα 2**: Μορφή JSON με μερικές λεπτομέρειες, συμπληρώστε τη φόρμα με τα στοιχεία που λείπουν
+
+![Visualizations JSON partial details](/Illustry-monorepo/visualizations_json_partial.gif)
+
+- **Παράδειγμα 3**: Μορφή Excel με όλες τις λεπτομέρειες, ολοκληρώστε την αντιστοίχιση των πεδίων
+
+![Visualizations Excel full details](/Illustry-monorepo/visualizations_excel_full.gif)
+
+- **Παράδειγμα 4**: Μορφή Excel με μερικές λεπτομέρειες, συμπληρώστε τη φόρμα με τα στοιχεία που λείπουν
+
+![Visualizations Excel partial details](/Illustry-monorepo/visualizations_excel_partial.gif)
+
+- **Παράδειγμα 5**: Μορφή CSV με όλες τις λεπτομέρειες, ολοκληρώστε την αντιστοίχιση των πεδίων
+
+![Visualizations CSV full details](/Illustry-monorepo/visualizations_csv_full.gif)
+
+- **Παράδειγμα 6**: Μορφή CSV με μερικές λεπτομέρειες, συμπληρώστε τη φόρμα με τα στοιχεία που λείπουν
+
+![Visualizations CSV partial details](/Illustry-monorepo/visualizations_csv_partial.gif)
+
+- **Παράδειγμα 7**: Μορφή XML με όλες τις λεπτομέρειες
+
+![Visualizations XML full details](/Illustry-monorepo/visualizations_xml_full.gif)
+
+- **Παράδειγμα 8**: Μορφή XML με μερικές λεπτομέρειες, συμπληρώστε τη φόρμα με τα στοιχεία που λείπουν
+
+![Visualizations XML partial details](/Illustry-monorepo/visualizations_xml_partial.gif)
