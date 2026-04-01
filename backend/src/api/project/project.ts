@@ -3,12 +3,22 @@ import { ProjectTypes, VisualizationTypes, ValidatorSchemas } from '@illustry/ty
 import Factory from '../../factory';
 import { returnResponse } from '../../utils/helper';
 
+const getAuthenticatedUserId = (request: Request): string => {
+  const userId = request.auth?.userId;
+  if (userId === undefined) {
+    throw new Error('Authentication required');
+  }
+
+  return userId;
+};
+
 const create = async (
   request: Request,
   response: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       projectName,
       projectDescription,
@@ -20,13 +30,15 @@ const create = async (
     } = request.body;
 
     const project: ProjectTypes.ProjectCreate = {
+      userId,
       name: projectName,
       description: projectDescription,
       isActive
     };
     const visualization: VisualizationTypes.VisualizationCreate = {
+      userId,
       name,
-      projectName,
+      projectName: project.name,
       type,
       description,
       tags
@@ -59,6 +71,7 @@ const update = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name,
       description,
@@ -66,6 +79,7 @@ const update = async (
     } = request.body;
 
     const projectFilter: ProjectTypes.ProjectFilter = {
+      userId,
       name
     };
 
@@ -94,9 +108,11 @@ const findOne = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const { params: { name } } = request;
 
     const projectFilter: ProjectTypes.ProjectFilter = {
+      userId,
       name
     };
 
@@ -119,11 +135,13 @@ const _delete = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name
     } = request.body;
 
     const projectFilter: ProjectTypes.ProjectFilter = {
+      userId,
       name
     };
 
@@ -146,6 +164,7 @@ const browse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name,
       text,
@@ -155,6 +174,7 @@ const browse = async (
     } = request.body;
 
     const projectFilter: ProjectTypes.ProjectFilter = {
+      userId,
       name,
       text,
       page,

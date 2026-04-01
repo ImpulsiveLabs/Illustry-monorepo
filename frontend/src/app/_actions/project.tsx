@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { ProjectTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
 import getBackendUrl from '@/lib/backend-url';
+import { buildBackendHeaders } from '@/lib/auth-request';
 
 
 const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
@@ -18,13 +19,11 @@ const browseProjects = async (filter?: ProjectTypes.ProjectFilter) => {
   }
   const request = new Request(`${BACKEND as string}/api/projects`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true }),
     body: JSON.stringify(newFilter)
   });
   try {
-    return makeRequest<ProjectTypes.ExtendedProjectType>(request, ['projects']);
+    return await makeRequest<ProjectTypes.ExtendedProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -36,15 +35,13 @@ const deleteProject = async (projectName: string) => {
 
   const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify({
       name: projectName
     })
   });
   try {
-    return makeRequest<boolean>(request, ['projects']);
+    return await makeRequest<boolean>(request, ['projects']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -56,13 +53,11 @@ const updateProject = async (project: ProjectTypes.ProjectUpdate) => {
 
   const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify(project)
   });
   try {
-    return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
+    return await makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -79,13 +74,11 @@ const createProject = async (project: ProjectTypes.ProjectCreate) => {
   };
   const request = new Request(`${BACKEND as string}/api/project`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify(newProject)
   });
   try {
-    return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
+    return await makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -99,14 +92,12 @@ const findOneProject = async (projectName: string) => {
     `${BACKEND as string}/api/project/${projectName}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: await buildBackendHeaders({ asJson: true }),
       body: JSON.stringify({ name: projectName })
     }
   );
   try {
-    return makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
+    return await makeRequest<ProjectTypes.ProjectType>(request, ['projects']);
   } catch (err) {
     return null;
   }

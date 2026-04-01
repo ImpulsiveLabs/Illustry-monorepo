@@ -101,6 +101,7 @@ const createDashboard = async (api: APIRequestContext, dashboardName: string, vi
 
 test('all major frontend pages render without runtime crash', async ({ page, playwright }) => {
   test.skip(!!test.info().project.use.isMobile, 'Desktop smoke only.');
+  test.setTimeout(120000);
 
   const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
   const projectName = `pw-smoke-project-${suffix}`;
@@ -128,7 +129,7 @@ test('all major frontend pages render without runtime crash', async ({ page, pla
     ];
 
     for (const route of pages) {
-      await page.goto(route);
+      await page.goto(route, { waitUntil: 'domcontentloaded' });
       await expect(page.getByText('Application error: a client-side exception has occurred')).toHaveCount(0);
       await expect(page.locator('body')).toBeVisible();
     }

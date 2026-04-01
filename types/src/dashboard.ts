@@ -17,6 +17,7 @@ type Layout = {
 };
 
 type DashboardData = {
+    userId?: string;
     name: string;
     projectName: string;
     description?: string;
@@ -49,6 +50,7 @@ type ExtendedDashboardType = {
 type DashboardUpdate = DeepPartial<DashboardType>;
 
 type DashboardFilter = {
+    userId?: string;
     name?: string;
     projectName?: string;
     visualizationName?: string;

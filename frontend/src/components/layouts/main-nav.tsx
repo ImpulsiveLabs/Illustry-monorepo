@@ -14,6 +14,7 @@ import {
 } from '@/components/ui/navigation-menu';
 import Icons from '@/components/icons';
 import HintTooltip from '@/components/ui/hint-tooltip';
+import { Button } from '@/components/ui/button';
 import ThemeToggle from './theme-toggle';
 import { useActiveProject } from '../providers/active-project-provider';
 import { useLocale } from '../providers/locale-provider';
@@ -97,6 +98,9 @@ const MainNav = ({ items }: MainNavProps) => {
         </NavigationMenuList>
       </NavigationMenu>
       <div className="flex flex-1 items-center justify-end space-x-4">
+        <Button asChild variant="outline" size="sm">
+          <Link href="/logout">Logout</Link>
+        </Button>
         <LocaleSwitcher />
         <ThemeToggle />
       </div>

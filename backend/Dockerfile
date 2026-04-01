@@ -19,6 +19,11 @@ ADD backend/package.json ./package.json
 ADD backend/tsconfig.json ./tsconfig.json
 ADD backend/webpack.config.js ./webpack.config.js
 ADD backend/src ./src
+ADD types/package.json ./types/package.json
+ADD types/dist ./types/dist
+
+# Force backend image build to use local monorepo types, not registry package.
+RUN node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('package.json','utf8'));p.dependencies['@illustry/types']='file:./types';fs.writeFileSync('package.json', JSON.stringify(p, null, 2)+'\n');"
 
 # Install only backend dependencies
 RUN yarn install
@@ -37,6 +42,8 @@ ENV ILLUSTRY_PORT=7001
 
 # Copy only the built backend files
 COPY --from=builder /illustry/build-dist /illustry/
+COPY --from=builder /illustry/node_modules /illustry/node_modules
+COPY --from=builder /illustry/package.json /illustry/package.json
 
 # Install necessary global npm tools
 RUN npm install -g npm

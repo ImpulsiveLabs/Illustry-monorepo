@@ -17,6 +17,10 @@ class DbaccInstance {
     this.modelInstance = new ModelInstance(dbConnection);
   }
 
+  getModelInstance(): ModelInstance {
+    return this.modelInstance;
+  }
+
   get Project(): Project {
     if (!this.project) {
       this.project = new Project(this.modelInstance);

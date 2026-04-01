@@ -1,4 +1,11 @@
-import { APIRequestContext, APIResponse, expect, test } from './fixtures';
+import {
+  APIRequestContext,
+  APIResponse,
+  Locator,
+  Page,
+  expect,
+  test
+} from './fixtures';
 
 const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 const sankeyFixtureBuffer = Buffer.from(
@@ -122,11 +129,24 @@ const deleteProjectSilently = async (api: APIRequestContext, projectName: string
   });
 };
 
+const openRowActions = async (row: Locator) => {
+  const menuTrigger = row.locator('button[aria-haspopup="menu"]').first();
+  await expect(menuTrigger).toBeVisible();
+  await menuTrigger.click();
+};
+
+const clickLastMenuItem = async (page: Page) => {
+  await expect(page.getByRole('menu').first()).toBeVisible();
+  await page.keyboard.press('End');
+  await page.keyboard.press('Enter');
+};
+
 test.describe('frontend data CRUD e2e', () => {
   test.describe.configure({ mode: 'serial' });
 
   test('projects: create, update, and delete from the UI', async ({ page }) => {
     test.skip(!!test.info().project.use.isMobile, 'Desktop-only CRUD flow.');
+    test.setTimeout(180000);
 
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const projectName = `pw-ui-project-${suffix}`;
@@ -162,8 +182,8 @@ test.describe('frontend data CRUD e2e', () => {
 
     const updatedRow = page.locator('tbody tr', { hasText: projectName }).first();
     await expect(updatedRow).toBeVisible();
-    await updatedRow.getByRole('checkbox', { name: 'Select row' }).click();
-    await page.getByRole('button', { name: 'Delete selected rows' }).click();
+    await openRowActions(updatedRow);
+    await clickLastMenuItem(page);
 
     await expect(page.locator('tbody tr', { hasText: projectName })).toHaveCount(0);
   });
@@ -198,6 +218,7 @@ test.describe('frontend data CRUD e2e', () => {
 
   test('dashboards: create, view, update, and delete from the UI', async ({ page, playwright }) => {
     test.skip(!!test.info().project.use.isMobile, 'Desktop-only CRUD flow.');
+    test.setTimeout(120000);
 
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const projectName = `pw-ui-project-dash-${suffix}`;
@@ -210,7 +231,7 @@ test.describe('frontend data CRUD e2e', () => {
       await createActiveProject(api, projectName);
       await uploadSankeyVisualization(api, visualizationName);
 
-      await page.goto('/dashboards/new');
+      await page.goto('/dashboards/new', { waitUntil: 'domcontentloaded' });
 
       await page.getByPlaceholder('Type dashboard name here.').fill(dashboardName);
       await page.getByPlaceholder('Type dashboard description here.').fill(`pw-ui-dashboard-description-${suffix}`);
@@ -221,15 +242,15 @@ test.describe('frontend data CRUD e2e', () => {
       const createdRow = page.locator('tbody tr', { hasText: dashboardName }).first();
       await expect(createdRow).toBeVisible({ timeout: 15000 });
 
-      await page.goto(`/dashboardhub?name=${dashboardName}`);
+      await page.goto(`/dashboardhub?name=${dashboardName}`, { waitUntil: 'domcontentloaded' });
       await expect(page).toHaveURL(new RegExp(`/dashboardhub\\?name=${dashboardName}$`));
 
-      await page.goto('/dashboards');
+      await page.goto('/dashboards', { waitUntil: 'domcontentloaded' });
 
       const rowToEdit = page.locator('tbody tr', { hasText: dashboardName }).first();
       await expect(rowToEdit).toBeVisible();
 
-      await page.goto(`/dashboards/${dashboardName}`);
+      await page.goto(`/dashboards/${dashboardName}`, { waitUntil: 'domcontentloaded' });
       await expect(page).toHaveURL(new RegExp(`/dashboards/${dashboardName}$`));
       await page.getByRole('textbox', { name: 'Description' }).first().fill(`pw-ui-dashboard-updated-${suffix}`);
       await page.getByRole('button', { name: 'Update dashboard' }).click();

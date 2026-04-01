@@ -1,12 +1,19 @@
 import { Router } from 'express';
 import * as projectAPI from '../../api/project/project';
+import {
+  requireAuthenticatedUser,
+  requireCsrf,
+  requireVerifiedEmail
+} from '../../auth/middleware';
 
 const router = Router();
 
-router.post('/api/project', projectAPI.create);
+router.use(requireAuthenticatedUser, requireVerifiedEmail);
+
+router.post('/api/project', requireCsrf, projectAPI.create);
 router.post('/api/projects', projectAPI.browse);
 router.post('/api/project/:name', projectAPI.findOne);
-router.put('/api/project', projectAPI.update);
-router.delete('/api/project', projectAPI._delete);
+router.put('/api/project', requireCsrf, projectAPI.update);
+router.delete('/api/project', requireCsrf, projectAPI._delete);
 
 export default router;

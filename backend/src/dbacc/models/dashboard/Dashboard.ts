@@ -13,6 +13,7 @@ class Dashboard {
   getModel(): Model<DashboardTypes.DashboardType> {
     if (!this.DashboardModel) {
       const DashboardSchema = new Schema<DashboardTypes.DashboardType>({
+        userId: { type: String, required: true },
         projectName: { type: String, required: true },
         name: { type: String, required: true },
         description: {
@@ -28,9 +29,10 @@ class Dashboard {
       });
 
       DashboardSchema.index(
-        { projectName: 1, name: 1 },
+        { userId: 1, projectName: 1, name: 1 },
         { unique: true, background: true }
       );
+      DashboardSchema.index({ userId: 1, projectName: 1 }, { background: true });
       this.DashboardModel = this.connection.model<DashboardTypes.DashboardType>(
         'Dashboard',
         DashboardSchema

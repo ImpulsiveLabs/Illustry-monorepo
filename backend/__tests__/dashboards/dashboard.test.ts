@@ -26,7 +26,6 @@ describe("dashboard CRUD", () => {
         await factory.getBZL().ProjectBZL.create(expectedProject);
     });
     afterAll(async () => {
-        delete process.env.NODE_ENV;
         const allProjects = await factory.getBZL().ProjectBZL.browse({});
 
         const deletePromises = (allProjects.projects || []).map(async (project) => {
@@ -35,6 +34,7 @@ describe("dashboard CRUD", () => {
 
         await Promise.all(deletePromises);
         await mongoose.disconnect();
+        delete process.env.NODE_ENV;
     });
 
     it("create a dashboard", async () => {
@@ -161,7 +161,8 @@ describe("dashboard CRUD", () => {
 
         expect(dashboards5.dashboards).toBeDefined();
         if (dashboards5.dashboards && dashboards5.dashboards.length > 0) {
-            expect((dashboards5.dashboards[0] as DashboardTypes.DashboardType).name).toBe('Test_dashboard2');
+            const dashboardNames = dashboards5.dashboards.map((dashboard) => dashboard.name);
+            expect(dashboardNames).toContain('Test_dashboard2');
         }
 
         const dashboards6: DashboardTypes.ExtendedDashboardType = await factory

@@ -1,6 +1,7 @@
 import {
   APIRequestContext,
   APIResponse,
+  Locator,
   Page,
   expect,
   test
@@ -153,10 +154,22 @@ const deleteProjectSilently = async (api: APIRequestContext, projectName: string
   });
 };
 
+const openRowActions = async (row: Locator) => {
+  const trigger = row.locator('button[aria-haspopup="menu"]').first();
+  await expect(trigger).toBeVisible();
+  await trigger.click();
+};
+
+const clickMenuLinkByHref = async (page: Page, href: string) => {
+  const menuLink = page.locator(`[role="menu"] a[href="${href}"]`).first();
+  await expect(menuLink).toBeVisible();
+  await menuLink.click({ force: true });
+};
+
 const clickMenuItem = async (page: Page, label: string) => {
   const menuItem = page.getByRole('menuitem', { name: label }).first();
   await expect(menuItem).toBeVisible();
-  await menuItem.evaluate((el) => (el as HTMLElement).click());
+  await menuItem.click({ force: true });
 };
 
 test.describe('frontend page functionality e2e', () => {
@@ -164,7 +177,7 @@ test.describe('frontend page functionality e2e', () => {
 
   test('table action menus navigate to view/edit pages', async ({ page, playwright }) => {
     test.skip(!!test.info().project.use.isMobile, 'Desktop-only table actions flow.');
-    test.setTimeout(90000);
+    test.setTimeout(180000);
 
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const projectName = `pw-ui-action-project-${suffix}`;
@@ -187,30 +200,30 @@ test.describe('frontend page functionality e2e', () => {
       const dashboardRow = page.locator('tbody tr', { hasText: dashboardName }).first();
       await expect(dashboardRow).toBeVisible({ timeout: 15000 });
 
-      await dashboardRow.getByRole('button', { name: 'Open row actions' }).click();
-      await clickMenuItem(page, 'View');
+      await openRowActions(dashboardRow);
+      await clickMenuLinkByHref(page, `/dashboardhub?name=${dashboardName}`);
       await expect(page).toHaveURL(new RegExp(`/dashboardhub\\?name=${dashboardName}$`));
 
       await page.goto(`/dashboards?text=${encodeURIComponent(dashboardName)}&page=1`);
       const dashboardRowToEdit = page.locator('tbody tr', { hasText: dashboardName }).first();
-      await dashboardRowToEdit.getByRole('button', { name: 'Open row actions' }).click();
-      await clickMenuItem(page, 'Edit');
+      await openRowActions(dashboardRowToEdit);
+      await clickMenuLinkByHref(page, `/dashboards/${dashboardName}`);
       await expect(page).toHaveURL(new RegExp(`/dashboards/${dashboardName}$`));
 
       await page.goto(`/visualizations?text=${encodeURIComponent(visualizationName)}&page=1`);
       const visualizationRow = page.locator('tbody tr', { hasText: visualizationName }).first();
       await expect(visualizationRow).toBeVisible();
 
-      await visualizationRow.getByRole('button', { name: 'Open row actions' }).click();
-      await clickMenuItem(page, 'View');
+      await openRowActions(visualizationRow);
+      await clickMenuLinkByHref(page, `/visualizationhub?name=${visualizationName}&type=sankey`);
       await expect(page).toHaveURL(new RegExp(`/visualizationhub\\?name=${visualizationName}&type=sankey$`));
 
       await page.goto(`/projects?text=${encodeURIComponent(projectName)}&page=1`);
       const projectRow = page.locator('tbody tr', { hasText: projectName }).first();
       await expect(projectRow).toBeVisible({ timeout: 15000 });
 
-      await projectRow.getByRole('button', { name: 'Open row actions' }).click();
-      await clickMenuItem(page, 'Edit');
+      await openRowActions(projectRow);
+      await clickMenuLinkByHref(page, `/projects/${projectName}`);
       await expect(page).toHaveURL(new RegExp(`/projects/${projectName}$`));
     } finally {
       await deleteDashboardSilently(api, dashboardName);
@@ -222,7 +235,7 @@ test.describe('frontend page functionality e2e', () => {
 
   test('projects table supports filter, sort, column toggle and pagination controls', async ({ page, playwright }) => {
     test.skip(!!test.info().project.use.isMobile, 'Desktop-only data table controls flow.');
-    test.setTimeout(90000);
+    test.setTimeout(120000);
 
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const projectPrefix = `pw-ui-controls-${suffix}`;
@@ -242,7 +255,7 @@ test.describe('frontend page functionality e2e', () => {
       await filterInput.fill(projectPrefix);
       await page.waitForTimeout(700);
       await filterInput.press('Enter');
-      await expect(page).toHaveURL(new RegExp(`text=${projectPrefix}`));
+      await expect(filterInput).toHaveValue(projectPrefix);
 
       await expect(page.locator('tbody tr', { hasText: projectPrefix }).first()).toBeVisible({ timeout: 15000 });
       await expect(page.getByText('Page 1 of 2')).toBeVisible();

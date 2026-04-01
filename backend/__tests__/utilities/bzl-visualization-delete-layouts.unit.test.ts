@@ -81,14 +81,22 @@ describe('bzl visualization delete dashboard reindexing', () => {
     expect(createFilter).toHaveBeenCalledWith({
       name: 'viz',
       type: 'sankey',
-      projectName: 'Active_Project'
+      projectName: 'Active_Project',
+      userId: '__illustry_test_user__'
     });
 
     expect(dashboardUpdate).toHaveBeenCalledWith(
-      expect.objectContaining({ query: { name: 'Dashboard_1' } }),
+      expect.objectContaining({
+        query: {
+          name: 'Dashboard_1',
+          projectName: 'Active_Project',
+          userId: '__illustry_test_user__'
+        }
+      }),
       expect.objectContaining({
         $set: expect.objectContaining({
-          layouts: [{}, {}]
+          layouts: [{}, {}],
+          visualizations: {}
         })
       })
     );

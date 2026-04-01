@@ -19,12 +19,17 @@ class Project implements GenericTypes.BaseLib<
 
   createFilter(filter: ProjectTypes.ProjectFilter): UtilTypes.ExtendedMongoQuery {
     const query: UtilTypes.MongoQuery = { $and: [] };
+    if (filter.userId) {
+      (query.$and as Array<object>).push({
+        userId: filter.userId
+      });
+    }
     if (filter.name) {
       (query.$and as Array<object>).push({
         name: filter.name
       });
     }
-    if (filter.isActive) {
+    if (filter.isActive !== undefined) {
       (query.$and as Array<object>).push({
         isActive: filter.isActive
       });
@@ -80,8 +85,13 @@ class Project implements GenericTypes.BaseLib<
     if (!finalData.isActive) {
       return this.modelInstance.ProjectModel.create(finalData);
     }
+
+    if (!finalData.userId) {
+      throw new Error('Missing userId for project creation');
+    }
+
     await this.modelInstance.ProjectModel.updateMany(
-      {},
+      { userId: finalData.userId },
       { $set: { isActive: false } }
     ).exec();
     return this.modelInstance.ProjectModel.create(finalData);
@@ -90,7 +100,8 @@ class Project implements GenericTypes.BaseLib<
   findOne(filter: UtilTypes.ExtendedMongoQuery): Promise<ProjectTypes.ProjectType | null> {
     return this.modelInstance.ProjectModel.findOne(filter.query, {
       __v: 0,
-      _id: 0
+      _id: 0,
+      userId: 0
     }).exec();
   }
 
@@ -99,7 +110,8 @@ class Project implements GenericTypes.BaseLib<
       filter.query ? filter.query : {},
       {
         __v: 0,
-        _id: 0
+        _id: 0,
+        userId: 0
       },
       {
         sort: filter.sort ? filter.sort : { name: 1 },
@@ -134,7 +146,7 @@ class Project implements GenericTypes.BaseLib<
       }
     }
     finalData.updatedAt = new Date();
-    if (!data.isActive) {
+    if (data.isActive !== true) {
       return this.modelInstance.ProjectModel.findOneAndUpdate(
         filter.query,
         data,
@@ -145,7 +157,7 @@ class Project implements GenericTypes.BaseLib<
       );
     }
     await this.modelInstance.ProjectModel.updateMany(
-      {},
+      { userId: finalData.userId },
       { $set: { isActive: false } }
     ).exec();
     return this.modelInstance.ProjectModel.findOneAndUpdate(

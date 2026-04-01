@@ -180,6 +180,13 @@ const MobileNav = ({ items }: MobileNavProps) => {
                 {getNavigationLabel(item)}
               </MobileLink>
             ))}
+            <MobileLink
+              href="/logout"
+              pathname={pathname}
+              setIsOpen={setIsOpen}
+            >
+              Logout
+            </MobileLink>
             <LocaleSwitcher />
             <ThemeToggle />
           </div>

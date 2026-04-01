@@ -8,11 +8,19 @@ const makeRequest = <T>(
     tags
   }
 })
-  .then((response) => {
+  .then(async (response) => {
+    const contentType = response.headers.get('content-type') || '';
+    const isJson = contentType.includes('application/json');
+    const payload = isJson ? await response.json() : await response.text();
+
     if (!response.ok) {
-      console.debug('Request failed');
+      const error = typeof payload === 'object' && payload && 'error' in payload
+        ? String((payload as { error: unknown }).error)
+        : `Request failed with status ${response.status}`;
+      throw new Error(error);
     }
-    return response.json();
+
+    return payload as T;
   });
 
 export default makeRequest;

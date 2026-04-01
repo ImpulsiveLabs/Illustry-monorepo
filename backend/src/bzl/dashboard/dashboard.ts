@@ -10,6 +10,7 @@ import DbaccInstance from '../../dbacc/lib';
 import NoDataFoundError from '../../errors/noDataFoundError';
 import logger from '../../config/logger';
 import DuplicatedElementError from '../../errors/duplicatedElementError';
+import { resolveUserId } from '../user-scope';
 
 class DashboardBZL implements GenericTypes.BaseBZL<
   DashboardTypes.DashboardCreate,
@@ -25,8 +26,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
   async create(dashboard: DashboardTypes.DashboardCreate): Promise<DashboardTypes.DashboardType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(dashboard.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -35,7 +37,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     const projectName = projects[0].name;
 
     try {
-      return await this.dbaccInstance.Dashboard.create({ ...dashboard, projectName });
+      return await this.dbaccInstance.Dashboard.create({ ...dashboard, userId, projectName });
     } catch (err) {
       throw new DuplicatedElementError(
         `There already is a Dashboard named ${dashboard.name}`
@@ -48,8 +50,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     fullVisualizations: boolean = false
   ): Promise<DashboardTypes.DashboardType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -58,6 +61,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     const activeProjectName = projects[0].name;
     const updatedFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
     const queryFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Dashboard.createFilter(updatedFilter);
@@ -79,6 +83,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
             .getBZL()
             .VisualizationBZL
             .findOne({
+              userId,
               type: (visualizations as { [name: string]: string })[vis],
               projectName,
               name: splittedVis.slice(0, splittedVis.length - 1).join('_')
@@ -95,8 +100,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
   async browse(filter: DashboardTypes.DashboardFilter): Promise<DashboardTypes.ExtendedDashboardType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -106,6 +112,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
     const updatedFilter: VisualizationTypes.VisualizationFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 
@@ -119,8 +126,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     dashboard: DashboardTypes.DashboardUpdate
   ): Promise<DashboardTypes.DashboardType | null> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId || dashboard.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
     }
@@ -129,20 +137,22 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
     const updatedFilter: VisualizationTypes.VisualizationFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 
     const queryFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Dashboard.createFilter(updatedFilter);
     if (!dashboard.visualizations && dashboard.layouts) {
-      return this.dbaccInstance.Dashboard.partialUpdate(queryFilter, dashboard);
+      return this.dbaccInstance.Dashboard.partialUpdate(queryFilter, { ...dashboard, userId });
     }
-    return this.dbaccInstance.Dashboard.update(queryFilter, dashboard);
+    return this.dbaccInstance.Dashboard.update(queryFilter, { ...dashboard, userId });
   }
 
   async delete(filter: DashboardTypes.DashboardFilter): Promise<boolean> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -152,6 +162,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
     const updatedFilter: VisualizationTypes.VisualizationFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 

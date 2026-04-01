@@ -19,6 +19,11 @@ class Dashboard implements GenericTypes.BaseLib<
 
   createFilter(filter: DashboardTypes.DashboardFilter): UtilTypes.ExtendedMongoQuery {
     const query: UtilTypes.MongoQuery = { $and: [] };
+    if (filter.userId) {
+      (query.$and as Array<object>).push({
+        userId: filter.userId
+      });
+    }
     if (filter.name) {
       (query.$and as Array<object>).push({
         name: filter.name
@@ -93,7 +98,8 @@ class Dashboard implements GenericTypes.BaseLib<
   findOne(filter: UtilTypes.ExtendedMongoQuery): Promise<DashboardTypes.DashboardType | null> {
     return this.modelInstance.DashboardModel.findOne(filter.query, {
       __v: 0,
-      _id: 0
+      _id: 0,
+      userId: 0
     }).exec();
   }
 
@@ -101,6 +107,7 @@ class Dashboard implements GenericTypes.BaseLib<
     const projection: Record<string, number> = {
       __v: 0,
       _id: 0,
+      userId: 0,
       projectName: 0
     };
 

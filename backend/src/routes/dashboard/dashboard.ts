@@ -1,12 +1,19 @@
 import { Router } from 'express';
 import * as dashboardAPI from '../../api/dashboard/dashboard';
+import {
+  requireAuthenticatedUser,
+  requireCsrf,
+  requireVerifiedEmail
+} from '../../auth/middleware';
 
 const router = Router();
 
-router.post('/api/dashboard', dashboardAPI.create);
+router.use(requireAuthenticatedUser, requireVerifiedEmail);
+
+router.post('/api/dashboard', requireCsrf, dashboardAPI.create);
 router.post('/api/dashboards', dashboardAPI.browse);
 router.post('/api/dashboard/:name', dashboardAPI.findOne);
-router.put('/api/dashboard', dashboardAPI.update);
-router.delete('/api/dashboard', dashboardAPI._delete);
+router.put('/api/dashboard', requireCsrf, dashboardAPI.update);
+router.delete('/api/dashboard', requireCsrf, dashboardAPI._delete);
 
 export default router;

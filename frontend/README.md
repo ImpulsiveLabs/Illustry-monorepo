@@ -1,33 +1,39 @@
 # Illustry frontend
 
-This project serves as a frontend for the Illustry visualization HUB
+This project is the Next.js frontend for Illustry.
 
-# Configuration
+## Auth flow
 
-The following configuration is needed in order for the frontend to work:
+Frontend auth is cookie-based and works with backend secure cookies:
 
-## Locally:
-A file named .env is needed at the root of the project containing the following fields:
+- Register, login, logout
+- Email verification and resend
+- Forgot/reset password
+- Protected route layouts that require authenticated + verified users
+- No access/refresh tokens stored in localStorage/sessionStorage
+
+## Environment
+
+Use `frontend/.env.example`:
+
+- `BACKEND_INTERNAL_URL`
+- `NEXT_PUBLIC_BACKEND_PUBLIC_URL`
+- `NEXT_PUBLIC_AUTH_SESSION_COOKIE_NAME`
+- `NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME`
+
+## CSRF behavior
+
+State-changing requests include `X-CSRF-Token` from the CSRF cookie.
+Server actions forward browser cookies to backend and include CSRF headers for mutations.
+
+## Local development
+
+```bash
+cd frontend
+yarn install
+yarn start:dev
 ```
-NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://0.0.0.0:7000
-```
-After the env is provided run one of the following commands: 
-- ```npm run start:dev``` for dev purposes 
-- ```npm run start:prod``` from a bundled version.
 
-## Docker: 
-Before running create the backend imagine:
-Run the following commands:
-```shell
-docker build -t illustryfrontend .
-docker run -p 3000:3000 -e NEXT_PUBLIC_BACKEND_PUBLIC_URL=http://ilustrybackend:7000 illustryfrontend
-```
-
-# Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-# License
+## License
 
 [Apache-2.0](https://choosealicense.com/licenses/apache)

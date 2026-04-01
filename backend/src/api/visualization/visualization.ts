@@ -4,12 +4,22 @@ import { returnResponse } from '../../utils/helper';
 import FileError from '../../errors/fileError';
 import Factory from '../../factory';
 
+const getAuthenticatedUserId = (request: Request): string => {
+  const userId = request.auth?.userId;
+  if (userId === undefined) {
+    throw new Error('Authentication required');
+  }
+
+  return userId;
+};
+
 const createOrUpdate = async (
   request: Request,
   response: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     let requestFiles: FileTypes.UploadedFile[] = [];
     if (request && (request as FileTypes.RequestWithFiles).files) {
       const { files: { file } } = request as FileTypes.RequestWithFiles;
@@ -49,7 +59,8 @@ const createOrUpdate = async (
         computedFiles,
         allFileDetails,
         visualizationDetails,
-        fileDetails
+        fileDetails,
+        userId
       );
 
     return returnResponse(response, null, data, next);
@@ -64,9 +75,11 @@ const findOne = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const { params: { name }, body: { type } } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
       name,
       type
     };
@@ -91,6 +104,7 @@ const browse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       body: {
         text, page, sort, per_page: perPage
@@ -98,6 +112,7 @@ const browse = async (
     } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
       text,
       page,
       sort,
@@ -124,9 +139,11 @@ const _delete = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const { body: { name, type, projectName } } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
       name,
       type,
       projectName
@@ -152,6 +169,7 @@ const createOrUpdateExternal = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       data
     } = request.body;
@@ -162,6 +180,7 @@ const createOrUpdateExternal = async (
     const createdVisualizations = await Promise.all(
       visualizations.map(async (visualizationData) => {
         const visualization: VisualizationTypes.VisualizationCreate = {
+          userId,
           name: visualizationData.name,
           data: visualizationData.data,
           projectName: visualizationData.projectName,

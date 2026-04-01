@@ -13,7 +13,8 @@ class Project {
   getModel(): Model<ProjectTypes.ProjectType> {
     if (!this.projectModel) {
       const ProjectSchema = new Schema<ProjectTypes.ProjectType>({
-        name: { type: String, required: true, unique: true },
+        userId: { type: String, required: true },
+        name: { type: String, required: true },
         description: {
           type: String, required: false, maxLength: 50, default: ''
         },
@@ -22,7 +23,9 @@ class Project {
         isActive: { type: Boolean, required: true, default: false }
       });
 
-      ProjectSchema.index({ name: 'text', description: 'text' });
+      ProjectSchema.index({ userId: 1, name: 1 }, { unique: true, background: true });
+      ProjectSchema.index({ userId: 1, isActive: 1 }, { background: true });
+      ProjectSchema.index({ userId: 1, name: 'text', description: 'text' });
 
       this.projectModel = this.connection.model<ProjectTypes.ProjectType>(
         'Project',

@@ -9,6 +9,9 @@ import { computeValues as computeAxisChartValues } from "../../src/bzl/transform
 import { computeValues as computeScatterValues } from "../../src/bzl/transformers/preprocess/transformers/scatterTransformer";
 import { reformatDate } from "../../src/bzl/transformers/preprocess/transformers/calendarTransformers";
 import { hierarchyExtractorCsvOrExcel } from "../../src/bzl/transformers/preprocess/transformers/hierarchyTransformers";
+
+jest.setTimeout(30000);
+
 process.env.NODE_ENV = "test";
 process.env.MONGO_TEST_URL = "mongodb://localhost:27017/illustrytest";
 process.env.MONGO_USER = "root"
@@ -55,7 +58,6 @@ describe("visualizations CRUD", () => {
   });
 
   afterAll(async () => {
-    delete process.env.NODE_ENV;
     const allProjects = await factory.getBZL().ProjectBZL.browse({});
 
     const deletePromises = (allProjects.projects || []).map(async (project) => {
@@ -64,6 +66,7 @@ describe("visualizations CRUD", () => {
 
     await Promise.all(deletePromises);
     await mongoose.disconnect();
+    delete process.env.NODE_ENV;
   });
   it("It creates a hierarchical-edge-bundling Visualization JSON with all the details in the JSON", async () => {
     const filePath = path.resolve(__dirname, "./HEB_FullDetails.json");

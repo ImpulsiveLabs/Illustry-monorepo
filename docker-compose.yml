@@ -25,7 +25,14 @@ services:
       MONGO_URL: mongodb://mongo:27017/illustry
       MONGO_USER: root
       MONGO_PASSWORD: rootPass
-      BACKEND_PORT: 7001
+      ILLUSTRY_PORT: 7001
+      AUTH_APP_BASE_URL: http://localhost:3000
+      EMAIL_SERVICE_URL: http://illustryemailservice:7100
+      EMAIL_SERVICE_API_KEY: ${EMAIL_SERVICE_API_KEY:-illustry-email-service-local-key}
+      GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
+      GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
+      GOOGLE_OAUTH_REDIRECT_URI: ${GOOGLE_OAUTH_REDIRECT_URI:-http://localhost:7001/api/auth/google/callback}
+      GOOGLE_OAUTH_SCOPE: ${GOOGLE_OAUTH_SCOPE:-openid email profile}
     ports:
       - "7001:7001"
     networks:
@@ -35,14 +42,50 @@ services:
     build:
       context: ./  # Build context for frontend
       dockerfile: frontend/Dockerfile  # Optional, default is Dockerfile
+      args:
+        BACKEND_INTERNAL_URL: http://illustrybackend:7001
+        NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:7001
+        NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:-false}
     container_name: illustryfrontend
     restart: unless-stopped
     environment:
       BACKEND_INTERNAL_URL: http://illustrybackend:7001
       NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:7001
+      NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:-false}
 
     ports:
       - "3000:3000"
+    networks:
+      - illustry-network
+
+  illustryemailservice:
+    build:
+      context: ./
+      dockerfile: services/email-service/Dockerfile
+    container_name: illustryemailservice
+    restart: unless-stopped
+    environment:
+      EMAIL_SERVICE_PORT: 7100
+      EMAIL_SERVICE_API_KEY: ${EMAIL_SERVICE_API_KEY:-illustry-email-service-local-key}
+      AUTH_APP_BASE_URL: http://localhost:3000
+      SMTP_HOST: ${SMTP_HOST:-mailpit}
+      SMTP_PORT: ${SMTP_PORT:-1025}
+      SMTP_SECURE: ${SMTP_SECURE:-false}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@illustry.local}
+    ports:
+      - "7100:7100"
+    networks:
+      - illustry-network
+
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: illustrymailpit
+    restart: unless-stopped
+    ports:
+      - "1025:1025"
+      - "8025:8025"
     networks:
       - illustry-network
 

@@ -8,7 +8,8 @@
     "backend",
     "frontend",
     "docs",
-    "types"
+    "types",
+    "services/*"
   ],
   "type": "module",
   "scripts": {

@@ -13,6 +13,7 @@ import {
 } from '../../utils/reader';
 import Factory from '../../factory';
 import DbaccInstance from '../../dbacc/lib';
+import { resolveUserId } from '../user-scope';
 
 class VisualizationBZL implements GenericTypes.BaseBZL<
   VisualizationTypes.VisualizationCreate,
@@ -41,9 +42,11 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     visualization: VisualizationTypes.VisualizationCreate
   ): Promise<VisualizationTypes.VisualizationType | null> {
     const { name, type, projectName } = visualization;
+    const userId = resolveUserId(visualization.userId);
 
     if (typeof type === 'string') {
       const visualizationFilter = this.dbaccInstance.Visualization.createFilter({
+        userId,
         name,
         type,
         projectName
@@ -58,6 +61,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     await Promise.all(
       type.map(async (singleType) => {
         const visualizationFilter = this.dbaccInstance.Visualization.createFilter({
+          userId,
           name,
           type: singleType,
           projectName
@@ -79,11 +83,13 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     files: FileTypes.FileProperties[],
     includeAllFileDetails: boolean,
     visualizationUpdate: VisualizationTypes.VisualizationUpdate,
-    fileDetails: FileTypes.FileDetails
+    fileDetails: FileTypes.FileDetails,
+    userId?: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
+    const scopedUserId = resolveUserId(userId || visualizationUpdate.userId);
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId: scopedUserId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -101,14 +107,16 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           includeAllFileDetails,
           projectName,
           fileDetails,
-          visualizationUpdate
+          visualizationUpdate,
+          scopedUserId
         );
       case FileTypes.FileType.JSON:
         return this.processJsonFiles(
           files,
           includeAllFileDetails,
           projectName,
-          visualizationUpdate
+          visualizationUpdate,
+          scopedUserId
         );
       case FileTypes.FileType.CSV:
         return this.processCsvFiles(
@@ -116,14 +124,16 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           includeAllFileDetails,
           projectName,
           fileDetails,
-          visualizationUpdate
+          visualizationUpdate,
+          scopedUserId
         );
       case FileTypes.FileType.XML:
         return this.processXmlFiles(
           files,
           includeAllFileDetails,
           projectName,
-          visualizationUpdate
+          visualizationUpdate,
+          scopedUserId
         );
       default:
         throw new Error('Invalid file type provided');
@@ -132,8 +142,9 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
   async findOne(filter: VisualizationTypes.VisualizationFilter): Promise<VisualizationTypes.VisualizationType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -142,6 +153,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     const activeProjectName = projects[0].name;
     const updatedFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 
@@ -152,8 +164,9 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
   async browse(filter: VisualizationTypes.VisualizationFilter): Promise<VisualizationTypes.ExtendedVisualizationType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -163,6 +176,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
     const updatedFilter: VisualizationTypes.VisualizationFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 
@@ -173,8 +187,9 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
   async delete(filter: VisualizationTypes.VisualizationFilter): Promise<boolean> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
 
-    const { projects } = await projectBZL.browse({ isActive: true } as ProjectTypes.ProjectFilter);
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
@@ -184,6 +199,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
     const updatedFilter: VisualizationTypes.VisualizationFilter = {
       ...filter,
+      userId,
       projectName: activeProjectName
     };
 
@@ -191,6 +207,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
     const dashboardUpdateFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Dashboard.createFilter(
       {
+        userId,
         projectName: activeProjectName,
         visualizationName: filter.name,
         visualizationType: filter.type as string
@@ -214,6 +231,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           }
           const dashboardFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Dashboard.createFilter(
             {
+              userId,
+              projectName: activeProjectName,
               name: dashboard.name
             }
           );
@@ -238,11 +257,13 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     illustrations: VisualizationTypes.VisualizationCreate[],
     includeAllFileDetails: boolean,
     projectName: string,
-    visualizationUpdate: VisualizationTypes.VisualizationUpdate
+    visualizationUpdate: VisualizationTypes.VisualizationUpdate,
+    userId: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
     const processVisualization = async (illustration: VisualizationTypes.VisualizationCreate) => {
       const visualizationData: VisualizationTypes.VisualizationCreate = {
         ...(illustration as VisualizationTypes.VisualizationCreate),
+        userId,
         projectName
       };
 
@@ -251,6 +272,10 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           (visualizationData as Record<string, unknown>)[key] = value;
         });
       }
+
+      visualizationData.userId = userId;
+      visualizationData.projectName = projectName;
+
       ValidatorSchemas.validateWithSchema<
         VisualizationTypes.VisualizationCreate
       >(ValidatorSchemas.visualizationTypeSchema, visualizationData);
@@ -265,7 +290,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     files: FileTypes.FileProperties[],
     includeAllFileDetails: boolean,
     projectName: string,
-    visualizationUpdate: VisualizationTypes.VisualizationUpdate
+    visualizationUpdate: VisualizationTypes.VisualizationUpdate,
+    userId: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
     const visualizations = await jsonFilesToVisualizations(
       files,
@@ -277,7 +303,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       visualizations as VisualizationTypes.VisualizationCreate[],
       includeAllFileDetails,
       projectName,
-      visualizationUpdate
+      visualizationUpdate,
+      userId
     );
   }
 
@@ -285,7 +312,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     files: FileTypes.FileProperties[],
     includeAllFileDetails: boolean,
     projectName: string,
-    visualizationUpdate: VisualizationTypes.VisualizationUpdate
+    visualizationUpdate: VisualizationTypes.VisualizationUpdate,
+    userId: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
     const visualizations = await xmlFilesToVisualizations(
       files,
@@ -297,7 +325,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       visualizations as VisualizationTypes.VisualizationCreate[],
       includeAllFileDetails,
       projectName,
-      visualizationUpdate
+      visualizationUpdate,
+      userId
     );
   }
 
@@ -306,7 +335,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     includeAllFileDetails: boolean,
     projectName: string,
     fileDetails: FileTypes.FileDetails,
-    visualizationUpdate: VisualizationTypes.VisualizationUpdate
+    visualizationUpdate: VisualizationTypes.VisualizationUpdate,
+    userId: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
     const visualizations = await excelFilesToVisualizations(
       files,
@@ -319,7 +349,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       visualizations as VisualizationTypes.VisualizationCreate[],
       includeAllFileDetails,
       projectName,
-      visualizationUpdate
+      visualizationUpdate,
+      userId
     );
   }
 
@@ -328,7 +359,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     includeAllFileDetails: boolean,
     projectName: string,
     fileDetails: FileTypes.FileDetails,
-    visualizationUpdate: VisualizationTypes.VisualizationUpdate
+    visualizationUpdate: VisualizationTypes.VisualizationUpdate,
+    userId: string
   ): Promise<(VisualizationTypes.VisualizationType | null)[]> {
     const visualizations = await csvFilesToVisualizations(
       files,
@@ -341,7 +373,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       visualizations as VisualizationTypes.VisualizationCreate[],
       includeAllFileDetails,
       projectName,
-      visualizationUpdate
+      visualizationUpdate,
+      userId
     );
   }
 }

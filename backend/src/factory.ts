@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import BZLInstance from './bzl';
 import DbaccInstance from './dbacc/lib';
+import ModelInstance from './dbacc/models/modelInstance';
 import 'dotenv/config';
 
 class Factory {
@@ -44,6 +45,10 @@ class Factory {
 
   getDbaccInstance(): DbaccInstance {
     return Factory._dbaccInstance;
+  }
+
+  getModelInstance(): ModelInstance {
+    return Factory._dbaccInstance.getModelInstance();
   }
 
   getBZL(): BZLInstance {
