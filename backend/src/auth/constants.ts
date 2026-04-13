@@ -1,6 +1,7 @@
 const DEFAULT_SESSION_TTL_MINUTES = 60 * 24;
 const DEFAULT_EMAIL_VERIFY_TTL_MINUTES = 60;
 const DEFAULT_PASSWORD_RESET_TTL_MINUTES = 30;
+const DEFAULT_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
 const SESSION_COOKIE_NAME = process.env.AUTH_SESSION_COOKIE_NAME || 'illustry_sid';
 const CSRF_COOKIE_NAME = process.env.AUTH_CSRF_COOKIE_NAME || 'illustry_csrf';
@@ -32,6 +33,8 @@ const googleOauthClientId = process.env.GOOGLE_OAUTH_CLIENT_ID || '';
 const googleOauthClientSecret = process.env.GOOGLE_OAUTH_CLIENT_SECRET || '';
 const googleOauthRedirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI || '';
 const googleOauthScope = process.env.GOOGLE_OAUTH_SCOPE || 'openid email profile';
+const avatarMaxBytes = Number(process.env.AUTH_AVATAR_MAX_BYTES || DEFAULT_AVATAR_MAX_BYTES);
+const avatarAllowedMimeTypes = ['image/png', 'image/jpeg', 'image/webp'];
 
 const argonOptions = {
   type: 2,
@@ -75,6 +78,8 @@ export {
   googleOauthClientSecret,
   googleOauthRedirectUri,
   googleOauthScope,
+  avatarMaxBytes,
+  avatarAllowedMimeTypes,
   argonOptions,
   parseCorsAllowlist
 };

@@ -5,12 +5,14 @@ import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
+import { useLocale } from '@/components/providers/locale-provider';
 import { resetPassword } from '@/lib/auth-client';
 
 export const dynamic = 'force-dynamic';
 
 const ResetPasswordPage = () => {
   const router = useRouter();
+  const { t } = useLocale();
   const [token, setToken] = useState('');
 
   const [password, setPassword] = useState('');
@@ -44,9 +46,9 @@ const ResetPasswordPage = () => {
     return (
       <main className="container flex min-h-[80vh] items-center justify-center py-10">
         <div className="w-full max-w-md space-y-4">
-          <h1 className="text-2xl font-semibold">Reset password</h1>
-          <p className="text-sm text-red-500">Missing or invalid reset token.</p>
-          <Link className="text-sm underline" href="/forgot-password">Request another reset link</Link>
+          <h1 className="text-2xl font-semibold">{t('auth.resetPassword.title')}</h1>
+          <p className="text-sm text-red-500">{t('auth.resetPassword.missingToken')}</p>
+          <Link className="text-sm underline" href="/forgot-password">{t('auth.resetPassword.requestAnother')}</Link>
         </div>
       </main>
     );
@@ -55,18 +57,18 @@ const ResetPasswordPage = () => {
   return (
     <main className="container flex min-h-[80vh] items-center justify-center py-10">
       <form className="w-full max-w-md space-y-4" onSubmit={onSubmit}>
-        <h1 className="text-2xl font-semibold">Set new password</h1>
+        <h1 className="text-2xl font-semibold">{t('auth.resetPassword.formTitle')}</h1>
         <Input
           type="password"
           required
           autoComplete="new-password"
-          placeholder="New password"
+          placeholder={t('auth.resetPassword.passwordPlaceholder')}
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
         {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <Button className="w-full" disabled={pending} type="submit">
-          {pending ? 'Updating...' : 'Update password'}
+          {pending ? t('auth.resetPassword.pending') : t('auth.resetPassword.action')}
         </Button>
       </form>
     </main>

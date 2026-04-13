@@ -7,7 +7,13 @@ import User from './auth/User';
 import Session from './auth/Session';
 import EmailVerificationToken from './auth/EmailVerificationToken';
 import PasswordResetToken from './auth/PasswordResetToken';
-import { AuthSession, AuthUser, VerificationToken } from '../../auth/types';
+import UserAvatar from './auth/UserAvatar';
+import {
+  AuthSession,
+  AuthUser,
+  AuthUserAvatar,
+  VerificationToken
+} from '../../auth/types';
 
 class ModelInstance {
   private projectModel?: Model<ProjectTypes.ProjectType>;
@@ -23,6 +29,8 @@ class ModelInstance {
   private emailVerificationTokenModel?: Model<VerificationToken>;
 
   private passwordResetTokenModel?: Model<VerificationToken>;
+
+  private userAvatarModel?: Model<AuthUserAvatar>;
 
   private readonly connection: Connection;
 
@@ -40,6 +48,8 @@ class ModelInstance {
 
   private readonly passwordResetToken: PasswordResetToken;
 
+  private readonly userAvatar: UserAvatar;
+
   constructor(connection: Connection) {
     this.connection = connection;
     this.connection.setMaxListeners(100);
@@ -50,6 +60,7 @@ class ModelInstance {
     this.session = new Session(this.connection);
     this.emailVerificationToken = new EmailVerificationToken(this.connection);
     this.passwordResetToken = new PasswordResetToken(this.connection);
+    this.userAvatar = new UserAvatar(this.connection);
   }
 
   get ProjectModel(): Model<ProjectTypes.ProjectType> {
@@ -99,6 +110,13 @@ class ModelInstance {
       this.passwordResetTokenModel = this.passwordResetToken.getModel();
     }
     return this.passwordResetTokenModel;
+  }
+
+  get UserAvatarModel(): Model<AuthUserAvatar> {
+    if (!this.userAvatarModel) {
+      this.userAvatarModel = this.userAvatar.getModel();
+    }
+    return this.userAvatarModel;
   }
 }
 

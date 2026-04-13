@@ -16,7 +16,11 @@ class User {
         {
           email: { type: String, required: true, trim: true },
           emailNormalized: { type: String, required: true, trim: true },
+          name: { type: String, required: true, trim: true },
           passwordHash: { type: String, required: true },
+          avatarFileName: { type: String, required: false },
+          avatarContentType: { type: String, required: false },
+          avatarUpdatedAt: { type: Date, required: false },
           isEmailVerified: { type: Boolean, required: true, default: false },
           roles: { type: [String], required: true, default: ['user'] },
           authVersion: { type: Number, required: true, default: 0 }

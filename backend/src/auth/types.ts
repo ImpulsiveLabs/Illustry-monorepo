@@ -5,7 +5,11 @@ interface AuthUser {
   _id: Types.ObjectId;
   email: string;
   emailNormalized: string;
+  name: string;
   passwordHash: string;
+  avatarFileName?: string;
+  avatarContentType?: string;
+  avatarUpdatedAt?: Date;
   isEmailVerified: boolean;
   roles: string[];
   authVersion: number;
@@ -39,11 +43,59 @@ interface VerificationToken {
   updatedAt: Date;
 }
 
+interface AuthUserAvatar {
+  _id: Types.ObjectId;
+  userId: Types.ObjectId;
+  fileName: string;
+  contentType: string;
+  size: number;
+  data: Buffer;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+type ClientMetadata = {
+  ipAddress?: string;
+  userAgent?: string;
+};
+
+type SessionIssueResult = {
+  session: AuthSession;
+  sessionToken: string;
+  csrfToken: string;
+  expiresAt: Date;
+};
+
+type SessionPrincipal = {
+  user: AuthUser;
+  session: AuthSession;
+};
+
+type AuthAvatarUpload = {
+  fileName: string;
+  contentType: string;
+  size: number;
+  data: Buffer;
+};
+
+type AuthPublicUser = {
+  id: string;
+  email: string;
+  name: string;
+  isEmailVerified: boolean;
+  roles: string[];
+  hasAvatar: boolean;
+  avatarUpdatedAt?: string;
+};
+
 interface AuthContext {
   userId: string;
   email: string;
+  name: string;
   isEmailVerified: boolean;
   roles: string[];
+  hasAvatar: boolean;
+  avatarUpdatedAt?: string;
   authVersion: number;
   session: AuthSession;
 }
@@ -56,6 +108,12 @@ export {
   AuthUser,
   AuthSession,
   VerificationToken,
+  AuthUserAvatar,
+  ClientMetadata,
+  SessionIssueResult,
+  SessionPrincipal,
+  AuthAvatarUpload,
+  AuthPublicUser,
   AuthContext,
   AuthenticatedRequest
 };

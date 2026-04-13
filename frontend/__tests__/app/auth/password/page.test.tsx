@@ -1,0 +1,87 @@
+import React from 'react';
+import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
+
+const { pushMock, requestPasswordResetMock, resetPasswordMock } = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  requestPasswordResetMock: vi.fn(),
+  resetPasswordMock: vi.fn()
+}));
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({ push: pushMock })
+}));
+
+vi.mock('@/lib/auth-client', () => ({
+  requestPasswordReset: requestPasswordResetMock,
+  resetPassword: resetPasswordMock
+}));
+
+import ForgotPasswordPage from '@/app/(auth)/forgot-password/page';
+import ResetPasswordPage from '@/app/(auth)/reset-password/page';
+
+describe('ForgotPasswordPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.replaceState({}, '', '/forgot-password');
+  });
+
+  it('submits reset requests and renders success and error messages', async () => {
+    const user = userEvent.setup();
+    requestPasswordResetMock
+      .mockResolvedValueOnce({ message: 'Reset email sent' })
+      .mockRejectedValueOnce(new Error('Reset failed'));
+
+    render(<ForgotPasswordPage />);
+
+    await user.type(screen.getByPlaceholderText(/email/i), 'user@example.com');
+    await user.click(screen.getByRole('button', { name: /send reset link/i }));
+    expect(await screen.findByText('Reset email sent')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /send reset link/i }));
+    expect(await screen.findByText('Reset failed')).toBeInTheDocument();
+  });
+});
+
+describe('ResetPasswordPage', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.history.replaceState({}, '', '/reset-password');
+  });
+
+  it('shows the missing token state when the token is absent', () => {
+    render(<ResetPasswordPage />);
+    expect(screen.getByText('Missing or invalid reset token.')).toBeInTheDocument();
+  });
+
+  it('resets the password and redirects to login', async () => {
+    window.history.replaceState({}, '', '/reset-password?token=abc123');
+    resetPasswordMock.mockResolvedValue({ ok: true });
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(screen.getByPlaceholderText(/new password/i), 'Secret123!Secret');
+    await user.click(screen.getByRole('button', { name: /update password/i }));
+
+    await waitFor(() => {
+      expect(resetPasswordMock).toHaveBeenCalledWith('abc123', 'Secret123!Secret');
+      expect(pushMock).toHaveBeenCalledWith('/login');
+    });
+  });
+
+  it('shows reset errors and clears pending state', async () => {
+    window.history.replaceState({}, '', '/reset-password?token=abc123');
+    resetPasswordMock.mockRejectedValue(new Error('Token expired'));
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    await user.type(screen.getByPlaceholderText(/new password/i), 'Secret123!Secret');
+    await user.click(screen.getByRole('button', { name: /update password/i }));
+
+    expect(await screen.findByText('Token expired')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /update password/i })).toBeEnabled();
+  });
+});

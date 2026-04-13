@@ -1,20 +1,22 @@
 import { NextFunction, Request, Response } from 'express';
+import Factory from '../factory';
 import { CSRF_COOKIE_NAME, SESSION_COOKIE_NAME } from './constants';
 import { clearAuthCookies } from './cookies';
 import { hashOpaqueToken, safeEqual } from './crypto';
 import { AuthenticatedRequest } from './types';
-import AuthService from './service';
 
-const authService = new AuthService();
 const isAuthBypassEnabled = process.env.NODE_ENV === 'test' && process.env.AUTH_TEST_BYPASS === '1';
 const bypassUserId = process.env.AUTH_TEST_BYPASS_USER_ID || '__illustry_e2e_user__';
+const getAuthBZL = () => Factory.getInstance().getBZL().AuthBZL;
 
 const attachBypassAuth = (request: Request) => {
   request.auth = {
     userId: bypassUserId,
     email: 'e2e-bypass@illustry.local',
+    name: 'E2E Bypass',
     isEmailVerified: true,
     roles: ['user'],
+    hasAvatar: false,
     authVersion: 0,
     session: ({
       _id: `bypass-session-${bypassUserId}`,
@@ -70,7 +72,7 @@ const requireAuthenticatedUser = async (
       return;
     }
 
-    const principal = await authService.getSessionPrincipalFromToken(sessionToken);
+    const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
 
     if (principal === null) {
       clearAuthCookies(response);
@@ -81,8 +83,11 @@ const requireAuthenticatedUser = async (
     request.auth = {
       userId: principal.user._id.toString(),
       email: principal.user.email,
+      name: principal.user.name,
       isEmailVerified: principal.user.isEmailVerified,
       roles: principal.user.roles,
+      hasAvatar: Boolean(principal.user.avatarUpdatedAt),
+      avatarUpdatedAt: principal.user.avatarUpdatedAt?.toISOString(),
       authVersion: principal.user.authVersion,
       session: principal.session
     };
@@ -112,7 +117,7 @@ const attachAuthenticatedUserIfPresent = async (
       return;
     }
 
-    const principal = await authService.getSessionPrincipalFromToken(sessionToken);
+    const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
 
     if (principal === null) {
       clearAuthCookies(response);
@@ -123,8 +128,11 @@ const attachAuthenticatedUserIfPresent = async (
     request.auth = {
       userId: principal.user._id.toString(),
       email: principal.user.email,
+      name: principal.user.name,
       isEmailVerified: principal.user.isEmailVerified,
       roles: principal.user.roles,
+      hasAvatar: Boolean(principal.user.avatarUpdatedAt),
+      avatarUpdatedAt: principal.user.avatarUpdatedAt?.toISOString(),
       authVersion: principal.user.authVersion,
       session: principal.session
     };
@@ -197,6 +205,5 @@ export {
   attachAuthenticatedUserIfPresent,
   requireVerifiedEmail,
   requireCsrf,
-  getRequestClientMetadata,
-  authService
+  getRequestClientMetadata
 };

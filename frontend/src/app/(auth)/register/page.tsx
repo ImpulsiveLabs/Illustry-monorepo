@@ -8,20 +8,24 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
 import Label from '@/components/ui/label';
+import { useLocale } from '@/components/providers/locale-provider';
 import { registerUser } from '@/lib/auth-client';
 
 const RegisterPage = () => {
   const router = useRouter();
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
+  const [name, setName] = useState('');
   const [password, setPassword] = useState('');
+  const [avatar, setAvatar] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const passwordRules = [
-    { id: 'min-length', label: 'At least 12 characters', valid: password.length >= 12 },
-    { id: 'uppercase', label: 'At least one uppercase letter', valid: /[A-Z]/.test(password) },
-    { id: 'lowercase', label: 'At least one lowercase letter', valid: /[a-z]/.test(password) },
-    { id: 'digit', label: 'At least one number', valid: /\d/.test(password) },
-    { id: 'special', label: 'At least one special character', valid: /[^A-Za-z0-9]/.test(password) }
+    { id: 'min-length', label: t('auth.register.passwordRule.minLength'), valid: password.length >= 12 },
+    { id: 'uppercase', label: t('auth.register.passwordRule.uppercase'), valid: /[A-Z]/.test(password) },
+    { id: 'lowercase', label: t('auth.register.passwordRule.lowercase'), valid: /[a-z]/.test(password) },
+    { id: 'digit', label: t('auth.register.passwordRule.digit'), valid: /\d/.test(password) },
+    { id: 'special', label: t('auth.register.passwordRule.special'), valid: /[^A-Za-z0-9]/.test(password) }
   ];
   const isPasswordStrong = passwordRules.every((rule) => rule.valid);
 
@@ -31,8 +35,8 @@ const RegisterPage = () => {
     setError(null);
 
     try {
-      const response = await registerUser(email, password);
-      const encodedEmail = encodeURIComponent(response.user.email);
+      const response = await registerUser({ email, password, name, avatar });
+      const encodedEmail = encodeURIComponent(response.user?.email || email);
       router.push(`/verify-email-required?email=${encodedEmail}`);
     } catch (submissionError) {
       setError((submissionError as Error).message);
@@ -50,52 +54,73 @@ const RegisterPage = () => {
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <UserPlus className="h-5 w-5" />
               </div>
-              <h1 className="text-3xl font-semibold leading-tight">Create your Illustry account</h1>
-              <p className="text-sm text-muted-foreground">
-                Register once, verify your email, and keep your data visualizations private by default.
-              </p>
+              <h1 className="text-3xl font-semibold leading-tight">{t('auth.register.heroTitle')}</h1>
+              <p className="text-sm text-muted-foreground">{t('auth.register.heroDescription')}</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="list-disc ml-5">Single account access with secure cookie-based sessions.</li>
-                <li className="list-disc ml-5">Email verification required before data routes are unlocked.</li>
-                <li className="list-disc ml-5">Password checklist is enforced before creating the account.</li>
+                <li className="list-disc ml-5">{t('auth.register.benefitSession')}</li>
+                <li className="list-disc ml-5">{t('auth.register.benefitVerification')}</li>
+                <li className="list-disc ml-5">{t('auth.register.benefitPassword')}</li>
               </ul>
             </div>
           </section>
 
           <Card as="section" className="rounded-none border-0 shadow-none">
             <CardHeader className="space-y-2">
-              <CardTitle as="h2" className="text-2xl">Create account</CardTitle>
-              <CardDescription>Set a strong password to protect your workspace.</CardDescription>
+              <CardTitle as="h2" className="text-2xl">{t('auth.register.title')}</CardTitle>
+              <CardDescription>{t('auth.register.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={onSubmit}>
                 <div className="space-y-2">
-                  <Label htmlFor="register-email">Email</Label>
+                  <Label htmlFor="register-name">{t('auth.common.name')}</Label>
+                  <Input
+                    id="register-name"
+                    required
+                    autoComplete="name"
+                    placeholder={t('auth.register.namePlaceholder')}
+                    value={name}
+                    onChange={(event) => setName(event.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-email">{t('auth.common.email')}</Label>
                   <Input
                     id="register-email"
                     type="email"
                     required
                     autoComplete="email"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.register.emailPlaceholder')}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="register-password">Password</Label>
+                  <Label htmlFor="register-password">{t('auth.common.password')}</Label>
                   <Input
                     id="register-password"
                     type="password"
                     required
                     autoComplete="new-password"
-                    placeholder="Create a password"
+                    placeholder={t('auth.register.passwordPlaceholder')}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                   />
                 </div>
+                <div className="space-y-2">
+                  <Label htmlFor="register-avatar">{`${t('auth.register.avatar')} (${t('auth.common.optional')})`}</Label>
+                  <Input
+                    id="register-avatar"
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(event) => {
+                      const nextAvatar = event.target.files?.[0];
+                      setAvatar(nextAvatar || null);
+                    }}
+                  />
+                </div>
 
                 <div className="rounded-md border bg-slate-50/80 p-3 text-sm dark:bg-slate-900/60">
-                  <p className="mb-2 font-medium">Password checklist</p>
+                  <p className="mb-2 font-medium">{t('auth.register.passwordChecklist')}</p>
                   <ul className="space-y-1 text-muted-foreground">
                     {passwordRules.map((rule) => (
                       <li key={rule.id} className="flex items-center gap-2">
@@ -111,11 +136,11 @@ const RegisterPage = () => {
                 </div>
 
                 {error ? <p className="text-sm text-red-500">{error}</p> : null}
-                <Button className="w-full" disabled={pending || !isPasswordStrong} type="submit">
-                  {pending ? 'Creating account...' : 'Create account'}
+                <Button className="w-full" disabled={pending || !isPasswordStrong || name.trim().length < 2} type="submit">
+                  {pending ? t('auth.register.pending') : t('auth.register.action')}
                 </Button>
                 <p className="text-sm">
-                  Already have an account? <Link className="underline" href="/login">Sign in</Link>
+                  {t('auth.register.alreadyHaveAccount')} <Link className="underline" href="/login">{t('auth.register.signIn')}</Link>
                 </p>
               </form>
             </CardContent>

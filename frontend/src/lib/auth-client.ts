@@ -1,5 +1,18 @@
 const CSRF_COOKIE_NAME = process.env.NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME || 'illustry_csrf';
+const LOCALE_COOKIE_NAME = 'illustry-locale';
 const isGoogleAuthEnabled = () => process.env.NEXT_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+
+type AuthUserResponse = {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    isEmailVerified: boolean;
+    roles: string[];
+    hasAvatar: boolean;
+    avatarUpdatedAt?: string;
+  } | null;
+};
 
 const getBackendPublicUrl = () => {
   const url = process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
@@ -27,12 +40,36 @@ const getCookieValue = (cookieName: string): string | undefined => {
   return decodeURIComponent(matched.slice(cookieName.length + 1));
 };
 
+const getPreferredLocale = (): string | undefined => {
+  if (typeof document === 'undefined') {
+    return undefined;
+  }
+
+  const cookieLocale = getCookieValue(LOCALE_COOKIE_NAME);
+  if (cookieLocale) {
+    return cookieLocale;
+  }
+
+  const storageLocale = window.localStorage.getItem(LOCALE_COOKIE_NAME);
+  if (storageLocale) {
+    return storageLocale;
+  }
+
+  if (document.documentElement.lang) {
+    return document.documentElement.lang;
+  }
+
+  return window.navigator.language;
+};
+
 const authRequest = async <T>(path: string, init: RequestInit = {}): Promise<T> => {
+  const locale = getPreferredLocale();
   const response = await fetch(`${getBackendPublicUrl()}${path}`, {
     ...init,
     credentials: 'include',
     headers: {
-      ...(init.headers || {})
+      ...(init.headers || {}),
+      ...(locale ? { 'X-Illustry-Locale': locale, 'Accept-Language': locale } : {})
     }
   });
 
@@ -50,20 +87,32 @@ const authRequest = async <T>(path: string, init: RequestInit = {}): Promise<T> 
   return payload as T;
 };
 
-const registerUser = (email: string, password: string) => authRequest<{ user: { email: string; isEmailVerified: boolean } }>(
-  '/api/auth/register',
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email, password })
+const registerUser = async (payload: {
+  email: string;
+  password: string;
+  name: string;
+  avatar?: File | null;
+}): Promise<AuthUserResponse> => {
+  const formData = new FormData();
+  formData.set('email', payload.email);
+  formData.set('password', payload.password);
+  formData.set('name', payload.name);
+
+  if (payload.avatar) {
+    formData.set('avatar', payload.avatar);
   }
-);
+
+  return authRequest<AuthUserResponse>('/api/auth/register', {
+    method: 'POST',
+    body: formData
+  });
+};
 
 const getGoogleAuthStartUrl = (next = '/projects') => (
   `${getBackendPublicUrl()}/api/auth/google/start?next=${encodeURIComponent(next)}`
 );
 
-const loginUser = (email: string, password: string) => authRequest<{ user: { email: string; isEmailVerified: boolean } }>(
+const loginUser = (email: string, password: string) => authRequest<AuthUserResponse>(
   '/api/auth/login',
   {
     method: 'POST',

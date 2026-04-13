@@ -5,8 +5,10 @@ import readline from 'readline';
 import { EventEmitter } from 'events';
 import { VisualizationTypes } from '@illustry/types';
 import DuplicatedElementError from '../../src/errors/duplicatedElementError';
+import ConnectionError from '../../src/errors/connectionError';
 import FileError from '../../src/errors/fileError';
 import NoDataFoundError from '../../src/errors/noDataFoundError';
+import TypeError from '../../src/errors/typeError';
 import {
   returnResponse,
   toStringWithDefault,
@@ -88,6 +90,37 @@ describe('helper utils', () => {
     expect(next).not.toHaveBeenCalled();
   });
 
+  it('maps custom error types to their expected status codes', () => {
+    const status = jest.fn();
+    const send = jest.fn();
+    const next = jest.fn();
+    const setHeader = jest.fn();
+    const res: any = {
+      req: { originalUrl: '/api/errors' },
+      setHeader,
+      status,
+      send
+    };
+
+    returnResponse(res, new NoDataFoundError('missing'), null, next);
+    expect(status).toHaveBeenLastCalledWith(404);
+
+    returnResponse(res, new DuplicatedElementError('duplicate'), null, next);
+    expect(status).toHaveBeenLastCalledWith(409);
+
+    returnResponse(res, new TypeError('invalid'), null, next);
+    expect(status).toHaveBeenLastCalledWith(400);
+
+    returnResponse(res, new FileError('bad-file'), null, next);
+    expect(status).toHaveBeenLastCalledWith(400);
+
+    returnResponse(res, new ConnectionError('offline'), null, next);
+    expect(status).toHaveBeenLastCalledWith(503);
+
+    returnResponse(res, new Error('unexpected'), null, next);
+    expect(status).toHaveBeenLastCalledWith(500);
+  });
+
   it('covers string/default and extraction helpers', () => {
     expect(toStringWithDefault(undefined)).toBe('');
     expect(toStringWithDefault(null)).toBe('');
@@ -103,6 +136,13 @@ describe('helper utils', () => {
       visualizationName: 'Name',
       visualizationDescription: 'Desc',
       visualizationTags: 'tag1'
+    });
+
+    const missingDetails = visualizationDetailsExtractor(mapping, ['', '  ', 42, '']);
+    expect(missingDetails).toEqual({
+      visualizationName: undefined,
+      visualizationDescription: undefined,
+      visualizationTags: undefined
     });
 
     const properties = visualizationPropertiesExtractor([

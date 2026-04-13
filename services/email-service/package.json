@@ -12,7 +12,7 @@
     "lint": "echo 'No lint configured for email service'",
     "lint:fix": "echo 'No lint configured for email service'",
     "depcheck": "echo 'No depcheck configured for email service'",
-    "test": "echo 'No tests for email service'"
+    "test": "../../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage"
   },
   "dependencies": {
     "dotenv": "16.3.1",

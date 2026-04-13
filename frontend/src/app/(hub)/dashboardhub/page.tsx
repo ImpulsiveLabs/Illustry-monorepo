@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { findOneDashboard } from '@/app/_actions/dashboard';
 import ResizableDashboard from '@/components/shells/dashboard-shell';
 
@@ -20,6 +21,9 @@ const DashboardHub = async ({ searchParams }: DashboardProps) => {
   const name = typeof sp.name === 'string' ? sp.name : undefined;
 
   const dashboard = await findOneDashboard(name ?? '', true);
+  if (name && !dashboard) {
+    notFound();
+  }
 
   return <ResizableDashboard dashboard={dashboard} />;
 };

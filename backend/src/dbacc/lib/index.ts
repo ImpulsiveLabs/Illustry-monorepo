@@ -3,6 +3,7 @@ import ModelInstance from '../models/modelInstance';
 import Visualization from './visualization/visualization';
 import Project from './project/project';
 import Dashboard from './dashboard/dashboard';
+import Auth from './auth/auth';
 
 class DbaccInstance {
   private project!: Project;
@@ -10,6 +11,8 @@ class DbaccInstance {
   private visualization!: Visualization;
 
   private dashboard!: Dashboard;
+
+  private auth!: Auth;
 
   private modelInstance: ModelInstance;
 
@@ -40,6 +43,13 @@ class DbaccInstance {
       this.dashboard = new Dashboard(this.modelInstance);
     }
     return this.dashboard;
+  }
+
+  get Auth(): Auth {
+    if (!this.auth) {
+      this.auth = new Auth(this.modelInstance);
+    }
+    return this.auth;
   }
 }
 

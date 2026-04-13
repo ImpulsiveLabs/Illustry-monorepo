@@ -3,12 +3,20 @@ import UpdateProjectPage, { type UpdateProjectPageProps } from '@/app/(data)/pro
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
-// Mock the project action
+const { notFoundMock } = vi.hoisted(() => ({
+  notFoundMock: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND');
+  }),
+}));
+
+vi.mock('next/navigation', () => ({
+  notFound: notFoundMock,
+}));
+
 vi.mock('@/app/_actions/project', () => ({
   findOneProject: vi.fn(),
 }));
 
-// Mock the form component
 vi.mock('@/components/form/update-project-form', () => ({
   __esModule: true,
   default: ({ project }: { project: any }) => (
@@ -18,7 +26,6 @@ vi.mock('@/components/form/update-project-form', () => ({
   ),
 }));
 
-// Import after mocks
 import { findOneProject } from '@/app/_actions/project';
 
 describe('UpdateProjectPage', () => {
@@ -43,20 +50,17 @@ describe('UpdateProjectPage', () => {
 
     expect(screen.getByTestId('update-project-form')).toBeInTheDocument();
     expect(screen.getByTestId('project-name').textContent).toBe('Project Test');
-
     expect(findOneProject).toHaveBeenCalledWith('Project Test');
   });
 
-  it('renders UpdateProjectForm with undefined when no params are given', async () => {
+  it('calls notFound when the project cannot be loaded', async () => {
     vi.mocked(findOneProject).mockResolvedValue(undefined);
 
     const params: UpdateProjectPageProps['params'] = {
       projectName: '',
     };
 
-    render(await UpdateProjectPage({ params }));
-
-    expect(screen.getByTestId('update-project-form')).toBeInTheDocument();
-    expect(screen.getByTestId('project-name').textContent).toBe('');
+    await expect(UpdateProjectPage({ params })).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(notFoundMock).toHaveBeenCalled();
   });
 });

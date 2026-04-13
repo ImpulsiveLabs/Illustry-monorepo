@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Dispatch, ReactNode, SetStateAction, useEffect, useState
 } from 'react';
+import type { CurrentUser } from '@/app/_actions/auth';
 import siteConfig from '@/config/site';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ type NavItemWithOptionalChildren = {
 type MainNavItem = NavItemWithOptionalChildren;
 type MobileNavProps = {
   items?: MainNavItem[];
+  user: CurrentUser;
 }
 
 type MobileLinkProps = {
@@ -69,7 +71,7 @@ const MobileLink = ({
   </Link>
 );
 
-const MobileNav = ({ items }: MobileNavProps) => {
+const MobileNav = ({ items, user }: MobileNavProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
@@ -137,22 +139,34 @@ const MobileNav = ({ items }: MobileNavProps) => {
   }
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <HintTooltip text={t('tooltip.toggleMenu')}>
-        <div>
-          <SheetTrigger asChild suppressHydrationWarning>
-          <Button
-            suppressHydrationWarning
-            aria-label={t('common.toggleMenu')}
-            variant="ghost"
-            className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent
-            focus-visible:ring-0 focus-visible:ring-offset-0 lg:hidden"
+      <div className="flex w-full items-center lg:hidden">
+        <HintTooltip text={t('tooltip.toggleMenu')}>
+          <div>
+            <SheetTrigger asChild suppressHydrationWarning>
+            <Button
+              suppressHydrationWarning
+              aria-label={t('common.toggleMenu')}
+              variant="ghost"
+              className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent
+              focus-visible:ring-0 focus-visible:ring-offset-0"
+            >
+              <Icons.menu className="h-6 w-6" />
+              <span className="sr-only">{t('common.toggleMenu')}</span>
+            </Button>
+            </SheetTrigger>
+          </div>
+        </HintTooltip>
+        <HintTooltip text={t('tooltip.home')}>
+          <Link
+            aria-label={t('common.home')}
+            href="/"
+            className="ml-auto flex items-center gap-2 px-0 py-2 text-right transition-colors hover:opacity-80"
           >
-            <Icons.menu className="h-6 w-6" />
-            <span className="sr-only">{t('common.toggleMenu')}</span>
-          </Button>
-          </SheetTrigger>
-        </div>
-      </HintTooltip>
+            <Icons.logo className="h-5 w-5" aria-hidden="true" />
+            <span className="text-sm font-bold tracking-tight">{siteConfig.name}</span>
+          </Link>
+        </HintTooltip>
+      </div>
       <SheetContent side="left" className="pl-1 pr-0">
         <div className="px-7">
           <HintTooltip text={t('tooltip.home')}>
@@ -169,6 +183,27 @@ const MobileNav = ({ items }: MobileNavProps) => {
         </div>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="pl-1 pr-7">
+            <div className="mb-4 flex items-center gap-3 rounded-lg border px-3 py-3">
+              {user.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={`${user.name} avatar`}
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+              ) : (
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                  {(user.name || user.email)
+                    .split(/\s+/)
+                    .slice(0, 2)
+                    .map((part) => part.charAt(0).toUpperCase())
+                    .join('')}
+                </span>
+              )}
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium">{user.name}</p>
+                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+              </div>
+            </div>
             {items?.map((item) => (
               <MobileLink
                 key={item.title}
@@ -180,6 +215,12 @@ const MobileNav = ({ items }: MobileNavProps) => {
                 {getNavigationLabel(item)}
               </MobileLink>
             ))}
+            <div className="mt-4 flex items-center gap-3 px-3">
+              <div className="min-w-0 flex-1">
+                <LocaleSwitcher />
+              </div>
+              <ThemeToggle />
+            </div>
             <MobileLink
               href="/logout"
               pathname={pathname}
@@ -187,8 +228,6 @@ const MobileNav = ({ items }: MobileNavProps) => {
             >
               Logout
             </MobileLink>
-            <LocaleSwitcher />
-            <ThemeToggle />
           </div>
         </ScrollArea>
       </SheetContent>

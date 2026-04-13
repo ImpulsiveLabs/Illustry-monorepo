@@ -20,7 +20,7 @@ const ThemeLayout = async ({ children }: ThemeLayoutProps) => {
 
   return (
       <div className="relative flex min-h-screen flex-col">
-        <SiteHeader />
+        <SiteHeader user={user} />
         <main className="flex-1">{children}</main>
       </div>
   );

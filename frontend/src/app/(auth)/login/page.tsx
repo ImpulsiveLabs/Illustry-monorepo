@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
 import Label from '@/components/ui/label';
+import { useLocale } from '@/components/providers/locale-provider';
 import {
   getGoogleAuthStartUrl,
   isGoogleAuthEnabled,
@@ -16,6 +17,7 @@ import {
 
 const LoginPage = () => {
   const router = useRouter();
+  const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
@@ -30,9 +32,9 @@ const LoginPage = () => {
       setNext(fromQuery);
     }
     if (oauthError === 'google_auth_failed' || oauthError === 'google_state_mismatch') {
-      setError('Google sign-in failed. Please try again.');
+      setError(t('auth.login.googleError'));
     }
-  }, []);
+  }, [t]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -44,7 +46,7 @@ const LoginPage = () => {
       if (response.user?.isEmailVerified) {
         router.push(next);
       } else {
-        router.push(`/verify-email-required?email=${encodeURIComponent(response.user.email)}`);
+        router.push(`/verify-email-required?email=${encodeURIComponent(response.user?.email || email)}`);
       }
     } catch (submissionError) {
       setError((submissionError as Error).message);
@@ -66,45 +68,43 @@ const LoginPage = () => {
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <ShieldCheck className="h-5 w-5" />
               </div>
-              <h1 className="text-3xl font-semibold leading-tight">Welcome back to Illustry</h1>
-              <p className="text-sm text-muted-foreground">
-                Sign in to continue with your private projects, visualizations, and dashboards.
-              </p>
+              <h1 className="text-3xl font-semibold leading-tight">{t('auth.login.heroTitle')}</h1>
+              <p className="text-sm text-muted-foreground">{t('auth.login.heroDescription')}</p>
               <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="list-disc ml-5">Your session is protected with secure HTTP-only cookies.</li>
-                <li className="list-disc ml-5">Every visualization remains scoped to your account.</li>
-                <li className="list-disc ml-5">Use the same email you registered with.</li>
+                <li className="list-disc ml-5">{t('auth.login.benefitSession')}</li>
+                <li className="list-disc ml-5">{t('auth.login.benefitScoped')}</li>
+                <li className="list-disc ml-5">{t('auth.login.benefitEmail')}</li>
               </ul>
             </div>
           </section>
 
           <Card as="section" className="rounded-none border-0 shadow-none">
             <CardHeader className="space-y-2">
-              <CardTitle as="h2" className="text-2xl">Sign in</CardTitle>
-              <CardDescription>Use your Illustry account to continue.</CardDescription>
+              <CardTitle as="h2" className="text-2xl">{t('auth.login.title')}</CardTitle>
+              <CardDescription>{t('auth.login.subtitle')}</CardDescription>
             </CardHeader>
             <CardContent>
               <form className="space-y-4" onSubmit={onSubmit}>
                 <div className="space-y-2">
-                  <Label htmlFor="login-email">Email</Label>
+                  <Label htmlFor="login-email">{t('auth.common.email')}</Label>
                   <Input
                     id="login-email"
                     type="email"
                     required
                     autoComplete="email"
-                    placeholder="you@example.com"
+                    placeholder={t('auth.login.emailPlaceholder')}
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="login-password">Password</Label>
+                  <Label htmlFor="login-password">{t('auth.common.password')}</Label>
                   <Input
                     id="login-password"
                     type="password"
                     required
                     autoComplete="current-password"
-                    placeholder="Your password"
+                    placeholder={t('auth.login.passwordPlaceholder')}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                   />
@@ -112,16 +112,16 @@ const LoginPage = () => {
                 {error ? <p className="text-sm text-red-500">{error}</p> : null}
                 <Button className="w-full" disabled={pending} type="submit">
                   <LockKeyhole className="mr-2 h-4 w-4" />
-                  {pending ? 'Signing in...' : 'Sign in'}
+                  {pending ? t('auth.login.pending') : t('auth.login.action')}
                 </Button>
                 {isGoogleAuthEnabled() ? (
                   <Button className="w-full" onClick={onGoogleLogin} type="button" variant="outline">
-                    Continue with Google
+                    {t('auth.login.googleAction')}
                   </Button>
                 ) : null}
                 <div className="flex justify-between text-sm">
-                  <Link className="underline" href="/register">Create account</Link>
-                  <Link className="underline" href="/forgot-password">Forgot password</Link>
+                  <Link className="underline" href="/register">{t('auth.login.createAccount')}</Link>
+                  <Link className="underline" href="/forgot-password">{t('auth.login.forgotPassword')}</Link>
                 </div>
               </form>
             </CardContent>

@@ -4,24 +4,32 @@ import {
   emailServiceApiKey,
   emailServiceUrl
 } from './constants';
+import { AuthLocale } from './locale';
 
 class EmailService {
-  async sendVerificationEmail(email: string, token: string, verificationCode: string): Promise<void> {
+  async sendVerificationEmail(
+    email: string,
+    token: string,
+    verificationCode: string,
+    locale: AuthLocale
+  ): Promise<void> {
     const verifyUrl = `${appBaseUrl.replace(/\/$/, '')}/verify-email?token=${encodeURIComponent(token)}`;
 
     await this.sendThroughEmailService('/api/email/send-verification', {
       to: email,
       verificationCode,
-      verificationUrl: verifyUrl
+      verificationUrl: verifyUrl,
+      locale
     });
   }
 
-  async sendPasswordResetEmail(email: string, token: string): Promise<void> {
+  async sendPasswordResetEmail(email: string, token: string, locale: AuthLocale): Promise<void> {
     const resetUrl = `${appBaseUrl.replace(/\/$/, '')}/reset-password?token=${encodeURIComponent(token)}`;
 
     await this.sendThroughEmailService('/api/email/send-password-reset', {
       to: email,
-      resetUrl
+      resetUrl,
+      locale
     });
   }
 

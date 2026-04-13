@@ -7,8 +7,12 @@ import { buildBackendHeaders } from '@/lib/auth-request';
 type CurrentUser = {
   id: string;
   email: string;
+  name: string;
   isEmailVerified: boolean;
   roles: string[];
+  hasAvatar: boolean;
+  avatarUpdatedAt?: string;
+  avatarUrl?: string;
 };
 
 const getCurrentUser = async (): Promise<CurrentUser | null> => {
@@ -23,7 +27,15 @@ const getCurrentUser = async (): Promise<CurrentUser | null> => {
   });
 
   try {
-    return await makeRequest<CurrentUser>(request, ['auth-user']);
+    const user = await makeRequest<CurrentUser>(request, ['auth-user']);
+    const publicBackendUrl = process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
+
+    return {
+      ...user,
+      avatarUrl: user.hasAvatar && publicBackendUrl
+        ? `${publicBackendUrl}/api/auth/me/avatar${user.avatarUpdatedAt ? `?v=${encodeURIComponent(user.avatarUpdatedAt)}` : ''}`
+        : undefined
+    };
   } catch {
     return null;
   }
@@ -31,4 +43,8 @@ const getCurrentUser = async (): Promise<CurrentUser | null> => {
 
 export {
   getCurrentUser
+};
+
+export type {
+  CurrentUser
 };

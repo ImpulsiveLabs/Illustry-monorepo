@@ -2,6 +2,7 @@ import validator from 'validator';
 import { z } from 'zod';
 
 const emailSchema = z.string().email().max(254);
+const nameSchema = z.string().trim().min(2).max(80);
 
 const passwordSchema = z
   .string()
@@ -9,11 +10,13 @@ const passwordSchema = z
   .max(128)
   .regex(/[A-Z]/, 'Password must include at least one uppercase character')
   .regex(/[a-z]/, 'Password must include at least one lowercase character')
-  .regex(/[0-9]/, 'Password must include at least one number');
+  .regex(/[0-9]/, 'Password must include at least one number')
+  .regex(/[^A-Za-z0-9]/, 'Password must include at least one special character');
 
 const registerSchema = z.object({
   email: emailSchema,
-  password: passwordSchema
+  password: passwordSchema,
+  name: nameSchema
 });
 
 const loginSchema = z.object({
@@ -68,5 +71,7 @@ export {
   forgotPasswordSchema,
   resetPasswordSchema,
   parseDto,
-  normalizeEmail
+  normalizeEmail,
+  nameSchema,
+  passwordSchema
 };

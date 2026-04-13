@@ -3,13 +3,21 @@ import DashboardHub from '@/app/(hub)/dashboardhub/page';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
-// 👉 Mock the dashboard action
+const { notFoundMock } = vi.hoisted(() => ({
+  notFoundMock: vi.fn(() => {
+    throw new Error('NEXT_NOT_FOUND');
+  }),
+}));
+
+vi.mock('next/navigation', () => ({
+  notFound: notFoundMock,
+}));
+
 import { findOneDashboard } from '@/app/_actions/dashboard';
 vi.mock('@/app/_actions/dashboard', () => ({
   findOneDashboard: vi.fn(),
 }));
 
-// 👉 Mock the dashboard shell
 vi.mock('@/components/shells/dashboard-shell', () => ({
   __esModule: true,
   default: ({ dashboard }: { dashboard: any }) => (
@@ -38,11 +46,10 @@ describe('DashboardHub Page', () => {
       name: 'Sales Dashboard',
     };
 
-    render(await DashboardHub({ searchParams }));
+    render(await DashboardHub({ searchParams } as any));
 
     expect(screen.getByTestId('resizable-dashboard')).toBeInTheDocument();
     expect(screen.getByText(/Mock Dashboard: Sales Dashboard/i)).toBeInTheDocument();
-
     expect(findOneDashboard).toHaveBeenCalledWith('Sales Dashboard', true);
   });
 
@@ -53,7 +60,7 @@ describe('DashboardHub Page', () => {
       name: '',
     };
 
-    render(await DashboardHub({ searchParams }));
+    render(await DashboardHub({ searchParams } as any));
 
     expect(screen.getByTestId('resizable-dashboard')).toBeInTheDocument();
     expect(screen.getByText(/Mock Dashboard:/i)).toBeInTheDocument();
@@ -69,5 +76,16 @@ describe('DashboardHub Page', () => {
     render(await DashboardHub({ searchParams }));
 
     expect(findOneDashboard).toHaveBeenCalledWith('', true);
+  });
+
+  it('calls notFound when a named dashboard is not accessible', async () => {
+    vi.mocked(findOneDashboard).mockResolvedValue(undefined);
+
+    const searchParams = {
+      name: 'Sales Dashboard',
+    };
+
+    await expect(DashboardHub({ searchParams } as any)).rejects.toThrow('NEXT_NOT_FOUND');
+    expect(notFoundMock).toHaveBeenCalled();
   });
 });
