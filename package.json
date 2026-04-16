@@ -29,7 +29,7 @@
     "@astrojs/check": "0.9.6",
     "@commitlint/config-conventional": "20.4.3",
     "@commitlint/lint": "20.4.3",
-    "@commitlint/load": "20.4.3",
+    "@commitlint/load": "20.5.0",
     "@types/jest": "29.5.12",
     "@typescript-eslint/eslint-plugin": "8.50.1",
     "@typescript-eslint/parser": "8.50.1",
