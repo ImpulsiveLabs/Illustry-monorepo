@@ -1778,7 +1778,7 @@ __metadata:
     "@types/exceljs": "npm:0.5.3"
     "@types/express": "npm:4.17.21"
     "@types/jest": "npm:29.5.12"
-    "@types/multer": "npm:1.4.12"
+    "@types/multer": "npm:2.1.0"
     "@types/node": "npm:20.10.2"
     "@types/validator": "npm:13.11.6"
     "@types/xml2js": "npm:0.4.14"
@@ -4342,12 +4342,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/multer@npm:1.4.12":
-  version: 1.4.12
-  resolution: "@types/multer@npm:1.4.12"
+"@types/multer@npm:2.1.0":
+  version: 2.1.0
+  resolution: "@types/multer@npm:2.1.0"
   dependencies:
     "@types/express": "npm:*"
-  checksum: 10/3d2b32da58ddd67f972d4ef1021492f78d65f33f936b6fb25dd461bb6cc7b03bfd1de1a11562c4310680dac8054e4398038db51767a0ffbf1fe62457b3706e95
+  checksum: 10/405298b6b0b6f4007c87b7bcd69074a96fba8d5a0efcc149788af9bdb45fb9d0ab367ddebec4840eaaa45d05ba682b2a8c3a71101e9e51d6cfaa624034339c1a
   languageName: node
   linkType: hard
 
