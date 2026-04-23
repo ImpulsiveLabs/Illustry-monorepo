@@ -9,7 +9,13 @@ const app = express();
 const servicePort = Number(process.env.EMAIL_SERVICE_PORT || 7100);
 const apiKey = process.env.EMAIL_SERVICE_API_KEY || '';
 const appBaseUrl = (process.env.AUTH_APP_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
-const fromEmail = process.env.SMTP_FROM_EMAIL || 'no-reply@illustry.local';
+const fromEmail = process.env.SMTP_FROM_EMAIL || 'Illustry <onboarding@resend.dev>';
+const resendApiKey = (process.env.RESEND_API_KEY || '').trim();
+const resendTestEmail = (process.env.RESEND_TEST_EMAIL || '').trim();
+const smtpHost = (process.env.SMTP_HOST || '').trim();
+const emailTransportConfigError = resendApiKey.length > 0 || smtpHost.length > 0
+  ? null
+  : 'No email transport is configured. Set RESEND_API_KEY or SMTP_HOST.';
 
 const localeSchema = z.enum(['en', 'ro']).default('en');
 
@@ -26,17 +32,109 @@ const passwordResetSchema = z.object({
   locale: localeSchema.optional()
 });
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-  secure: process.env.SMTP_SECURE === 'true',
-  auth: process.env.SMTP_USER && process.env.SMTP_PASS
-    ? {
-      user: process.env.SMTP_USER,
-      pass: process.env.SMTP_PASS
+const getEmailProviderErrorMessage = (error: unknown, action: 'verification' | 'password reset') => {
+  if (typeof error === 'object' && error && 'code' in error) {
+    const smtpError = error as { code?: string };
+    if (smtpError.code === 'EAUTH') {
+      return 'SMTP authentication failed. Set SMTP_USER to your Gmail address and SMTP_PASS to a Gmail App Password.';
     }
-    : undefined
-});
+  }
+
+  if (typeof error === 'object' && error && 'name' in error) {
+    const providerError = error as { name?: string; message?: string };
+    if (providerError.name === 'ResendApiError' && providerError.message) {
+      return providerError.message;
+    }
+  }
+
+  return action === 'verification'
+    ? 'Failed to send verification email'
+    : 'Failed to send password reset email';
+};
+
+const transporter = smtpHost.length === 0
+  ? null
+  : nodemailer.createTransport({
+    host: smtpHost,
+    port: Number(process.env.SMTP_PORT || 587),
+    secure: process.env.SMTP_SECURE === 'true',
+    auth: process.env.SMTP_USER && process.env.SMTP_PASS
+      ? {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS
+      }
+      : undefined
+  });
+
+const sendWithResend = async (options: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}) => {
+  const recipient = fromEmail.includes('@resend.dev') && resendTestEmail.length > 0
+    ? resendTestEmail
+    : options.to;
+
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${resendApiKey}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      from: fromEmail,
+      to: [recipient],
+      subject: options.subject,
+      text: options.text,
+      html: options.html
+    })
+  });
+
+  if (response.ok) {
+    return;
+  }
+
+  let message = 'Failed to send email via Resend';
+  try {
+    const payload = await response.json() as { message?: string; error?: { message?: string } };
+    message = payload.message || payload.error?.message || message;
+  } catch {
+    const text = await response.text();
+    if (text) {
+      message = text;
+    }
+  }
+
+  const error = new Error(message) as Error & { name: string; statusCode?: number };
+  error.name = 'ResendApiError';
+  error.statusCode = response.status;
+  throw error;
+};
+
+const sendEmail = async (options: {
+  to: string;
+  subject: string;
+  text: string;
+  html: string;
+}) => {
+  if (resendApiKey.length > 0) {
+    await sendWithResend(options);
+    return;
+  }
+
+  if (!transporter) {
+    throw new Error(emailTransportConfigError || 'Email transporter is unavailable');
+  }
+
+  await transporter.sendMail({
+    from: fromEmail,
+    to: options.to,
+    subject: options.subject,
+    text: options.text,
+    html: options.html
+  });
+};
 
 const requireApiKey: express.RequestHandler = (request, response, next) => {
   if (apiKey.length === 0) {
@@ -129,18 +227,30 @@ const getPasswordResetEmailContent = (locale: 'en' | 'ro', resetUrl: string) => 
 app.use(express.json());
 
 app.get('/health', (_request, response) => {
+  if (emailTransportConfigError) {
+    response.status(503).send({
+      ok: false,
+      error: emailTransportConfigError
+    });
+    return;
+  }
+
   response.status(200).send({ ok: true });
 });
 
 app.post('/api/email/send-verification', requireApiKey, async (request, response) => {
   try {
+    if (emailTransportConfigError) {
+      response.status(500).send({ error: emailTransportConfigError });
+      return;
+    }
+
     const payload = verificationSchema.parse(request.body);
     const verificationUrl = payload.verificationUrl
       || `${appBaseUrl}/verify-email-required?email=${encodeURIComponent(payload.to)}`;
     const content = getVerificationEmailContent(payload.locale || 'en', payload.verificationCode, verificationUrl);
 
-    await transporter.sendMail({
-      from: fromEmail,
+    await sendEmail({
       to: payload.to,
       subject: content.subject,
       text: content.text,
@@ -154,17 +264,24 @@ app.post('/api/email/send-verification', requireApiKey, async (request, response
       return;
     }
 
-    response.status(500).send({ error: 'Failed to send verification email' });
+    const message = getEmailProviderErrorMessage(error, 'verification');
+    // eslint-disable-next-line no-console
+    console.error('[EmailService] Failed to send verification email', error);
+    response.status(500).send({ error: message });
   }
 });
 
 app.post('/api/email/send-password-reset', requireApiKey, async (request, response) => {
   try {
+    if (emailTransportConfigError) {
+      response.status(500).send({ error: emailTransportConfigError });
+      return;
+    }
+
     const payload = passwordResetSchema.parse(request.body);
     const content = getPasswordResetEmailContent(payload.locale || 'en', payload.resetUrl);
 
-    await transporter.sendMail({
-      from: fromEmail,
+    await sendEmail({
       to: payload.to,
       subject: content.subject,
       text: content.text,
@@ -178,14 +295,23 @@ app.post('/api/email/send-password-reset', requireApiKey, async (request, respon
       return;
     }
 
-    response.status(500).send({ error: 'Failed to send password reset email' });
+    const message = getEmailProviderErrorMessage(error, 'password reset');
+    // eslint-disable-next-line no-console
+    console.error('[EmailService] Failed to send password reset email', error);
+    response.status(500).send({ error: message });
   }
 });
 
-const startEmailService = () => app.listen(servicePort, '0.0.0.0', () => {
+const startEmailService = () => {
+  if (emailTransportConfigError) {
+    throw new Error(emailTransportConfigError);
+  }
+
+  return app.listen(servicePort, '0.0.0.0', () => {
   // eslint-disable-next-line no-console
-  console.log(`[EmailService] listening on ${servicePort}`);
-});
+    console.log(`[EmailService] listening on ${servicePort}`);
+  });
+};
 
 const bootEmailService = (shouldStart = require.main === module) => (shouldStart ? startEmailService() : null);
 
@@ -203,6 +329,7 @@ const getServiceUrl = (server: { address: () => string | AddressInfo | null }) =
 export {
   app,
   transporter,
+  emailTransportConfigError,
   requireApiKey,
   startEmailService,
   bootEmailService,

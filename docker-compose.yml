@@ -3,6 +3,8 @@ services:
     image: mongo:latest
     container_name: mongo
     restart: unless-stopped
+    profiles:
+      - local-mongo
     volumes:
       - illustry_mongo:/data/db
       - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
@@ -22,11 +24,13 @@ services:
     container_name: illustrybackend
     restart: unless-stopped
     environment:
-      MONGO_URL: mongodb://mongo:27017/illustry
-      MONGO_USER: root
-      MONGO_PASSWORD: rootPass
+      MONGO_URL: ${MONGO_URL:-mongodb://mongo:27017/}
+      MONGO_USER: ${MONGO_USER-}
+      MONGO_PASSWORD: ${MONGO_PASSWORD-}
       ILLUSTRY_PORT: 7001
-      AUTH_APP_BASE_URL: http://localhost:3000
+      AUTH_APP_BASE_URL: ${AUTH_APP_BASE_URL:-http://localhost:3000}
+      AUTH_EMAIL_VERIFICATION_TTL_MINUTES: ${AUTH_EMAIL_VERIFICATION_TTL_MINUTES:-15}
+      CORS_ORIGIN_ALLOWLIST: ${CORS_ORIGIN_ALLOWLIST:-http://localhost:3000,http://127.0.0.1:3000,http://0.0.0.0:3000,http://localhost:4321,http://127.0.0.1:4321,http://0.0.0.0:4321}
       EMAIL_SERVICE_URL: http://illustryemailservice:7100
       EMAIL_SERVICE_API_KEY: ${EMAIL_SERVICE_API_KEY:-illustry-email-service-local-key}
       GOOGLE_OAUTH_CLIENT_ID: ${GOOGLE_OAUTH_CLIENT_ID:-}
@@ -44,13 +48,13 @@ services:
       dockerfile: frontend/Dockerfile  # Optional, default is Dockerfile
       args:
         BACKEND_INTERNAL_URL: http://illustrybackend:7001
-        NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:7001
+        NEXT_PUBLIC_BACKEND_PUBLIC_URL: ${NEXT_PUBLIC_BACKEND_PUBLIC_URL:-http://localhost:7001}
         NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:-false}
     container_name: illustryfrontend
     restart: unless-stopped
     environment:
       BACKEND_INTERNAL_URL: http://illustrybackend:7001
-      NEXT_PUBLIC_BACKEND_PUBLIC_URL: http://localhost:7001
+      NEXT_PUBLIC_BACKEND_PUBLIC_URL: ${NEXT_PUBLIC_BACKEND_PUBLIC_URL:-http://localhost:7001}
       NEXT_PUBLIC_GOOGLE_AUTH_ENABLED: ${NEXT_PUBLIC_GOOGLE_AUTH_ENABLED:-false}
 
     ports:
@@ -67,13 +71,15 @@ services:
     environment:
       EMAIL_SERVICE_PORT: 7100
       EMAIL_SERVICE_API_KEY: ${EMAIL_SERVICE_API_KEY:-illustry-email-service-local-key}
-      AUTH_APP_BASE_URL: http://localhost:3000
-      SMTP_HOST: ${SMTP_HOST:-mailpit}
-      SMTP_PORT: ${SMTP_PORT:-1025}
+      AUTH_APP_BASE_URL: ${AUTH_APP_BASE_URL:-http://localhost:3000}
+      RESEND_API_KEY: ${RESEND_API_KEY:-}
+      RESEND_TEST_EMAIL: ${RESEND_TEST_EMAIL:-}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_SECURE: ${SMTP_SECURE:-false}
       SMTP_USER: ${SMTP_USER:-}
       SMTP_PASS: ${SMTP_PASS:-}
-      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-no-reply@illustry.local}
+      SMTP_FROM_EMAIL: ${SMTP_FROM_EMAIL:-Illustry <onboarding@resend.dev>}
     ports:
       - "7100:7100"
     networks:
@@ -83,6 +89,8 @@ services:
     image: axllent/mailpit:latest
     container_name: illustrymailpit
     restart: unless-stopped
+    profiles:
+      - mailpit
     ports:
       - "1025:1025"
       - "8025:8025"

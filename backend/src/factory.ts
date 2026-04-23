@@ -24,14 +24,16 @@ class Factory {
       MONGO_USER,
       MONGO_PASSWORD
     } = process.env;
+    const connectionUri = NODE_ENV === 'test'
+      ? MONGO_TEST_URL || ''
+      : MONGO_URL || '';
+    const uriHasCredentials = /:\/\/[^/]+@/.test(connectionUri);
     this.dbConnection = mongoose.createConnection(
-      NODE_ENV === 'test'
-        ? MONGO_TEST_URL || ''
-        : MONGO_URL || '',
+      connectionUri,
       {
         dbName: NODE_ENV === 'test' ? 'illustrytest' : 'illustry',
-        user: MONGO_USER,
-        pass: MONGO_PASSWORD
+        user: uriHasCredentials ? undefined : MONGO_USER || undefined,
+        pass: uriHasCredentials ? undefined : MONGO_PASSWORD || undefined
       }
     );
     Factory._dbaccInstance = new DbaccInstance(this.dbConnection);

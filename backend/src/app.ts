@@ -52,11 +52,13 @@ class Illustry {
 
           callback(new Error('CORS origin not allowed'));
         },
-        methods: 'GET, POST, OPTIONS, PUT, PATH, DELETE',
+        methods: 'GET, POST, OPTIONS, PUT, PATCH, DELETE',
         allowedHeaders: [
           'Content-Type',
           'Authorization',
-          'X-CSRF-Token'
+          'X-CSRF-Token',
+          'X-Illustry-Locale',
+          'Accept-Language'
         ],
         credentials: true
       })

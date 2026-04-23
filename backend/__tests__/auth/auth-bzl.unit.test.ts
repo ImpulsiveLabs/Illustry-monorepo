@@ -38,7 +38,10 @@ describe('AuthBZL', () => {
     jest.clearAllMocks();
   });
 
-  it('registers a user, stores the avatar, sends verification, and creates a session', async () => {
+  it('registers a user, stores the avatar, sends a 15 minute verification token, and creates a session', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+
     const createdUser = buildUser();
     const avatarUpdatedUser = buildUser({
       avatarFileName: 'avatar.png',
@@ -93,6 +96,10 @@ describe('AuthBZL', () => {
       fileName: 'avatar.png',
       contentType: 'image/png'
     }));
+    expect(dbaccInstance.Auth.createEmailVerificationToken).toHaveBeenCalledWith(expect.objectContaining({
+      userId: createdUser._id,
+      expiresAt: new Date('2025-01-01T00:15:00.000Z')
+    }));
     expect(dbaccInstance.Auth.createSession).toHaveBeenCalledWith(expect.objectContaining({
       userId: createdUser._id,
       authVersion: 0
@@ -101,6 +108,8 @@ describe('AuthBZL', () => {
     expect(result.session).toBe(createdSession);
     expect(typeof result.sessionToken).toBe('string');
     expect(typeof result.csrfToken).toBe('string');
+
+    jest.useRealTimers();
   });
 
   it('rejects login when the password does not match', async () => {
@@ -467,6 +476,9 @@ describe('AuthBZL', () => {
   });
 
   it('handles resend verification, forgot password, reset-password edge cases, and avatar retrieval', async () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
+
     const user = buildUser({ isEmailVerified: false });
     const verifiedUser = buildUser({ isEmailVerified: true });
     const tokenRecord = {
@@ -489,6 +501,11 @@ describe('AuthBZL', () => {
     const resendAuth = new AuthBZL(resendDbacc);
     await resendAuth.resendVerification(undefined, user._id, 'ro');
     expect(sendVerificationEmail).toHaveBeenCalledWith('user@example.com', expect.any(String), expect.any(String), 'ro');
+    expect(resendDbacc.Auth.invalidateEmailVerificationTokensForUser).toHaveBeenCalledWith(user._id);
+    expect(resendDbacc.Auth.createEmailVerificationToken).toHaveBeenCalledWith(expect.objectContaining({
+      userId: user._id,
+      expiresAt: new Date('2025-01-01T00:15:00.000Z')
+    }));
 
     sendVerificationEmail.mockClear();
     await resendAuth.resendVerification('user@example.com', undefined, 'en');
@@ -537,6 +554,8 @@ describe('AuthBZL', () => {
     const avatarAuth = new AuthBZL(avatarDbacc);
     await expect(avatarAuth.getUserAvatar('user-id')).resolves.toBeNull();
     await expect(avatarAuth.getUserAvatar('user-id')).resolves.toEqual(avatar);
+
+    jest.useRealTimers();
   });
 
 });

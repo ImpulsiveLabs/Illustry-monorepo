@@ -5,6 +5,7 @@ import {
   emailServiceUrl
 } from './constants';
 import { AuthLocale } from './locale';
+import { AuthHttpError } from './errors';
 
 class EmailService {
   async sendVerificationEmail(
@@ -54,6 +55,17 @@ class EmailService {
 
     if (!response.ok) {
       const errorBody = await response.text();
+      try {
+        const parsed = JSON.parse(errorBody) as { error?: string };
+        if (parsed.error) {
+          throw new AuthHttpError(response.status, parsed.error);
+        }
+      } catch (error) {
+        if (error instanceof AuthHttpError) {
+          throw error;
+        }
+      }
+
       throw new Error(`Email service request failed (${response.status}): ${errorBody}`);
     }
 

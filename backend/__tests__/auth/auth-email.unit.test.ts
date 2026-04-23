@@ -97,5 +97,21 @@ describe('auth email service client', () => {
     await expect(service.sendVerificationEmail('user@example.com', 'verify-token', '123456', 'en')).rejects.toThrow(
       'Email service request failed (503): temporary failure'
     );
+
+    jest.resetModules();
+    process.env.EMAIL_SERVICE_API_KEY = 'service-key';
+    global.fetch = jest.fn(async () => ({
+      ok: false,
+      status: 500,
+      text: async () => JSON.stringify({
+        error: 'SMTP authentication failed. Set SMTP_USER to your Gmail address and SMTP_PASS to a Gmail App Password.'
+      })
+    })) as any;
+    emailModule = await import('../../src/auth/email');
+    service = new emailModule.default();
+
+    await expect(service.sendVerificationEmail('user@example.com', 'verify-token', '123456', 'en')).rejects.toThrow(
+      'SMTP authentication failed. Set SMTP_USER to your Gmail address and SMTP_PASS to a Gmail App Password.'
+    );
   });
 });

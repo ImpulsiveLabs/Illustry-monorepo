@@ -91,6 +91,58 @@ describe('email service', () => {
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
 
+  it('uses Resend directly when RESEND_API_KEY is configured', async () => {
+    process.env.RESEND_API_KEY = 're_test';
+    process.env.RESEND_TEST_EMAIL = 'owner@example.com';
+    delete process.env.SMTP_HOST;
+    const originalFetch = global.fetch;
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url === 'https://api.resend.com/emails') {
+        return {
+          ok: true
+        } as Response;
+      }
+
+      return originalFetch(input, init);
+    }) as any;
+    global.fetch = fetchMock;
+
+    const { baseUrl, close } = await startServer();
+    const response = await fetch(`${baseUrl}/api/email/send-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        verificationCode: '123456',
+        verificationUrl: 'https://custom.test/verify'
+      })
+    });
+
+    expect(response.status).toBe(200);
+    expect(createTransportMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledWith('https://api.resend.com/emails', expect.objectContaining({
+      method: 'POST',
+      headers: expect.objectContaining({
+        Authorization: 'Bearer re_test'
+      })
+    }));
+    const resendRequestBody = JSON.parse(fetchMock.mock.calls.find((call) => call[0] === 'https://api.resend.com/emails')?.[1]?.body as string);
+    expect(resendRequestBody).toEqual(expect.objectContaining({
+      from: 'no-reply@test.local',
+      to: ['owner@example.com'],
+      subject: 'Your Illustry verification code'
+    }));
+    expect(resendRequestBody.text).toContain('Your verification code is: 123456');
+    expect(resendRequestBody.html).toContain('Verify email');
+
+    await close();
+    global.fetch = originalFetch;
+  });
+
   it('rejects missing or invalid api keys and validates verification payloads', async () => {
     const { baseUrl, close } = await startServer();
 
@@ -267,18 +319,18 @@ describe('email service', () => {
     delete process.env.EMAIL_SERVICE_PORT;
     delete process.env.AUTH_APP_BASE_URL;
     delete process.env.SMTP_FROM_EMAIL;
+    delete process.env.RESEND_API_KEY;
+    delete process.env.SMTP_HOST;
     delete process.env.SMTP_PORT;
     delete process.env.SMTP_SECURE;
     delete process.env.SMTP_USER;
     delete process.env.SMTP_PASS;
 
     const module = await loadModule();
-    expect(createTransportMock).toHaveBeenCalledWith({
-      host: 'smtp.test.local',
-      port: 587,
-      secure: false,
-      auth: undefined
-    });
+    const expectedSmtpError =
+      'No email transport is configured. Set RESEND_API_KEY or SMTP_HOST.';
+    expect(createTransportMock).not.toHaveBeenCalled();
+    expect(module.emailTransportConfigError).toBe(expectedSmtpError);
 
     const fakeServer = { close: jest.fn() } as unknown as Server;
     const listenSpy = jest.spyOn(module.app, 'listen').mockImplementation((...args: any[]) => {
@@ -289,8 +341,8 @@ describe('email service', () => {
       return fakeServer as any;
     });
 
-    expect(module.bootEmailService(true)).toBe(fakeServer);
-    expect(listenSpy).toHaveBeenCalledWith(7100, '0.0.0.0', expect.any(Function));
+    expect(() => module.bootEmailService(true)).toThrow(expectedSmtpError);
+    expect(listenSpy).not.toHaveBeenCalled();
 
     listenSpy.mockRestore();
 
@@ -298,7 +350,12 @@ describe('email service', () => {
     await waitForListening(server);
     const baseUrl = module.getServiceUrl(server);
 
-    sendMailMock.mockResolvedValueOnce({ accepted: ['fallback@example.com'] });
+    const healthResponse = await fetch(`${baseUrl}/health`);
+    expect(healthResponse.status).toBe(503);
+    await expect(healthResponse.json()).resolves.toEqual({
+      ok: false,
+      error: expectedSmtpError
+    });
 
     const response = await fetch(`${baseUrl}/api/email/send-verification`, {
       method: 'POST',
@@ -312,13 +369,11 @@ describe('email service', () => {
       })
     });
 
-    expect(response.status).toBe(200);
-    expect(sendMailMock).toHaveBeenCalledWith(expect.objectContaining({
-      from: 'no-reply@illustry.local'
-    }));
-    expect(sendMailMock.mock.calls[0][0].text).toContain(
-      'http://localhost:3000/verify-email-required?email=fallback%40example.com'
-    );
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: expectedSmtpError
+    });
+    expect(sendMailMock).not.toHaveBeenCalled();
 
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });
@@ -332,6 +387,7 @@ describe('email service', () => {
 
   it('returns a server error when the api key is not configured and handles missing smtp auth', async () => {
     delete process.env.EMAIL_SERVICE_API_KEY;
+    delete process.env.RESEND_API_KEY;
     delete process.env.SMTP_USER;
     delete process.env.SMTP_PASS;
 
