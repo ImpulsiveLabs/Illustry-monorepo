@@ -74,6 +74,10 @@ class Auth {
     ).exec().then(() => undefined);
   }
 
+  deleteEmailVerificationTokensForUser(userId: string | Types.ObjectId): Promise<void> {
+    return this.modelInstance.EmailVerificationTokenModel.deleteMany({ userId }).exec().then(() => undefined);
+  }
+
   createEmailVerificationToken(data: Partial<VerificationToken>): Promise<VerificationToken> {
     return this.modelInstance.EmailVerificationTokenModel.create(data);
   }

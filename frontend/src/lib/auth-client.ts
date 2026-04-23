@@ -14,6 +14,10 @@ type AuthUserResponse = {
   } | null;
 };
 
+type AuthStatusResponse = {
+  ok: boolean;
+};
+
 const getBackendPublicUrl = () => {
   const url = process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
   if (!url) {
@@ -87,6 +91,11 @@ const authRequest = async <T>(path: string, init: RequestInit = {}): Promise<T> 
   return payload as T;
 };
 
+const getCsrfHeaders = (): Record<string, string> => {
+  const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
+  return csrfToken ? { 'X-CSRF-Token': csrfToken } : {};
+};
+
 const registerUser = async (payload: {
   email: string;
   password: string;
@@ -122,12 +131,11 @@ const loginUser = (email: string, password: string) => authRequest<AuthUserRespo
 );
 
 const logoutUser = async () => {
-  const csrfToken = getCookieValue(CSRF_COOKIE_NAME);
   await authRequest<{ ok: boolean }>('/api/auth/logout', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...(csrfToken ? { 'X-CSRF-Token': csrfToken } : {})
+      ...getCsrfHeaders()
     }
   });
 };
@@ -162,6 +170,49 @@ const resendVerification = (email?: string) => authRequest<{ message: string }>(
   body: JSON.stringify(email ? { email } : {})
 });
 
+const updateProfile = async (payload: {
+  name?: string;
+  avatar?: File | null;
+  removeAvatar?: boolean;
+}): Promise<AuthUserResponse> => {
+  const formData = new FormData();
+
+  if (payload.name) {
+    formData.set('name', payload.name);
+  }
+
+  if (payload.removeAvatar) {
+    formData.set('removeAvatar', 'true');
+  }
+
+  if (payload.avatar) {
+    formData.set('avatar', payload.avatar);
+  }
+
+  return authRequest<AuthUserResponse>('/api/auth/me', {
+    method: 'PATCH',
+    headers: {
+      ...getCsrfHeaders()
+    },
+    body: formData
+  });
+};
+
+const changePassword = (payload: {
+  currentPassword: string;
+  newPassword: string;
+}): Promise<AuthStatusResponse> => authRequest<AuthStatusResponse>(
+  '/api/auth/me/password',
+  {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...getCsrfHeaders()
+    },
+    body: JSON.stringify(payload)
+  }
+);
+
 export {
   registerUser,
   getGoogleAuthStartUrl,
@@ -172,5 +223,7 @@ export {
   resetPassword,
   verifyEmailToken,
   verifyEmailCode,
-  resendVerification
+  resendVerification,
+  updateProfile,
+  changePassword
 };

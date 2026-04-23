@@ -442,12 +442,13 @@ describe('AuthBZL', () => {
       Auth: {
         findActiveEmailVerificationTokenByTokenHash: jest.fn(async () => tokenRecord),
         updateUserById: jest.fn(async () => user),
-        invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined)
+        deleteEmailVerificationTokensForUser: jest.fn(async () => undefined)
       }
     } as any;
     const verifyAuth = new AuthBZL(verifyDbacc);
     await expect(verifyAuth.verifyEmail('good-token')).resolves.toBeUndefined();
     expect(verifyDbacc.Auth.updateUserById).toHaveBeenCalledWith(user._id, { $set: { isEmailVerified: true } });
+    expect(verifyDbacc.Auth.deleteEmailVerificationTokensForUser).toHaveBeenCalledWith(user._id);
 
     const missingCodeUserDbacc = { Auth: { findUserByEmailNormalized: jest.fn(async () => null) } } as any;
     const missingCodeUserAuth = new AuthBZL(missingCodeUserDbacc);
@@ -467,12 +468,12 @@ describe('AuthBZL', () => {
         findUserByEmailNormalized: jest.fn(async () => user),
         findActiveEmailVerificationTokenByCodeHash: jest.fn(async () => tokenRecord),
         updateUserById: jest.fn(async () => user),
-        invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined)
+        deleteEmailVerificationTokensForUser: jest.fn(async () => undefined)
       }
     } as any;
     const validCodeAuth = new AuthBZL(validCodeDbacc);
     await expect(validCodeAuth.verifyEmailCode('user@example.com', '123456')).resolves.toBeUndefined();
-    expect(validCodeDbacc.Auth.invalidateEmailVerificationTokensForUser).toHaveBeenCalledWith(user._id);
+    expect(validCodeDbacc.Auth.deleteEmailVerificationTokensForUser).toHaveBeenCalledWith(user._id);
   });
 
   it('handles resend verification, forgot password, reset-password edge cases, and avatar retrieval', async () => {
@@ -556,6 +557,93 @@ describe('AuthBZL', () => {
     await expect(avatarAuth.getUserAvatar('user-id')).resolves.toEqual(avatar);
 
     jest.useRealTimers();
+  });
+
+  it('updates the profile avatar and validates the current password before changing it', async () => {
+    const user = buildUser();
+    const updatedAvatarUser = buildUser({
+      name: 'Updated User',
+      avatarFileName: 'fresh-avatar.png',
+      avatarContentType: 'image/png',
+      avatarUpdatedAt: new Date('2025-01-04T08:30:00.000Z')
+    });
+    const { default: AuthBZL } = await import('../../src/bzl/auth/auth');
+
+    const updateProfileDbacc = {
+      Auth: {
+        findUserById: jest.fn(async () => user),
+        saveUserAvatar: jest.fn(async () => ({ userId: user._id })),
+        updateUserById: jest.fn(async () => updatedAvatarUser)
+      }
+    } as any;
+    const updateProfileAuth = new AuthBZL(updateProfileDbacc);
+
+    await expect(updateProfileAuth.updateProfile(user._id, {
+      name: 'Updated User',
+      avatar: {
+      fileName: 'fresh-avatar.png',
+      contentType: 'image/png',
+      size: 256,
+      data: Buffer.from('new-avatar')
+      }
+    })).resolves.toEqual({
+      id: user._id,
+      email: user.email,
+      name: 'Updated User',
+      isEmailVerified: user.isEmailVerified,
+      roles: user.roles,
+      hasAvatar: true,
+      avatarUpdatedAt: '2025-01-04T08:30:00.000Z'
+    });
+    expect(updateProfileDbacc.Auth.updateUserById).toHaveBeenNthCalledWith(1, user._id, {
+      $set: { name: 'Updated User' }
+    });
+    expect(updateProfileDbacc.Auth.saveUserAvatar).toHaveBeenCalledWith(expect.objectContaining({
+      fileName: 'fresh-avatar.png',
+      contentType: 'image/png'
+    }));
+
+    const removeAvatarDbacc = {
+      Auth: {
+        findUserById: jest.fn(async () => updatedAvatarUser),
+        deleteUserAvatarByUserId: jest.fn(async () => undefined),
+        updateUserById: jest.fn(async () => buildUser())
+      }
+    } as any;
+    const removeAvatarAuth = new AuthBZL(removeAvatarDbacc);
+
+    await expect(removeAvatarAuth.updateProfile(user._id, {
+      name: updatedAvatarUser.name,
+      removeAvatar: true
+    })).resolves.toEqual({
+      id: user._id,
+      email: user.email,
+      name: user.name,
+      isEmailVerified: user.isEmailVerified,
+      roles: user.roles,
+      hasAvatar: false,
+      avatarUpdatedAt: undefined
+    });
+    expect(removeAvatarDbacc.Auth.deleteUserAvatarByUserId).toHaveBeenCalledWith(user._id);
+
+    const changePasswordDbacc = {
+      Auth: {
+        findUserById: jest.fn(async () => user),
+        updateUserById: jest.fn(async () => buildUser({ passwordHash: 'hashed-password' }))
+      }
+    } as any;
+    const changePasswordAuth = new AuthBZL(changePasswordDbacc);
+
+    await expect(
+      changePasswordAuth.changePassword(user._id, 'wrong-password', 'NewValidPass1!')
+    ).rejects.toThrow('Current password is incorrect');
+
+    await expect(
+      changePasswordAuth.changePassword(user._id, 'ValidPass1!', 'NewValidPass1!')
+    ).resolves.toBeUndefined();
+    expect(changePasswordDbacc.Auth.updateUserById).toHaveBeenCalledWith(user._id, {
+      $set: { passwordHash: 'hashed-password' }
+    });
   });
 
 });

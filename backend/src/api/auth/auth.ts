@@ -17,12 +17,14 @@ import {
 import { createOpaqueToken, safeEqual } from '../../auth/crypto';
 import { AuthHttpError, GENERIC_IF_EXISTS_MESSAGE } from '../../auth/errors';
 import {
+  changePasswordSchema,
   forgotPasswordSchema,
   loginSchema,
   parseDto,
   registerSchema,
   resendVerificationSchema,
   resetPasswordSchema,
+  updateProfileSchema,
   verifyEmailCodeSchema,
   verifyEmailSchema
 } from '../../auth/validation';
@@ -235,6 +237,62 @@ const csrf = async (
     setCsrfCookie(response, csrfToken, expiresAt);
 
     response.status(200).send({ csrfToken });
+  } catch (error) {
+    sendAuthError(response, next, error, resolveRequestAuthLocale(request));
+  }
+};
+
+const updateProfile = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = request.auth?.userId;
+
+    if (!userId) {
+      response.status(401).send({ error: translateAuthText(resolveRequestAuthLocale(request), 'Authentication required') });
+      return;
+    }
+
+    const dto = parseDto(updateProfileSchema, request.body);
+    const user = await Factory.getInstance().getBZL().AuthBZL.updateProfile(
+      userId,
+      {
+        name: dto.name,
+        avatar: extractAvatarUpload(request),
+        removeAvatar: dto.removeAvatar === 'true'
+      }
+    );
+
+    response.status(200).send({ user });
+  } catch (error) {
+    sendAuthError(response, next, error, resolveRequestAuthLocale(request));
+  }
+};
+
+const changePassword = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = request.auth?.userId;
+
+    if (!userId) {
+      response.status(401).send({ error: translateAuthText(resolveRequestAuthLocale(request), 'Authentication required') });
+      return;
+    }
+
+    const dto = parseDto(changePasswordSchema, request.body);
+
+    await Factory.getInstance().getBZL().AuthBZL.changePassword(
+      userId,
+      dto.currentPassword,
+      dto.newPassword
+    );
+
+    response.status(200).send({ ok: true });
   } catch (error) {
     sendAuthError(response, next, error, resolveRequestAuthLocale(request));
   }
@@ -467,6 +525,8 @@ export {
   me,
   meAvatar,
   csrf,
+  updateProfile,
+  changePassword,
   refresh,
   verifyEmail,
   verifyEmailCode,

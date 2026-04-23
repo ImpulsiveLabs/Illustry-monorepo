@@ -57,6 +57,13 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
+          <Link href="/account">{t('auth.userMenu.account')}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem asChild>
+          <Link href="/account/edit">{t('auth.userMenu.editProfile')}</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
           <Link href="/logout">{t('auth.userMenu.logout')}</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

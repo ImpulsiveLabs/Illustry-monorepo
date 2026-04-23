@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useLocale } from '@/components/providers/locale-provider';
@@ -18,8 +19,6 @@ const VerifyEmailRequiredPage = () => {
   const [code, setCode] = useState('');
   const [verifyPending, setVerifyPending] = useState(false);
   const [resendPending, setResendPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -32,15 +31,13 @@ const VerifyEmailRequiredPage = () => {
   const onVerifyCode = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setVerifyPending(true);
-    setError(null);
-    setMessage(null);
 
     try {
       await verifyEmailCode(email, code);
-      setMessage(t('auth.verifyRequired.success'));
+      toast.success(t('auth.verifyRequired.success'));
       router.push('/projects');
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setVerifyPending(false);
     }
@@ -49,14 +46,12 @@ const VerifyEmailRequiredPage = () => {
   const onResendVerification = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setResendPending(true);
-    setError(null);
-    setMessage(null);
 
     try {
       const response = await resendVerification(email || undefined);
-      setMessage(response.message);
+      toast.success(response.message || t('auth.toast.verificationEmailSent'));
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setResendPending(false);
     }
@@ -98,9 +93,6 @@ const VerifyEmailRequiredPage = () => {
             {resendPending ? t('auth.verifyRequired.resendPending') : t('auth.verifyRequired.resend')}
           </Button>
         </form>
-
-        {message ? <p className="text-sm text-green-600">{message}</p> : null}
-        {error ? <p className="text-sm text-red-500">{error}</p> : null}
 
         <p className="text-sm">
           <Link className="underline" href="/login">{t('auth.common.backToSignIn')}</Link>

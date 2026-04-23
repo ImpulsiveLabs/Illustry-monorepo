@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useLocale } from '@/components/providers/locale-provider';
@@ -17,7 +18,6 @@ const ResetPasswordPage = () => {
 
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -30,13 +30,13 @@ const ResetPasswordPage = () => {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
-    setError(null);
 
     try {
       await resetPassword(token, password);
+      toast.success(t('auth.toast.passwordUpdated'));
       router.push('/login');
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setPending(false);
     }
@@ -66,7 +66,6 @@ const ResetPasswordPage = () => {
           value={password}
           onChange={(event) => setPassword(event.target.value)}
         />
-        {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <Button className="w-full" disabled={pending} type="submit">
           {pending ? t('auth.resetPassword.pending') : t('auth.resetPassword.action')}
         </Button>

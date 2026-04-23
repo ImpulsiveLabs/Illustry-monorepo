@@ -32,6 +32,8 @@ router.post('/api/auth/logout', requireAuthenticatedUser, requireCsrf, authAPI.l
 router.get('/api/auth/me', requireAuthenticatedUser, authAPI.me);
 router.get('/api/auth/me/avatar', requireAuthenticatedUser, authAPI.meAvatar);
 router.get('/api/auth/csrf', requireAuthenticatedUser, authAPI.csrf);
+router.patch('/api/auth/me', requireAuthenticatedUser, requireCsrf, upload.fields([{ name: 'avatar', maxCount: 1 }]) as any, authAPI.updateProfile);
+router.post('/api/auth/me/password', requireAuthenticatedUser, requireCsrf, authAPI.changePassword);
 router.post('/api/auth/refresh', requireAuthenticatedUser, requireCsrf, authAPI.refresh);
 router.post('/api/auth/verify-email', authAPI.verifyEmail);
 router.post('/api/auth/verify-email-code', authAPI.verifyEmailCode);

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 import { UserPlus } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
@@ -19,7 +20,6 @@ const RegisterPage = () => {
   const [password, setPassword] = useState('');
   const [avatar, setAvatar] = useState<File | null>(null);
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const passwordRules = [
     { id: 'min-length', label: t('auth.register.passwordRule.minLength'), valid: password.length >= 12 },
     { id: 'uppercase', label: t('auth.register.passwordRule.uppercase'), valid: /[A-Z]/.test(password) },
@@ -32,14 +32,14 @@ const RegisterPage = () => {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
-    setError(null);
 
     try {
       const response = await registerUser({ email, password, name, avatar });
+      toast.success(t('auth.toast.accountCreated'));
       const encodedEmail = encodeURIComponent(response.user?.email || email);
       router.push(`/verify-email-required?email=${encodedEmail}`);
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setPending(false);
     }
@@ -135,7 +135,6 @@ const RegisterPage = () => {
                   </ul>
                 </div>
 
-                {error ? <p className="text-sm text-red-500">{error}</p> : null}
                 <Button className="w-full" disabled={pending || !isPasswordStrong || name.trim().length < 2} type="submit">
                   {pending ? t('auth.register.pending') : t('auth.register.action')}
                 </Button>

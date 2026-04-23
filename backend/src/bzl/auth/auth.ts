@@ -206,7 +206,7 @@ class AuthBZL {
     await this.dbaccInstance.Auth.updateUserById(storedToken.userId, {
       $set: { isEmailVerified: true }
     });
-    await this.dbaccInstance.Auth.invalidateEmailVerificationTokensForUser(storedToken.userId);
+    await this.dbaccInstance.Auth.deleteEmailVerificationTokensForUser(storedToken.userId);
 
     logger.info(`Email verified for userId=${storedToken.userId.toString()}`);
   }
@@ -231,7 +231,7 @@ class AuthBZL {
     await this.dbaccInstance.Auth.updateUserById(user._id, {
       $set: { isEmailVerified: true }
     });
-    await this.dbaccInstance.Auth.invalidateEmailVerificationTokensForUser(user._id);
+    await this.dbaccInstance.Auth.deleteEmailVerificationTokensForUser(user._id);
 
     logger.info(`Email verified by code for userId=${storedToken.userId.toString()}`);
   }
@@ -317,6 +317,70 @@ class AuthBZL {
       data: avatar.data,
       contentType: avatar.contentType
     };
+  }
+
+  async updateProfile(
+    userId: string,
+    profile: {
+      name?: string;
+      avatar?: AuthAvatarUpload;
+      removeAvatar?: boolean;
+    }
+  ): Promise<AuthPublicUser> {
+    const user = await this.dbaccInstance.Auth.findUserById(userId);
+
+    if (user === null) {
+      throw new AuthHttpError(401, 'Authentication required');
+    }
+
+    let updatedUser = user;
+
+    if (profile.name && profile.name !== user.name) {
+      updatedUser = (
+        await this.dbaccInstance.Auth.updateUserById(user._id, {
+          $set: { name: profile.name }
+        })
+      ) || updatedUser;
+    }
+
+    if (profile.removeAvatar === true && updatedUser.avatarUpdatedAt) {
+      await this.dbaccInstance.Auth.deleteUserAvatarByUserId(user._id);
+      updatedUser = (
+        await this.dbaccInstance.Auth.updateUserById(user._id, {
+          $unset: {
+            avatarFileName: '',
+            avatarContentType: '',
+            avatarUpdatedAt: ''
+          }
+        })
+      ) || updatedUser;
+    }
+
+    updatedUser = await this.upsertAvatarIfProvided(updatedUser, profile.avatar);
+    return this.toPublicUser(updatedUser);
+  }
+
+  async changePassword(userId: string, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await this.dbaccInstance.Auth.findUserById(userId);
+
+    if (user === null) {
+      throw new AuthHttpError(401, 'Authentication required');
+    }
+
+    const matchesCurrentPassword = await argon2.verify(user.passwordHash, currentPassword);
+
+    if (matchesCurrentPassword === false) {
+      throw new AuthHttpError(400, 'Current password is incorrect');
+    }
+
+    const passwordHash = await argon2.hash(newPassword, {
+      ...argonOptions,
+      type: argon2.argon2id
+    });
+
+    await this.dbaccInstance.Auth.updateUserById(user._id, {
+      $set: { passwordHash }
+    });
   }
 
   toPublicUser(user: AuthUser): AuthPublicUser {

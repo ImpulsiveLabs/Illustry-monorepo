@@ -11,6 +11,7 @@ describe('dbacc auth lib', () => {
     const sessionUpdateOneExec = buildExec({});
     const sessionUpdateManyExec = buildExec({});
     const emailUpdateManyExec = buildExec({});
+    const emailDeleteManyExec = buildExec({});
     const emailFindOneExec = buildExec({ id: 'email-token' });
     const emailFindByCodeExec = buildExec({ id: 'email-code-token' });
     const passwordUpdateManyExec = buildExec({});
@@ -35,6 +36,7 @@ describe('dbacc auth lib', () => {
       },
       EmailVerificationTokenModel: {
         updateMany: jest.fn(() => emailUpdateManyExec),
+        deleteMany: jest.fn(() => emailDeleteManyExec),
         create: jest.fn(async (data) => ({ created: true, ...data })),
         findOne: jest.fn()
           .mockImplementationOnce(() => emailFindOneExec)
@@ -130,6 +132,9 @@ describe('dbacc auth lib', () => {
       usedAt: { $exists: false },
       expiresAt: { $gt: now }
     });
+
+    await expect(auth.deleteEmailVerificationTokensForUser('user-id')).resolves.toBeUndefined();
+    expect(modelInstance.EmailVerificationTokenModel.deleteMany).toHaveBeenCalledWith({ userId: 'user-id' });
 
     await expect(auth.invalidatePasswordResetTokensForUser('user-id')).resolves.toBeUndefined();
     expect(modelInstance.PasswordResetTokenModel.updateMany).toHaveBeenCalledWith(

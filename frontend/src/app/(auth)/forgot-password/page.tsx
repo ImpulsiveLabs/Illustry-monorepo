@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { FormEvent, useState } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import Input from '@/components/ui/input';
 import { useLocale } from '@/components/providers/locale-provider';
@@ -11,20 +12,16 @@ const ForgotPasswordPage = () => {
   const { t } = useLocale();
   const [email, setEmail] = useState('');
   const [pending, setPending] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
-    setError(null);
-    setMessage(null);
 
     try {
       const response = await requestPasswordReset(email);
-      setMessage(response.message);
+      toast.success(response.message || t('auth.toast.resetLinkSent'));
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setPending(false);
     }
@@ -42,8 +39,6 @@ const ForgotPasswordPage = () => {
           value={email}
           onChange={(event) => setEmail(event.target.value)}
         />
-        {message ? <p className="text-sm text-green-600">{message}</p> : null}
-        {error ? <p className="text-sm text-red-500">{error}</p> : null}
         <Button className="w-full" disabled={pending} type="submit">
           {pending ? t('auth.forgotPassword.pending') : t('auth.forgotPassword.action')}
         </Button>

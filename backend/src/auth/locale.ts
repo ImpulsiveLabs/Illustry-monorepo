@@ -64,6 +64,7 @@ const AUTH_TEXT: Record<AuthLocale, Record<string, string>> = {
     'auth.error.passwordResetTokenInvalid': 'Password reset token is invalid or expired',
     'auth.error.authenticationRequired': 'Authentication required',
     'auth.error.avatarNotFound': 'Avatar not found',
+    'auth.error.currentPasswordIncorrect': 'Current password is incorrect',
     'auth.error.googleOauthNotConfigured': 'Google OAuth is not configured',
     'auth.message.genericIfExists': 'If an account exists, an email was sent'
   },
@@ -77,6 +78,7 @@ const AUTH_TEXT: Record<AuthLocale, Record<string, string>> = {
     'auth.error.passwordResetTokenInvalid': 'Tokenul de resetare a parolei este invalid sau a expirat',
     'auth.error.authenticationRequired': 'Autentificarea este necesara',
     'auth.error.avatarNotFound': 'Avatarul nu a fost gasit',
+    'auth.error.currentPasswordIncorrect': 'Parola actuala este incorecta',
     'auth.error.googleOauthNotConfigured': 'Google OAuth nu este configurat',
     'auth.message.genericIfExists': 'Daca exista un cont, a fost trimis un email'
   }
@@ -92,6 +94,7 @@ const AUTH_TEXT_BY_ENGLISH: Record<string, string> = {
   'Password reset token is invalid or expired': 'auth.error.passwordResetTokenInvalid',
   'Authentication required': 'auth.error.authenticationRequired',
   'Avatar not found': 'auth.error.avatarNotFound',
+  'Current password is incorrect': 'auth.error.currentPasswordIncorrect',
   'Google OAuth is not configured': 'auth.error.googleOauthNotConfigured',
   'If an account exists, an email was sent': 'auth.message.genericIfExists'
 };

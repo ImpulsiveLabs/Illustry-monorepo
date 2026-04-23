@@ -46,6 +46,16 @@ const resetPasswordSchema = z.object({
   password: passwordSchema
 });
 
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: passwordSchema
+});
+
+const updateProfileSchema = z.object({
+  name: nameSchema.optional(),
+  removeAvatar: z.enum(['true', 'false']).optional()
+});
+
 const parseDto = <T>(schema: z.ZodSchema<T>, value: unknown): T => schema.parse(value);
 
 const normalizeEmail = (email: string): string => {
@@ -70,6 +80,8 @@ export {
   resendVerificationSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
+  changePasswordSchema,
+  updateProfileSchema,
   parseDto,
   normalizeEmail,
   nameSchema,

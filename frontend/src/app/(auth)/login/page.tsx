@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { FormEvent, useEffect, useState } from 'react';
 import { LockKeyhole, ShieldCheck } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Input from '@/components/ui/input';
@@ -21,7 +22,6 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [next, setNext] = useState('/projects');
 
   useEffect(() => {
@@ -32,14 +32,16 @@ const LoginPage = () => {
       setNext(fromQuery);
     }
     if (oauthError === 'google_auth_failed' || oauthError === 'google_state_mismatch') {
-      setError(t('auth.login.googleError'));
+      toast.error(t('auth.login.googleError'));
+      params.delete('error');
+      const nextQuery = params.toString();
+      window.history.replaceState({}, '', nextQuery ? `/login?${nextQuery}` : '/login');
     }
   }, [t]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPending(true);
-    setError(null);
 
     try {
       const response = await loginUser(email, password);
@@ -49,7 +51,7 @@ const LoginPage = () => {
         router.push(`/verify-email-required?email=${encodeURIComponent(response.user?.email || email)}`);
       }
     } catch (submissionError) {
-      setError((submissionError as Error).message);
+      toast.error((submissionError as Error).message);
     } finally {
       setPending(false);
     }
@@ -109,7 +111,6 @@ const LoginPage = () => {
                     onChange={(event) => setPassword(event.target.value)}
                   />
                 </div>
-                {error ? <p className="text-sm text-red-500">{error}</p> : null}
                 <Button className="w-full" disabled={pending} type="submit">
                   <LockKeyhole className="mr-2 h-4 w-4" />
                   {pending ? t('auth.login.pending') : t('auth.login.action')}
