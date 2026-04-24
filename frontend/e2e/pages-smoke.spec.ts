@@ -27,7 +27,7 @@ const createActiveProject = async (api: APIRequestContext, projectName: string) 
   const response = await api.post('/api/project', {
     data: {
       projectName,
-      projectDescription: `smoke project ${projectName}`,
+      projectDescription: 'smoke project',
       isActive: true
     }
   });

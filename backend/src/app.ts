@@ -70,8 +70,14 @@ class Illustry {
     this.expressApp.use(express.urlencoded({ extended: false }));
 
     const csrfProtection = csrf({ cookie: true });
+    const isAuthBypassEnabled = process.env.NODE_ENV === 'test' && process.env.AUTH_TEST_BYPASS === '1';
     this.expressApp.use((request, response, next) => {
-      if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') {
+      if (
+        isAuthBypassEnabled
+        || request.method === 'GET'
+        || request.method === 'HEAD'
+        || request.method === 'OPTIONS'
+      ) {
         return next();
       }
       return csrfProtection(request, response, next);

@@ -3,17 +3,7 @@
 import makeRequest from '@/lib/request';
 import getBackendUrl from '@/lib/backend-url';
 import { buildBackendHeaders } from '@/lib/auth-request';
-
-type CurrentUser = {
-  id: string;
-  email: string;
-  name: string;
-  isEmailVerified: boolean;
-  roles: string[];
-  hasAvatar: boolean;
-  avatarUpdatedAt?: string;
-  avatarUrl?: string;
-};
+import type { CurrentUser } from '@/lib/auth-user';
 
 const getCurrentUser = async (): Promise<CurrentUser | null> => {
   const backend = getBackendUrl();
@@ -43,8 +33,4 @@ const getCurrentUser = async (): Promise<CurrentUser | null> => {
 
 export {
   getCurrentUser
-};
-
-export type {
-  CurrentUser
 };

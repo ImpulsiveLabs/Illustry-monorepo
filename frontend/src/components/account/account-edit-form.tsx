@@ -13,7 +13,7 @@ import Label from '@/components/ui/label';
 import Separator from '@/components/ui/separator';
 import { useLocale } from '@/components/providers/locale-provider';
 import { changePassword, updateProfile } from '@/lib/auth-client';
-import type { CurrentUser } from '@/app/_actions/auth';
+import type { CurrentUser } from '@/lib/auth-user';
 
 type AccountEditFormProps = {
   user: CurrentUser;

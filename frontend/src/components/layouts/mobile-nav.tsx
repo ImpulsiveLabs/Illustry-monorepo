@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import {
   Dispatch, ReactNode, SetStateAction, useEffect, useState
 } from 'react';
-import type { CurrentUser } from '@/app/_actions/auth';
+import type { CurrentUser } from '@/lib/auth-user';
 import siteConfig from '@/config/site';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

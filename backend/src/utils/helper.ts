@@ -11,6 +11,16 @@ import FileError from '../errors/fileError';
 import TypeError from '../errors/typeError';
 
 const getStatusCode = (err: Error): number => {
+  if (
+    err.message.startsWith('Error #')
+    || err.message === 'No active project'
+    || err.message === 'No file details were provided'
+    || err.message === 'Invalid file type provided'
+    || err.message === 'Authentication required'
+  ) {
+    return 400;
+  }
+
   if (err instanceof NoDataFoundError) {
     return 404;
   }

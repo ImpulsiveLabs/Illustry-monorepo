@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import Separator from '@/components/ui/separator';
 import { useLocale } from '@/components/providers/locale-provider';
-import type { CurrentUser } from '@/app/_actions/auth';
+import type { CurrentUser } from '@/lib/auth-user';
 
 type AccountOverviewProps = {
   user: CurrentUser;

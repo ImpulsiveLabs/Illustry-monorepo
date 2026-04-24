@@ -1,6 +1,6 @@
 import React from 'react';
 import siteConfig from '@/config/site';
-import type { CurrentUser } from '@/app/_actions/auth';
+import type { CurrentUser } from '@/lib/auth-user';
 import MainNav from './main-nav';
 import MobileNav from './mobile-nav';
 

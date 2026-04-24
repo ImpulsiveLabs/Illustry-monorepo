@@ -53,7 +53,7 @@ const createProject = async (api: APIRequestContext, projectName: string, isActi
   const response = await api.post('/api/project', {
     data: {
       projectName,
-      projectDescription: `frontend e2e project ${projectName}`,
+      projectDescription: 'frontend e2e project',
       isActive
     }
   });
@@ -65,7 +65,7 @@ const createProject = async (api: APIRequestContext, projectName: string, isActi
     const activateResponse = await api.put('/api/project', {
       data: {
         name: projectName,
-        description: `frontend e2e project ${projectName}`,
+        description: 'frontend e2e project',
         isActive
       }
     });
@@ -163,7 +163,7 @@ const openRowActions = async (row: Locator) => {
 const clickMenuLinkByHref = async (page: Page, href: string) => {
   const menuLink = page.locator(`[role="menu"] a[href="${href}"]`).first();
   await expect(menuLink).toBeVisible();
-  await menuLink.click({ force: true });
+  await menuLink.evaluate((element: HTMLAnchorElement) => element.click());
 };
 
 const clickMenuItem = async (page: Page, label: string) => {

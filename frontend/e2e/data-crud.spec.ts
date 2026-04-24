@@ -53,7 +53,7 @@ const createActiveProject = async (api: APIRequestContext, projectName: string) 
   const createProjectResponse = await api.post('/api/project', {
     data: {
       projectName,
-      projectDescription: `frontend e2e project ${projectName}`,
+      projectDescription: 'frontend e2e project',
       isActive: true
     }
   });

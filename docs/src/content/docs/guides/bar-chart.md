@@ -10,7 +10,10 @@ The **Bar Chart** visualization is a versatile and effective tool for representi
 To represent a Bar Chart, you can use the following `AxisChartData` interface:
 
 ```typescript
-{{AxisChartData}}
+type AxisChartData = {
+  headers: string[];
+  values: { [key: string]: number[] };
+};
 ```
 ### Key Attributes
 
