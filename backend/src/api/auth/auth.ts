@@ -14,7 +14,7 @@ import {
   googleOauthScope,
   SESSION_COOKIE_NAME
 } from '../../auth/constants';
-import { createOpaqueToken, safeEqual } from '../../auth/crypto';
+import { createOpaqueToken, hashOpaqueToken, safeEqual } from '../../auth/crypto';
 import { AuthHttpError, GENERIC_IF_EXISTS_MESSAGE } from '../../auth/errors';
 import {
   changePasswordSchema,
@@ -68,6 +68,8 @@ const isGoogleOauthConfigured = () => (
   && googleOauthClientSecret.length > 0
   && googleOauthRedirectUri.length > 0
 );
+
+const hashGoogleOauthState = (state: string) => hashOpaqueToken(`google-oauth-state:${state}`);
 
 const sendAuthError = (response: Response, next: NextFunction, error: unknown, locale = 'en') => {
   if (error instanceof AuthHttpError) {
@@ -407,7 +409,7 @@ const googleStart = (
 
   const nextPath = sanitizeNextPath(typeof request.query.next === 'string' ? request.query.next : undefined);
   const oauthState = createOpaqueToken();
-  const oauthStateCookieValue = createOpaqueToken();
+  const oauthStateCookieValue = hashGoogleOauthState(oauthState);
 
   response.cookie(GOOGLE_OAUTH_STATE_COOKIE_NAME, oauthStateCookieValue, googleOauthCookieOptions);
   response.cookie(GOOGLE_OAUTH_NEXT_COOKIE_NAME, nextPath, googleOauthCookieOptions);
@@ -437,13 +439,19 @@ const googleCallback = async (
 
   const stateFromQuery = typeof request.query.state === 'string' ? request.query.state : '';
   const oauthCode = typeof request.query.code === 'string' ? request.query.code : '';
-  const stateFromCookie = request.cookies?.[GOOGLE_OAUTH_STATE_COOKIE_NAME] || '';
+  const stateHashFromCookie = request.cookies?.[GOOGLE_OAUTH_STATE_COOKIE_NAME] || '';
   const nextPath = sanitizeNextPath(request.cookies?.[GOOGLE_OAUTH_NEXT_COOKIE_NAME]);
 
   response.clearCookie(GOOGLE_OAUTH_STATE_COOKIE_NAME, googleOauthCookieOptions);
   response.clearCookie(GOOGLE_OAUTH_NEXT_COOKIE_NAME, googleOauthCookieOptions);
 
-  if (stateFromCookie.length === 0 || stateFromQuery.length === 0 || safeEqual(stateFromCookie, stateFromQuery) === false) {
+  const stateHashFromQuery = stateFromQuery.length > 0 ? hashGoogleOauthState(stateFromQuery) : '';
+
+  if (
+    stateHashFromCookie.length === 0
+    || stateHashFromQuery.length === 0
+    || safeEqual(stateHashFromCookie, stateHashFromQuery) === false
+  ) {
     clearAuthCookies(response);
     response.redirect(`${appBaseUrl.replace(/\/$/, '')}/login?error=google_state_mismatch`);
     return;

@@ -27,14 +27,10 @@ const toSafeAvatarUrl = (value: string | null | undefined): string | null => {
     return null;
   }
 
-  if (value.startsWith('blob:')) {
-    return value;
-  }
-
   try {
     const parsed = new URL(value);
-    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
-      return parsed.toString();
+    if (parsed.protocol === 'blob:' || parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return encodeURI(parsed.toString());
     }
   } catch {
     return null;
