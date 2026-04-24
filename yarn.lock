@@ -2283,11 +2283,11 @@ __metadata:
     "@types/express": "npm:4.17.21"
     "@types/node": "npm:20.10.2"
     "@types/nodemailer": "npm:7.0.3"
-    "@types/sanitize-html": "npm:^2.16.1"
+    "@types/sanitize-html": "npm:2.16.1"
     dotenv: "npm:16.3.1"
     express: "npm:4.21.2"
     nodemailer: "npm:7.0.10"
-    sanitize-html: "npm:^2.17.3"
+    sanitize-html: "npm:2.17.3"
     typescript: "npm:5.5.4"
     zod: "npm:3.22.4"
   languageName: unknown
@@ -2298,9 +2298,10 @@ __metadata:
   resolution: "@impulsivelabs/illustry-server@workspace:backend"
   dependencies:
     "@illustry/types": "npm:1.0.1"
-    "@playwright/test": "npm:^1.58.2"
+    "@playwright/test": "npm:1.58.2"
     "@types/cookie-parser": "npm:1.4.10"
     "@types/cors": "npm:2.8.17"
+    "@types/csurf": "npm:^1.11.5"
     "@types/exceljs": "npm:0.5.3"
     "@types/express": "npm:4.17.21"
     "@types/jest": "npm:29.5.12"
@@ -2961,7 +2962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@playwright/test@npm:1.58.2, @playwright/test@npm:^1.58.2":
+"@playwright/test@npm:1.58.2":
   version: 1.58.2
   resolution: "@playwright/test@npm:1.58.2"
   dependencies:
@@ -5136,6 +5137,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/csurf@npm:^1.11.5":
+  version: 1.11.5
+  resolution: "@types/csurf@npm:1.11.5"
+  dependencies:
+    "@types/express-serve-static-core": "npm:*"
+  checksum: 10/a51b0f3276a8c88eb986709790c227c5cc4b7d663136ee360edd17ac88df1dab5d8ccf9feed737ee46530243bff11f66ead725c585e417c1ca710d0b0245ded3
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.0.0":
   version: 4.1.12
   resolution: "@types/debug@npm:4.1.12"
@@ -5210,6 +5220,18 @@ __metadata:
   dependencies:
     "@types/node": "npm:*"
   checksum: 10/6e6d40b4a6597647f488ab03166fa6d8561a30379fc956cb1aa570a23c02cd2e3700db2b35fd2f090daf9dfb137fd572094e157464de88928c0ee016483182d0
+  languageName: node
+  linkType: hard
+
+"@types/express-serve-static-core@npm:*":
+  version: 5.1.1
+  resolution: "@types/express-serve-static-core@npm:5.1.1"
+  dependencies:
+    "@types/node": "npm:*"
+    "@types/qs": "npm:*"
+    "@types/range-parser": "npm:*"
+    "@types/send": "npm:*"
+  checksum: 10/7f3d8cf7e68764c9f3e8f6a12825b69ccf5287347fc1c20b29803d4f08a4abc1153ae11d7258852c61aad50f62ef72d4c1b9c97092b0a90462c3dddec2f6026c
   languageName: node
   linkType: hard
 
@@ -5515,7 +5537,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/sanitize-html@npm:^2.16.1":
+"@types/sanitize-html@npm:2.16.1":
   version: 2.16.1
   resolution: "@types/sanitize-html@npm:2.16.1"
   dependencies:
@@ -16773,7 +16795,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sanitize-html@npm:^2.17.3":
+"sanitize-html@npm:2.17.3":
   version: 2.17.3
   resolution: "sanitize-html@npm:2.17.3"
   dependencies:
