@@ -1,10 +1,9 @@
-import { createHash, randomBytes, timingSafeEqual } from 'crypto';
+import { createHash, randomInt, randomBytes, timingSafeEqual } from 'crypto';
 
 const createOpaqueToken = () => randomBytes(32).toString('base64url');
 const createNumericCode = (digits = 6): string => {
   const max = 10 ** digits;
-  const randomValue = randomBytes(4).readUInt32BE(0);
-  return String(randomValue % max).padStart(digits, '0');
+  return String(randomInt(0, max)).padStart(digits, '0');
 };
 
 const hashOpaqueToken = (token: string) => createHash('sha256').update(token, 'utf8').digest('hex');
