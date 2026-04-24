@@ -11,6 +11,7 @@ import DashboardRoutes from './routes/dashboard/dashboard';
 import logger from './config/logger';
 import AuthRoutes from './routes/auth/auth';
 import { parseCorsAllowlist } from './auth/constants';
+import Factory from './factory';
 
 import 'dotenv/config';
 
@@ -85,6 +86,7 @@ class Illustry {
 
   async start(): Promise<void> {
     try {
+      await Factory.getInstance().connect();
       await new Promise<void>((resolve, reject) => {
         this.httpServer.on('error', (error) => {
           logger.error(error);
@@ -95,7 +97,8 @@ class Illustry {
         });
       });
     } catch (error) {
-      logger.error('Error on starting Illustry service');
+      logger.error(error instanceof Error ? error.message : 'Error on starting Illustry service');
+      this.httpServer.close();
       process.exit(-1);
     }
   }

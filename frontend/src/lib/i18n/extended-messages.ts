@@ -453,7 +453,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Ir a Proyectos",
     "error.dashboardNotFoundTitle": "Panel de control no encontrado",
     "error.dashboardExpiredDescription": "Es posible que el tablero haya caducado.",
-    "error.goToDashboards": "Ir a paneles"
+    "error.goToDashboards": "Ir a paneles",
+    "theme.searchTypes": "Buscar tipos de visualización...",
+    "theme.noMatchingTypes": "No hay tipos de visualización coincidentes."
   },
   "fr": {
     "common.name": "Nom",
@@ -603,7 +605,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Aller aux projets",
     "error.dashboardNotFoundTitle": "Tableau de bord introuvable",
     "error.dashboardExpiredDescription": "Le tableau de bord a peut-être expiré.",
-    "error.goToDashboards": "Accédez aux tableaux de bord"
+    "error.goToDashboards": "Accédez aux tableaux de bord",
+    "theme.searchTypes": "Rechercher des types de visualisation...",
+    "theme.noMatchingTypes": "Aucun type de visualisation correspondant."
   },
   "de": {
     "common.name": "Name",
@@ -753,7 +757,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Gehen Sie zu Projekte",
     "error.dashboardNotFoundTitle": "Dashboard nicht gefunden",
     "error.dashboardExpiredDescription": "Das Dashboard ist möglicherweise abgelaufen.",
-    "error.goToDashboards": "Gehen Sie zu Dashboards"
+    "error.goToDashboards": "Gehen Sie zu Dashboards",
+    "theme.searchTypes": "Visualisierungstypen suchen...",
+    "theme.noMatchingTypes": "Keine passenden Visualisierungstypen."
   },
   "it": {
     "common.name": "Nome",
@@ -903,7 +909,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Vai a Progetti",
     "error.dashboardNotFoundTitle": "Cruscotto non trovato",
     "error.dashboardExpiredDescription": "La dashboard potrebbe essere scaduta.",
-    "error.goToDashboards": "Vai a Dashboard"
+    "error.goToDashboards": "Vai a Dashboard",
+    "theme.searchTypes": "Cerca tipi di visualizzazione...",
+    "theme.noMatchingTypes": "Nessun tipo di visualizzazione corrispondente."
   },
   "pt": {
     "common.name": "Nome",
@@ -1053,7 +1061,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Vá para Projetos",
     "error.dashboardNotFoundTitle": "Painel não encontrado",
     "error.dashboardExpiredDescription": "O painel pode ter expirado.",
-    "error.goToDashboards": "Vá para painéis"
+    "error.goToDashboards": "Vá para painéis",
+    "theme.searchTypes": "Pesquisar tipos de visualização...",
+    "theme.noMatchingTypes": "Nenhum tipo de visualização correspondente."
   },
   "ru": {
     "common.name": "Имя",
@@ -1203,7 +1213,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Перейти в Проекты",
     "error.dashboardNotFoundTitle": "Панель управления не найдена",
     "error.dashboardExpiredDescription": "Возможно, срок действия панели управления истек.",
-    "error.goToDashboards": "Перейти к панелям мониторинга"
+    "error.goToDashboards": "Перейти к панелям мониторинга",
+    "theme.searchTypes": "Искать типы визуализаций...",
+    "theme.noMatchingTypes": "Нет подходящих типов визуализаций."
   },
   "uk": {
     "common.name": "Ім'я",
@@ -1353,7 +1365,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Перейдіть до Проекти",
     "error.dashboardNotFoundTitle": "Інформаційна панель не знайдена",
     "error.dashboardExpiredDescription": "Можливо, закінчився термін дії інформаційної панелі.",
-    "error.goToDashboards": "Перейдіть до інформаційних панелей"
+    "error.goToDashboards": "Перейдіть до інформаційних панелей",
+    "theme.searchTypes": "Шукати типи візуалізацій...",
+    "theme.noMatchingTypes": "Немає відповідних типів візуалізацій."
   },
   "ro": {
     "common.name": "Nume",
@@ -1503,7 +1517,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Accesați Proiecte",
     "error.dashboardNotFoundTitle": "Tabloul de bord nu a fost găsit",
     "error.dashboardExpiredDescription": "Este posibil ca tabloul de bord să fi expirat.",
-    "error.goToDashboards": "Accesați Tablouri de bord"
+    "error.goToDashboards": "Accesați Tablouri de bord",
+    "theme.searchTypes": "Cauta tipuri de vizualizare...",
+    "theme.noMatchingTypes": "Nu exista tipuri de vizualizare potrivite."
   },
   "nl": {
     "common.name": "Naam",
@@ -1653,7 +1669,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Ga naar Projecten",
     "error.dashboardNotFoundTitle": "Dashboard niet gevonden",
     "error.dashboardExpiredDescription": "Het dashboard is mogelijk verlopen.",
-    "error.goToDashboards": "Ga naar Dashboards"
+    "error.goToDashboards": "Ga naar Dashboards",
+    "theme.searchTypes": "Visualisatietypen zoeken...",
+    "theme.noMatchingTypes": "Geen overeenkomende visualisatietypen."
   },
   "pl": {
     "common.name": "Nazwa",
@@ -1803,7 +1821,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Przejdź do Projektów",
     "error.dashboardNotFoundTitle": "Nie znaleziono panelu kontrolnego",
     "error.dashboardExpiredDescription": "Pulpit nawigacyjny mógł utracić ważność.",
-    "error.goToDashboards": "Przejdź do Paneli kontrolnych"
+    "error.goToDashboards": "Przejdź do Paneli kontrolnych",
+    "theme.searchTypes": "Szukaj typów wizualizacji...",
+    "theme.noMatchingTypes": "Brak pasujących typów wizualizacji."
   },
   "tr": {
     "common.name": "İsim",
@@ -1953,7 +1973,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Projelere Git",
     "error.dashboardNotFoundTitle": "Kontrol paneli bulunamadı",
     "error.dashboardExpiredDescription": "Kontrol panelinin süresi dolmuş olabilir.",
-    "error.goToDashboards": "Kontrol Panellerine Git"
+    "error.goToDashboards": "Kontrol Panellerine Git",
+    "theme.searchTypes": "Görselleştirme türlerini ara...",
+    "theme.noMatchingTypes": "Eşleşen görselleştirme türü yok."
   },
   "el": {
     "common.name": "Ονομα",
@@ -2103,7 +2125,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Μεταβείτε στα Έργα",
     "error.dashboardNotFoundTitle": "Ο πίνακας ελέγχου δεν βρέθηκε",
     "error.dashboardExpiredDescription": "Ο πίνακας εργαλείων μπορεί να έχει λήξει.",
-    "error.goToDashboards": "Μεταβείτε στους Πίνακες ελέγχου"
+    "error.goToDashboards": "Μεταβείτε στους Πίνακες ελέγχου",
+    "theme.searchTypes": "Αναζήτηση τύπων οπτικοποίησης...",
+    "theme.noMatchingTypes": "Δεν υπάρχουν αντίστοιχοι τύποι οπτικοποίησης."
   },
   "ar": {
     "common.name": "اسم",
@@ -2253,7 +2277,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "اذهب إلى المشاريع",
     "error.dashboardNotFoundTitle": "لم يتم العثور على لوحة المعلومات",
     "error.dashboardExpiredDescription": "ربما انتهت صلاحية لوحة القيادة.",
-    "error.goToDashboards": "انتقل إلى لوحات المعلومات"
+    "error.goToDashboards": "انتقل إلى لوحات المعلومات",
+    "theme.searchTypes": "ابحث عن أنواع التصور...",
+    "theme.noMatchingTypes": "لا توجد أنواع تصور مطابقة."
   },
   "he": {
     "common.name": "שֵׁם",
@@ -2403,7 +2429,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "עבור אל פרויקטים",
     "error.dashboardNotFoundTitle": "לוח המחוונים לא נמצא",
     "error.dashboardExpiredDescription": "ייתכן שפג תוקפו של לוח המחוונים.",
-    "error.goToDashboards": "עבור אל לוחות מחוונים"
+    "error.goToDashboards": "עבור אל לוחות מחוונים",
+    "theme.searchTypes": "חפש סוגי ויזואליזציה...",
+    "theme.noMatchingTypes": "אין סוגי ויזואליזציה תואמים."
   },
   "hi": {
     "common.name": "नाम",
@@ -2553,7 +2581,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "प्रोजेक्ट्स पर जाएं",
     "error.dashboardNotFoundTitle": "डैशबोर्ड नहीं मिला",
     "error.dashboardExpiredDescription": "हो सकता है कि डैशबोर्ड की समय सीमा समाप्त हो गई हो.",
-    "error.goToDashboards": "डैशबोर्ड पर जाएँ"
+    "error.goToDashboards": "डैशबोर्ड पर जाएँ",
+    "theme.searchTypes": "विज़ुअलाइज़ेशन प्रकार खोजें...",
+    "theme.noMatchingTypes": "कोई मेल खाता विज़ुअलाइज़ेशन प्रकार नहीं मिला."
   },
   "bn": {
     "common.name": "নাম",
@@ -2703,7 +2733,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "প্রকল্পগুলিতে যান",
     "error.dashboardNotFoundTitle": "ড্যাশবোর্ড পাওয়া যায়নি",
     "error.dashboardExpiredDescription": "ড্যাশবোর্ডের মেয়াদ শেষ হয়ে যেতে পারে।",
-    "error.goToDashboards": "ড্যাশবোর্ডে যান"
+    "error.goToDashboards": "ড্যাশবোর্ডে যান",
+    "theme.searchTypes": "ভিজ্যুয়ালাইজেশনের ধরন খুঁজুন...",
+    "theme.noMatchingTypes": "কোনো মিলযুক্ত ভিজ্যুয়ালাইজেশন ধরন নেই."
   },
   "ur": {
     "common.name": "نام",
@@ -2853,7 +2885,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "پروجیکٹس پر جائیں۔",
     "error.dashboardNotFoundTitle": "ڈیش بورڈ نہیں ملا",
     "error.dashboardExpiredDescription": "ڈیش بورڈ کی میعاد ختم ہو سکتی ہے۔",
-    "error.goToDashboards": "ڈیش بورڈز پر جائیں۔"
+    "error.goToDashboards": "ڈیش بورڈز پر جائیں۔",
+    "theme.searchTypes": "تصور کی اقسام تلاش کریں...",
+    "theme.noMatchingTypes": "کوئی مماثل تصور کی قسم نہیں ملی۔"
   },
   "id": {
     "common.name": "Nama",
@@ -3003,7 +3037,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Buka Proyek",
     "error.dashboardNotFoundTitle": "Dasbor tidak ditemukan",
     "error.dashboardExpiredDescription": "Dasbor mungkin telah kedaluwarsa.",
-    "error.goToDashboards": "Buka Dasbor"
+    "error.goToDashboards": "Buka Dasbor",
+    "theme.searchTypes": "Cari jenis visualisasi...",
+    "theme.noMatchingTypes": "Tidak ada jenis visualisasi yang cocok."
   },
   "vi": {
     "common.name": "Tên",
@@ -3153,7 +3189,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "Đi đến Dự án",
     "error.dashboardNotFoundTitle": "Không tìm thấy bảng điều khiển",
     "error.dashboardExpiredDescription": "Bảng điều khiển có thể đã hết hạn.",
-    "error.goToDashboards": "Đi tới Trang tổng quan"
+    "error.goToDashboards": "Đi tới Trang tổng quan",
+    "theme.searchTypes": "Tìm kiếm loại trực quan hóa...",
+    "theme.noMatchingTypes": "Không có loại trực quan hóa phù hợp."
   },
   "th": {
     "common.name": "ชื่อ",
@@ -3303,7 +3341,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "ไปที่โครงการ",
     "error.dashboardNotFoundTitle": "ไม่พบแดชบอร์ด",
     "error.dashboardExpiredDescription": "แดชบอร์ดอาจหมดอายุแล้ว",
-    "error.goToDashboards": "ไปที่แดชบอร์ด"
+    "error.goToDashboards": "ไปที่แดชบอร์ด",
+    "theme.searchTypes": "ค้นหาประเภทการแสดงผล...",
+    "theme.noMatchingTypes": "ไม่พบประเภทการแสดงผลที่ตรงกัน"
   },
   "ja": {
     "common.name": "名前",
@@ -3453,7 +3493,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "プロジェクトに移動",
     "error.dashboardNotFoundTitle": "ダッシュボードが見つかりません",
     "error.dashboardExpiredDescription": "ダッシュボードの有効期限が切れている可能性があります。",
-    "error.goToDashboards": "ダッシュボードに移動"
+    "error.goToDashboards": "ダッシュボードに移動",
+    "theme.searchTypes": "可視化タイプを検索...",
+    "theme.noMatchingTypes": "一致する可視化タイプがありません。"
   },
   "ko": {
     "common.name": "이름",
@@ -3603,7 +3645,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "프로젝트로 이동",
     "error.dashboardNotFoundTitle": "대시보드를 찾을 수 없습니다.",
     "error.dashboardExpiredDescription": "대시보드가 ​​만료되었을 수 있습니다.",
-    "error.goToDashboards": "대시보드로 이동"
+    "error.goToDashboards": "대시보드로 이동",
+    "theme.searchTypes": "시각화 유형 검색...",
+    "theme.noMatchingTypes": "일치하는 시각화 유형이 없습니다."
   },
   "zh": {
     "common.name": "姓名",
@@ -3753,7 +3797,9 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "error.goToProjects": "前往项目",
     "error.dashboardNotFoundTitle": "找不到仪表板",
     "error.dashboardExpiredDescription": "仪表板可能已过期。",
-    "error.goToDashboards": "转到仪表板"
+    "error.goToDashboards": "转到仪表板",
+    "theme.searchTypes": "搜索可视化类型...",
+    "theme.noMatchingTypes": "没有匹配的可视化类型。"
   }
 };
 
