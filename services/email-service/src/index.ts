@@ -152,11 +152,22 @@ const requireApiKey: express.RequestHandler = (request, response, next) => {
   next();
 };
 
+const escapeHtml = (value: string): string =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
 const getVerificationEmailContent = (
   locale: 'en' | 'ro',
   verificationCode: string,
   verificationUrl: string
 ) => {
+  const safeVerificationCode = escapeHtml(verificationCode);
+  const safeVerificationUrl = escapeHtml(verificationUrl);
+
   if (locale === 'ro') {
     return {
       subject: 'Codul tau de verificare Illustry',
@@ -168,8 +179,8 @@ const getVerificationEmailContent = (
       ].join('\n\n'),
       html: [
         '<p>Bine ai venit in Illustry.</p>',
-        `<p>Codul tau de verificare este: <strong style="font-size:20px;letter-spacing:2px;">${verificationCode}</strong></p>`,
-        `<p>Poti verifica si folosind acest link: <a href="${verificationUrl}">Verifica emailul</a></p>`,
+        `<p>Codul tau de verificare este: <strong style="font-size:20px;letter-spacing:2px;">${safeVerificationCode}</strong></p>`,
+        `<p>Poti verifica si folosind acest link: <a href="${safeVerificationUrl}">Verifica emailul</a></p>`,
         '<p>Acest cod expira curand si poate fi folosit o singura data.</p>'
       ].join('')
     };
@@ -185,8 +196,8 @@ const getVerificationEmailContent = (
     ].join('\n\n'),
     html: [
       '<p>Welcome to Illustry.</p>',
-      `<p>Your verification code is: <strong style="font-size:20px;letter-spacing:2px;">${verificationCode}</strong></p>`,
-      `<p>You can also verify using this link: <a href="${verificationUrl}">Verify email</a></p>`,
+      `<p>Your verification code is: <strong style="font-size:20px;letter-spacing:2px;">${safeVerificationCode}</strong></p>`,
+      `<p>You can also verify using this link: <a href="${safeVerificationUrl}">Verify email</a></p>`,
       '<p>This code expires soon and can be used only once.</p>'
     ].join('')
   };
