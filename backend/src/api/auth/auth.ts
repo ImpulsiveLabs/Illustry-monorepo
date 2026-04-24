@@ -407,8 +407,9 @@ const googleStart = (
 
   const nextPath = sanitizeNextPath(typeof request.query.next === 'string' ? request.query.next : undefined);
   const oauthState = createOpaqueToken();
+  const oauthStateCookieValue = createOpaqueToken();
 
-  response.cookie(GOOGLE_OAUTH_STATE_COOKIE_NAME, oauthState, googleOauthCookieOptions);
+  response.cookie(GOOGLE_OAUTH_STATE_COOKIE_NAME, oauthStateCookieValue, googleOauthCookieOptions);
   response.cookie(GOOGLE_OAUTH_NEXT_COOKIE_NAME, nextPath, googleOauthCookieOptions);
 
   const googleParams = new URLSearchParams({
