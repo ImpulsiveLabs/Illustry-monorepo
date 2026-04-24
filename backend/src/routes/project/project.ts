@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import * as projectAPI from '../../api/project/project';
 import {
   requireAuthenticatedUser,
@@ -6,7 +6,7 @@ import {
   requireVerifiedEmail
 } from '../../auth/middleware';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 router.use(requireAuthenticatedUser, requireVerifiedEmail);
 

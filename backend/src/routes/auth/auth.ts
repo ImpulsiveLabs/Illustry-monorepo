@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import multer from 'multer';
 import * as authAPI from '../../api/auth/auth';
 import {
@@ -11,7 +11,7 @@ import {
   requireCsrf
 } from '../../auth/middleware';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const upload = multer({
   storage: multer.memoryStorage(),

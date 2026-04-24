@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, type Router as ExpressRouter } from 'express';
 import multer from 'multer';
 import * as VisualizationAPI from '../../api/visualization/visualization';
 import {
@@ -7,7 +7,7 @@ import {
   requireVerifiedEmail
 } from '../../auth/middleware';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
 const storage = multer.diskStorage({ });
 const upload = multer({

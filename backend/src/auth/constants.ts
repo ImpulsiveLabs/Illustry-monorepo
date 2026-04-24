@@ -5,7 +5,6 @@ const DEFAULT_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 
 const SESSION_COOKIE_NAME = process.env.AUTH_SESSION_COOKIE_NAME || 'illustry_sid';
 const CSRF_COOKIE_NAME = process.env.AUTH_CSRF_COOKIE_NAME || 'illustry_csrf';
-const GOOGLE_OAUTH_STATE_COOKIE_NAME = process.env.GOOGLE_OAUTH_STATE_COOKIE_NAME || 'illustry_google_state';
 const GOOGLE_OAUTH_NEXT_COOKIE_NAME = process.env.GOOGLE_OAUTH_NEXT_COOKIE_NAME || 'illustry_google_next';
 
 const isProduction = process.env.NODE_ENV === 'production';
@@ -63,7 +62,6 @@ const parseCorsAllowlist = (): string[] => {
 export {
   SESSION_COOKIE_NAME,
   CSRF_COOKIE_NAME,
-  GOOGLE_OAUTH_STATE_COOKIE_NAME,
   GOOGLE_OAUTH_NEXT_COOKIE_NAME,
   cookieDomain,
   cookieSecure,
