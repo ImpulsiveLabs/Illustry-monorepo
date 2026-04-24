@@ -152,11 +152,31 @@ const requireApiKey: express.RequestHandler = (request, response, next) => {
   next();
 };
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+
+const toSafeHref = (value: string) => {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? parsed.toString() : '#';
+  } catch {
+    return '#';
+  }
+};
+
 const escapeHtml = (value: string): string =>
   value
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
+  const safeVerificationCode = escapeHtml(verificationCode);
+  const safeVerificationUrl = escapeHtml(toSafeHref(verificationUrl));
+
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
@@ -168,8 +188,8 @@ const getVerificationEmailContent = (
   const safeVerificationCode = escapeHtml(verificationCode);
   const safeVerificationUrl = escapeHtml(verificationUrl);
 
-  if (locale === 'ro') {
-    return {
+        `<p>Codul tau de verificare este: <strong style="font-size:20px;letter-spacing:2px;">${safeVerificationCode}</strong></p>`,
+        `<p>Poti verifica si folosind acest link: <a href="${safeVerificationUrl}">Verifica emailul</a></p>`,
       subject: 'Codul tau de verificare Illustry',
       text: [
         'Bine ai venit in Illustry.',
@@ -185,8 +205,8 @@ const getVerificationEmailContent = (
       ].join('')
     };
   }
-
-  return {
+      `<p>Your verification code is: <strong style="font-size:20px;letter-spacing:2px;">${safeVerificationCode}</strong></p>`,
+      `<p>You can also verify using this link: <a href="${safeVerificationUrl}">Verify email</a></p>`,
     subject: 'Your Illustry verification code',
     text: [
       'Welcome to Illustry.',
