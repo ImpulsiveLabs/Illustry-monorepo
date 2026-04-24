@@ -3,6 +3,7 @@ import nodemailer from 'nodemailer';
 import { z } from 'zod';
 import 'dotenv/config';
 import { AddressInfo } from 'net';
+import sanitizeHtml from 'sanitize-html';
 
 const app = express();
 
@@ -132,7 +133,14 @@ const sendEmail = async (options: {
     to: options.to,
     subject: options.subject,
     text: options.text,
-    html: options.html
+    html: sanitizeHtml(options.html, {
+      allowedTags: ['p', 'strong', 'a'],
+      allowedAttributes: {
+        a: ['href'],
+        strong: ['style']
+      },
+      allowedSchemes: ['http', 'https', 'mailto']
+    })
   });
 };
 
