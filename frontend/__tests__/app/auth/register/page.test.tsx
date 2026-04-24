@@ -3,9 +3,11 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { pushMock, registerUserMock } = vi.hoisted(() => ({
+const { pushMock, registerUserMock, toastErrorMock, toastSuccessMock } = vi.hoisted(() => ({
   pushMock: vi.fn(),
-  registerUserMock: vi.fn()
+  registerUserMock: vi.fn(),
+  toastErrorMock: vi.fn(),
+  toastSuccessMock: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
@@ -14,6 +16,13 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/lib/auth-client', () => ({
   registerUser: registerUserMock
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: toastErrorMock,
+    success: toastSuccessMock
+  }
 }));
 
 import RegisterPage from '@/app/(auth)/register/page';
@@ -71,6 +80,7 @@ describe('RegisterPage', () => {
     });
 
     expect(pushMock).toHaveBeenCalledWith('/verify-email-required?email=user%40example.com');
+    expect(toastSuccessMock).toHaveBeenCalledWith('Account created. Check your inbox for the verification email.');
   });
 
   it('shows submission errors and resets the pending state', async () => {
@@ -84,7 +94,9 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText(/password/i), 'StrongPassword1!');
     await user.click(screen.getByRole('button', { name: /create account/i }));
 
-    expect(await screen.findByText('Registration failed')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Registration failed');
+    });
     expect(screen.getByRole('button', { name: /create account/i })).toBeEnabled();
     expect(pushMock).not.toHaveBeenCalled();
   });

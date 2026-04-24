@@ -3,11 +3,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { pushMock, loginUserMock, isGoogleAuthEnabledMock, getGoogleAuthStartUrlMock } = vi.hoisted(() => ({
+const {
+  pushMock,
+  loginUserMock,
+  isGoogleAuthEnabledMock,
+  getGoogleAuthStartUrlMock,
+  toastErrorMock
+} = vi.hoisted(() => ({
   pushMock: vi.fn(),
   loginUserMock: vi.fn(),
   isGoogleAuthEnabledMock: vi.fn(),
-  getGoogleAuthStartUrlMock: vi.fn()
+  getGoogleAuthStartUrlMock: vi.fn(),
+  toastErrorMock: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
@@ -18,6 +25,12 @@ vi.mock('@/lib/auth-client', () => ({
   loginUser: loginUserMock,
   isGoogleAuthEnabled: isGoogleAuthEnabledMock,
   getGoogleAuthStartUrl: getGoogleAuthStartUrlMock
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: toastErrorMock
+  }
 }));
 
 import LoginPage from '@/app/(auth)/login/page';
@@ -34,7 +47,9 @@ describe('LoginPage', () => {
     window.history.replaceState({}, '', '/login?next=%2Fdashboards&error=google_auth_failed');
     render(<LoginPage />);
 
-    expect(await screen.findByText('Google sign-in failed. Please try again.')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Google sign-in failed. Please try again.');
+    });
 
     const user = userEvent.setup();
     loginUserMock.mockResolvedValue({ user: { email: 'user@example.com', isEmailVerified: true } });
@@ -64,7 +79,9 @@ describe('LoginPage', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(await screen.findByText('Invalid credentials')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Invalid credentials');
+    });
   });
 
   it('shows the google button when enabled and starts the google flow', async () => {

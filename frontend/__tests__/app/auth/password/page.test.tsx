@@ -3,10 +3,18 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { pushMock, requestPasswordResetMock, resetPasswordMock } = vi.hoisted(() => ({
+const {
+  pushMock,
+  requestPasswordResetMock,
+  resetPasswordMock,
+  toastErrorMock,
+  toastSuccessMock
+} = vi.hoisted(() => ({
   pushMock: vi.fn(),
   requestPasswordResetMock: vi.fn(),
-  resetPasswordMock: vi.fn()
+  resetPasswordMock: vi.fn(),
+  toastErrorMock: vi.fn(),
+  toastSuccessMock: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
@@ -16,6 +24,13 @@ vi.mock('next/navigation', () => ({
 vi.mock('@/lib/auth-client', () => ({
   requestPasswordReset: requestPasswordResetMock,
   resetPassword: resetPasswordMock
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    error: toastErrorMock,
+    success: toastSuccessMock
+  }
 }));
 
 import ForgotPasswordPage from '@/app/(auth)/forgot-password/page';
@@ -37,10 +52,14 @@ describe('ForgotPasswordPage', () => {
 
     await user.type(screen.getByPlaceholderText(/email/i), 'user@example.com');
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
-    expect(await screen.findByText('Reset email sent')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith('Reset email sent');
+    });
 
     await user.click(screen.getByRole('button', { name: /send reset link/i }));
-    expect(await screen.findByText('Reset failed')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Reset failed');
+    });
   });
 });
 
@@ -81,7 +100,9 @@ describe('ResetPasswordPage', () => {
     await user.type(screen.getByPlaceholderText(/new password/i), 'Secret123!Secret');
     await user.click(screen.getByRole('button', { name: /update password/i }));
 
-    expect(await screen.findByText('Token expired')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Token expired');
+    });
     expect(screen.getByRole('button', { name: /update password/i })).toBeEnabled();
   });
 });

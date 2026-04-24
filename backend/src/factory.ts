@@ -38,7 +38,7 @@ class Factory {
         serverSelectionTimeoutMS: Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 10000)
       }
     );
-    this.dbConnection.on('error', (error) => {
+    this.dbConnection.on?.('error', (error) => {
       logger.error(Factory.getReadableMongoError(error));
     });
     Factory._dbaccInstance = new DbaccInstance(this.dbConnection);

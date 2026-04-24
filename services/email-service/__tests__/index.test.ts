@@ -94,6 +94,7 @@ describe('email service', () => {
   it('uses Resend directly when RESEND_API_KEY is configured', async () => {
     process.env.RESEND_API_KEY = 're_test';
     process.env.RESEND_TEST_EMAIL = 'owner@example.com';
+    process.env.SMTP_FROM_EMAIL = 'Illustry <onboarding@resend.dev>';
     delete process.env.SMTP_HOST;
     const originalFetch = global.fetch;
     const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -130,9 +131,12 @@ describe('email service', () => {
         Authorization: 'Bearer re_test'
       })
     }));
-    const resendRequestBody = JSON.parse(fetchMock.mock.calls.find((call) => call[0] === 'https://api.resend.com/emails')?.[1]?.body as string);
+    const resendCall = fetchMock.mock.calls.find((call: Parameters<typeof fetch>) => (
+      call[0] === 'https://api.resend.com/emails'
+    ));
+    const resendRequestBody = JSON.parse(resendCall?.[1]?.body as string);
     expect(resendRequestBody).toEqual(expect.objectContaining({
-      from: 'no-reply@test.local',
+      from: 'Illustry <onboarding@resend.dev>',
       to: ['owner@example.com'],
       subject: 'Your Illustry verification code'
     }));

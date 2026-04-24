@@ -3,21 +3,39 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { pushMock, verifyEmailCodeMock, resendVerificationMock, verifyEmailTokenMock } = vi.hoisted(() => ({
+const {
+  pushMock,
+  replaceMock,
+  verifyEmailCodeMock,
+  resendVerificationMock,
+  verifyEmailTokenMock,
+  toastSuccessMock,
+  toastErrorMock
+} = vi.hoisted(() => ({
   pushMock: vi.fn(),
+  replaceMock: vi.fn(),
   verifyEmailCodeMock: vi.fn(),
   resendVerificationMock: vi.fn(),
-  verifyEmailTokenMock: vi.fn()
+  verifyEmailTokenMock: vi.fn(),
+  toastSuccessMock: vi.fn(),
+  toastErrorMock: vi.fn()
 }));
 
 vi.mock('next/navigation', () => ({
-  useRouter: () => ({ push: pushMock })
+  useRouter: () => ({ push: pushMock, replace: replaceMock })
 }));
 
 vi.mock('@/lib/auth-client', () => ({
   verifyEmailCode: verifyEmailCodeMock,
   resendVerification: resendVerificationMock,
   verifyEmailToken: verifyEmailTokenMock
+}));
+
+vi.mock('sonner', () => ({
+  toast: {
+    success: toastSuccessMock,
+    error: toastErrorMock
+  }
 }));
 
 import VerifyEmailRequiredPage from '@/app/(auth)/verify-email-required/page';
@@ -47,7 +65,9 @@ describe('VerifyEmailRequiredPage', () => {
     });
 
     await user.click(screen.getByRole('button', { name: /resend verification code/i }));
-    expect(await screen.findByText('Verification sent again')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith('Verification sent again');
+    });
   });
 
   it('shows verification and resend errors', async () => {
@@ -59,10 +79,14 @@ describe('VerifyEmailRequiredPage', () => {
 
     await user.type(screen.getByPlaceholderText(/6-digit verification code/i), '123456');
     await user.click(screen.getByRole('button', { name: /verify code/i }));
-    expect(await screen.findByText('Bad code')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Bad code');
+    });
 
     await user.click(screen.getByRole('button', { name: /resend verification code/i }));
-    expect(await screen.findByText('Retry later')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Retry later');
+    });
   });
 });
 
@@ -80,25 +104,21 @@ describe('VerifyEmailPage', () => {
   it('verifies the token and redirects to projects', async () => {
     window.history.replaceState({}, '', '/verify-email?token=token-1');
     verifyEmailTokenMock.mockResolvedValue({ ok: true });
-    const user = userEvent.setup();
-
     render(<VerifyEmailPage />);
 
-    await user.click(screen.getByRole('button', { name: /verify email/i }));
     await waitFor(() => {
       expect(verifyEmailTokenMock).toHaveBeenCalledWith('token-1');
-      expect(pushMock).toHaveBeenCalledWith('/projects');
+      expect(replaceMock).toHaveBeenCalledWith('/projects');
     });
   });
 
   it('shows verification errors', async () => {
     window.history.replaceState({}, '', '/verify-email?token=token-1');
     verifyEmailTokenMock.mockRejectedValue(new Error('Token invalid'));
-    const user = userEvent.setup();
-
     render(<VerifyEmailPage />);
 
-    await user.click(screen.getByRole('button', { name: /verify email/i }));
-    expect(await screen.findByText('Token invalid')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith('Token invalid');
+    });
   });
 });

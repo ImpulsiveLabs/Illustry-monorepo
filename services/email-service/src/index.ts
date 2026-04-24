@@ -5,7 +5,7 @@ import 'dotenv/config';
 import { AddressInfo } from 'net';
 import sanitizeHtml from 'sanitize-html';
 
-const app = express();
+const app: express.Express = express();
 
 const servicePort = Number(process.env.EMAIL_SERVICE_PORT || 7100);
 const apiKey = process.env.EMAIL_SERVICE_API_KEY || '';
