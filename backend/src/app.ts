@@ -27,8 +27,7 @@ class Illustry {
     this.expressApp.set('trust proxy', 1);
 
     this.expressApp.use(helmet({
-      crossOriginResourcePolicy: false,
-      contentSecurityPolicy: false
+      crossOriginResourcePolicy: false
     }));
 
     this.expressApp.use(rateLimit({
