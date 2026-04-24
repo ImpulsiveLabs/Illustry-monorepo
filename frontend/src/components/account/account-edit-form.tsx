@@ -22,6 +22,27 @@ type AccountEditFormProps = {
 const AVATAR_MAX_BYTES = 2 * 1024 * 1024;
 const AVATAR_ALLOWED_TYPES = ['image/png', 'image/jpeg', 'image/webp'];
 
+const toSafeAvatarUrl = (value: string | null | undefined): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  if (value.startsWith('blob:')) {
+    return value;
+  }
+
+  try {
+    const parsed = new URL(value);
+    if (parsed.protocol === 'http:' || parsed.protocol === 'https:') {
+      return parsed.toString();
+    }
+  } catch {
+    return null;
+  }
+
+  return null;
+};
+
 const getInitials = (name: string, email: string) => {
   const source = name.trim() || email;
   return source
@@ -58,7 +79,7 @@ const AccountEditForm = ({ user }: AccountEditFormProps) => {
     };
   }, [avatar]);
 
-  const displayAvatarUrl = avatarPreviewUrl || user.avatarUrl;
+  const displayAvatarUrl = toSafeAvatarUrl(avatarPreviewUrl || user.avatarUrl);
   const passwordRules = useMemo(() => [
     { id: 'min-length', label: t('auth.register.passwordRule.minLength'), valid: newPassword.length >= 12 },
     { id: 'uppercase', label: t('auth.register.passwordRule.uppercase'), valid: /[A-Z]/.test(newPassword) },
