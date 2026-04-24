@@ -223,7 +223,26 @@ const getVerificationEmailContent = (
   };
 };
 
+const sanitizeUrlForHtmlHref = (rawUrl: string) => {
+  try {
+    const parsed = new URL(rawUrl);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return appBaseUrl;
+    }
+
+    return parsed.toString()
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  } catch {
+    return appBaseUrl;
+  }
+};
+
 const getPasswordResetEmailContent = (locale: 'en' | 'ro', resetUrl: string) => {
+  const safeResetUrl = sanitizeUrlForHtmlHref(resetUrl);
+
   if (locale === 'ro') {
     return {
       subject: 'Reseteaza parola contului tau Illustry',
@@ -234,7 +253,7 @@ const getPasswordResetEmailContent = (locale: 'en' | 'ro', resetUrl: string) => 
       ].join('\n\n'),
       html: [
         '<p>A fost solicitata resetarea parolei pentru contul tau Illustry.</p>',
-        `<p><a href="${resetUrl}">Reseteaza parola</a></p>`,
+        `<p><a href="${safeResetUrl}">Reseteaza parola</a></p>`,
         '<p>Daca nu tu ai facut aceasta solicitare, poti ignora acest email.</p>'
       ].join('')
     };
@@ -249,7 +268,7 @@ const getPasswordResetEmailContent = (locale: 'en' | 'ro', resetUrl: string) => 
     ].join('\n\n'),
     html: [
       '<p>A password reset was requested for your Illustry account.</p>',
-      `<p><a href="${resetUrl}">Reset password</a></p>`,
+      `<p><a href="${safeResetUrl}">Reset password</a></p>`,
       '<p>If you did not request this, you can ignore this email.</p>'
     ].join('')
   };
