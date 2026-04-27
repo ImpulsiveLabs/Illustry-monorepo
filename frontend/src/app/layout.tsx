@@ -86,6 +86,7 @@ const metadata: Metadata = {
   },
   other: {
     'theme-color': '#0f172a',
+    'mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-capable': 'yes',
     'apple-mobile-web-app-status-bar-style': 'default'
   }

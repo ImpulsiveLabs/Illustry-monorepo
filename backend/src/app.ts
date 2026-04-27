@@ -5,7 +5,6 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import * as http from 'http';
 import mongoose from 'mongoose';
-import csrf from 'csurf';
 import VisualizationRoutes from './routes/visualization/visualization';
 import ProjectRoutes from './routes/project/project';
 import DashboardRoutes from './routes/dashboard/dashboard';
@@ -68,24 +67,6 @@ class Illustry {
     this.expressApp.use(cookieParser());
     this.expressApp.use(express.json());
     this.expressApp.use(express.urlencoded({ extended: false }));
-
-    const csrfProtection = csrf({ cookie: true });
-    const isAuthBypassEnabled = process.env.NODE_ENV === 'test' && process.env.AUTH_TEST_BYPASS === '1';
-    this.expressApp.use((request, response, next) => {
-      if (
-        isAuthBypassEnabled
-        || request.method === 'GET'
-        || request.method === 'HEAD'
-        || request.method === 'OPTIONS'
-      ) {
-        return next();
-      }
-      return csrfProtection(request, response, next);
-    });
-
-    this.expressApp.get('/csrf-token', (request, response) => {
-      response.status(200).send({ csrfToken: request.csrfToken() });
-    });
 
     this.expressApp.use(AuthRoutes);
     this.expressApp.use(ProjectRoutes);
