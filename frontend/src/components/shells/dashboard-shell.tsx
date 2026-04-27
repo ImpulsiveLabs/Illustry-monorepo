@@ -20,23 +20,38 @@ type VisualizationData = {
 };
 type ResponsiveLayouts = Record<string, DashboardTypes.Layout[]>;
 
+const createInitialLayout = (
+  layouts: DashboardTypes.Layout[],
+  visualizations: VisualizationTypes.VisualizationType[]
+) => (layouts.length ? layouts
+  : Array.from({ length: visualizations.length }, (_, index) => ({
+    i: index.toString(),
+    x: 4 * (index % 3),
+    y: Math.floor(index / 3) * 2,
+    w: 10,
+    h: 4,
+    minW: 4,
+    minH: 2
+  })) as DashboardTypes.Layout[]);
+
 const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const { t } = useLocale();
   const router = useRouter();
   const { layouts = [], visualizations = [] } = dashboard as DashboardTypes.DashboardType;
-  const initialLayout = useMemo(() => (layouts?.length ? layouts
-    : (visualizations as VisualizationTypes.VisualizationType[])
-      .map((viz, index) => ({
-        i: index.toString(),
-        x: 4 * (index % 3),
-        y: Math.floor(index / 3) * 2,
-        w: 10,
-        h: 4,
-        minW: 4,
-        minH: 2
-      })) as DashboardTypes.Layout[]), [layouts, visualizations]);
+  const visualizationsList = visualizations as VisualizationTypes.VisualizationType[];
+  const initialLayoutSignature = JSON.stringify({
+    layouts,
+    visualizations: visualizationsList.map((viz) => ({
+      name: viz.name,
+      type: viz.type
+    }))
+  });
+  const initialLayout = useMemo(
+    () => createInitialLayout(layouts, visualizationsList),
+    [initialLayoutSignature]
+  );
 
-  const [layout, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
+  const [, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
   const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
   const [hasLayoutChanged, setHasLayoutChanged] = useState(false);
   const hasLayoutChangedRef = useRef(false);
@@ -202,7 +217,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         isResizable={true}
         draggableHandle=".draggable-corner"
       >
-        {(visualizations as VisualizationTypes.VisualizationType[]).map((viz, i) => (
+        {visualizationsList.map((viz, i) => (
           <div
             key={i}
             className="border border-gray-200 rounded-lg shadow-sm overflow-hidden"

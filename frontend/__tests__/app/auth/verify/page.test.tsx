@@ -70,6 +70,26 @@ describe('VerifyEmailRequiredPage', () => {
     });
   });
 
+  it('accepts a manually entered email when the query string is empty', async () => {
+    window.history.replaceState({}, '', '/verify-email-required');
+    const user = userEvent.setup();
+    resendVerificationMock.mockResolvedValue({});
+
+    render(<VerifyEmailRequiredPage />);
+
+    const resendButton = screen.getByRole('button', { name: /resend verification code/i });
+    expect(resendButton).toBeDisabled();
+
+    await user.type(screen.getByPlaceholderText(/email/i), 'typed@example.com');
+    expect(resendButton).toBeEnabled();
+
+    await user.click(resendButton);
+    await waitFor(() => {
+      expect(resendVerificationMock).toHaveBeenCalledWith('typed@example.com');
+      expect(toastSuccessMock).toHaveBeenCalledWith('Verification email sent successfully.');
+    });
+  });
+
   it('shows verification and resend errors', async () => {
     const user = userEvent.setup();
     verifyEmailCodeMock.mockRejectedValueOnce(new Error('Bad code'));

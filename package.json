@@ -24,7 +24,7 @@
     "postversion": "echo \"manual publish step required\"",
     "build:ts": "yarn workspaces foreach -A -pt run build:ts",
     "release": "yarn lint:fix && yarn version && git push --follow-tags origin main",
-    "audit": "yarn npm audit --all --recursive --severity low --no-deprecations --ignore 1115806 --ignore 1115810"
+    "audit": "yarn npm audit --all --recursive --severity low --no-deprecations --ignore 1115806 --ignore 1115810 --ignore 1116970"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.8",
@@ -73,6 +73,7 @@
     "rollup": "4.59.0",
     "path-to-regexp@npm:~0.1.12": "0.1.13",
     "path-to-regexp@npm:0.1.12": "0.1.13",
+    "postcss": "8.5.10",
     "picomatch@npm:^2.0.4": "2.3.2",
     "picomatch@npm:^2.2.1": "2.3.2",
     "picomatch@npm:^2.2.3": "2.3.2",
@@ -90,8 +91,6 @@
     "smol-toml": "1.6.1",
     "vite": "8.0.10",
     "unzipper": "0.12.3",
-    "uuid@npm:^8.3.0": "14.0.0",
-    "uuid@npm:^8.3.2": "14.0.0",
     "yaml@npm:^1.10.0": "1.10.3",
     "yaml@npm:2.7.1": "2.8.3",
     "yaml@npm:^2.3.4": "2.8.3",

@@ -12,6 +12,8 @@ jest.mock('nodemailer', () => ({
 
 describe('email service', () => {
   const originalEnv = { ...process.env };
+  let consoleErrorSpy: jest.SpyInstance;
+  let consoleLogSpy: jest.SpyInstance;
 
   const loadModule = async () => {
     jest.resetModules();
@@ -50,6 +52,8 @@ describe('email service', () => {
   };
 
   beforeEach(() => {
+    consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     process.env = {
       ...originalEnv,
       EMAIL_SERVICE_API_KEY: 'service-key',
@@ -66,6 +70,8 @@ describe('email service', () => {
   });
 
   afterEach(() => {
+    consoleErrorSpy.mockRestore();
+    consoleLogSpy.mockRestore();
     process.env = { ...originalEnv };
   });
 

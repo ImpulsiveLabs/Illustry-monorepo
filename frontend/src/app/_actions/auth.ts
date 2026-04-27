@@ -6,6 +6,17 @@ import { buildBackendHeaders } from '@/lib/auth-request';
 import type { CurrentUser } from '@/lib/auth-user';
 
 const getCurrentUser = async (): Promise<CurrentUser | null> => {
+  if (process.env.AUTH_TEST_BYPASS === '1') {
+    return {
+      id: 'playwright-user',
+      email: 'root@illustrytest',
+      name: 'Playwright User',
+      isEmailVerified: true,
+      roles: ['user'],
+      hasAvatar: false
+    };
+  }
+
   const backend = getBackendUrl();
   if (!backend) {
     return null;

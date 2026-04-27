@@ -51,8 +51,8 @@ export default defineConfig({
       env: {
         BACKEND_INTERNAL_URL: backendBaseURL,
         NEXT_PUBLIC_BACKEND_PUBLIC_URL: backendBaseURL,
-        E2E_COVERAGE: process.env.E2E_COVERAGE || '0',
-        BABEL_ENV: process.env.BABEL_ENV || ''
+        AUTH_TEST_BYPASS: '1',
+        E2E_COVERAGE: process.env.E2E_COVERAGE || '0'
       }
     }
   ]
