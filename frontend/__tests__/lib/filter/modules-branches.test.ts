@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { applyAxisFilter } from '@/lib/filter/axis';
 import { applyCalendarFilter } from '@/lib/filter/calendar';
 import { applyFunnelPieFilter } from '@/lib/filter/funnelPie';
-import { applyHierachyFilter, applyValuesFilterRecursive } from '@/lib/filter/hierarchy';
+import { applyHierarchyFilter, applyValuesFilterRecursive } from '@/lib/filter/hierarchy';
 import { applyNodeLinkFilter } from '@/lib/filter/nodeLink';
 import { applyScatterFilter } from '@/lib/filter/scatter';
 import { applyTimelineFilter } from '@/lib/filter/timeline';
@@ -63,7 +63,7 @@ describe('filter modules branch coverage', () => {
     expect(applyValuesFilterRecursive(data.nodes[0], ['>100'])).toBeUndefined();
     expect(applyValuesFilterRecursive(null as any, ['>1'])).toBeUndefined();
 
-    const filtered = applyHierachyFilter(["categories!=['leaf']", 'values>=10'], data);
+    const filtered = applyHierarchyFilter(["categories!=['leaf']", 'values>=10'], data);
     expect(filtered.categories).toEqual(['root']);
     expect(filtered.nodes[0]?.children).toEqual([{ name: 'b', value: 20, children: [] }]);
 
@@ -73,15 +73,15 @@ describe('filter modules branch coverage', () => {
     const zeroValueFiltered = applyValuesFilterRecursive({ name: 'zero', value: 0, children: [] } as any, ['>=0']);
     expect(zeroValueFiltered).toEqual({ name: 'zero', value: 0, children: [] });
 
-    const malformed = applyHierachyFilter(['values?', 'categories~[x]'], data);
+    const malformed = applyHierarchyFilter(['values?', 'categories~[x]'], data);
     expect(malformed.categories).toEqual([]);
     expect(malformed.nodes.length).toBe(1);
-    expect(applyHierachyFilter(["categories==['root']"], data).categories).toEqual([]);
+    expect(applyHierarchyFilter(["categories==['root']"], data).categories).toEqual([]);
 
-    const onlyValues = applyHierachyFilter(['values>=1'], data);
+    const onlyValues = applyHierarchyFilter(['values>=1'], data);
     expect(onlyValues.categories).toEqual(['root', 'leaf']);
 
-    const onlyCategories = applyHierachyFilter(["categories=['root']"], data);
+    const onlyCategories = applyHierarchyFilter(["categories=['root']"], data);
     expect(onlyCategories.categories).toEqual(['root']);
   });
 
@@ -214,7 +214,7 @@ describe('filter modules branch coverage', () => {
     const hierarchyValuesMatchSpy = vi.spyOn(String.prototype, 'match').mockImplementationOnce(() => {
       throw new Error('hierarchy-values-match');
     });
-    expect(applyHierachyFilter(['values>=1'], {
+    expect(applyHierarchyFilter(['values>=1'], {
       categories: ['root'],
       nodes: [{ name: 'r', value: 1 }]
     } as any).nodes).toEqual([{ name: 'r', value: 1 }]);
@@ -223,7 +223,7 @@ describe('filter modules branch coverage', () => {
     const hierarchyCategoriesMatchSpy = vi.spyOn(String.prototype, 'match').mockImplementationOnce(() => {
       throw new Error('hierarchy-categories-match');
     });
-    expect(applyHierachyFilter(["categories=['root']"], {
+    expect(applyHierarchyFilter(["categories=['root']"], {
       categories: ['root'],
       nodes: [{ name: 'r', value: 1 }]
     } as any).categories).toEqual(['root']);

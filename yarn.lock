@@ -8050,10 +8050,10 @@ __metadata:
 
 "echarts-wordcloud@file:vendor/echarts-wordcloud::locator=%40impulsivelabs%2Fillustry-client%40workspace%3Afrontend":
   version: 2.1.0
-  resolution: "echarts-wordcloud@file:vendor/echarts-wordcloud#vendor/echarts-wordcloud::hash=20cd3a&locator=%40impulsivelabs%2Fillustry-client%40workspace%3Afrontend"
+  resolution: "echarts-wordcloud@file:vendor/echarts-wordcloud#vendor/echarts-wordcloud::hash=1082f3&locator=%40impulsivelabs%2Fillustry-client%40workspace%3Afrontend"
   peerDependencies:
     echarts: ^5.0.1 || ^6.0.0
-  checksum: 10/200b36305c10d05675293cd69b26459bb161103cbebcfee1ec45fa69f395f1dd4c7d45e5e21126245ad33ae2ae5dc683f749186e89cff323d500fe2dfc539d57
+  checksum: 10/8d70539d77566a242d548af833aea03306bd871deee4289b291eb148bad4f5e8aff5a1b0265428216eef4964a34b1f146f37f11d5c31631a443d54182c150790
   languageName: node
   linkType: hard
 

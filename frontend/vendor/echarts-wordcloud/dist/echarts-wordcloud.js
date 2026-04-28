@@ -622,7 +622,7 @@ var WordCloud = function WordCloud(elements, options) {
     var y = Math.floor((eventY * (canvas.height / rect.height || 1)) / g);
 
     if (!infoGrid[x]) {
-      return null
+      return null;
     }
 
     return infoGrid[x][y];

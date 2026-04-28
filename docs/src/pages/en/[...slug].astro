@@ -1,0 +1,69 @@
+---
+import { getCollection } from 'astro:content';
+
+export const prerender = true;
+
+export async function getStaticPaths() {
+  const docsBase = '/Illustry-monorepo';
+  const toTargetPath = (slug?: string) => `${docsBase}/${slug ? `${slug}/` : ''}`;
+  const localePrefixes = new Set([
+    'ar',
+    'bn',
+    'de',
+    'el',
+    'es',
+    'fr',
+    'he',
+    'hi',
+    'id',
+    'it',
+    'ja',
+    'ko',
+    'nl',
+    'pl',
+    'pt',
+    'ro',
+    'ru',
+    'th',
+    'tr',
+    'uk',
+    'ur',
+    'vi',
+    'zh'
+  ]);
+  const docs = await getCollection('docs');
+  const englishDocs = docs.filter((entry) => !localePrefixes.has(entry.id.split('/')[0] ?? ''));
+
+  return [
+    {
+      params: { slug: undefined },
+      props: { targetPath: toTargetPath() }
+    },
+    ...englishDocs.filter((entry) => entry.id !== 'index').map((entry) => ({
+      params: { slug: entry.id },
+      props: { targetPath: toTargetPath(entry.id) }
+    }))
+  ];
+}
+
+const { targetPath } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="robots" content="noindex, follow" />
+    <meta http-equiv="refresh" content={`0; url=${targetPath}`} />
+    <link rel="canonical" href={targetPath} />
+    <title>Redirecting to Illustry documentation</title>
+  </head>
+  <body>
+    <p>
+      <a href={targetPath}>Redirecting to Illustry documentation</a>
+    </p>
+    <script is:inline define:vars={{ targetPath }}>
+      window.location.replace(targetPath);
+    </script>
+  </body>
+</html>

@@ -7249,7 +7249,7 @@ describe("visualizations CRUD", () => {
     expect((visualization6.visualizations as VisualizationTypes.VisualizationType[]).length).toBe(10);
 
   });
-  it("It delets one visualization", async () => {
+  it("It deletes one visualization", async () => {
 
     const visualization: boolean = await factory
       .getBZL()

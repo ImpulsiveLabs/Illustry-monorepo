@@ -10,7 +10,7 @@ const {
     applyWordCloudFilter,
     applyScatterFilter,
     applyTimelineFilter,
-    applyHierachyFilter
+    applyHierarchyFilter
 } = vi.hoisted(() => ({
     validateExpressions: vi.fn(),
     applyAxisFilter: vi.fn(() => ({ axis: true })),
@@ -20,7 +20,7 @@ const {
     applyWordCloudFilter: vi.fn(() => ({ wordCloud: true })),
     applyScatterFilter: vi.fn(() => ({ scatter: true })),
     applyTimelineFilter: vi.fn(() => ({ timeline: true })),
-    applyHierachyFilter: vi.fn(() => ({ hierarchy: true }))
+    applyHierarchyFilter: vi.fn(() => ({ hierarchy: true }))
 }));
 
 vi.mock('@/lib/filter/generic', () => ({ validateExpressions }));
@@ -31,7 +31,7 @@ vi.mock('@/lib/filter/funnelPie', () => ({ applyFunnelPieFilter }));
 vi.mock('@/lib/filter/wordcloud', () => ({ applyWordCloudFilter }));
 vi.mock('@/lib/filter/scatter', () => ({ applyScatterFilter }));
 vi.mock('@/lib/filter/timeline', () => ({ applyTimelineFilter }));
-vi.mock('@/lib/filter/hierarchy', () => ({ applyHierachyFilter }));
+vi.mock('@/lib/filter/hierarchy', () => ({ applyHierarchyFilter }));
 
 import parseFilter from '@/lib/filter';
 
