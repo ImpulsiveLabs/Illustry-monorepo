@@ -23,7 +23,7 @@ const parseFilter = (
       acceptedSeparators
         .map(
           (sep) => `(${sep
-            .replace(/[-\\/\\^$*+?.()|[\]{}]/g, '\\$&')
+            .replace(/[.*+?^${}()|[\]\\-]/g, '\\$&')
             .replace(/\|\|/g, '|')})`
         )
         .join('|'),

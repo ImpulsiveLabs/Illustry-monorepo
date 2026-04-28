@@ -258,7 +258,7 @@ describe("dashboard CRUD", () => {
                 .DashboardBZL.create(expectedDashboard);
         }
         catch (err) {
-            expect((err as Error).message).toBe('No active project')
+            expect((err as Error).message).toBe('No active project');
         }
         try {
             await factory
@@ -266,7 +266,7 @@ describe("dashboard CRUD", () => {
                 .DashboardBZL.findOne({ name: 'Test_dashboard100' });
         }
         catch (err) {
-            expect((err as Error).message).toBe('No active project')
+            expect((err as Error).message).toBe('No active project');
         }
         try {
             await factory
@@ -298,7 +298,7 @@ describe("dashboard CRUD", () => {
             isActive: true,
         };
         await factory.getBZL().ProjectBZL.create(expectedProject);
-    })
+    });
 
     it("Update a dashboard with only layouts", async () => {
 

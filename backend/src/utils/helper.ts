@@ -172,7 +172,7 @@ const removeNullValues = (obj: unknown): unknown | undefined => {
       .filter((item) => item !== undefined);
   }
 
-  if (typeof obj === 'object' && obj !== null) {
+  if (typeof obj === 'object') {
     return Object.fromEntries(
       Object.entries(obj)
         .map(([key, value]) => [key, removeNullValues(value)])

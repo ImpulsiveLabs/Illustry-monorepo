@@ -7370,27 +7370,27 @@ describe("visualizations CRUD", () => {
           allFileDetails,
           visualizationDetails,
           fileDetails
-        )
+        );
     }
     catch (err) {
-      expect((err as Error).message).toBe('Invalid file type provided')
+      expect((err as Error).message).toBe('Invalid file type provided');
     }
-  })
+  });
 });
 
 describe("visualizations Providers", () => {
 
   it('returns null for all providers for unknown type', () => {
     const providerExcelCsv = exelOrCsvdataProvider('fake' as VisualizationTypes.VisualizationTypesEnum, [], false);
-    const providerJsonString = jsonDataProvider('fake' as VisualizationTypes.VisualizationTypesEnum, {}, false)
-    const providerJsonArray = jsonDataProvider(['fake' as VisualizationTypes.VisualizationTypesEnum], {}, false)
+    const providerJsonString = jsonDataProvider('fake' as VisualizationTypes.VisualizationTypesEnum, {}, false);
+    const providerJsonArray = jsonDataProvider(['fake' as VisualizationTypes.VisualizationTypesEnum], {}, false);
     const providerXML = xmlDataProvider('fake' as VisualizationTypes.VisualizationTypesEnum, {
       root: {
         type: [],
         name: [],
         data: []
       }
-    }, false)
+    }, false);
 
     expect(providerExcelCsv).toBe(null);
     expect(providerJsonString).toBe(null);

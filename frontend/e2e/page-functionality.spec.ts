@@ -109,30 +109,6 @@ const uploadSankeyVisualization = async (api: APIRequestContext, visualizationNa
   expectNoApiError(uploadBody, 'upload sankey visualization');
 };
 
-const createDashboard = async (
-  api: APIRequestContext,
-  dashboardName: string,
-  visualizationName: string
-) => {
-  await api.delete('/api/dashboard', {
-    data: { name: dashboardName }
-  });
-
-  const response = await api.post('/api/dashboard', {
-    data: {
-      name: dashboardName,
-      description: `frontend e2e dashboard ${dashboardName}`,
-      visualizations: {
-        [`${visualizationName}_sankey`]: 'sankey'
-      }
-    }
-  });
-
-  const body = await parseBody(response);
-  expect(response.ok()).toBeTruthy();
-  expectNoApiError(body, 'create dashboard');
-};
-
 const deleteDashboardSilently = async (api: APIRequestContext, dashboardName: string) => {
   await api.delete('/api/dashboard', {
     data: { name: dashboardName }
