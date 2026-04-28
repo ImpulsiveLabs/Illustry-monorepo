@@ -4,7 +4,7 @@ import { applyAxisFilter } from './axis';
 import { applyCalendarFilter } from './calendar';
 import { applyFunnelPieFilter } from './funnelPie';
 import { validateExpressions } from './generic';
-import { applyHierachyFilter } from './hierarchy';
+import { applyHierarchyFilter } from './hierarchy';
 import { applyNodeLinkFilter } from './nodeLink';
 import { applyScatterFilter } from './scatter';
 import { applyTimelineFilter } from './timeline';
@@ -94,7 +94,7 @@ const parseFilter = (
         );
       case VisualizationTypes.VisualizationTypesEnum.SUNBURST:
       case VisualizationTypes.VisualizationTypesEnum.TREEMAP:
-        return applyHierachyFilter(
+        return applyHierarchyFilter(
                     expressions.filter((part) => part !== undefined) as string[],
                     data as {
                         categories: string[]

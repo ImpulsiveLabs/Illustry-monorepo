@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyAxisFilter } from '@/lib/filter/axis';
 import { applyCalendarFilter } from '@/lib/filter/calendar';
 import { applyFunnelPieFilter } from '@/lib/filter/funnelPie';
-import { applyHierachyFilter, applyValuesFilterRecursive } from '@/lib/filter/hierarchy';
+import { applyHierarchyFilter, applyValuesFilterRecursive } from '@/lib/filter/hierarchy';
 import { applyNodeLinkFilter } from '@/lib/filter/nodeLink';
 import { applyScatterFilter } from '@/lib/filter/scatter';
 import { applyTimelineFilter } from '@/lib/filter/timeline';
@@ -54,7 +54,7 @@ describe('lib/filter modules', () => {
         const recursive = applyValuesFilterRecursive(data.nodes[0], ['>=10']);
         expect(recursive?.children).toHaveLength(1);
 
-        const filtered = applyHierachyFilter(['values>=10', "categories=['x']"], data);
+        const filtered = applyHierarchyFilter(['values>=10', "categories=['x']"], data);
         expect(filtered.nodes).toHaveLength(1);
         expect(filtered.categories).toEqual(['x']);
     });

@@ -86,8 +86,6 @@ describe('DataTableToolbar', () => {
     });
 
     it('removes text query param when submitted text is empty', async () => {
-        const user = userEvent.setup();
-
         const table = {
             getState: () => ({ columnFilters: [] }),
             getColumn: () => null,

@@ -93,7 +93,7 @@ const applyCategoriesFilter = (categoriesFilter: string, defaultData: {
   return [];
 };
 
-const applyHierachyFilter = (expressions:string[], defaultData: {
+const applyHierarchyFilter = (expressions:string[], defaultData: {
     categories: string[]
     nodes: VisualizationTypes.HierarchyNode[]
     }) => {
@@ -119,4 +119,4 @@ const applyHierachyFilter = (expressions:string[], defaultData: {
   return newData;
 };
 
-export { hierarchyWords, applyValuesFilterRecursive, applyHierachyFilter };
+export { hierarchyWords, applyValuesFilterRecursive, applyHierarchyFilter };
