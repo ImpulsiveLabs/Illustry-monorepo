@@ -16,7 +16,7 @@
     "lint": "yarn workspaces foreach -A -pt run lint",
     "lint:fix": "yarn workspaces foreach -A -pt run lint:fix",
     "version": "echo \"standard-version removed; use external release tooling\"",
-    "depcheck": "yarn workspaces foreach -A -pt run depcheck",
+    "depcheck": "knip --dependencies --no-config-hints",
     "test": "yarn workspaces foreach -A -pt run test",
     "e2e": "yarn workspace @impulsivelabs/illustry-client e2e",
     "e2e:api": "yarn workspace @impulsivelabs/illustry-server e2e:api",
@@ -24,7 +24,7 @@
     "postversion": "echo \"manual publish step required\"",
     "build:ts": "yarn workspaces foreach -A -pt run build:ts",
     "release": "yarn lint:fix && yarn version && git push --follow-tags origin main",
-    "audit": "yarn npm audit --all --recursive --severity low --no-deprecations --ignore 1115806 --ignore 1115810 --ignore 1116970"
+    "audit": "yarn npm audit --all --recursive --severity low --no-deprecations"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.8",
@@ -32,22 +32,18 @@
     "@commitlint/lint": "20.4.3",
     "@commitlint/load": "20.4.3",
     "@types/jest": "29.5.12",
-    "@typescript-eslint/eslint-plugin": "8.50.1",
-    "@typescript-eslint/parser": "8.50.1",
-    "depcheck": "1.4.7",
-    "eslint": "8.57.1",
-    "eslint-config-airbnb-base": "15.0.0",
-    "eslint-plugin-import": "2.32.0",
-    "eslint-plugin-node": "11.1.0",
-    "eslint-plugin-promise": "6.1.1",
+    "@typescript-eslint/eslint-plugin": "8.59.1",
+    "@typescript-eslint/parser": "8.59.1",
+    "eslint": "9.39.4",
     "husky": "8.0.3",
     "jest": "29.7.0",
-    "jest-junit": "16.0.0",
+    "jest-junit": "17.0.0",
+    "knip": "6.7.0",
     "ts-jest": "29.1.1",
     "typescript": "5.5.4"
   },
   "resolutions": {
-    "@astrojs/check": "0.9.6",
+    "@astrojs/check": "0.9.8",
     "@fast-csv/format": "5.0.5",
     "@fast-csv/parse": "5.0.5",
     "@babel/helpers": "7.28.6",
@@ -66,7 +62,6 @@
     "fast-xml-parser": "5.7.1",
     "h3": "1.15.11",
     "js-yaml": "4.1.1",
-    "lodash": "4.17.23",
     "mdast-util-to-hast": "13.2.1",
     "micromatch": "4.0.8",
     "qs": "6.15.0",
@@ -95,6 +90,9 @@
     "yaml@npm:2.7.1": "2.8.3",
     "yaml@npm:^2.3.4": "2.8.3",
     "yaml@npm:^2.5.0": "2.8.3",
+    "uuid@npm:^8.3.0": "14.0.0",
+    "uuid@npm:^8.3.2": "14.0.0",
+    "yaml-language-server": "1.22.0",
     "yaml@npm:^2.8.2": "2.8.3"
   },
   "jest": {
@@ -132,5 +130,28 @@
     },
     "testEnvironment": "node"
   },
-  "packageManager": "yarn@4.5.3"
+  "packageManager": "yarn@4.5.3",
+  "knip": {
+    "ignoreDependencies": [
+      "@astrojs/check",
+      "@babel/core",
+      "@commitlint/config-conventional",
+      "@commitlint/lint",
+      "@commitlint/load",
+      "@types/echarts",
+      "@types/exceljs",
+      "@typescript-eslint/eslint-plugin",
+      "@typescript-eslint/parser",
+      "babel-plugin-istanbul",
+      "browserslist",
+      "eslint",
+      "eslint-config-next",
+      "execa",
+      "jest-junit",
+      "lint-staged",
+      "update-browserslist-db",
+      "zod",
+      "zod-error"
+    ]
+  }
 }
