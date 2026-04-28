@@ -11,6 +11,7 @@ import DashboardRoutes from './routes/dashboard/dashboard';
 import logger from './config/logger';
 import AuthRoutes from './routes/auth/auth';
 import { parseCorsAllowlist } from './auth/constants';
+import { enforceCsrfForProtectedMutationRoutes } from './auth/middleware';
 import Factory from './factory';
 
 import 'dotenv/config';
@@ -65,6 +66,7 @@ class Illustry {
     );
 
     this.expressApp.use(cookieParser());
+    this.expressApp.use(enforceCsrfForProtectedMutationRoutes);
     this.expressApp.use(express.json());
     this.expressApp.use(express.urlencoded({ extended: false }));
 

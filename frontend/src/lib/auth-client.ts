@@ -113,6 +113,7 @@ const registerUser = async (payload: {
 
   return authRequest<AuthUserResponse>('/api/auth/register', {
     method: 'POST',
+    headers: getCsrfHeaders(),
     body: formData
   });
 };
@@ -125,7 +126,10 @@ const loginUser = (email: string, password: string) => authRequest<AuthUserRespo
   '/api/auth/login',
   {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      ...getCsrfHeaders()
+    },
     body: JSON.stringify({ email, password })
   }
 );
@@ -142,31 +146,46 @@ const logoutUser = async () => {
 
 const requestPasswordReset = (email: string) => authRequest<{ message: string }>('/api/auth/forgot-password', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCsrfHeaders()
+  },
   body: JSON.stringify({ email })
 });
 
 const resetPassword = (token: string, password: string) => authRequest<{ ok: boolean }>('/api/auth/reset-password', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCsrfHeaders()
+  },
   body: JSON.stringify({ token, password })
 });
 
 const verifyEmailToken = (token: string) => authRequest<{ ok: boolean }>('/api/auth/verify-email', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCsrfHeaders()
+  },
   body: JSON.stringify({ token })
 });
 
 const verifyEmailCode = (email: string, code: string) => authRequest<{ ok: boolean }>('/api/auth/verify-email-code', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCsrfHeaders()
+  },
   body: JSON.stringify({ email, code })
 });
 
 const resendVerification = (email?: string) => authRequest<{ message: string }>('/api/auth/resend-verification', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    ...getCsrfHeaders()
+  },
   body: JSON.stringify(email ? { email } : {})
 });
 

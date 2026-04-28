@@ -84,12 +84,16 @@ describe('auth-client', () => {
     expect(formData.get('name')).toBe('User Example');
     expect(formData.get('avatar')).toBe(avatar);
 
+    document.cookie = 'illustry_csrf=csrf-login';
     await expect(loginUser('user@example.com', 'secret123')).resolves.toEqual({ user: { id: '2' } });
     expect(fetchMock.mock.calls[1][0]).toBe('https://api.example.com/api/auth/login');
     expect(fetchMock.mock.calls[1][1]).toMatchObject({
       method: 'POST',
       credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': 'csrf-login'
+      },
       body: JSON.stringify({ email: 'user@example.com', password: 'secret123' })
     });
 

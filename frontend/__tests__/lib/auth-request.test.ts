@@ -55,13 +55,17 @@ describe('auth-request', () => {
 
   it('uses default json options when none are provided', async () => {
     cookiesMock.mockResolvedValue({
-      getAll: () => [{ name: 'session', value: 'xyz' }],
-      get: () => undefined
+      getAll: () => [
+        { name: 'session', value: 'xyz' },
+        { name: CSRF_COOKIE_NAME, value: 'csrf-default' }
+      ],
+      get: (name: string) => (name === CSRF_COOKIE_NAME ? { value: 'csrf-default' } : undefined)
     });
 
     await expect(buildBackendHeaders()).resolves.toEqual({
       'Content-Type': 'application/json',
-      Cookie: 'session=xyz'
+      Cookie: `session=xyz; ${CSRF_COOKIE_NAME}=csrf-default`,
+      'X-CSRF-Token': 'csrf-default'
     });
   });
 });

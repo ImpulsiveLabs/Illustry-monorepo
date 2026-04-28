@@ -103,4 +103,113 @@ describe('auth register route', () => {
       error ? reject(error) : resolve()
     )));
   });
+
+  it('rejects protected cookie-authenticated mutations without csrf before route handlers run', async () => {
+    getSessionPrincipalFromTokenMock.mockResolvedValue({
+      user: {
+        _id: { toString: () => 'user-id' },
+        email: 'user@example.com',
+        name: 'User',
+        isEmailVerified: true,
+        roles: ['user']
+      },
+      session: {
+        csrfTokenHash: 'stored-csrf-hash'
+      }
+    });
+
+    const { default: Illustry } = await import('../../src/app');
+    const app = new Illustry() as any;
+    const server = app.httpServer;
+    await new Promise<void>((resolve) => server.once('listening', resolve));
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/project`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: 'illustry_session=session-token'
+      },
+      body: JSON.stringify({
+        projectName: 'Project',
+        projectDescription: 'Description'
+      })
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: 'Missing CSRF token' });
+
+    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
+      error ? reject(error) : resolve()
+    )));
+  });
+
+  it('rejects protected mutations without a session as unauthenticated', async () => {
+    const { default: Illustry } = await import('../../src/app');
+    const app = new Illustry() as any;
+    const server = app.httpServer;
+    await new Promise<void>((resolve) => server.once('listening', resolve));
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/project`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        projectName: 'Project',
+        projectDescription: 'Description'
+      })
+    });
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: 'Authentication required' });
+
+    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
+      error ? reject(error) : resolve()
+    )));
+  });
+
+  it('rejects public unsafe auth requests without csrf when a session cookie is already present', async () => {
+    getSessionPrincipalFromTokenMock.mockResolvedValue({
+      user: {
+        _id: { toString: () => 'user-id' },
+        email: 'user@example.com',
+        name: 'User',
+        isEmailVerified: true,
+        roles: ['user']
+      },
+      session: {
+        csrfTokenHash: 'stored-csrf-hash'
+      }
+    });
+
+    const { default: Illustry } = await import('../../src/app');
+    const app = new Illustry() as any;
+    const server = app.httpServer;
+    await new Promise<void>((resolve) => server.once('listening', resolve));
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/auth/login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: 'illustry_session=session-token'
+      },
+      body: JSON.stringify({
+        email: 'user@example.com',
+        password: 'Secret123!Secret'
+      })
+    });
+
+    expect(response.status).toBe(403);
+    await expect(response.json()).resolves.toEqual({ error: 'Missing CSRF token' });
+
+    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
+      error ? reject(error) : resolve()
+    )));
+  });
 });

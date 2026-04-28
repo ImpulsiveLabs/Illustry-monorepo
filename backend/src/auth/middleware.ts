@@ -39,6 +39,8 @@ const forbidden = (response: Response, message: string) => {
   response.status(403).send({ error: message });
 };
 
+const csrfProtectedMethods = new Set(['DELETE', 'PATCH', 'POST', 'PUT']);
+
 const extractClientIp = (request: Request): string | undefined => {
   const forwarded = request.headers['x-forwarded-for'];
 
@@ -175,6 +177,11 @@ const requireCsrf = (
   const csrfHeader = request.header('x-csrf-token');
   const csrfCookie = request.cookies?.[CSRF_COOKIE_NAME];
 
+  if (authRequest.auth?.session === undefined) {
+    unauthorized(response, 'Authentication required');
+    return;
+  }
+
   if (csrfHeader === undefined || csrfCookie === undefined) {
     forbidden(response, 'Missing CSRF token');
     return;
@@ -195,6 +202,53 @@ const requireCsrf = (
   next();
 };
 
+const enforceCsrfForProtectedMutationRoutes = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  if (
+    isAuthBypassEnabled
+    || csrfProtectedMethods.has(request.method.toUpperCase()) === false
+  ) {
+    next();
+    return;
+  }
+
+  const sessionToken = request.cookies?.[SESSION_COOKIE_NAME];
+
+  if (sessionToken === undefined) {
+    next();
+    return;
+  }
+
+  try {
+    const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
+
+    if (principal === null) {
+      clearAuthCookies(response);
+      unauthorized(response, 'Authentication required');
+      return;
+    }
+
+    request.auth = {
+      userId: principal.user._id.toString(),
+      email: principal.user.email,
+      name: principal.user.name,
+      isEmailVerified: principal.user.isEmailVerified,
+      roles: principal.user.roles,
+      hasAvatar: Boolean(principal.user.avatarUpdatedAt),
+      avatarUpdatedAt: principal.user.avatarUpdatedAt?.toISOString(),
+      authVersion: principal.user.authVersion,
+      session: principal.session
+    };
+
+    requireCsrf(request, response, next);
+  } catch (error) {
+    next(error);
+  }
+};
+
 const getRequestClientMetadata = (request: Request) => ({
   ipAddress: extractClientIp(request),
   userAgent: request.headers['user-agent']
@@ -205,5 +259,6 @@ export {
   attachAuthenticatedUserIfPresent,
   requireVerifiedEmail,
   requireCsrf,
+  enforceCsrfForProtectedMutationRoutes,
   getRequestClientMetadata
 };

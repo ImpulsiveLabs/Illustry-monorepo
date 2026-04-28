@@ -74,6 +74,30 @@ describe('ResetPasswordPage', () => {
     expect(screen.getByText('Missing or invalid reset token.')).toBeInTheDocument();
   });
 
+  it('keeps submit disabled until the password rules pass and confirmation matches', async () => {
+    window.history.replaceState({}, '', '/reset-password?token=abc123');
+    const user = userEvent.setup();
+
+    render(<ResetPasswordPage />);
+
+    const submitButton = screen.getByRole('button', { name: /update password/i });
+    expect(submitButton).toBeDisabled();
+
+    await user.type(screen.getByLabelText(/^new password$/i), 'weak');
+    await user.type(screen.getByLabelText(/confirm new password/i), 'weak');
+    expect(submitButton).toBeDisabled();
+
+    await user.clear(screen.getByLabelText(/^new password$/i));
+    await user.clear(screen.getByLabelText(/confirm new password/i));
+    await user.type(screen.getByLabelText(/^new password$/i), 'Secret123!Secret');
+    await user.type(screen.getByLabelText(/confirm new password/i), 'Secret123!Mismatch');
+    expect(submitButton).toBeDisabled();
+
+    await user.clear(screen.getByLabelText(/confirm new password/i));
+    await user.type(screen.getByLabelText(/confirm new password/i), 'Secret123!Secret');
+    expect(submitButton).toBeEnabled();
+  });
+
   it('resets the password and redirects to login', async () => {
     window.history.replaceState({}, '', '/reset-password?token=abc123');
     resetPasswordMock.mockResolvedValue({ ok: true });
@@ -81,7 +105,8 @@ describe('ResetPasswordPage', () => {
 
     render(<ResetPasswordPage />);
 
-    await user.type(screen.getByPlaceholderText(/new password/i), 'Secret123!Secret');
+    await user.type(screen.getByLabelText(/^new password$/i), 'Secret123!Secret');
+    await user.type(screen.getByLabelText(/confirm new password/i), 'Secret123!Secret');
     await user.click(screen.getByRole('button', { name: /update password/i }));
 
     await waitFor(() => {
@@ -97,7 +122,8 @@ describe('ResetPasswordPage', () => {
 
     render(<ResetPasswordPage />);
 
-    await user.type(screen.getByPlaceholderText(/new password/i), 'Secret123!Secret');
+    await user.type(screen.getByLabelText(/^new password$/i), 'Secret123!Secret');
+    await user.type(screen.getByLabelText(/confirm new password/i), 'Secret123!Secret');
     await user.click(screen.getByRole('button', { name: /update password/i }));
 
     await waitFor(() => {

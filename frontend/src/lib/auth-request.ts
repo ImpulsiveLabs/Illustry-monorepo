@@ -30,7 +30,7 @@ const buildBackendHeaders = async (options?: {
   extraHeaders?: Record<string, string>;
 }): Promise<HeadersInit> => {
   const asJson = options?.asJson ?? true;
-  const withCsrf = options?.withCsrf ?? false;
+  const withCsrf = options?.withCsrf ?? true;
 
   const cookieStore = await getCookieStore();
   const headers: Record<string, string> = options?.extraHeaders ? { ...options.extraHeaders } : {};
