@@ -144,6 +144,7 @@ type VisualizationDataData = WordCloudData
   | TimelineData;
 
 type VisualizationData = {
+  userId?: string;
   projectName: string;
   type: VisualizationTypesEnum | VisualizationTypesEnum[];
   description?: string;
@@ -178,6 +179,7 @@ type ExtendedVisualizationType = {
 type VisualizationUpdate = DeepPartial<VisualizationType>
 
 type VisualizationFilter = {
+  userId?: string;
   projectName?: string;
   type?: string | string[];
   name?: string;

@@ -6,6 +6,7 @@ import {
 } from "./utils";
 
 type ProjectData = {
+  userId?: string;
   name: string;
   description?: string;
   createdAt?: Date;
@@ -34,6 +35,7 @@ type ExtendedProjectType = {
 type ProjectUpdate = DeepPartial<ProjectType>;
 
 type ProjectFilter = {
+  userId?: string;
   name?: string;
   text?: string;
   page?: number;

@@ -1,3 +1,4 @@
+import { AUTH_BASE_MESSAGES, AUTH_MESSAGES } from './auth-messages';
 import { EXTENDED_BASE_MESSAGES, EXTENDED_MESSAGES } from './extended-messages';
 import { PRESET_BASE_MESSAGES, PRESET_MESSAGES } from './preset-messages';
 
@@ -1467,12 +1468,15 @@ const isRtlLocale = (locale: Locale) => RTL_LOCALES.includes(locale);
 const getMessage = (locale: Locale, key: string) => {
   const localeMessages = messages[locale] || {};
   const extendedLocaleMessages = EXTENDED_MESSAGES[locale] || {};
+  const authLocaleMessages = AUTH_MESSAGES[locale] || {};
   const presetLocaleMessages = PRESET_MESSAGES[locale] || {};
   return localeMessages[key]
     || extendedLocaleMessages[key]
+    || authLocaleMessages[key]
     || presetLocaleMessages[key]
     || baseMessages[key]
     || EXTENDED_BASE_MESSAGES[key]
+    || AUTH_BASE_MESSAGES[key]
     || PRESET_BASE_MESSAGES[key]
     || key;
 };

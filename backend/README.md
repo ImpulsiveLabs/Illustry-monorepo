@@ -1,37 +1,99 @@
 # Illustry backend
 
-This project serves as a server for the Illustry visualization HUB
+This service powers the Illustry API over MongoDB.
 
-# Configuration
+## Security-first auth architecture
 
-The following configuration is needed in order for the server to work:
+The backend uses a hardened cookie-session model:
 
-## Locally:
-A file named .env is needed at the root of the project containing the following fields:
+- `AuthUser` stores normalized email, Argon2id password hash, verification state, and `authVersion`.
+- `AuthSession` stores hashed session tokens + hashed CSRF tokens, expiration, revocation, and metadata.
+- `EmailVerificationToken` and `PasswordResetToken` store hashed single-use tokens with expiry.
+- Authentication is cookie-based (`httpOnly` session cookie + CSRF cookie).
+- CSRF is enforced on all state-changing cookie-authenticated routes.
+- Project/dashboard/visualization access is always scoped by authenticated `userId`.
+
+## MongoDB collections
+
+- `AuthUser`
+- `AuthSession`
+- `EmailVerificationToken`
+- `PasswordResetToken`
+- `Project`
+- `Dashboard`
+- `Visualization`
+
+Indexes include:
+
+- unique `AuthUser.emailNormalized`
+- TTL on auth session/token expirations
+- user-scoped unique constraints for project/dashboard/visualization
+- user-scoped lookup indexes for common queries
+
+## Required environment variables
+
+Use `backend/.env.example` as baseline.
+
+Core:
+
+- `MONGO_URL`, `MONGO_TEST_URL`, `MONGO_USER`, `MONGO_PASSWORD`
+- `ILLUSTRY_PORT`
+- `CORS_ORIGIN_ALLOWLIST`
+
+Auth/cookies:
+
+- `AUTH_SESSION_COOKIE_NAME`
+- `AUTH_CSRF_COOKIE_NAME`
+- `AUTH_COOKIE_DOMAIN`
+- `AUTH_COOKIE_SECURE`
+- `AUTH_SESSION_TTL_MINUTES`
+- `AUTH_EMAIL_VERIFICATION_TTL_MINUTES`
+- `AUTH_PASSWORD_RESET_TTL_MINUTES`
+- `AUTH_APP_BASE_URL`
+- `AUTH_ARGON2_MEMORY_COST`, `AUTH_ARGON2_TIME_COST`, `AUTH_ARGON2_PARALLELISM`
+
+Rate limits:
+
+- `GLOBAL_RATE_LIMIT_MAX`
+- `AUTH_RATE_LIMIT_MAX`
+- `AUTH_SENSITIVE_RATE_LIMIT_MAX`
+
+SMTP:
+
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASS`, `SMTP_FROM_EMAIL`
+
+## SMTP setup
+
+For local development, you can run MailHog/Mailpit and point SMTP vars to it.
+In production, set a real SMTP provider and keep all credentials in env vars.
+
+## Cookie settings
+
+- Session cookie: `httpOnly`, `sameSite=lax`, `secure` in production.
+- CSRF cookie: readable by frontend, tied to authenticated session, validated server-side.
+
+## CSRF flow
+
+1. Login/register creates session + CSRF cookies.
+2. Frontend reads CSRF cookie value and sends `X-CSRF-Token` on state-changing requests.
+3. Backend verifies header value, cookie value, and stored CSRF hash in active session.
+
+## Local development
+
+```bash
+cd backend
+yarn install
+yarn start:dev
 ```
-MONGO_URL=mongodb://127.0.0.1:27017/illustry
-MONGO_TEST_URL=mongodb://127.0.0.1:27017/illustrytest
-MONGO_USER= <your_personal_mongo_user>
-MONGO_PASSWORD=<your_personal_mongo_password>
-ILLUSTRY_PORT=7000 
-```
-After the env is provided run one of the following commands: 
-- ```npm run start:dev``` for dev purposes 
-- ```npm run start:prod``` from a bundled version.
 
-## Docker: 
+## Production notes
 
-Run the following commands:
-```shell
-docker build -t illustrybackend .
-docker run -p 7000:7000 
-```
+- Set `AUTH_COOKIE_SECURE=true`.
+- Restrict `CORS_ORIGIN_ALLOWLIST` to trusted origins only.
+- Run behind HTTPS and a reverse proxy.
+- Use strong SMTP credentials and rotate secrets regularly.
+- Monitor auth endpoints and rate-limit metrics.
 
-# Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-# License
+## License
 
 [Apache-2.0](https://choosealicense.com/licenses/apache)

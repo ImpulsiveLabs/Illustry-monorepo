@@ -51,6 +51,11 @@ const expectNoApiError = (body: unknown, context: string) => {
   expect(extractError(body), `${context}: ${JSON.stringify(body)}`).toBe('');
 };
 
+const expectApiError = (response: APIResponse, body: unknown, message: string) => {
+  expect(response.status()).toBeLessThan(500);
+  expect(extractError(body)).toContain(message);
+};
+
 const uploadVisualization = async (
   request: APIRequestContext,
   options: {
@@ -85,8 +90,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       data: { projectDescription: 'missing name' }
     });
     const invalidCreateBody = await parseBody(invalidCreate);
-    expect(invalidCreate.ok()).toBeTruthy();
-    expect(extractError(invalidCreateBody)).toContain('name');
+    expectApiError(invalidCreate, invalidCreateBody, 'name');
 
     const createPrimary = await request.post('/api/project', {
       data: {
@@ -120,8 +124,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const duplicateCreateBody = await parseBody(duplicateCreate);
-    expect(duplicateCreate.ok()).toBeTruthy();
-    expect(extractError(duplicateCreateBody)).toContain('There already is a project named');
+    expectApiError(duplicateCreate, duplicateCreateBody, 'There already is a project named');
 
     const browse = await request.post('/api/projects', {
       data: {
@@ -185,8 +188,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
 
     const findMissingSecondary = await request.post(`/api/project/${secondaryProjectName}`, { data: {} });
     const findMissingSecondaryBody = await parseBody(findMissingSecondary);
-    expect(findMissingSecondary.ok()).toBeTruthy();
-    expect(extractError(findMissingSecondaryBody)).toContain('No project was found with name');
+    expectApiError(findMissingSecondary, findMissingSecondaryBody, 'No project was found with name');
   });
 
   test('visualization endpoints: upload JSON/XML/CSV/EXCEL, browse, find, validation, delete', async ({ request }) => {
@@ -300,8 +302,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const invalidUploadBody = await parseBody(invalidUpload);
-    expect(invalidUpload.ok()).toBeTruthy();
-    expect(extractError(invalidUploadBody)).toContain('No file details were provided');
+    expectApiError(invalidUpload, invalidUploadBody, 'No file details were provided');
 
     const invalidFileTypeUpload = await uploadVisualization(request, {
       fixture: fixtures.json,
@@ -316,8 +317,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
         tags: ['invalid']
       }
     });
-    expect(invalidFileTypeUpload.response.ok()).toBeTruthy();
-    expect(extractError(invalidFileTypeUpload.body)).toContain('Invalid file type provided');
+    expectApiError(invalidFileTypeUpload.response, invalidFileTypeUpload.body, 'Invalid file type provided');
 
     const deleteJson = await request.delete('/api/visualization', {
       data: {
@@ -335,7 +335,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       data: { type: visualizationType }
     });
     const findDeletedJsonBody = await parseBody(findDeletedJson);
-    expect(findDeletedJson.ok()).toBeTruthy();
+    expect(findDeletedJson.status()).toBeLessThan(500);
     expect([null, ''].includes(findDeletedJsonBody as null | string)).toBeTruthy();
   });
 
@@ -366,8 +366,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const duplicateBody = await parseBody(duplicate);
-    expect(duplicate.ok()).toBeTruthy();
-    expect(extractError(duplicateBody)).toContain('There already is a Dashboard named');
+    expectApiError(duplicate, duplicateBody, 'There already is a Dashboard named');
 
     const browse = await request.post('/api/dashboards', { data: { text: dashboardName } });
     const browseBody = await parseBody(browse) as {
@@ -454,8 +453,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       data: {}
     });
     const invalidFindBody = await parseBody(invalidFind);
-    expect(invalidFind.ok()).toBeTruthy();
-    expect(extractError(invalidFindBody)).toContain('No Dashboard was found with name');
+    expectApiError(invalidFind, invalidFindBody, 'No Dashboard was found with name');
 
     const del = await request.delete('/api/dashboard', {
       data: { name: dashboardName }
@@ -477,18 +475,15 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
 
     const findDeletedProject = await request.post(`/api/project/${projectName}`, { data: {} });
     const findDeletedProjectBody = await parseBody(findDeletedProject);
-    expect(findDeletedProject.ok()).toBeTruthy();
-    expect(extractError(findDeletedProjectBody)).toContain('No project was found with name');
+    expectApiError(findDeletedProject, findDeletedProjectBody, 'No project was found with name');
 
     const browseVisualizationsWithoutProject = await request.post('/api/visualizations', { data: {} });
     const browseVisualizationsWithoutProjectBody = await parseBody(browseVisualizationsWithoutProject);
-    expect(browseVisualizationsWithoutProject.ok()).toBeTruthy();
-    expect(extractError(browseVisualizationsWithoutProjectBody)).toContain('No active project');
+    expectApiError(browseVisualizationsWithoutProject, browseVisualizationsWithoutProjectBody, 'No active project');
 
     const browseDashboardsWithoutProject = await request.post('/api/dashboards', { data: {} });
     const browseDashboardsWithoutProjectBody = await parseBody(browseDashboardsWithoutProject);
-    expect(browseDashboardsWithoutProject.ok()).toBeTruthy();
-    expect(extractError(browseDashboardsWithoutProjectBody)).toContain('No active project');
+    expectApiError(browseDashboardsWithoutProject, browseDashboardsWithoutProjectBody, 'No active project');
 
     const createDashboardWithoutProject = await request.post('/api/dashboard', {
       data: {
@@ -497,8 +492,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const createDashboardWithoutProjectBody = await parseBody(createDashboardWithoutProject);
-    expect(createDashboardWithoutProject.ok()).toBeTruthy();
-    expect(extractError(createDashboardWithoutProjectBody)).toContain('No active project');
+    expectApiError(createDashboardWithoutProject, createDashboardWithoutProjectBody, 'No active project');
 
     const uploadWithoutProject = await uploadVisualization(request, {
       fixture: fixtures.json,
@@ -512,8 +506,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
         description: 'this should fail because no project is active'
       }
     });
-    expect(uploadWithoutProject.response.ok()).toBeTruthy();
-    expect(extractError(uploadWithoutProject.body)).toContain('No active project');
+    expectApiError(uploadWithoutProject.response, uploadWithoutProject.body, 'No active project');
 
     const deleteVisualizationWithoutProject = await request.delete('/api/visualization', {
       data: {
@@ -522,7 +515,6 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const deleteVisualizationWithoutProjectBody = await parseBody(deleteVisualizationWithoutProject);
-    expect(deleteVisualizationWithoutProject.ok()).toBeTruthy();
-    expect(extractError(deleteVisualizationWithoutProjectBody)).toContain('No active project');
+    expectApiError(deleteVisualizationWithoutProject, deleteVisualizationWithoutProjectBody, 'No active project');
   });
 });

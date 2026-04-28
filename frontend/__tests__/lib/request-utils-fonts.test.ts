@@ -25,13 +25,25 @@ describe('lib request/utils/fonts', () => {
     });
 
     it('makeRequest resolves json for ok and non-ok responses', async () => {
+        const jsonHeaders = { get: vi.fn().mockReturnValue('application/json') };
         const fetchMock = vi.fn()
-            .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ ok: 1 }) })
-            .mockResolvedValueOnce({ ok: false, json: () => Promise.resolve({ ok: 0 }) });
+            .mockResolvedValueOnce({
+                ok: true,
+                headers: jsonHeaders,
+                json: () => Promise.resolve({ ok: 1 }),
+                text: () => Promise.resolve('')
+            })
+            .mockResolvedValueOnce({
+                ok: false,
+                status: 401,
+                headers: jsonHeaders,
+                json: () => Promise.resolve({ error: 'unauthorized' }),
+                text: () => Promise.resolve('')
+            });
         vi.stubGlobal('fetch', fetchMock as any);
 
         await expect(makeRequest('/a', ['x'])).resolves.toEqual({ ok: 1 });
-        await expect(makeRequest('/b', ['y'])).resolves.toEqual({ ok: 0 });
+        await expect(makeRequest('/b', ['y'])).rejects.toThrow('unauthorized');
         expect(fetchMock).toHaveBeenCalledTimes(2);
     });
 

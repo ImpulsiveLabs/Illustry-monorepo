@@ -10,9 +10,16 @@ The **Tree Map** visualization is a dynamic and hierarchical way of representing
 To represent a Tree Map Data, you can use the following `HierarchyData` interface:
 
 ```typescript
-{{HierarchyNode}}
+type HierarchyNode = with_optional_properties & {
+  name: string;
+  value: number;
+  category: string;
+  children?: HierarchyNode[];
+};
 
-{{HierarchyData}}
+type HierarchyData = {
+  nodes: HierarchyNode[];
+};
 ```
 ### Key Attributes
 

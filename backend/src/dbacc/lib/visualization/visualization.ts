@@ -19,6 +19,11 @@ class Visualization implements GenericTypes.BaseLib<
 
   createFilter(filter: VisualizationTypes.VisualizationFilter): UtilTypes.ExtendedMongoQuery {
     const query: UtilTypes.MongoQuery = { $and: [] };
+    if (filter.userId) {
+      (query.$and as Array<object>).push({
+        userId: filter.userId
+      });
+    }
     if (filter.name) {
       (query.$and as Array<object>).push({
         name: filter.name
@@ -102,7 +107,11 @@ class Visualization implements GenericTypes.BaseLib<
   }
 
   findOne(filter: UtilTypes.ExtendedMongoQuery): Promise<VisualizationTypes.VisualizationType | null> {
-    return this.modelInstance.VisualizationModel.findOne(filter.query).exec();
+    return this.modelInstance.VisualizationModel.findOne(filter.query, {
+      __v: 0,
+      _id: 0,
+      userId: 0
+    }).exec();
   }
 
   async browse(filter: UtilTypes.ExtendedMongoQuery): Promise<VisualizationTypes.ExtendedVisualizationType> {
@@ -111,6 +120,7 @@ class Visualization implements GenericTypes.BaseLib<
       {
         __v: 0,
         _id: 0,
+        userId: 0,
         data: 0,
         projectName: 0
       },

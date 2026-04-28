@@ -4,6 +4,41 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { TransformerTypes, FileTypes } from '@illustry/types';
 import logger from '../config/logger';
+import NoDataFoundError from '../errors/noDataFoundError';
+import DuplicatedElementError from '../errors/duplicatedElementError';
+import ConnectionError from '../errors/connectionError';
+import FileError from '../errors/fileError';
+import TypeError from '../errors/typeError';
+
+const getStatusCode = (err: Error): number => {
+  if (
+    err.message.startsWith('Error #')
+    || err.message === 'No active project'
+    || err.message === 'No file details were provided'
+    || err.message === 'Invalid file type provided'
+    || err.message === 'Authentication required'
+  ) {
+    return 400;
+  }
+
+  if (err instanceof NoDataFoundError) {
+    return 404;
+  }
+
+  if (err instanceof DuplicatedElementError) {
+    return 409;
+  }
+
+  if (err instanceof TypeError || err instanceof FileError) {
+    return 400;
+  }
+
+  if (err instanceof ConnectionError) {
+    return 503;
+  }
+
+  return 500;
+};
 
 const returnResponse = (
   res: FileTypes.Response,
@@ -22,6 +57,7 @@ const returnResponse = (
     res.status(200);
     res.send(data);
   } else {
+    res.status(getStatusCode(err));
     res.send({ error: err.message });
     next(err.message);
   }

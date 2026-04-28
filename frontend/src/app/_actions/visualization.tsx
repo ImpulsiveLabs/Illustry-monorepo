@@ -8,6 +8,7 @@ import {
 } from '@illustry/types';
 import makeRequest from '@/lib/request';
 import getBackendUrl from '@/lib/backend-url';
+import { buildBackendHeaders } from '@/lib/auth-request';
 
 
 const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFilter) => {
@@ -21,15 +22,17 @@ const browseVisualizations = async (filter?: VisualizationTypes.VisualizationFil
     `${BACKEND as string}/api/visualizations`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cache-Control': 'no-cache'
-      },
+      headers: await buildBackendHeaders({
+        asJson: true,
+        extraHeaders: {
+          'Cache-Control': 'no-cache'
+        }
+      }),
       body: JSON.stringify(newFilter)
     }
   );
   try {
-    return makeRequest<VisualizationTypes.ExtendedVisualizationType>(request, ['visualizations']);
+    return await makeRequest<VisualizationTypes.ExtendedVisualizationType>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -45,14 +48,12 @@ const deleteVisualization = async (
     `${BACKEND as string}/api/visualization`,
     {
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
       body: JSON.stringify(visualizationFilter)
     }
   );
   try {
-    return makeRequest<boolean>(request, ['visualizations']);
+    return await makeRequest<boolean>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -68,11 +69,12 @@ const createOrUpdateVisualization = async (
     `${BACKEND as string}/api/visualization`,
     {
       method: 'POST',
+      headers: await buildBackendHeaders({ asJson: false, withCsrf: true }),
       body: form
     }
   );
   try {
-    return makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -88,14 +90,12 @@ const findOneVisualization = async (
     `${BACKEND as string}/api/visualization/${visualizationFilter.name}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: await buildBackendHeaders({ asJson: true }),
       body: JSON.stringify(visualizationFilter)
     }
   );
   try {
-    return makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
   } catch (err) {
     console.debug(err);
     return null;

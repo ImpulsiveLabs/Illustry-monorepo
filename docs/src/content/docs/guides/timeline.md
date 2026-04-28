@@ -11,11 +11,27 @@ The **Timeline** is a versatile visualization that displays events or activities
 To represent a Timeline Data, you can use the following `TimelineData` interface:
 
 ```typescript
-{{TimelineEventTag}}
+type TimelineEventTag = {
+  name: string;
+};
 
-{{TimelineEvent}}
+type TimelineEvent = {
+  summary: string;
+  date: string;
+  type: string;
+  author: string;
+  tags?: TimelineEventTag[];
+  description?: string;
+};
 
-{{TimelineData}}
+type TimelineData = {
+  [date: string]: {
+    summary?: {
+      title?: string;
+    };
+    events: TimelineEvent[];
+  };
+};
 ```
 ### Key Attributes
 

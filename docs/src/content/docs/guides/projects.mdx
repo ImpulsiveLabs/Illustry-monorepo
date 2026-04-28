@@ -13,7 +13,14 @@ In this system, a project serves as the fundamental building block, acting as a 
 To represent a project in your system, you can use the following `ProjectData` interface:
 
 ```typescript
-{{ProjectData}}
+type ProjectData = {
+  userId?: string;
+  name: string;
+  description?: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  isActive?: boolean;
+};
 ```
 ### Key Attributes
 

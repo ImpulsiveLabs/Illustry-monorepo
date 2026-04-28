@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { findOneDashboard } from '@/app/_actions/dashboard';
 import UpdateDashboardForm from '@/components/form/update-dashboard-form';
 import { browseVisualizations } from '@/app/_actions/visualization';
@@ -19,6 +20,9 @@ const UpdateDashboardPage = async ({ params }: UpdateDashboardPageProps) => {
   const { dashboardName } = await params;
 
   const currentDashboard = await findOneDashboard(dashboardName, false);
+  if (!currentDashboard) {
+    notFound();
+  }
   const visualizations = await browseVisualizations({ per_page: 100 });
   const visualizationRows = visualizations && Array.isArray(visualizations.visualizations)
     ? visualizations.visualizations

@@ -3,12 +3,22 @@ import { DashboardTypes, ValidatorSchemas } from '@illustry/types';
 import Factory from '../../factory';
 import { returnResponse } from '../../utils/helper';
 
+const getAuthenticatedUserId = (request: Request): string => {
+  const userId = request.auth?.userId;
+  if (userId === undefined) {
+    throw new Error('Authentication required');
+  }
+
+  return userId;
+};
+
 const create = async (
   request: Request,
   response: Response,
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name,
       description,
@@ -16,6 +26,7 @@ const create = async (
     } = request.body;
 
     const dashboard: DashboardTypes.DashboardUpdate = {
+      userId,
       name,
       description,
       visualizations
@@ -37,6 +48,7 @@ const update = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name,
       description,
@@ -45,10 +57,12 @@ const update = async (
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
       name
     };
 
     const dashboard: DashboardTypes.DashboardUpdate = {
+      userId,
       description,
       visualizations,
       layouts
@@ -73,9 +87,11 @@ const findOne = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const { params: { name } } = request;
     const { fullVisualizations } = request.body;
     const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
       name
     };
     ValidatorSchemas.validateWithSchema<DashboardTypes.DashboardFilter>(ValidatorSchemas.dashboardFilterSchema, dashboardFilter);
@@ -97,11 +113,13 @@ const _delete = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
       name
     };
 
@@ -124,6 +142,7 @@ const browse = async (
   next: NextFunction
 ): Promise<void> => {
   try {
+    const userId = getAuthenticatedUserId(request);
     const {
       name,
       text,
@@ -133,6 +152,7 @@ const browse = async (
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
       name,
       text,
       page,

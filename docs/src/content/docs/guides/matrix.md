@@ -10,11 +10,22 @@ The **Matrix** visualization is a multi dimensional visualizations, where nodes 
 To represent a Matrix, you can use the following `NodeLinkData` interface:
 
 ```typescript
-{{Node}}
+type Node = with_optional_properties & {
+  name: string;
+  category: string;
+  labels?: Label[];
+};
 
-{{Link}}
+type Link = with_optional_properties & {
+  source: string;
+  target: string;
+  value: number;
+};
 
-{{NodeLinkData}}
+type NodeLinkData = {
+  nodes: Node[];
+  links: Link[];
+};
 ```
 ### Key Attributes
 

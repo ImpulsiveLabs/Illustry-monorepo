@@ -47,7 +47,7 @@ const createProject = async (api: APIRequestContext, projectName: string, isActi
   const response = await withApiRetry(() => api.post('/api/project', {
     data: {
       projectName,
-      projectDescription: `frontend e2e project ${projectName}`,
+      projectDescription: 'frontend e2e project',
       isActive
     }
   }));
@@ -58,7 +58,7 @@ const createProject = async (api: APIRequestContext, projectName: string, isActi
     const activateResponse = await api.put('/api/project', {
       data: {
         name: projectName,
-        description: `frontend e2e project ${projectName}`,
+        description: 'frontend e2e project',
         isActive
       }
     });

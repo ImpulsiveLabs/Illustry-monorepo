@@ -10,6 +10,12 @@ vi.mock('next/link', () => ({
 
 let activeProjectValue = false;
 let desktopViewport = false;
+const currentUser = {
+    id: 'user-1',
+    email: 'vlad@example.com',
+    name: 'Vlad Nitu',
+    avatarUrl: null
+};
 
 vi.mock('next/navigation', () => ({
     usePathname: () => '/dashboard'
@@ -62,6 +68,7 @@ describe('MobileNav', () => {
 
         render(
             <MobileNav
+                user={currentUser}
                 items={[
                     { title: 'Projects', href: '/projects', clickableNoActiveProject: false },
                     { title: 'About', href: '/about', clickableNoActiveProject: true }
@@ -85,6 +92,7 @@ describe('MobileNav', () => {
 
         render(
             <MobileNav
+                user={currentUser}
                 items={[
                     { title: 'Projects', href: '/projects', clickableNoActiveProject: false },
                     { title: 'About', href: '/about', clickableNoActiveProject: true }
@@ -108,6 +116,7 @@ describe('MobileNav', () => {
 
         render(
             <MobileNav
+                user={currentUser}
                 items={[
                     { title: 'Fallback', clickableNoActiveProject: true }
                 ]}
@@ -124,6 +133,7 @@ describe('MobileNav', () => {
 
         render(
             <MobileNav
+                user={currentUser}
                 items={[
                     { title: 'Projects', href: '/projects', clickableNoActiveProject: false }
                 ]}

@@ -99,20 +99,20 @@ type LocaleProviderProps = {
 
 const LocaleProvider = ({ children }: LocaleProviderProps) => {
   const [locale, setLocaleState] = useState<Locale>('en');
-  const [hasResolvedInitialLocale, setHasResolvedInitialLocale] = useState(false);
+  const [hasResolvedLocale, setHasResolvedLocale] = useState(false);
 
   const setLocale = useCallback((nextLocale: Locale) => {
     setLocaleState(nextLocale);
   }, []);
 
   useEffect(() => {
-    const initialLocale = resolveInitialLocale();
-    setLocaleState(initialLocale);
-    setHasResolvedInitialLocale(true);
+    const resolvedLocale = resolveInitialLocale();
+    setLocaleState(resolvedLocale);
+    setHasResolvedLocale(true);
   }, []);
 
   useEffect(() => {
-    if (!hasResolvedInitialLocale) {
+    if (!hasResolvedLocale) {
       return;
     }
     if (typeof window === 'undefined') {
@@ -122,13 +122,17 @@ const LocaleProvider = ({ children }: LocaleProviderProps) => {
     setCookie(LOCALE_COOKIE_KEY, locale);
     document.documentElement.lang = locale;
     document.documentElement.dir = isRtlLocale(locale) ? 'rtl' : 'ltr';
-  }, [locale, hasResolvedInitialLocale]);
+  }, [hasResolvedLocale, locale]);
 
   const contextValue = useMemo(() => ({
     locale,
     setLocale,
     t: (key: string) => getMessage(locale, key)
   }), [locale, setLocale]);
+
+  if (!hasResolvedLocale) {
+    return null;
+  }
 
   return (
     <LocaleContext.Provider value={contextValue}>

@@ -2,22 +2,35 @@
 
 # dependencies
 /node_modules
+services/*/node_modules
+services/**/node_modules/
 /.pnp
 .pnp.js
 
 # testing
 /coverage
+backend/coverage
+frontend/coverage
 
 # next.js
 /.next/
 /out/
+frontend/.next/
+frontend/out/
 
 # production
 /build
+backend/dist
+backend/build-dist
+frontend/dist
+docs/dist
+services/*/dist
+services/**/dist/
 
 # misc
 .DS_Store
 *.pem
+.tmp-translate-venv/
 
 # debug
 npm-debug.log*

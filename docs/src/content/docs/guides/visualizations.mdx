@@ -13,7 +13,17 @@ To represent a visualization in your system, you can use the following `Visualiz
 
 ```typescript
 
-{{VisualizationData}}
+type VisualizationData = {
+  userId?: string;
+  projectName: string;
+  type: VisualizationTypesEnum | VisualizationTypesEnum[];
+  description?: string;
+  name: string;
+  tags?: string | string[];
+  data: VisualizationDataData;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
 
 ```
 

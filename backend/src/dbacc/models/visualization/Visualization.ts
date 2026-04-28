@@ -13,6 +13,7 @@ class Visualization {
   getModel(): Model<VisualizationTypes.VisualizationType> {
     if (!this.VisualizationModel) {
       const VisualizationSchema = new Schema<VisualizationTypes.VisualizationType>({
+        userId: { type: String, required: true },
         projectName: { type: String, required: true },
         name: { type: String, required: true },
         description: {
@@ -32,10 +33,11 @@ class Visualization {
       });
 
       VisualizationSchema.index(
-        { projectName: 1, type: 1, name: 1 },
+        { userId: 1, projectName: 1, type: 1, name: 1 },
         { unique: true, background: true }
       );
-      VisualizationSchema.index({ projectName: 1, name: 1 });
+      VisualizationSchema.index({ userId: 1, projectName: 1, name: 1 }, { background: true });
+      VisualizationSchema.index({ userId: 1, projectName: 1, type: 1 }, { background: true });
       this.VisualizationModel = this.connection.model<VisualizationTypes.VisualizationType>(
         'Visualization',
         VisualizationSchema

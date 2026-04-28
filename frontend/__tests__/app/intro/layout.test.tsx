@@ -1,7 +1,8 @@
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import IntroLayout from '@/app/(intro)/layout';
-import { describe, it, expect, vi } from 'vitest';
+import { beforeEach, describe, it, expect, vi } from 'vitest';
+import { getCurrentUser } from '@/app/_actions/auth';
 
 // Mock SiteHeader to isolate the test
 vi.mock('@/components/layouts/site-header', () => ({
@@ -9,13 +10,25 @@ vi.mock('@/components/layouts/site-header', () => ({
   default: () => <header data-testid="site-header">Mock SiteHeader</header>,
 }));
 
+vi.mock('@/app/_actions/auth', () => ({
+  getCurrentUser: vi.fn()
+}));
+
 describe('IntroLayout', () => {
-  it('renders SiteHeader and children', () => {
-    render(
-      <IntroLayout>
-        <div data-testid="child">Hello, world!</div>
-      </IntroLayout>
-    );
+  beforeEach(() => {
+    vi.mocked(getCurrentUser).mockResolvedValue({
+      id: 'user-1',
+      email: 'user@example.com',
+      isEmailVerified: true,
+      roles: []
+    });
+  });
+
+  it('renders SiteHeader and children', async () => {
+    const ui = await IntroLayout({
+      children: <div data-testid="child">Hello, world!</div>
+    });
+    render(ui);
 
     expect(screen.getByTestId('site-header')).toBeInTheDocument();
     expect(screen.getByTestId('child')).toHaveTextContent('Hello, world!');

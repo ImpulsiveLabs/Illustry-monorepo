@@ -130,6 +130,7 @@ const timelineDataSchema = z.record(
 
 // VisualizationData
 const visualizationDataSchema = z.object({
+    userId: stringSchema.optional(),
     projectName: stringSchema.min(1),
     description: stringSchema.optional(),
     name: stringSchema,
@@ -278,6 +279,7 @@ const visualizationTypeSchema = z.union([
 ]);
 
 const visualizationFilterSchema = z.object({
+    userId: stringSchema.optional(),
     projectName: stringSchema.optional(),
     name: stringSchema.optional(),
     text: stringSchema.optional(),
@@ -302,6 +304,7 @@ const visualizationExtendedTypeSchema = z.object({
 });
 
 const projectDataSchema = z.object({
+    userId: stringSchema.optional(),
     name: stringSchema,
     description: stringSchema.optional(),
     createdAt: dateSchema.optional(),
@@ -336,6 +339,7 @@ const projectUpdateSchema = z.object({
 });
 
 const projectFilterSchema = z.object({
+    userId: stringSchema.optional(),
     name: stringSchema.optional(),
     text: stringSchema.optional(),
     page: numberSchema.optional(),
@@ -360,6 +364,7 @@ const layoutSchema = z.object({
 });
 
 const dashboardDataSchema = z.object({
+    userId: stringSchema.optional(),
     name: stringSchema,
     projectName: stringSchema,
     description: stringSchema.optional(),
@@ -388,6 +393,7 @@ const dashboardExtendedTypeSchema = z.object({
 });
 
 const dashboardUpdateSchema = z.object({
+    userId: stringSchema.optional(),
     name: stringSchema.optional(),
     projectName: stringSchema.optional(),
     description: stringSchema.optional(),
@@ -397,6 +403,7 @@ const dashboardUpdateSchema = z.object({
 });
 
 const dashboardFilterSchema = z.object({
+    userId: stringSchema.optional(),
     name: stringSchema.optional(),
     text: stringSchema.optional(),
     projectName: stringSchema.optional(),
@@ -630,4 +637,3 @@ export {
     prettifyZodError,
     validateWithSchema
 };
-

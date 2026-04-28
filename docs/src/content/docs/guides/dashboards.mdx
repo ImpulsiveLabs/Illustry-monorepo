@@ -13,11 +13,34 @@ Dashboards act as versatile visual workspaces where you can organize and manage 
 To represent a dashboard in your system, you can use the following `DashboardData` interface:
 
 ```typescript
-{{Layout}}
+type Layout = {
+    i: string;
+    x: number;
+    y: number;
+    w: number;
+    h: number;
+    minW: number;
+    minH: number;
+};
 
-{{DashboardData}}
+type DashboardData = {
+    userId?: string;
+    name: string;
+    projectName: string;
+    description?: string;
+    createdAt?: Date;
+    updatedAt?: Date;
+    visualizations?: {
+        [name: string]: string;
+    } | VisualizationTypes.VisualizationType[];
+    layouts?: Layout[];
+};
 
-{{DashboardType}}
+type DashboardType = DashboardData & {
+  _id: string;
+} & {
+  __v?: number;
+};
 
 ```
 ### Key Attributes

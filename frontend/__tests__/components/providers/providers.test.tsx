@@ -92,12 +92,24 @@ describe('providers', () => {
     });
 
     it('throws when active project hooks are used outside provider', () => {
-        expect(() => render(<ActiveProjectConsumer />)).toThrow('useActiveProject must be used within an ActiveProjectProvider');
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+        try {
+            expect(() => render(<ActiveProjectConsumer />)).toThrow('useActiveProject must be used within an ActiveProjectProvider');
+        } finally {
+            consoleErrorSpy.mockRestore();
+        }
     });
 
     it('throws when active project dispatch hook is used outside provider', () => {
-        expect(() => render(<ActiveProjectDispatchOutsideProvider />))
-            .toThrow('useActiveProjectDispatch must be used within an ActiveProjectProvider');
+        const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+
+        try {
+            expect(() => render(<ActiveProjectDispatchOutsideProvider />))
+                .toThrow('useActiveProjectDispatch must be used within an ActiveProjectProvider');
+        } finally {
+            consoleErrorSpy.mockRestore();
+        }
     });
 
     it('hydrates active project state from localStorage and persists updates', async () => {

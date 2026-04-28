@@ -19,6 +19,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
     env: {
       NODE_ENV: 'test',
+      AUTH_TEST_BYPASS: '1',
       ILLUSTRY_PORT: port,
       MONGO_TEST_URL: process.env.MONGO_TEST_URL || 'mongodb://127.0.0.1:27017/illustrytest',
       MONGO_USER: process.env.MONGO_USER || 'root',

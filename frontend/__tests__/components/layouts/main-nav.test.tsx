@@ -8,6 +8,12 @@ vi.mock('next/link', () => ({
 }));
 
 let activeProjectValue = false;
+const currentUser = {
+    id: 'user-1',
+    email: 'vlad@example.com',
+    name: 'Vlad Nitu',
+    avatarUrl: null
+};
 
 vi.mock('@/components/providers/active-project-provider', () => ({
     useActiveProject: () => activeProjectValue
@@ -32,6 +38,7 @@ describe('MainNav', () => {
     it('renders items and disables project-dependent links when no active project', async () => {
         render(
             <MainNav
+                user={currentUser}
                 items={[
                     { title: 'projects', href: '/projects', clickableNoActiveProject: false },
                     { title: 'home', href: '/', clickableNoActiveProject: true }
@@ -52,6 +59,7 @@ describe('MainNav', () => {
         activeProjectValue = true;
         render(
             <MainNav
+                user={currentUser}
                 items={[
                     { title: 'projects', href: '/projects', clickableNoActiveProject: false }
                 ]}
@@ -67,6 +75,7 @@ describe('MainNav', () => {
         activeProjectValue = true;
         render(
             <MainNav
+                user={currentUser}
                 items={[
                     { title: 'fallback-home', clickableNoActiveProject: true }
                 ]}

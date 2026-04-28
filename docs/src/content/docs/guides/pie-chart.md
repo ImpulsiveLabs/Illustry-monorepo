@@ -11,7 +11,9 @@ The **Pie Chart** visualization is a concise and visually impactful way to repre
 To represent a Pie Chart, you can use the following `PieChartData` interface:
 
 ```typescript
-{{PieChartData}}
+type PieChartData = {
+  values: { [key: string]: number };
+};
 ```
 ### Key Attributes
 

@@ -12,8 +12,12 @@ process.env.MONGO_PASSWORD = "rootPass"
 const factory = Factory.getInstance();
 
 describe("project CRUD", () => {
+  beforeAll(async () => {
+    await factory.getBZL().ProjectBZL.delete({ name: "Test_Project1" }).catch(() => undefined);
+    await factory.getBZL().ProjectBZL.delete({ name: "Test_Project2" }).catch(() => undefined);
+  });
+
   afterAll(async () => {
-    delete process.env.NODE_ENV;
     const allProjects = await factory.getBZL().ProjectBZL.browse({});
 
     const deletePromises = (allProjects.projects || []).map(async (project) => {
@@ -22,6 +26,7 @@ describe("project CRUD", () => {
 
     await Promise.all(deletePromises);
     await mongoose.disconnect();
+    delete process.env.NODE_ENV;
   });
 
   it("create a project", async () => {

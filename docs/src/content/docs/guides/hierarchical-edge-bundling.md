@@ -10,11 +10,22 @@ The **Hierarchical Edge Bundling** visualization is a sophisticated technique fo
 To represent a Hierarchical Edge Bundling, you can use the following `NodeLinkData` interface:
 
 ```typescript
-{{Node}}
+type Node = with_optional_properties & {
+  name: string;
+  category: string;
+  labels?: Label[];
+};
 
-{{Link}}
+type Link = with_optional_properties & {
+  source: string;
+  target: string;
+  value: number;
+};
 
-{{NodeLinkData}}
+type NodeLinkData = {
+  nodes: Node[];
+  links: Link[];
+};
 ```
 ### Key Attributes
 

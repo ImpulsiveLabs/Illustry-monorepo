@@ -21,7 +21,19 @@ module.exports = {
   },
   externals: {
     sharp: 'commonjs sharp',
-    'xlsx-stream-reader': 'commonjs xlsx-stream-reader'
+    'xlsx-stream-reader': 'commonjs xlsx-stream-reader',
+    argon2: 'commonjs argon2',
+    'argon2/argon2.cjs': 'commonjs argon2',
+    'node-gyp-build': 'commonjs node-gyp-build',
+    'node-gyp-build/index.js': 'commonjs node-gyp-build',
+    '@aws-sdk/client-s3': 'commonjs @aws-sdk/client-s3',
+    '@aws-sdk/credential-providers': 'commonjs @aws-sdk/credential-providers',
+    kerberos: 'commonjs kerberos',
+    '@mongodb-js/zstd': 'commonjs @mongodb-js/zstd',
+    'gcp-metadata': 'commonjs gcp-metadata',
+    snappy: 'commonjs snappy',
+    aws4: 'commonjs aws4',
+    'mongodb-client-encryption': 'commonjs mongodb-client-encryption'
   },
   devtool: 'source-map',
   target: 'node',
@@ -48,6 +60,12 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.js', '.json']
   },
+  ignoreWarnings: [
+    {
+      module: /node_modules\/express\/lib\/view\.js$/,
+      message: /Critical dependency: the request of a dependency is an expression/
+    }
+  ],
   optimization: {
     minimizer: [
       new TerserPlugin({

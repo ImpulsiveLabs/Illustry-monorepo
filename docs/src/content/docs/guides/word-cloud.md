@@ -10,9 +10,14 @@ The **Word Cloud** visualization is used for representing textual data in a visu
 To represent a Word Cloud, you can use the following `WordCloudData` interface:
 
 ```typescript
-{{WordType}}
+type WordType = with_optional_properties & {
+  name: string;
+  value: number;
+};
 
-{{WordCloudData}}
+type WordCloudData = {
+  words: WordType[];
+};
 
 ```
 ### Key Attributes

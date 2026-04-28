@@ -125,7 +125,7 @@ describe('dbacc dashboard/project unit branches', () => {
     expect(ascendingSort.sort).toEqual({ name: 1 });
 
     await expect(lib.create({ name: 'inactive' } as any)).resolves.toEqual({ name: 'created-project' });
-    await expect(lib.create({ name: 'active', isActive: true } as any)).resolves.toEqual({ name: 'created-project' });
+    await expect(lib.create({ name: 'active', isActive: true, userId: 'test-user' } as any)).resolves.toEqual({ name: 'created-project' });
     expect(model.updateMany).toHaveBeenCalled();
 
     await expect(lib.findOne({ query: { name: 'p1' } } as any)).resolves.toEqual({ name: 'project', createdAt: expect.any(Date) });

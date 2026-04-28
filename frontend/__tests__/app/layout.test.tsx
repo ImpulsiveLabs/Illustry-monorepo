@@ -52,5 +52,9 @@ describe('RootLayout', () => {
 
         expect(metadata.description).toBeTruthy();
         expect(metadata.authors?.[0].name).toBe('Vladimir');
+        expect(metadata.other).toMatchObject({
+            'mobile-web-app-capable': 'yes',
+            'apple-mobile-web-app-capable': 'yes'
+        });
     });
 });

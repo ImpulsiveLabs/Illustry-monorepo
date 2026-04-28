@@ -6,6 +6,7 @@ import 'dotenv/config';
 import { DashboardTypes } from '@illustry/types';
 import makeRequest from '@/lib/request';
 import getBackendUrl from '@/lib/backend-url';
+import { buildBackendHeaders } from '@/lib/auth-request';
 
 
 const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
@@ -18,13 +19,11 @@ const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
   }
   const request = new Request(`${BACKEND as string}/api/dashboards`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true }),
     body: JSON.stringify(newFilter)
   });
   try {
-    return makeRequest<DashboardTypes.ExtendedDashboardType>(request, ['dashboards']);
+    return await makeRequest<DashboardTypes.ExtendedDashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -36,15 +35,13 @@ const deleteDashboard = async (dashboardName: string) => {
 
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify({
       name: dashboardName
     })
   });
   try {
-    return makeRequest<boolean>(request, ['dashboards']);
+    return await makeRequest<boolean>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -56,13 +53,11 @@ const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
 
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify(dashboard)
   });
   try {
-    return makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -80,13 +75,11 @@ const createDashboard = async (dashboard: DashboardTypes.DashboardCreate) => {
   };
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify(newDashboard)
   });
   try {
-    return makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
     return null;
@@ -100,14 +93,12 @@ const findOneDashboard = async (dashboardName: string, fullVisualizations: boole
     `${BACKEND as string}/api/dashboard/${dashboardName}`,
     {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: await buildBackendHeaders({ asJson: true }),
       body: JSON.stringify({ name: dashboardName, fullVisualizations })
     }
   );
   try {
-    return makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
   } catch (err) {
     console.debug(err);
     return null;
