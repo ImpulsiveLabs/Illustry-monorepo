@@ -98,7 +98,7 @@ const exelOrCsvdataProvider = (
     default:
       break;
   }
-  return data && data.data ? data : null;
+  return data?.data ? data : null;
 };
 
 const jsonDataProvider = (

@@ -12,13 +12,13 @@ describe('Factory tests', () => {
     factory = Factory.getInstance();
   });
 
-  afterAll(async () => {
-    await factory.cleanup();
+  afterAll(() => {
+    factory.cleanup();
   });
 
   it('Tries to use constructor instead of instance', () => {
     try {
-      const newFactory = new Factory();
+      new Factory();
     } catch (err) {
       expect((err as Error).message).toBe('Use Factory getInstance() instead');
     }
@@ -37,6 +37,6 @@ describe('Factory tests', () => {
     expect(dbaccInstance).toBeDefined();
     expect(dbaccInstance).not.toBeNull();
 
-    expect(typeof dbaccInstance.Dashboard).toBe('object'); 
+    expect(typeof dbaccInstance.Dashboard).toBe('object');
   });
 });

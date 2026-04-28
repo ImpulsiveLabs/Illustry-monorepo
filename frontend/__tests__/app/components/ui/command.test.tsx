@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   CommandDialog,
   CommandInput,
@@ -12,7 +12,6 @@ import {
   CommandSeparator
 } from '@/components/ui/command';
 import userEvent from '@testing-library/user-event';
-import { a } from 'vitest/dist/chunks/suite.d.FvehnV49.js';
 
 const TestWrapper = () => {
   const [open, setOpen] = React.useState(true);

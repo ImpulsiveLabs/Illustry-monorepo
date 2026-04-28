@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
@@ -16,8 +16,6 @@ import {
 
 describe('Custom Select', () => {
     it('renders the select and selects an option', async () => {
-        const user = userEvent.setup();
-
         render(
             <Select defaultValue="apple">
                 <SelectTrigger data-testid="select-trigger">

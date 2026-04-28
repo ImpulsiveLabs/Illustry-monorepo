@@ -71,7 +71,7 @@ type ReactEChartsProps<T> = {
 };
 
 // Updated ReactEcharts Component with forwardRef
-const ReactEcharts = forwardRef(<T, >(
+const ReactEcharts = forwardRef(<T,>(
   {
     option, className, loading, theme, style, onEvents, helperText
   }: ReactEChartsProps<T>,
@@ -92,7 +92,7 @@ const ReactEcharts = forwardRef(<T, >(
     };
 
     window.addEventListener('resize', resizeChart);
-    const resizeObserver = new ResizeObserver(() => resizeChart());
+    const resizeObserver = new ResizeObserver(resizeChart);
     resizeObserver.observe(containerRef.current as HTMLDivElement);
 
     return () => {

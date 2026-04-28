@@ -23,10 +23,10 @@ const constructSeries = (
       name: key,
       type,
       stack: stacked ? 'Total' : undefined,
-      color: colors.length >= index ? colors[index] : undefined,
+      color: colors.length > index ? colors[index] : undefined,
       areaStyle: area
         ? {
-          color: colors.length >= index ? colors[index] : undefined
+          color: colors.length > index ? colors[index] : undefined
         }
         : undefined,
       emphasis: {

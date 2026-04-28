@@ -14,7 +14,7 @@ describe('DashboardsLoading', () => {
     });
 
     it('renders correctly', () => {
-        const { container } = render(<DashboardsLoading />);
+        render(<DashboardsLoading />);
         expect(screen.getByTestId('mock-data-table-loading')).toBeInTheDocument();
     });
 });

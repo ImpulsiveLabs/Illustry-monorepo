@@ -3,8 +3,6 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import {
     AlertDialog,
-    AlertDialogPortal,
-    AlertDialogOverlay,
     AlertDialogTrigger,
     AlertDialogContent,
     AlertDialogHeader,
@@ -14,7 +12,6 @@ import {
     AlertDialogAction,
     AlertDialogCancel
 } from '@/components/ui/alert-dialog';
-import exp from 'constants';
 
 describe('AlertDalog', () => {
     it('renders and open dialog', async () => {

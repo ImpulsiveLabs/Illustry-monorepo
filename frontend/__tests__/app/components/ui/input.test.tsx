@@ -3,8 +3,6 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi } from 'vitest';
 import Input from '@/components/ui/input';
 import userEvent from '@testing-library/user-event';
-import exp from 'constants';
-import { wait } from '@testing-library/user-event/dist/cjs/utils/index.js';
 
 describe('Input', () => {
     const suggestions = ["apple", "banana", "orange"];

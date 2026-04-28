@@ -71,7 +71,6 @@ describe('theme ui components', () => {
     });
 
     it('renders generic theme tabs and handles add/delete/input interactions', async () => {
-        const user = userEvent.setup();
         const handleColorChange = vi.fn();
         const handleColorDelete = vi.fn();
         const handleColorAdd = vi.fn();

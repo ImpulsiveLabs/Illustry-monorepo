@@ -33,7 +33,7 @@ describe('Dialog', () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        )
+        );
         expect(screen.queryByText('Dialog Title')).not.toBeInTheDocument();
         fireEvent.click(screen.getByText('Open Dialog'));
         expect(screen.getByText('Dialog Title')).toBeInTheDocument();
