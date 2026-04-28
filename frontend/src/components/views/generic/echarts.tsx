@@ -92,7 +92,9 @@ const ReactEcharts = forwardRef(<T,>(
     };
 
     window.addEventListener('resize', resizeChart);
-    const resizeObserver = new ResizeObserver(resizeChart);
+    const resizeObserver = new ResizeObserver((_entries, _observer) => {
+      resizeChart();
+    });
     resizeObserver.observe(containerRef.current as HTMLDivElement);
 
     return () => {
