@@ -42,16 +42,17 @@ const parseFilter = (
             expressions.filter((part) => part !== undefined) as string[],
             words
     );
+    const filteredExpressions = expressions.filter((part) => part !== undefined) as string[];
     switch (type) {
       case VisualizationTypes.VisualizationTypesEnum.LINE_CHART:
       case VisualizationTypes.VisualizationTypesEnum.BAR_CHART:
         return applyAxisFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as VisualizationTypes.AxisChartData
         );
       case VisualizationTypes.VisualizationTypesEnum.CALENDAR:
         return applyCalendarFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as {
                         categories: string[];
                         calendar: VisualizationTypes.CalendarType[];
@@ -62,7 +63,7 @@ const parseFilter = (
       case VisualizationTypes.VisualizationTypesEnum.MATRIX:
       case VisualizationTypes.VisualizationTypesEnum.SANKEY:
         return applyNodeLinkFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as {
                         nodes: VisualizationTypes.Node[];
                         links: VisualizationTypes.Link[];
@@ -71,17 +72,17 @@ const parseFilter = (
       case VisualizationTypes.VisualizationTypesEnum.FUNNEL:
       case VisualizationTypes.VisualizationTypesEnum.PIE_CHART:
         return applyFunnelPieFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as VisualizationTypes.PieChartData | VisualizationTypes.FunnelData
         );
       case VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD:
         return applyWordCloudFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as VisualizationTypes.WordType[]
         );
       case VisualizationTypes.VisualizationTypesEnum.SCATTER:
         return applyScatterFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as {
                         points: (string | number)[][];
                         categories: string[];
@@ -89,13 +90,13 @@ const parseFilter = (
         );
       case VisualizationTypes.VisualizationTypesEnum.TIMELINE:
         return applyTimelineFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as VisualizationTypes.TimelineData
         );
       case VisualizationTypes.VisualizationTypesEnum.SUNBURST:
       case VisualizationTypes.VisualizationTypesEnum.TREEMAP:
         return applyHierarchyFilter(
-                    expressions.filter((part) => part !== undefined) as string[],
+                    filteredExpressions,
                     data as {
                         categories: string[]
                         nodes: VisualizationTypes.HierarchyNode[]
