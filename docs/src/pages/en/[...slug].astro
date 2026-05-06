@@ -4,7 +4,7 @@ import { getCollection } from 'astro:content';
 export const prerender = true;
 
 export async function getStaticPaths() {
-  const docsBase = '/Illustry-monorepo';
+  const docsBase = import.meta.env.BASE_URL.replace(/\/$/, '');
   const toTargetPath = (slug?: string) => `${docsBase}/${slug ? `${slug}/` : ''}`;
   const localePrefixes = new Set([
     'ar',
@@ -39,7 +39,7 @@ export async function getStaticPaths() {
       params: { slug: undefined },
       props: { targetPath: toTargetPath() }
     },
-    ...englishDocs.filter((entry) => entry.id !== 'index').map((entry) => ({
+    ...englishDocs.filter((entry) => entry.id !== 'index' && entry.id !== '404').map((entry) => ({
       params: { slug: entry.id },
       props: { targetPath: toTargetPath(entry.id) }
     }))
@@ -63,6 +63,7 @@ const { targetPath } = Astro.props;
       <a href={targetPath}>Redirecting to Illustry documentation</a>
     </p>
     <script is:inline define:vars={{ targetPath }}>
+      localStorage.setItem('illustry-docs-locale', 'en');
       window.location.replace(targetPath);
     </script>
   </body>

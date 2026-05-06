@@ -153,6 +153,74 @@ describe('email service', () => {
     global.fetch = originalFetch;
   });
 
+  it('surfaces Resend provider errors from json and text responses', async () => {
+    process.env.RESEND_API_KEY = 're_test';
+    delete process.env.SMTP_HOST;
+    const originalFetch = global.fetch;
+
+    const resendResponses = [
+      {
+        ok: false,
+        status: 422,
+        json: async () => ({ error: { message: 'Domain is not verified' } })
+      },
+      {
+        ok: false,
+        status: 500,
+        json: async () => {
+          throw new Error('not json');
+        },
+        text: async () => 'Resend text failure'
+      }
+    ];
+    const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === 'string' ? input : input.toString();
+      if (url === 'https://api.resend.com/emails') {
+        return resendResponses.shift() as unknown as Response;
+      }
+
+      return originalFetch(input, init);
+    });
+    global.fetch = fetchMock as any;
+
+    const { baseUrl, close } = await startServer();
+
+    const verificationResponse = await fetch(`${baseUrl}/api/email/send-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        verificationCode: '123456'
+      })
+    });
+    expect(verificationResponse.status).toBe(500);
+    await expect(verificationResponse.json()).resolves.toEqual({
+      error: 'Domain is not verified'
+    });
+
+    const resetResponse = await fetch(`${baseUrl}/api/email/send-password-reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        resetUrl: 'https://custom.test/reset'
+      })
+    });
+    expect(resetResponse.status).toBe(500);
+    await expect(resetResponse.json()).resolves.toEqual({
+      error: 'Resend text failure'
+    });
+
+    await close();
+    global.fetch = originalFetch;
+  });
+
   it('rejects missing or invalid api keys and validates verification payloads', async () => {
     const { baseUrl, close } = await startServer();
 
@@ -236,12 +304,46 @@ describe('email service', () => {
     await close();
   });
 
+  it('escapes template values and falls back for unsafe html hrefs', async () => {
+    const module = await loadModule();
+
+    const verification = module.getVerificationEmailContent(
+      'en',
+      '123456',
+      'javascript:alert(1)'
+    );
+    expect(verification.html).toContain('href="http://localhost:3000"');
+
+    const reset = module.getPasswordResetEmailContent('en', 'not a url');
+    expect(reset.html).toContain('href="http://localhost:3000"');
+
+    const { baseUrl, close } = await startServer();
+    sendMailMock.mockResolvedValueOnce({ accepted: ['user@example.com'] });
+    const response = await fetch(`${baseUrl}/api/email/send-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        verificationCode: '123456',
+        verificationUrl: 'https://custom.test/verify?next=%3Cscript%3E'
+      })
+    });
+    expect(response.status).toBe(200);
+    expect(sendMailMock.mock.calls[0][0].html).not.toContain('<script>');
+
+    await close();
+  });
+
   it('sends verification and password reset emails and handles failures', async () => {
     const { baseUrl, close } = await startServer();
 
     sendMailMock
       .mockResolvedValueOnce({ accepted: ['user@example.com'] })
       .mockRejectedValueOnce(new Error('smtp failed'))
+      .mockRejectedValueOnce(Object.assign(new Error('auth failed'), { code: 'EAUTH' }))
       .mockResolvedValueOnce({ accepted: ['user@example.com'] })
       .mockRejectedValueOnce(new Error('smtp failed'));
 
@@ -280,6 +382,22 @@ describe('email service', () => {
     });
     expect(failedVerification.status).toBe(500);
 
+    const authFailure = await fetch(`${baseUrl}/api/email/send-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        verificationCode: '123456'
+      })
+    });
+    expect(authFailure.status).toBe(500);
+    await expect(authFailure.json()).resolves.toEqual({
+      error: 'SMTP authentication failed. Set SMTP_USER to your Gmail address and SMTP_PASS to a Gmail App Password.'
+    });
+
     const okReset = await fetch(`${baseUrl}/api/email/send-password-reset`, {
       method: 'POST',
       headers: {
@@ -292,7 +410,7 @@ describe('email service', () => {
       })
     });
     expect(okReset.status).toBe(200);
-    expect(sendMailMock).toHaveBeenNthCalledWith(3, expect.objectContaining({
+    expect(sendMailMock).toHaveBeenNthCalledWith(4, expect.objectContaining({
       subject: 'Reset your Illustry password'
     }));
 
@@ -381,6 +499,22 @@ describe('email service', () => {
 
     expect(response.status).toBe(500);
     await expect(response.json()).resolves.toEqual({
+      error: expectedSmtpError
+    });
+
+    const resetResponse = await fetch(`${baseUrl}/api/email/send-password-reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'fallback@example.com',
+        resetUrl: 'https://custom.test/reset'
+      })
+    });
+    expect(resetResponse.status).toBe(500);
+    await expect(resetResponse.json()).resolves.toEqual({
       error: expectedSmtpError
     });
     expect(sendMailMock).not.toHaveBeenCalled();

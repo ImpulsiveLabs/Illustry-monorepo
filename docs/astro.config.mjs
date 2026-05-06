@@ -35,6 +35,7 @@ const docsLocales = {
 const docsRoot = path.dirname(fileURLToPath(import.meta.url));
 const docsContentRoot = path.join(docsRoot, 'src', 'content', 'docs');
 const nonRootLocales = Object.keys(docsLocales).filter((locale) => locale !== 'root');
+const supportedLocaleCodes = ['en', ...nonRootLocales];
 const typePlaceholders = buildTypePlaceholderMap(docsRoot);
 const typePlaceholderRemarkPlugin = createTypePlaceholderRemarkPlugin(typePlaceholders);
 
@@ -206,7 +207,8 @@ export default defineConfig({
           },
           content: `(function () {
   var base = '/Illustry-monorepo';
-  var supported = ${JSON.stringify(Object.keys(docsLocales).filter((locale) => locale !== 'root'))};
+  var supported = ${JSON.stringify(supportedLocaleCodes)};
+  var redirectLocales = ${JSON.stringify(nonRootLocales)};
   var countryToLocale = { ES: 'es', MX: 'es', AR: 'es', CO: 'es', CL: 'es', FR: 'fr', BE: 'fr', CH: 'de', DE: 'de', AT: 'de', IT: 'it', BR: 'pt', PT: 'pt', RU: 'ru', UA: 'uk', RO: 'ro', NL: 'nl', PL: 'pl', TR: 'tr', GR: 'el', EG: 'ar', SA: 'ar', IL: 'he', IN: 'hi', BD: 'bn', PK: 'ur', ID: 'id', VN: 'vi', TH: 'th', JP: 'ja', KR: 'ko', CN: 'zh', TW: 'zh', HK: 'zh' };
   var getCookie = function (name) {
     var value = document.cookie.split(';').map(function (item) { return item.trim(); }).find(function (item) { return item.indexOf(name + '=') === 0; });
@@ -241,7 +243,7 @@ export default defineConfig({
     }
   }
   var preferred = savedLocale || cookieLocale || countryLocale || browserLocale;
-  if (preferred && supported.indexOf(preferred) >= 0) {
+  if (preferred && redirectLocales.indexOf(preferred) >= 0) {
     window.location.replace(base + '/' + preferred + '/');
   }
 })();`

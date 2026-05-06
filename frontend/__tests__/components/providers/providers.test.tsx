@@ -13,6 +13,10 @@ import {
     useThemeColors,
     useThemeColorsDispach
 } from '@/components/providers/theme-provider';
+import {
+    LocaleProvider,
+    useLocale
+} from '@/components/providers/locale-provider';
 
 const { nextThemeProviderSpy } = vi.hoisted(() => ({
     nextThemeProviderSpy: vi.fn(({ children }: { children: React.ReactNode }) => (
@@ -86,9 +90,29 @@ const ThemeDispatchOutsideProvider = () => {
     return <span data-testid="dispatch-defined">{String(Boolean(dispatch))}</span>;
 };
 
+const LocaleConsumer = () => {
+    const { locale, setLocale, t } = useLocale();
+    return (
+        <>
+            <span data-testid="locale">{locale}</span>
+            <span data-testid="message">{t('common.home')}</span>
+            <span data-testid="missing-message">{t('missing.translation.key')}</span>
+            <button onClick={() => setLocale('ar')}>set-ar</button>
+        </>
+    );
+};
+
+const clearCookie = (name: string) => {
+    document.cookie = `${name}=; Path=/; Max-Age=0`;
+};
+
 describe('providers', () => {
     beforeEach(() => {
         localStorage.clear();
+        clearCookie('illustry-locale');
+        clearCookie('illustry-country');
+        document.documentElement.lang = '';
+        document.documentElement.dir = '';
     });
 
     it('throws when active project hooks are used outside provider', () => {
@@ -233,6 +257,104 @@ describe('providers', () => {
         Object.defineProperty(window, 'localStorage', {
             configurable: true,
             value: originalLocalStorage
+        });
+    });
+
+    it('uses default locale context outside the locale provider', () => {
+        render(<LocaleConsumer />);
+
+        expect(screen.getByTestId('locale')).toHaveTextContent('en');
+        expect(screen.getByTestId('message')).toHaveTextContent('Home');
+        expect(screen.getByTestId('missing-message')).toHaveTextContent('missing.translation.key');
+    });
+
+    it('hydrates locale from localStorage and persists rtl locale changes', async () => {
+        const user = userEvent.setup();
+        localStorage.setItem('illustry-locale', 'ro');
+
+        render(
+            <LocaleProvider>
+                <LocaleConsumer />
+            </LocaleProvider>
+        );
+
+        await waitFor(() => {
+            expect(screen.getByTestId('locale')).toHaveTextContent('ro');
+            expect(document.documentElement.lang).toBe('ro');
+            expect(document.documentElement.dir).toBe('ltr');
+        });
+
+        await user.click(screen.getByRole('button', { name: 'set-ar' }));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('locale')).toHaveTextContent('ar');
+            expect(localStorage.getItem('illustry-locale')).toBe('ar');
+            expect(document.documentElement.lang).toBe('ar');
+            expect(document.documentElement.dir).toBe('rtl');
+        });
+    });
+
+    it('resolves locale from cookie, country and browser language fallbacks', async () => {
+        document.cookie = 'illustry-locale=fr; Path=/';
+        const { unmount } = render(
+            <LocaleProvider>
+                <LocaleConsumer />
+            </LocaleProvider>
+        );
+        await waitFor(() => expect(screen.getByTestId('locale')).toHaveTextContent('fr'));
+        unmount();
+
+        localStorage.clear();
+        clearCookie('illustry-locale');
+        document.cookie = 'illustry-country=JP; Path=/';
+        const second = render(
+            <LocaleProvider>
+                <LocaleConsumer />
+            </LocaleProvider>
+        );
+        await waitFor(() => expect(screen.getByTestId('locale')).toHaveTextContent('ja'));
+        second.unmount();
+
+        localStorage.clear();
+        clearCookie('illustry-locale');
+        clearCookie('illustry-country');
+        const originalLanguages = window.navigator.languages;
+        Object.defineProperty(window.navigator, 'languages', {
+            configurable: true,
+            value: ['ko-KR', 'en-US']
+        });
+        render(
+            <LocaleProvider>
+                <LocaleConsumer />
+            </LocaleProvider>
+        );
+        await waitFor(() => expect(screen.getByTestId('locale')).toHaveTextContent('ko'));
+        Object.defineProperty(window.navigator, 'languages', {
+            configurable: true,
+            value: originalLanguages
+        });
+    });
+
+    it('falls back to English when browser languages are unsupported', async () => {
+        const originalLanguages = window.navigator.languages;
+        localStorage.clear();
+        clearCookie('illustry-locale');
+        clearCookie('illustry-country');
+        Object.defineProperty(window.navigator, 'languages', {
+            configurable: true,
+            value: ['zz-ZZ']
+        });
+
+        render(
+            <LocaleProvider>
+                <LocaleConsumer />
+            </LocaleProvider>
+        );
+
+        await waitFor(() => expect(screen.getByTestId('locale')).toHaveTextContent('en'));
+        Object.defineProperty(window.navigator, 'languages', {
+            configurable: true,
+            value: originalLanguages
         });
     });
 
