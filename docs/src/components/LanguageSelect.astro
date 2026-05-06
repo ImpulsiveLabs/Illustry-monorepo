@@ -167,6 +167,14 @@ import DefaultLanguageSelect from '@astrojs/starlight/components/LanguageSelect.
     return 'root';
   };
 
+  const resolveLocaleFromOptionValue = (value: string) => {
+    try {
+      return resolveLocaleFromPath(new URL(value, window.location.href).pathname);
+    } catch {
+      return normalizeLocale(value);
+    }
+  };
+
   class IllustryLanguageSelect extends HTMLElement {
     cleanupController: AbortController | undefined;
 
@@ -323,6 +331,8 @@ import DefaultLanguageSelect from '@astrojs/starlight/components/LanguageSelect.
           optionButton.addEventListener('click', () => {
             setSelected(option.value);
             nativeSelect.value = option.value;
+            const selectedLocale = resolveLocaleFromOptionValue(option.value);
+            localStorage.setItem('illustry-docs-locale', selectedLocale === 'root' ? 'en' : selectedLocale);
             window.location.assign(option.value);
           });
 
