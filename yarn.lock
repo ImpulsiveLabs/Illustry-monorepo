@@ -2051,6 +2051,7 @@ __metadata:
     "@types/multer": "npm:1.4.12"
     "@types/node": "npm:20.10.2"
     "@types/validator": "npm:13.11.6"
+    "@types/ws": "npm:^8.18.1"
     "@types/xml2js": "npm:0.4.14"
     "@typescript-eslint/eslint-plugin": "npm:8.59.1"
     "@typescript-eslint/parser": "npm:8.59.1"
@@ -2068,6 +2069,7 @@ __metadata:
     lint-staged: "npm:16.3.2"
     mongoose: "npm:8.19.1"
     multer: "npm:2.1.1"
+    redis: "npm:^5.12.1"
     shebang-loader: "npm:0.0.1"
     terser-webpack-plugin: "npm:5.3.14"
     ts-jest: "npm:29.1.1"
@@ -2076,6 +2078,7 @@ __metadata:
     validator: "npm:13.15.26"
     webpack: "npm:5.105.4"
     webpack-cli: "npm:5.1.4"
+    ws: "npm:^8.20.0"
     xml2js: "npm:0.6.2"
     zod: "npm:3.22.4"
     zod-error: "npm:1.5.0"
@@ -4177,6 +4180,59 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@redis/bloom@npm:5.12.1":
+  version: 5.12.1
+  resolution: "@redis/bloom@npm:5.12.1"
+  peerDependencies:
+    "@redis/client": ^5.12.1
+  checksum: 10/ecbd942080ff2d70c5ebb9dee47451f5fe12e3f05a7e9994f1e588b96dd435bc2ac9df4c66a67825fa116721531e9a5cc381f00295d7bc4d7ec984e8b6b5e048
+  languageName: node
+  linkType: hard
+
+"@redis/client@npm:5.12.1":
+  version: 5.12.1
+  resolution: "@redis/client@npm:5.12.1"
+  dependencies:
+    cluster-key-slot: "npm:1.1.2"
+  peerDependencies:
+    "@node-rs/xxhash": ^1.1.0
+    "@opentelemetry/api": ">=1 <2"
+  peerDependenciesMeta:
+    "@node-rs/xxhash":
+      optional: true
+    "@opentelemetry/api":
+      optional: true
+  checksum: 10/6e7ac59761201ca0cb5eeff78e18b67eb0db2071b6bf3306d08697999a244329dd01a4d521963eb134da87c8ef6689ed52648f5fc15d6d2cd84a77cd5f3351c4
+  languageName: node
+  linkType: hard
+
+"@redis/json@npm:5.12.1":
+  version: 5.12.1
+  resolution: "@redis/json@npm:5.12.1"
+  peerDependencies:
+    "@redis/client": ^5.12.1
+  checksum: 10/26a7511ab955b6ceb99622d5b8cc5ad0d026cb3d11b8e62a6673465632f9d37ee5b8571e350caf448a30c7579fcf86b75abfc7102f8d8a90980fb940f5f8b4b3
+  languageName: node
+  linkType: hard
+
+"@redis/search@npm:5.12.1":
+  version: 5.12.1
+  resolution: "@redis/search@npm:5.12.1"
+  peerDependencies:
+    "@redis/client": ^5.12.1
+  checksum: 10/df2459b175b29b9bffce2a72531c95d630a01425116f6d4b3dd183d43d660133d211fb68bf3556024f5c5605be65800df5f0ecde8cd00ef6dd31a98b829e01e7
+  languageName: node
+  linkType: hard
+
+"@redis/time-series@npm:5.12.1":
+  version: 5.12.1
+  resolution: "@redis/time-series@npm:5.12.1"
+  peerDependencies:
+    "@redis/client": ^5.12.1
+  checksum: 10/61969f5f78e17efb9c3347102da8efa043566a55b152649b85a0bc5646966a03767ec2e48ab17e632470886f2568a30b58f95905b109fa41c85f74ecbf8e8e97
+  languageName: node
+  linkType: hard
+
 "@rolldown/binding-android-arm64@npm:1.0.0-rc.17":
   version: 1.0.0-rc.17
   resolution: "@rolldown/binding-android-arm64@npm:1.0.0-rc.17"
@@ -5170,6 +5226,15 @@ __metadata:
   dependencies:
     "@types/webidl-conversions": "npm:*"
   checksum: 10/23a0c45aff51817807b473a6adb181d6e3bb0d27dde54e84883d5d5bc93358e95204d2188e7ff7fdc2cdaf157e97e1188ef0a22ec79228da300fc30d4a05b56a
+  languageName: node
+  linkType: hard
+
+"@types/ws@npm:^8.18.1":
+  version: 8.18.1
+  resolution: "@types/ws@npm:8.18.1"
+  dependencies:
+    "@types/node": "npm:*"
+  checksum: 10/1ce05e3174dcacf28dae0e9b854ef1c9a12da44c7ed73617ab6897c5cbe4fccbb155a20be5508ae9a7dde2f83bd80f5cf3baa386b934fc4b40889ec963e94f3a
   languageName: node
   linkType: hard
 
@@ -7153,6 +7218,13 @@ __metadata:
   version: 2.1.1
   resolution: "clsx@npm:2.1.1"
   checksum: 10/cdfb57fa6c7649bbff98d9028c2f0de2f91c86f551179541cf784b1cfdc1562dcb951955f46d54d930a3879931a980e32a46b598acaea274728dbe068deca919
+  languageName: node
+  linkType: hard
+
+"cluster-key-slot@npm:1.1.2":
+  version: 1.1.2
+  resolution: "cluster-key-slot@npm:1.1.2"
+  checksum: 10/516ed8b5e1a14d9c3a9c96c72ef6de2d70dfcdbaa0ec3a90bc7b9216c5457e39c09a5775750c272369070308542e671146120153062ab5f2f481bed5de2c925f
   languageName: node
   linkType: hard
 
@@ -15313,6 +15385,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"redis@npm:^5.12.1":
+  version: 5.12.1
+  resolution: "redis@npm:5.12.1"
+  dependencies:
+    "@redis/bloom": "npm:5.12.1"
+    "@redis/client": "npm:5.12.1"
+    "@redis/json": "npm:5.12.1"
+    "@redis/search": "npm:5.12.1"
+    "@redis/time-series": "npm:5.12.1"
+  checksum: 10/b46a57e1aef5d8c8893ac58dd7afd8d914e26fb49a5a532986a0a46d6fbfbb5e4b4d24f21c56c2485826f87014519f5bdc9e1a6ae27c0753f3af2fb9ff6904b3
+  languageName: node
+  linkType: hard
+
 "reflect.getprototypeof@npm:^1.0.6, reflect.getprototypeof@npm:^1.0.8, reflect.getprototypeof@npm:^1.0.9":
   version: 1.0.9
   resolution: "reflect.getprototypeof@npm:1.0.9"
@@ -18831,6 +18916,21 @@ __metadata:
     imurmurhash: "npm:^0.1.4"
     signal-exit: "npm:^3.0.7"
   checksum: 10/3be1f5508a46c190619d5386b1ac8f3af3dbe951ed0f7b0b4a0961eed6fc626bd84b50cf4be768dabc0a05b672f5d0c5ee7f42daa557b14415d18c3a13c7d246
+  languageName: node
+  linkType: hard
+
+"ws@npm:^8.20.0":
+  version: 8.20.0
+  resolution: "ws@npm:8.20.0"
+  peerDependencies:
+    bufferutil: ^4.0.1
+    utf-8-validate: ">=5.0.2"
+  peerDependenciesMeta:
+    bufferutil:
+      optional: true
+    utf-8-validate:
+      optional: true
+  checksum: 10/b7ab934b21ffdea9f25a5af5097e8c1ec7625db553bca026c5a23e35b7c236f3fb89782f2b57fab9da553864512f9aa7d245827ef998d26ffa1b2187a19a6d10
   languageName: node
   linkType: hard
 

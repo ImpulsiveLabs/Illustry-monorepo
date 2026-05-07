@@ -14,6 +14,15 @@ import {
 import Factory from '../../factory';
 import DbaccInstance from '../../dbacc/lib';
 import { resolveUserId } from '../user-scope';
+import NoDataFoundError from '../../errors/noDataFoundError';
+import { publish } from '../../realtime/broker';
+import EmailService from '../../auth/email';
+import logger from '../../config/logger';
+import { normalizeShareCollaborators } from '../share-collaborators';
+
+const createVisualizationShareId = () => `viz_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+const createInviteToken = () => `share_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+const getInviteTtlMs = () => Number(process.env.SHARE_INVITE_TTL_HOURS || 72) * 60 * 60 * 1000;
 
 class VisualizationBZL implements GenericTypes.BaseBZL<
   VisualizationTypes.VisualizationCreate,
@@ -27,6 +36,64 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     this.dbaccInstance = dbaccInstance;
   }
 
+  private hasSharedAccess(
+    visualization: VisualizationTypes.VisualizationType,
+    userId: string,
+    requiredPermission: VisualizationTypes.VisualizationSharePermission = 'viewer'
+  ): boolean {
+    if (visualization.userId === userId) {
+      return true;
+    }
+
+    const collaborator = visualization.sharedWith?.find((sharedUser) => sharedUser.userId === userId);
+    if (!collaborator) {
+      return false;
+    }
+    if (collaborator.status && collaborator.status !== 'accepted') {
+      return false;
+    }
+
+    return requiredPermission === 'viewer' || collaborator.permission === 'editor';
+  }
+
+  private getCollaboratorMetadata(
+    visualization: VisualizationTypes.VisualizationType,
+    userId: string
+  ): Pick<VisualizationTypes.VisualizationType, 'currentUserRole' | 'shareStatus' | 'isExternal'> {
+    if (visualization.userId === userId) {
+      return { currentUserRole: 'owner', shareStatus: 'accepted', isExternal: false };
+    }
+    const collaborator = visualization.sharedWith?.find((sharedUser) => sharedUser.userId === userId);
+    return {
+      currentUserRole: collaborator?.permission,
+      shareStatus: collaborator?.status || 'accepted',
+      isExternal: true
+    };
+  }
+
+  private async enrichRows(
+    visualizations: VisualizationTypes.VisualizationType[] | undefined,
+    requesterUserId: string
+  ): Promise<VisualizationTypes.VisualizationType[]> {
+    if (!visualizations) {
+      return [];
+    }
+    return Promise.all(visualizations.map(async (visualization) => {
+      const plainVisualization = typeof (visualization as unknown as { toObject?: () => VisualizationTypes.VisualizationType }).toObject === 'function'
+        ? (visualization as unknown as { toObject: () => VisualizationTypes.VisualizationType }).toObject()
+        : visualization;
+      const owner = visualization.userId
+        ? await this.dbaccInstance.Auth.findUserById(visualization.userId).catch(() => null)
+        : null;
+      return {
+        ...plainVisualization,
+        ownerEmail: owner?.email,
+        ownerName: owner?.name,
+        ...this.getCollaboratorMetadata(visualization, requesterUserId)
+      };
+    }));
+  }
+
   create(data: VisualizationTypes.VisualizationCreate): Promise<VisualizationTypes.VisualizationType> {
     throw new Error('Method not implemented.');
   }
@@ -35,7 +102,101 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     filter: VisualizationTypes.VisualizationFilter,
     data: UtilTypes.DeepPartial<VisualizationTypes.VisualizationType>
   ): Promise<VisualizationTypes.VisualizationType | null> {
-    throw new Error('Method not implemented.');
+    return this.updateVisualization(filter, data);
+  }
+
+  private async updateVisualization(
+    filter: VisualizationTypes.VisualizationFilter,
+    data: VisualizationTypes.VisualizationUpdate
+  ): Promise<VisualizationTypes.VisualizationType | null> {
+    const userId = resolveUserId(filter.userId);
+    const allowedUpdate: VisualizationTypes.VisualizationUpdate = {};
+    if (data.theme) {
+      allowedUpdate.theme = data.theme;
+    }
+
+    if (Object.keys(allowedUpdate).length === 0) {
+      throw new Error('No supported visualization updates were provided');
+    }
+
+    if (filter.shareId) {
+      const sharedVisualization = await this.findShared(filter.shareId, userId);
+      if (!this.hasSharedAccess(sharedVisualization, userId, 'editor')) {
+        throw new NoDataFoundError('Shared visualization was not found');
+      }
+      const updatedVisualization = await this.dbaccInstance.Visualization.updateFields(
+        this.dbaccInstance.Visualization.createFilter({ shareId: filter.shareId }),
+        allowedUpdate
+      );
+      if (updatedVisualization?.shareId) {
+        publish({
+          resource: 'visualization',
+          shareId: updatedVisualization.shareId,
+          action: 'updated',
+          updatedAt: new Date().toISOString()
+        });
+      }
+      return updatedVisualization;
+    }
+
+    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
+    if (!projects || projects.length === 0) {
+      throw new Error('No active project');
+    }
+
+    const queryFilter = this.dbaccInstance.Visualization.createFilter({
+      userId,
+      projectName: projects[0].name,
+      name: filter.name,
+      type: filter.type
+    });
+    const updatedVisualization = await this.dbaccInstance.Visualization.updateFields(
+      queryFilter,
+      allowedUpdate
+    );
+    if (updatedVisualization?.shareId) {
+      publish({
+        resource: 'visualization',
+        shareId: updatedVisualization.shareId,
+        action: 'updated',
+        updatedAt: new Date().toISOString()
+      });
+    }
+    return updatedVisualization;
+  }
+
+  async syncEditableSharedThemes(
+    userId: string,
+    theme: Record<string, unknown>
+  ): Promise<VisualizationTypes.VisualizationThemeSyncResult> {
+    if (!theme || typeof theme !== 'object' || Array.isArray(theme)) {
+      throw new Error('A valid theme payload is required');
+    }
+
+    const scopedUserId = resolveUserId(userId);
+    const targets = await this.dbaccInstance.Visualization.findEditableSharedThemeTargets(scopedUserId);
+    const shareIds = Array.from(new Set(
+      targets
+        .map((target) => target.shareId)
+        .filter((shareId): shareId is string => Boolean(shareId))
+    ));
+
+    const updatedCount = await this.dbaccInstance.Visualization.updateThemeForShareIds(shareIds, theme);
+    const updatedAt = new Date().toISOString();
+    shareIds.forEach((shareId) => {
+      publish({
+        resource: 'visualization',
+        shareId,
+        action: 'theme-updated',
+        updatedAt
+      });
+    });
+
+    return {
+      updatedCount,
+      shareIds
+    };
   }
 
   async createOrUpdate(
@@ -56,6 +217,14 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         visualizationFilter,
         visualization
       );
+      if (returnedVisualization?.shareId) {
+        publish({
+          resource: 'visualization',
+          shareId: returnedVisualization.shareId,
+          action: 'updated',
+          updatedAt: new Date().toISOString()
+        });
+      }
       return returnedVisualization;
     }
     await Promise.all(
@@ -69,10 +238,18 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
         const visualizationUpdate: VisualizationTypes.VisualizationUpdate = { ...visualization, type: singleType };
 
-        await this.dbaccInstance.Visualization.update(
+        const updatedVisualization = await this.dbaccInstance.Visualization.update(
           visualizationFilter,
           visualizationUpdate
         );
+        if (updatedVisualization?.shareId) {
+          publish({
+            resource: 'visualization',
+            shareId: updatedVisualization.shareId,
+            action: 'updated',
+            updatedAt: new Date().toISOString()
+          });
+        }
       })
     );
 
@@ -162,32 +339,197 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     return result as VisualizationTypes.VisualizationType;
   }
 
-  async browse(filter: VisualizationTypes.VisualizationFilter): Promise<VisualizationTypes.ExtendedVisualizationType> {
-    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+  async findShared(
+    shareId: string,
+    requesterUserId: string
+  ): Promise<VisualizationTypes.VisualizationType> {
+    const queryFilter = this.dbaccInstance.Visualization.createFilter({ shareId });
+    const foundVisualization = await this.dbaccInstance.Visualization.findOneWithSharing(queryFilter);
+    if (!foundVisualization || !this.hasSharedAccess(foundVisualization, requesterUserId, 'viewer')) {
+      throw new NoDataFoundError('Shared visualization was not found');
+    }
+
+    const owner = foundVisualization.userId
+      ? await this.dbaccInstance.Auth.findUserById(foundVisualization.userId).catch(() => null)
+      : null;
+    return {
+      ...foundVisualization,
+      ownerEmail: owner?.email,
+      ownerName: owner?.name,
+      ...this.getCollaboratorMetadata(foundVisualization, requesterUserId)
+    };
+  }
+
+  async share(
+    filter: VisualizationTypes.VisualizationFilter,
+    collaborators: VisualizationTypes.VisualizationShareRequest['collaborators'],
+    theme?: VisualizationTypes.VisualizationShareRequest['theme']
+  ): Promise<VisualizationTypes.VisualizationType> {
     const userId = resolveUserId(filter.userId);
+    const visualization = await this.findOne(filter);
+    const owner = await this.dbaccInstance.Auth.findUserById(userId);
+    const normalizedCollaborators = normalizeShareCollaborators<VisualizationTypes.VisualizationSharePermission>(
+      collaborators,
+      owner?.email,
+      'visualization'
+    );
+    const existingShareId = visualization.shareId || createVisualizationShareId();
+    const existingSharedWith = visualization.sharedWith || [];
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + getInviteTtlMs());
+    const sharedWith = await Promise.all(normalizedCollaborators.map(async (collaborator) => {
+      const user = await this.dbaccInstance.Auth.findUserByEmailNormalized(collaborator.email);
+      if (!user) {
+        throw new NoDataFoundError(`No user was found for ${collaborator.email}`);
+      }
 
+      const previous = existingSharedWith.find((sharedUser) => sharedUser.userId === user._id.toString());
+      return {
+        userId: user._id.toString(),
+        email: user.email,
+        name: user.name,
+        permission: collaborator.permission === 'editor' ? 'editor' : 'viewer',
+        status: 'pending',
+        inviteToken: createInviteToken(),
+        inviteExpiresAt: expiresAt,
+        createdAt: previous?.createdAt || now,
+        updatedAt: now
+      } as VisualizationTypes.VisualizationSharedUser;
+    }));
+    const mergedSharedWith = [
+      ...existingSharedWith.filter((existing) => !sharedWith.some((next) => next.userId === existing.userId)),
+      ...sharedWith
+    ];
+
+    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
     const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
-
     if (!projects || projects.length === 0) {
       throw new Error('No active project');
     }
 
-    const activeProjectName = projects[0].name;
-
-    const updatedFilter: VisualizationTypes.VisualizationFilter = {
-      ...filter,
+    const queryFilter = this.dbaccInstance.Visualization.createFilter({
       userId,
-      projectName: activeProjectName
-    };
+      projectName: projects[0].name,
+      name: filter.name,
+      type: filter.type
+    });
+    const updatedVisualization = await this.dbaccInstance.Visualization.updateSharing(queryFilter, {
+      shareId: existingShareId,
+      sharedWith: mergedSharedWith,
+      theme: theme || visualization.theme
+    });
+    if (!updatedVisualization) {
+      throw new NoDataFoundError('Visualization was not found');
+    }
+    publish({
+      resource: 'visualization',
+      shareId: existingShareId,
+      action: 'shared',
+      updatedAt: new Date().toISOString()
+    });
+    await Promise.all(sharedWith.map(async (sharedUser) => {
+      if (!sharedUser.email || !sharedUser.inviteToken || !sharedUser.inviteExpiresAt) {
+        return;
+      }
+      await new EmailService().sendShareInvitationEmail({
+        email: sharedUser.email,
+        ownerName: owner?.name || 'A teammate',
+        resourceType: 'visualization',
+        resourceName: visualization.name,
+        permission: sharedUser.permission,
+        token: sharedUser.inviteToken,
+        expiresAt: sharedUser.inviteExpiresAt
+      }).catch((error) => logger.warn('Unable to send visualization share invitation email', error));
+    }));
+    return updatedVisualization;
+  }
+
+  async browse(filter: VisualizationTypes.VisualizationFilter): Promise<VisualizationTypes.ExtendedVisualizationType> {
+    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const userId = resolveUserId(filter.userId);
+
+    const isExternal = filter.sharedScope === 'external';
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
+
+    if (!isExternal && (!projects || projects.length === 0)) {
+      throw new Error('No active project');
+    }
+
+    const updatedFilter: VisualizationTypes.VisualizationFilter = isExternal
+      ? {
+        ...filter,
+        userId: undefined,
+        projectName: undefined,
+        sharedWithUserId: userId,
+        sharedScope: 'external'
+      }
+      : {
+        ...filter,
+        userId,
+        projectName: projects?.[0]?.name,
+        sharedScope: 'owned'
+      };
 
     const queryFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Visualization.createFilter(updatedFilter);
 
-    return this.dbaccInstance.Visualization.browse(queryFilter);
+    const result = await this.dbaccInstance.Visualization.browse(queryFilter);
+    return {
+      ...result,
+      visualizations: await this.enrichRows(result.visualizations, userId)
+    };
+  }
+
+  async respondToInvite(token: string, decision: 'accept' | 'reject'): Promise<VisualizationTypes.VisualizationType> {
+    const visualization = await this.dbaccInstance.Visualization.findOneByShareInviteToken(token);
+    if (!visualization) {
+      throw new NoDataFoundError('Share invitation was not found');
+    }
+    const now = new Date();
+    const sharedWith = (visualization.sharedWith || []).map((sharedUser) => {
+      if (sharedUser.inviteToken !== token) {
+        return sharedUser;
+      }
+      if (sharedUser.inviteExpiresAt && new Date(sharedUser.inviteExpiresAt).getTime() < now.getTime()) {
+        throw new NoDataFoundError('Share invitation expired');
+      }
+      return {
+        ...sharedUser,
+        status: (decision === 'accept' ? 'accepted' : 'rejected') as VisualizationTypes.VisualizationShareStatus,
+        respondedAt: now,
+        updatedAt: now
+      };
+    });
+    const updatedVisualization = await this.dbaccInstance.Visualization.updateSharing(
+      this.dbaccInstance.Visualization.createFilter({ shareId: visualization.shareId }),
+      { shareId: visualization.shareId, sharedWith }
+    );
+    if (!updatedVisualization) {
+      throw new NoDataFoundError('Visualization was not found');
+    }
+    return updatedVisualization;
   }
 
   async delete(filter: VisualizationTypes.VisualizationFilter): Promise<boolean> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
     const userId = resolveUserId(filter.userId);
+
+    if (filter.shareId) {
+      const sharedVisualization = await this.findShared(filter.shareId, userId);
+      if (sharedVisualization.userId !== userId) {
+        const nextSharedWith = (sharedVisualization.sharedWith || []).filter((sharedUser) => sharedUser.userId !== userId);
+        await this.dbaccInstance.Visualization.updateSharing(
+          this.dbaccInstance.Visualization.createFilter({ shareId: filter.shareId }),
+          { shareId: filter.shareId, sharedWith: nextSharedWith }
+        );
+        publish({
+          resource: 'visualization',
+          shareId: filter.shareId,
+          action: 'shared',
+          updatedAt: new Date().toISOString()
+        });
+        return true;
+      }
+    }
 
     const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
 
@@ -249,7 +591,16 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         }
       }
     }
+    const deletedVisualization = await this.dbaccInstance.Visualization.findOneWithSharing(queryFilter);
     await this.dbaccInstance.Visualization.deleteMany(queryFilter);
+    if (deletedVisualization?.shareId) {
+      publish({
+        resource: 'visualization',
+        shareId: deletedVisualization.shareId,
+        action: 'deleted',
+        updatedAt: new Date().toISOString()
+      });
+    }
     return true;
   }
 

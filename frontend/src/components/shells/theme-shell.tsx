@@ -3,10 +3,11 @@
 'use client';
 
 import {
-  Suspense, useEffect, useMemo, useState
+  Suspense, useEffect, useMemo, useRef, useState
 } from 'react';
 import { VisualizationTypes, UtilTypes } from '@illustry/types';
 import siteConfig from '@/config/site';
+import { syncVisualizationThemes } from '@/app/_actions/visualization';
 import { useLocale } from '@/components/providers/locale-provider';
 import Input from '@/components/ui/input';
 import {
@@ -149,6 +150,8 @@ const ThemeShell = () => {
   const colorPalette: { [key: string]: string[] } = siteConfig.colorPallets;
   const activeTheme = useThemeColors();
   const themeDispatch = useThemeColorsDispach();
+  const themeSyncMountedRef = useRef(false);
+  const themeSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [selectedSchemeName, setSelectedSchemeName] = useState<string | null>(null);
   const [activeSection, setActiveSection] = useState('');
   const [sectionSearch, setSectionSearch] = useState('');
@@ -190,6 +193,27 @@ const ThemeShell = () => {
   useEffect(() => {
     setSelectedSchemeName(findMatchingScheme);
   }, [findMatchingScheme]);
+
+  useEffect(() => {
+    if (!themeSyncMountedRef.current) {
+      themeSyncMountedRef.current = true;
+      return undefined;
+    }
+
+    if (themeSyncTimerRef.current) {
+      clearTimeout(themeSyncTimerRef.current);
+    }
+
+    themeSyncTimerRef.current = setTimeout(() => {
+      void syncVisualizationThemes(activeTheme as unknown as Record<string, unknown>);
+    }, 1000);
+
+    return () => {
+      if (themeSyncTimerRef.current) {
+        clearTimeout(themeSyncTimerRef.current);
+      }
+    };
+  }, [activeTheme]);
 
   const handleApplyTheme = (themeName: string) => {
     const appliedThemeColors: UtilTypes.DeepPartial<ThemeColors> = {

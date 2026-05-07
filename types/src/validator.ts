@@ -131,6 +131,11 @@ const timelineDataSchema = z.record(
 // VisualizationData
 const visualizationDataSchema = z.object({
     userId: stringSchema.optional(),
+    ownerEmail: stringSchema.optional(),
+    ownerName: stringSchema.optional(),
+    currentUserRole: z.union([z.literal('owner'), z.literal('viewer'), z.literal('editor')]).optional(),
+    shareStatus: z.union([z.literal('pending'), z.literal('accepted'), z.literal('rejected')]).optional(),
+    isExternal: booleanSchema.optional(),
     projectName: stringSchema.min(1),
     description: stringSchema.optional(),
     name: stringSchema,
@@ -169,6 +174,19 @@ const visualizationDataSchema = z.object({
         )
     ]),
     tags: z.union([stringSchema, z.array(stringSchema)]).optional(),
+    theme: z.record(z.unknown()).optional(),
+    sharedWith: z.array(z.object({
+        userId: stringSchema,
+        email: stringSchema.optional(),
+        name: stringSchema.optional(),
+        permission: z.union([z.literal('viewer'), z.literal('editor')]),
+        status: z.union([z.literal('pending'), z.literal('accepted'), z.literal('rejected')]).optional(),
+        inviteToken: stringSchema.optional(),
+        inviteExpiresAt: dateSchema.optional(),
+        respondedAt: dateSchema.optional(),
+        createdAt: dateSchema.optional(),
+        updatedAt: dateSchema.optional()
+    })).optional(),
     createdAt: dateSchema.optional(),
     updatedAt: dateSchema.optional()
 })
@@ -280,8 +298,12 @@ const visualizationTypeSchema = z.union([
 
 const visualizationFilterSchema = z.object({
     userId: stringSchema.optional(),
+    shareId: stringSchema.optional(),
+    sharedWithUserId: stringSchema.optional(),
+    sharedScope: z.union([z.literal('owned'), z.literal('external'), z.literal('all')]).optional(),
     projectName: stringSchema.optional(),
     name: stringSchema.optional(),
+    type: z.union([stringSchema, z.array(stringSchema)]).optional(),
     text: stringSchema.optional(),
     page: numberSchema.optional(),
     per_page: numberSchema.optional(),
@@ -365,13 +387,31 @@ const layoutSchema = z.object({
 
 const dashboardDataSchema = z.object({
     userId: stringSchema.optional(),
+    ownerEmail: stringSchema.optional(),
+    ownerName: stringSchema.optional(),
+    currentUserRole: z.union([z.literal('owner'), z.literal('viewer'), z.literal('editor')]).optional(),
+    shareStatus: z.union([z.literal('pending'), z.literal('accepted'), z.literal('rejected')]).optional(),
+    isExternal: booleanSchema.optional(),
+    shareId: stringSchema.optional(),
     name: stringSchema,
     projectName: stringSchema,
     description: stringSchema.optional(),
     createdAt: dateSchema.optional(),
     updatedAt: dateSchema.optional(),
     visualizations: z.record(z.string()).optional(),
-    layouts: z.array(layoutSchema).optional()
+    layouts: z.array(layoutSchema).optional(),
+    sharedWith: z.array(z.object({
+        userId: stringSchema,
+        email: stringSchema.optional(),
+        name: stringSchema.optional(),
+        permission: z.union([z.literal('viewer'), z.literal('editor')]),
+        status: z.union([z.literal('pending'), z.literal('accepted'), z.literal('rejected')]).optional(),
+        inviteToken: stringSchema.optional(),
+        inviteExpiresAt: dateSchema.optional(),
+        respondedAt: dateSchema.optional(),
+        createdAt: dateSchema.optional(),
+        updatedAt: dateSchema.optional()
+    })).optional()
 });
 
 const dashboardCreateSchema = dashboardDataSchema
@@ -394,9 +434,24 @@ const dashboardExtendedTypeSchema = z.object({
 
 const dashboardUpdateSchema = z.object({
     userId: stringSchema.optional(),
+    shareId: stringSchema.optional(),
     name: stringSchema.optional(),
     projectName: stringSchema.optional(),
     description: stringSchema.optional(),
+    visualizations: z.record(z.string()).optional(),
+    layouts: z.array(layoutSchema).optional(),
+    sharedWith: z.array(z.object({
+        userId: stringSchema,
+        email: stringSchema.optional(),
+        name: stringSchema.optional(),
+        permission: z.union([z.literal('viewer'), z.literal('editor')]),
+        status: z.union([z.literal('pending'), z.literal('accepted'), z.literal('rejected')]).optional(),
+        inviteToken: stringSchema.optional(),
+        inviteExpiresAt: dateSchema.optional(),
+        respondedAt: dateSchema.optional(),
+        createdAt: dateSchema.optional(),
+        updatedAt: dateSchema.optional()
+    })).optional(),
     createdAt: dateSchema.optional(),
     updatedAt: dateSchema.optional(),
     isActive: booleanSchema.optional()
@@ -404,6 +459,9 @@ const dashboardUpdateSchema = z.object({
 
 const dashboardFilterSchema = z.object({
     userId: stringSchema.optional(),
+    shareId: stringSchema.optional(),
+    sharedWithUserId: stringSchema.optional(),
+    sharedScope: z.union([z.literal('owned'), z.literal('external'), z.literal('all')]).optional(),
     name: stringSchema.optional(),
     text: stringSchema.optional(),
     projectName: stringSchema.optional(),

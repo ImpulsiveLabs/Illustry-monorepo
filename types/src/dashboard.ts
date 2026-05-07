@@ -16,8 +16,32 @@ type Layout = {
     minH: number;
 };
 
+type DashboardSharePermission = 'viewer' | 'editor';
+type DashboardShareStatus = 'pending' | 'accepted' | 'rejected';
+type DashboardShareScope = 'owned' | 'external' | 'all';
+
+type DashboardSharedUser = {
+    userId: string;
+    email?: string;
+    name?: string;
+    permission: DashboardSharePermission;
+    status?: DashboardShareStatus;
+    inviteToken?: string;
+    inviteExpiresAt?: Date;
+    respondedAt?: Date;
+    createdAt?: Date;
+    updatedAt?: Date;
+};
+
 type DashboardData = {
     userId?: string;
+    ownerEmail?: string;
+    ownerName?: string;
+    currentUserRole?: DashboardSharePermission | 'owner';
+    shareStatus?: DashboardShareStatus;
+    isExternal?: boolean;
+    shareId?: string;
+    sharedWith?: DashboardSharedUser[];
     name: string;
     projectName: string;
     description?: string;
@@ -51,6 +75,9 @@ type DashboardUpdate = DeepPartial<DashboardType>;
 
 type DashboardFilter = {
     userId?: string;
+    shareId?: string;
+    sharedWithUserId?: string;
+    sharedScope?: DashboardShareScope;
     name?: string;
     projectName?: string;
     visualizationName?: string;
@@ -65,4 +92,31 @@ type DashboardFilter = {
     };
 };
 
-export { DashboardFilter, DashboardUpdate, ExtendedDashboardType, DashboardType, DashboardCreate, Layout }
+type DashboardShareRequest = {
+    name?: string;
+    shareId?: string;
+    collaborators: Array<{
+        email: string;
+        permission?: DashboardSharePermission;
+    }>;
+};
+
+type DashboardShareInviteDecision = {
+    token: string;
+    decision: 'accept' | 'reject';
+};
+
+export {
+    DashboardFilter,
+    DashboardUpdate,
+    ExtendedDashboardType,
+    DashboardType,
+    DashboardCreate,
+    Layout,
+    DashboardSharePermission,
+    DashboardShareStatus,
+    DashboardShareScope,
+    DashboardSharedUser,
+    DashboardShareRequest,
+    DashboardShareInviteDecision
+}

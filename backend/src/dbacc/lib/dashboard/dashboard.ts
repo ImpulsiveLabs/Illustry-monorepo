@@ -24,6 +24,44 @@ class Dashboard implements GenericTypes.BaseLib<
         userId: filter.userId
       });
     }
+    if (filter.shareId) {
+      (query.$and as Array<object>).push({
+        shareId: filter.shareId
+      });
+    }
+    if (filter.sharedWithUserId) {
+      if (filter.sharedScope === 'external') {
+        (query.$and as Array<object>).push({
+          userId: { $ne: filter.sharedWithUserId },
+          sharedWith: {
+            $elemMatch: {
+              userId: filter.sharedWithUserId,
+              $or: [
+                { status: 'accepted' },
+                { status: { $exists: false } }
+              ]
+            }
+          }
+        });
+      } else if (filter.sharedScope === 'all') {
+        (query.$and as Array<object>).push({
+          $or: [
+            { userId: filter.sharedWithUserId },
+            {
+              sharedWith: {
+                $elemMatch: {
+                  userId: filter.sharedWithUserId,
+                  $or: [
+                    { status: 'accepted' },
+                    { status: { $exists: false } }
+                  ]
+                }
+              }
+            }
+          ]
+        });
+      }
+    }
     if (filter.name) {
       (query.$and as Array<object>).push({
         name: filter.name
@@ -100,14 +138,27 @@ class Dashboard implements GenericTypes.BaseLib<
       __v: 0,
       _id: 0,
       userId: 0
-    }).exec();
+    }).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
+  }
+
+  findOneWithSharing(filter: UtilTypes.ExtendedMongoQuery): Promise<DashboardTypes.DashboardType | null> {
+    return this.modelInstance.DashboardModel.findOne(filter.query, {
+      __v: 0,
+      _id: 0
+    }).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
+  }
+
+  findOneByShareInviteToken(token: string): Promise<DashboardTypes.DashboardType | null> {
+    return this.modelInstance.DashboardModel.findOne(
+      { 'sharedWith.inviteToken': token },
+      { __v: 0, _id: 0 }
+    ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
   }
 
   async browse(filter: UtilTypes.ExtendedMongoQuery, withVisualizations = false): Promise<DashboardTypes.ExtendedDashboardType> {
     const projection: Record<string, number> = {
       __v: 0,
       _id: 0,
-      userId: 0,
       projectName: 0
     };
 
@@ -115,7 +166,7 @@ class Dashboard implements GenericTypes.BaseLib<
       projection.visualizations = 0;
     }
 
-    const res = await this.modelInstance.DashboardModel.find(
+    const res = await (this.modelInstance.DashboardModel.find(
       filter.query ? filter.query : {},
       projection,
       {
@@ -123,7 +174,7 @@ class Dashboard implements GenericTypes.BaseLib<
         skip: filter && filter.page ? Number(filter.page) : 0,
         limit: filter.per_page
       }
-    ).exec();
+    ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType[]>);
     const count = await this.modelInstance.DashboardModel.countDocuments(
       filter.query ? filter.query : {}
     ).exec();
@@ -168,7 +219,7 @@ class Dashboard implements GenericTypes.BaseLib<
       filter.query,
       finalData,
       { upsert: true, new: true }
-    ).exec();
+    ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
   }
 
   partialUpdate(
@@ -184,6 +235,23 @@ class Dashboard implements GenericTypes.BaseLib<
       filter.query,
       { $set: { updatedAt: new Date(), layouts: data.layouts } },
       { upsert: true, new: true }
+    ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
+  }
+
+  updateSharing(
+    filter: UtilTypes.ExtendedMongoQuery,
+    data: Pick<DashboardTypes.DashboardUpdate, 'shareId' | 'sharedWith'>
+  ): Promise<DashboardTypes.DashboardType | null> {
+    return this.modelInstance.DashboardModel.findOneAndUpdate(
+      filter.query,
+      {
+        $set: {
+          shareId: data.shareId,
+          sharedWith: data.sharedWith,
+          updatedAt: new Date()
+        }
+      },
+      { new: true }
     ).exec();
   }
 

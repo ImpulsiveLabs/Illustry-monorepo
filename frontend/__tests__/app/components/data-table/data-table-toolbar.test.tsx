@@ -140,4 +140,21 @@ describe('DataTableToolbar', () => {
 
         expect(screen.getByTestId('faceted-filter')).toHaveTextContent('Fallback');
     });
+
+    it('renders custom toolbar actions near search', () => {
+        const table = {
+            getState: () => ({ columnFilters: [] }),
+            getColumn: () => null,
+            resetColumnFilters: vi.fn()
+        } as any;
+
+        render(
+            <DataTableToolbar
+                table={table}
+                toolbarActions={<button type="button">Internal</button>}
+            />
+        );
+
+        expect(screen.getByRole('button', { name: 'Internal' })).toBeInTheDocument();
+    });
 });

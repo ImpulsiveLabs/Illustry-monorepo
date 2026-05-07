@@ -22,13 +22,15 @@ import DataTable from '../data-table/data-table';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
+import ExternalInternalToggle from '../data-table/external-internal-toggle';
 
 type DashboardsTableShellProps = {
   data?: DashboardTypes.DashboardType[];
   pageCount?: number;
+  external?: boolean;
 }
 
-const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) => {
+const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsTableShellProps) => {
   const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
@@ -79,6 +81,20 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
           <DataTableColumnHeader column={column} title={t('common.description')} />
         )
       },
+      ...(external ? [
+        {
+          accessorKey: 'ownerEmail',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Owner" />
+          )
+        } as ColumnDef<DashboardTypes.DashboardType, unknown>,
+        {
+          accessorKey: 'currentUserRole',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="My role" />
+          )
+        } as ColumnDef<DashboardTypes.DashboardType, unknown>
+      ] : []),
       {
         accessorKey: 'createdAt',
         header: ({ column }) => (
@@ -109,23 +125,37 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/dashboardhub?name=${row.original.name}`}
-                >
+	              <DropdownMenuItem asChild>
+	                <Link
+	                  href={row.original.shareId && row.original.isExternal
+	                      ? `/dashboardhub?share=${row.original.shareId}`
+	                      : `/dashboardhub?name=${row.original.name}`}
+	                >
                   {t('table.view')}
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <Link href={`/dashboards/${row.original.name}`}>{t('table.edit')}</Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+	              {!external && (
+	                <>
+	                  <DropdownMenuSeparator />
+	                  <DropdownMenuItem asChild>
+	                    <Link href={`/dashboards/${row.original.name}`}>{t('table.edit')}</Link>
+	                  </DropdownMenuItem>
+	                  <DropdownMenuSeparator />
+		                  <DropdownMenuItem asChild>
+		                    <Link href={`/share/dashboard?name=${encodeURIComponent(row.original.name)}`}>
+		                      Share
+		                    </Link>
+		                  </DropdownMenuItem>
+	                </>
+	              )}
+	              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
                   startTransition(() => {
                     row.toggleSelected(false);
-                    toast.promise(deleteDashboard(row.original.name), {
+	                    toast.promise(deleteDashboard(row.original.isExternal && row.original.shareId
+	                      ? { shareId: row.original.shareId }
+	                      : row.original.name), {
                       loading: t('table.deleting'),
                       success: () => { router.refresh(); return t('toast.dashboardDeleted');},
                       error: (err: unknown) => catchError(err)
@@ -142,7 +172,7 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
         )
       }
     ],
-    [data, isPending, t]
+    [data, external, isPending, t]
   );
 
   const deleteSelectedRows = () => {
@@ -164,14 +194,17 @@ const DashboardsTableShell = ({ data, pageCount }: DashboardsTableShellProps) =>
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={data as DashboardTypes.DashboardType[]}
-      pageCount={pageCount as number}
-      filterableColumns={[]}
-      newRowLink="/dashboards/new"
-      deleteRowsAction={deleteSelectedRows}
-    />
+    <div className="space-y-3">
+      <DataTable
+        columns={columns}
+        data={data as DashboardTypes.DashboardType[]}
+        pageCount={pageCount as number}
+        filterableColumns={[]}
+        newRowLink={external ? undefined : '/dashboards/new'}
+        deleteRowsAction={external ? undefined : deleteSelectedRows}
+        toolbarActions={<ExternalInternalToggle mode={external ? 'external' : 'owned'} />}
+      />
+    </div>
   );
 };
 

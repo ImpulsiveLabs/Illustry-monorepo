@@ -16,6 +16,7 @@ export type DashboardsProps = {
     text?: string;
     per_page?: string;
     sort?: string;
+    scope?: string;
   }>;
 };
 
@@ -26,11 +27,13 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
   const text = typeof sp.text === 'string' ? sp.text : undefined;
   const perPage = typeof sp.per_page === 'string' ? sp.per_page : undefined;
   const sort = typeof sp.sort === 'string' ? sp.sort : undefined;
+  const scope = sp.scope === 'external' ? 'external' : 'owned';
 
   const dashboards = await browseDashboards({
     page: page ? Number(page) : 1,
     text,
     per_page: perPage ? Number(perPage) : 10,
+    sharedScope: scope === 'external' ? 'external' : 'owned',
     sort: sort
       ? {
           sortOrder: sort.split('.')[1] === 'asc' ? 1 : -1,
@@ -54,6 +57,7 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
         <DashboardsTableShell
           data={dashboardRows}
           pageCount={dashboardsPageCount}
+          external={scope === 'external'}
         />
       </div>
     </div>

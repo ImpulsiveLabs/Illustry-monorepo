@@ -33,7 +33,17 @@ const passwordResetSchema = z.object({
   locale: localeSchema.optional()
 });
 
-const getEmailProviderErrorMessage = (error: unknown, action: 'verification' | 'password reset') => {
+const shareInvitationSchema = z.object({
+  to: z.string().email().max(254),
+  ownerName: z.string().min(1).max(120),
+  resourceType: z.enum(['dashboard', 'visualization']),
+  resourceName: z.string().min(1).max(200),
+  permission: z.enum(['viewer', 'editor']),
+  inviteUrl: z.string().url(),
+  expiresAt: z.string().min(1)
+});
+
+const getEmailProviderErrorMessage = (error: unknown, action: 'verification' | 'password reset' | 'share invitation') => {
   if (typeof error === 'object' && error && 'code' in error) {
     const smtpError = error as { code?: string };
     if (smtpError.code === 'EAUTH') {
@@ -50,7 +60,9 @@ const getEmailProviderErrorMessage = (error: unknown, action: 'verification' | '
 
   return action === 'verification'
     ? 'Failed to send verification email'
-    : 'Failed to send password reset email';
+    : action === 'password reset'
+      ? 'Failed to send password reset email'
+      : 'Failed to send share invitation email';
 };
 
 const transporter = smtpHost.length === 0
@@ -258,6 +270,27 @@ const getPasswordResetEmailContent = (locale: 'en' | 'ro', resetUrl: string) => 
   };
 };
 
+const getShareInvitationEmailContent = (payload: z.infer<typeof shareInvitationSchema>) => {
+  const safeInviteUrl = sanitizeUrlForHtmlHref(payload.inviteUrl);
+  const safeOwner = escapeHtml(payload.ownerName);
+  const safeResource = escapeHtml(payload.resourceName);
+  const resourceLabel = payload.resourceType === 'dashboard' ? 'dashboard' : 'visualization';
+
+  return {
+    subject: `${payload.ownerName} invited you to ${payload.resourceName}`,
+    text: [
+      `${payload.ownerName} invited you to collaborate on the Illustry ${resourceLabel} "${payload.resourceName}" as ${payload.permission}.`,
+      `Accept or reject the invitation here: ${payload.inviteUrl}`,
+      `This invitation expires at ${payload.expiresAt}.`
+    ].join('\n\n'),
+    html: [
+      `<p><strong>${safeOwner}</strong> invited you to collaborate on the Illustry ${resourceLabel} <strong>${safeResource}</strong> as ${payload.permission}.</p>`,
+      `<p><a href="${safeInviteUrl}">Review invitation</a></p>`,
+      `<p>This invitation expires at ${escapeHtml(payload.expiresAt)}.</p>`
+    ].join('')
+  };
+};
+
 app.use(express.json());
 
 app.get('/health', (_request, response) => {
@@ -332,6 +365,37 @@ app.post('/api/email/send-password-reset', requireApiKey, async (request, respon
     const message = getEmailProviderErrorMessage(error, 'password reset');
     // eslint-disable-next-line no-console
     console.error('[EmailService] Failed to send password reset email', error);
+    response.status(500).send({ error: message });
+  }
+});
+
+app.post('/api/email/send-share-invitation', requireApiKey, async (request, response) => {
+  try {
+    if (emailTransportConfigError) {
+      response.status(500).send({ error: emailTransportConfigError });
+      return;
+    }
+
+    const payload = shareInvitationSchema.parse(request.body);
+    const content = getShareInvitationEmailContent(payload);
+
+    await sendEmail({
+      to: payload.to,
+      subject: content.subject,
+      text: content.text,
+      html: content.html
+    });
+
+    response.status(200).send({ ok: true });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      response.status(400).send({ error: 'Invalid share invitation email payload' });
+      return;
+    }
+
+    const message = getEmailProviderErrorMessage(error, 'share invitation');
+    // eslint-disable-next-line no-console
+    console.error('[EmailService] Failed to send share invitation email', error);
     response.status(500).send({ error: message });
   }
 });

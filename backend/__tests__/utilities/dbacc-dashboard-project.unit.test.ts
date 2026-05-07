@@ -8,13 +8,17 @@ describe('dbacc dashboard/project unit branches', () => {
     const countExec = jest.fn().mockResolvedValue(3);
     const updateExec = jest.fn().mockResolvedValue({ name: 'updated' });
     const deleteExec = jest.fn().mockResolvedValue({});
+    const query = (exec: jest.Mock) => ({
+      lean: () => ({ exec }),
+      exec
+    });
 
     const model = {
       create: jest.fn().mockResolvedValue({ name: 'created' }),
-      findOne: jest.fn(() => ({ exec: findOneExec })),
-      find: jest.fn(() => ({ exec: findExec })),
+      findOne: jest.fn(() => query(findOneExec)),
+      find: jest.fn(() => query(findExec)),
       countDocuments: jest.fn(() => ({ exec: countExec })),
-      findOneAndUpdate: jest.fn(() => ({ exec: updateExec })),
+      findOneAndUpdate: jest.fn(() => query(updateExec)),
       deleteOne: jest.fn(() => ({ exec: deleteExec })),
       deleteMany: jest.fn(() => ({ exec: deleteExec }))
     } as any;

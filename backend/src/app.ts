@@ -13,6 +13,7 @@ import AuthRoutes from './routes/auth/auth';
 import { parseCorsAllowlist } from './auth/constants';
 import { enforceCsrfForProtectedMutationRoutes } from './auth/middleware';
 import Factory from './factory';
+import { attachRealtimeServer, closeRealtimeServer } from './realtime/broker';
 
 import 'dotenv/config';
 
@@ -83,6 +84,7 @@ class Illustry {
     this.httpServer = this.expressApp.listen(+ILLUSTRY_PORT, '0.0.0.0', () => {
       logger.info(`server is listening on ${ILLUSTRY_PORT}`);
     });
+    attachRealtimeServer(this.httpServer);
   }
 
   async start(): Promise<void> {
@@ -106,6 +108,7 @@ class Illustry {
 
   async stop(): Promise<void> {
     try {
+      closeRealtimeServer();
       this.httpServer.close();
       await mongoose.disconnect();
     } catch (error) {

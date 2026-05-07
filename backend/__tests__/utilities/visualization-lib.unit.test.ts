@@ -6,19 +6,27 @@ describe('dbacc visualization unit', () => {
     const findExec = jest.fn().mockResolvedValue([{ name: 'viz' }]);
     const countDocuments = jest.fn().mockResolvedValue(5);
     const updateExec = jest.fn().mockResolvedValue({ name: 'updated' });
+    const updateManyExec = jest.fn().mockResolvedValue({ modifiedCount: 2 });
     const deleteExec = jest.fn().mockResolvedValue({});
+    const query = (exec: jest.Mock) => ({
+      lean: () => ({ exec }),
+      exec
+    });
 
     const model = {
       create: jest.fn().mockResolvedValue({ name: 'created' }),
-      findOne: jest.fn(() => ({ exec: findOneExec })),
-      find: jest.fn(() => ({ exec: findExec })),
+      findOne: jest.fn(() => query(findOneExec)),
+      find: jest.fn(() => query(findExec)),
       countDocuments: jest.fn(() => countDocuments()),
-      findOneAndUpdate: jest.fn(() => ({ exec: updateExec })),
+      findOneAndUpdate: jest.fn(() => query(updateExec)),
+      updateMany: jest.fn(() => ({ exec: updateManyExec })),
       deleteOne: jest.fn(() => ({ exec: deleteExec })),
       deleteMany: jest.fn(() => ({ exec: deleteExec }))
     } as any;
 
-    return { model, findOneExec, findExec, countDocuments, updateExec };
+    return {
+      model, findOneExec, findExec, countDocuments, updateExec, updateManyExec
+    };
   };
 
   it('covers createFilter branches and sort/page defaults', () => {
@@ -55,7 +63,7 @@ describe('dbacc visualization unit', () => {
   });
 
   it('covers create/findOne/browse/update/delete/deleteMany', async () => {
-    const { model, countDocuments } = createModel();
+    const { model, countDocuments, updateManyExec } = createModel();
     const lib = new Visualization({ VisualizationModel: model } as any);
 
     await expect(lib.create({ name: 'a' } as any)).resolves.toEqual({ name: 'created' });
@@ -75,7 +83,11 @@ describe('dbacc visualization unit', () => {
     await expect(lib.update({ query: { name: 'a' } } as any, { name: 'b' } as any)).resolves.toEqual({ name: 'updated' });
     await expect(lib.delete({ query: { name: 'a' } } as any)).resolves.toBe(true);
     await expect(lib.deleteMany({ query: { projectName: 'p' } } as any)).resolves.toBe(true);
+    await expect(lib.findEditableSharedThemeTargets('user-1')).resolves.toEqual([{ name: 'viz' }]);
+    await expect(lib.updateThemeForShareIds(['viz-share'], { sankey: {} })).resolves.toBe(2);
+    await expect(lib.updateThemeForShareIds([], { sankey: {} })).resolves.toBe(0);
 
     expect(model.deleteMany).toHaveBeenCalled();
+    expect(updateManyExec).toHaveBeenCalled();
   });
 });

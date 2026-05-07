@@ -34,6 +34,28 @@ class EmailService {
     });
   }
 
+  async sendShareInvitationEmail(payload: {
+    email: string;
+    ownerName: string;
+    resourceType: 'dashboard' | 'visualization';
+    resourceName: string;
+    permission: 'viewer' | 'editor';
+    token: string;
+    expiresAt: Date;
+  }): Promise<void> {
+    const inviteUrl = `${appBaseUrl.replace(/\/$/, '')}/share-invite?token=${encodeURIComponent(payload.token)}`;
+
+    await this.sendThroughEmailService('/api/email/send-share-invitation', {
+      to: payload.email,
+      ownerName: payload.ownerName,
+      resourceType: payload.resourceType,
+      resourceName: payload.resourceName,
+      permission: payload.permission,
+      inviteUrl,
+      expiresAt: payload.expiresAt.toISOString()
+    });
+  }
+
   private async sendThroughEmailService(path: string, payload: Record<string, unknown>): Promise<void> {
     if (emailServiceUrl.length === 0) {
       throw new Error('EMAIL_SERVICE_URL is not configured');

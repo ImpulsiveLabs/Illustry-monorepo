@@ -7314,7 +7314,7 @@ describe("visualizations CRUD", () => {
         .VisualizationBZL.update({ name: 'Sunburst_PartialDetails' }, {});
     }
     catch (err) {
-      expect((err as Error).message).toBe('Method not implemented.')
+      expect((err as Error).message).toBe('No supported visualization updates were provided')
     }
     try {
       await factory

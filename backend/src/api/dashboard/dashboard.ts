@@ -51,6 +51,7 @@ const update = async (
     const userId = getAuthenticatedUserId(request);
     const {
       name,
+      shareId,
       description,
       visualizations,
       layouts
@@ -58,6 +59,7 @@ const update = async (
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
       userId,
+      shareId,
       name
     };
 
@@ -107,6 +109,72 @@ const findOne = async (
   }
 };
 
+const findShared = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { shareId } = request.params;
+    const fullVisualizations = request.query.fullVisualizations === 'true'
+      || request.body?.fullVisualizations === true;
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .DashboardBZL
+      .findShared(shareId, userId, fullVisualizations);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const share = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { name, collaborators } = request.body as DashboardTypes.DashboardShareRequest;
+    const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
+      name
+    };
+
+    ValidatorSchemas.validateWithSchema<DashboardTypes.DashboardFilter>(ValidatorSchemas.dashboardFilterSchema, dashboardFilter);
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .DashboardBZL
+      .share(dashboardFilter, collaborators || []);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const respondToShareInvite = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token, decision } = request.body as DashboardTypes.DashboardShareInviteDecision;
+    const data = await Factory.getInstance()
+      .getBZL()
+      .DashboardBZL
+      .respondToInvite(token, decision);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const _delete = async (
   request: Request,
   response: Response,
@@ -115,12 +183,14 @@ const _delete = async (
   try {
     const userId = getAuthenticatedUserId(request);
     const {
-      name
+      name,
+      shareId
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
       userId,
-      name
+      name,
+      shareId
     };
 
     ValidatorSchemas.validateWithSchema<DashboardTypes.DashboardFilter>(ValidatorSchemas.dashboardFilterSchema, dashboardFilter);
@@ -148,6 +218,7 @@ const browse = async (
       text,
       page,
       sort,
+      sharedScope,
       per_page: perPage
     } = request.body;
 
@@ -155,6 +226,7 @@ const browse = async (
       userId,
       name,
       text,
+      sharedScope,
       page,
       sort,
       per_page: perPage
@@ -174,5 +246,5 @@ const browse = async (
 };
 
 export {
-  create, update, findOne, _delete, browse
+  create, update, findOne, findShared, share, respondToShareInvite, _delete, browse
 };

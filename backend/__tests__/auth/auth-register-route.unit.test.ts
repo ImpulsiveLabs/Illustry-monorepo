@@ -6,12 +6,25 @@ const cleanupMock = jest.fn();
 const loggerErrorMock = jest.fn();
 const loggerInfoMock = jest.fn();
 
+const waitForServer = async (server: any) => {
+  if (server.listening) {
+    return;
+  }
+  await new Promise<void>((resolve) => server.once('listening', resolve));
+};
+
 jest.mock('../../src/config/logger', () => ({
   __esModule: true,
   default: {
     error: (...args: unknown[]) => loggerErrorMock(...args),
     info: (...args: unknown[]) => loggerInfoMock(...args)
   }
+}));
+
+jest.mock('../../src/realtime/broker', () => ({
+  attachRealtimeServer: jest.fn(),
+  closeRealtimeServer: jest.fn(),
+  publish: jest.fn()
 }));
 
 jest.mock('../../src/factory', () => ({
@@ -73,7 +86,7 @@ describe('auth register route', () => {
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
     const server = app.httpServer;
-    await new Promise<void>((resolve) => server.once('listening', resolve));
+    await waitForServer(server);
     const address = server.address();
     const port = typeof address === 'object' && address ? address.port : 0;
 
@@ -121,7 +134,7 @@ describe('auth register route', () => {
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
     const server = app.httpServer;
-    await new Promise<void>((resolve) => server.once('listening', resolve));
+    await waitForServer(server);
     const address = server.address();
     const port = typeof address === 'object' && address ? address.port : 0;
 
@@ -149,7 +162,7 @@ describe('auth register route', () => {
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
     const server = app.httpServer;
-    await new Promise<void>((resolve) => server.once('listening', resolve));
+    await waitForServer(server);
     const address = server.address();
     const port = typeof address === 'object' && address ? address.port : 0;
 
@@ -189,7 +202,7 @@ describe('auth register route', () => {
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
     const server = app.httpServer;
-    await new Promise<void>((resolve) => server.once('listening', resolve));
+    await waitForServer(server);
     const address = server.address();
     const port = typeof address === 'object' && address ? address.port : 0;
 

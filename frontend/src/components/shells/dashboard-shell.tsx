@@ -6,10 +6,13 @@ import React, {
 import { Responsive, WidthProvider } from 'react-grid-layout';
 import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import { useRouter } from 'next/navigation';
+import { Save } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Card, CardContent, CardHeader, CardTitle
 } from '@/components/ui/card';
 import { updateDashboard } from '@/app/_actions/dashboard';
+import { Button } from '@/components/ui/button';
 import { useLocale } from '@/components/providers/locale-provider';
 import HubShell from './hub-shell';
 
@@ -27,10 +30,10 @@ const createInitialLayout = (
   : Array.from({ length: visualizations.length }, (_, index) => ({
     i: index.toString(),
     x: 4 * (index % 3),
-    y: Math.floor(index / 3) * 2,
-    w: 10,
+    y: Math.floor(index / 3) * 4,
+    w: 4,
     h: 4,
-    minW: 4,
+    minW: 3,
     minH: 2
   })) as DashboardTypes.Layout[]);
 
@@ -54,6 +57,8 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const [, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
   const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
   const [hasLayoutChanged, setHasLayoutChanged] = useState(false);
+  const [layoutPending, setLayoutPending] = useState(false);
+  const [currentShareId, setCurrentShareId] = useState(dashboard?.shareId);
   const hasLayoutChangedRef = useRef(false);
   const dashboardRef = useRef(dashboard);
   const responsiveLayoutsRef = useRef<ResponsiveLayouts>({});
@@ -80,6 +85,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
   useEffect(() => {
     dashboardRef.current = dashboard;
+    setCurrentShareId(dashboard?.shareId);
   }, [dashboard]);
 
   useEffect(() => {
@@ -112,36 +118,88 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     if (!currentDashboard || !hasLayoutChangedRef.current) {
       return;
     }
+    setLayoutPending(true);
     const updatedDash = {
       ...currentDashboard,
       layouts: responsiveLayoutsRef.current.lg
+        || responsiveLayoutsRef.current[activeBreakpoint]
+        || []
     };
     delete updatedDash.visualizations;
-    await updateDashboard(updatedDash);
-    setHasLayoutChanged(false);
-    hasLayoutChangedRef.current = false;
-  }, []);
+    const result = await updateDashboard(updatedDash);
+    if (result) {
+      toast.success('Dashboard layout saved');
+      setHasLayoutChanged(false);
+      hasLayoutChangedRef.current = false;
+    } else {
+      toast.error('Unable to save dashboard layout');
+    }
+    setLayoutPending(false);
+  }, [activeBreakpoint]);
 
   useEffect(() => {
-    const handleBeforeUnload = () => {
-      void updateDashboardLayout();
+    if (
+      !currentShareId
+      || !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
+      || typeof WebSocket === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.searchParams.set('resource', 'dashboard');
+    url.searchParams.set('shareId', currentShareId);
+
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket | undefined;
+    let closedByComponent = false;
+
+    const connect = () => {
+      socket = new WebSocket(url.toString());
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as { type?: string; action?: string };
+          if (payload.type !== 'connected') {
+            if (payload.action === 'deleted') {
+              router.replace('/dashboards?scope=external');
+              router.refresh();
+              return;
+            }
+            router.refresh();
+          }
+        } catch {
+          router.refresh();
+        }
+      };
+      socket.onclose = () => {
+        if (!closedByComponent) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
     };
-    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    connect();
 
     return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      void updateDashboardLayout();
+      closedByComponent = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      try {
+        socket?.close();
+      } catch {
+        // The browser may already have torn the socket down during navigation.
+      }
     };
-  }, [updateDashboardLayout]);
+  }, [currentShareId, router]);
 
   const handleUserLayoutCommit = useCallback((newLayout: DashboardTypes.Layout[]) => {
-    if (activeBreakpoint !== 'lg') {
-      return;
-    }
     const cloned = cloneLayout(newLayout);
     responsiveLayoutsRef.current = {
       ...responsiveLayoutsRef.current,
-      lg: cloned
+      [activeBreakpoint]: cloned,
+      lg: activeBreakpoint === 'lg' ? cloned : (responsiveLayoutsRef.current.lg || cloned)
     };
     hasLayoutChangedRef.current = true;
     setLayout(cloned);
@@ -150,8 +208,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       lg: cloned
     }));
     setHasLayoutChanged(true);
-    void updateDashboardLayout();
-  }, [activeBreakpoint, cloneLayout, updateDashboardLayout]);
+  }, [activeBreakpoint, cloneLayout]);
 
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
     const url = `/visualizationhub?name=${viz.name}&type=${viz.type}`;
@@ -199,6 +256,17 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
   return (
     <div className="p-4">
+      <div className="sticky top-20 z-20 mb-4 flex justify-end">
+        <Button
+          type="button"
+          className="shadow-sm"
+          onClick={() => void updateDashboardLayout()}
+          disabled={!hasLayoutChanged || layoutPending}
+        >
+          <Save className="mr-2 h-4 w-4" />
+          {layoutPending ? 'Saving' : 'Save layout'}
+        </Button>
+      </div>
       <ResponsiveGridLayout
         className="layout"
         layouts={responsiveLayouts}

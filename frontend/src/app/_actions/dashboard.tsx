@@ -30,15 +30,15 @@ const browseDashboards = async (filter?: DashboardTypes.DashboardFilter) => {
   }
 };
 
-const deleteDashboard = async (dashboardName: string) => {
+const deleteDashboard = async (dashboardNameOrFilter: string | DashboardTypes.DashboardFilter) => {
   const BACKEND = getBackendUrl() as string;
 
   const request = new Request(`${BACKEND as string}/api/dashboard`, {
     method: 'DELETE',
     headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
-    body: JSON.stringify({
-      name: dashboardName
-    })
+    body: JSON.stringify(typeof dashboardNameOrFilter === 'string'
+      ? { name: dashboardNameOrFilter }
+      : dashboardNameOrFilter)
   });
   try {
     return await makeRequest<boolean>(request, ['dashboards']);
@@ -55,6 +55,38 @@ const updateDashboard = async (dashboard: DashboardTypes.DashboardUpdate) => {
     method: 'PUT',
     headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
     body: JSON.stringify(dashboard)
+  });
+  try {
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const shareDashboard = async (shareRequest: DashboardTypes.DashboardShareRequest) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/dashboard/share`, {
+    method: 'PUT',
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+    body: JSON.stringify(shareRequest)
+  });
+  try {
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const respondToDashboardShareInvite = async (decision: DashboardTypes.DashboardShareInviteDecision) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/dashboard/share/respond`, {
+    method: 'POST',
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+    body: JSON.stringify(decision)
   });
   try {
     return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
@@ -105,10 +137,31 @@ const findOneDashboard = async (dashboardName: string, fullVisualizations: boole
   }
 };
 
+const findSharedDashboard = async (shareId: string, fullVisualizations: boolean = false) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/dashboard/shared/${shareId}?fullVisualizations=${fullVisualizations ? 'true' : 'false'}`,
+    {
+      method: 'GET',
+      headers: await buildBackendHeaders({ asJson: false, withCsrf: false })
+    }
+  );
+  try {
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 export {
   browseDashboards,
   deleteDashboard,
   updateDashboard,
+  shareDashboard,
+  respondToDashboardShareInvite,
   createDashboard,
-  findOneDashboard
+  findOneDashboard,
+  findSharedDashboard
 };

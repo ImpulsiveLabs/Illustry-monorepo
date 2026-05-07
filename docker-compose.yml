@@ -17,6 +17,21 @@ services:
     networks:
       - illustry-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: illustryredis
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - illustry_redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - illustry-network
+
   illustrybackend:
     build:
       context: ./  # Build context for backend
@@ -37,6 +52,11 @@ services:
       GOOGLE_OAUTH_CLIENT_SECRET: ${GOOGLE_OAUTH_CLIENT_SECRET:-}
       GOOGLE_OAUTH_REDIRECT_URI: ${GOOGLE_OAUTH_REDIRECT_URI:-http://localhost:7001/api/auth/google/callback}
       GOOGLE_OAUTH_SCOPE: ${GOOGLE_OAUTH_SCOPE:-openid email profile}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379}
+      REDIS_REALTIME_CHANNEL: ${REDIS_REALTIME_CHANNEL:-illustry:realtime}
+    depends_on:
+      redis:
+        condition: service_healthy
     ports:
       - "7001:7001"
     networks:
@@ -138,4 +158,5 @@ networks:
 
 volumes:
   illustry_mongo:
+  illustry_redis:
   # n8n_data:

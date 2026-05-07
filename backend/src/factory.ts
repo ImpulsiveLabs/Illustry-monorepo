@@ -22,6 +22,7 @@ class Factory {
       NODE_ENV,
       MONGO_TEST_URL = '',
       MONGO_URL = '',
+      MONGO_DB_NAME = 'illustry',
       MONGO_USER,
       MONGO_PASSWORD
     } = process.env;
@@ -32,7 +33,7 @@ class Factory {
     this.dbConnection = mongoose.createConnection(
       connectionUri,
       {
-        dbName: NODE_ENV === 'test' ? 'illustrytest' : 'illustry',
+        dbName: NODE_ENV === 'test' ? 'illustrytest' : MONGO_DB_NAME,
         user: uriHasCredentials ? undefined : MONGO_USER || undefined,
         pass: uriHasCredentials ? undefined : MONGO_PASSWORD || undefined,
         serverSelectionTimeoutMS: Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 10000)

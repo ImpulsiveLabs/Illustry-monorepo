@@ -114,7 +114,44 @@ type OptionAction = {
 }
 type AuxProps = {
   children: ReactNode;
+  storageScope?: string;
+  initialTheme?: ThemeColors | null;
+  persist?: boolean;
 }
+
+type StoredThemeColors = {
+  expiresAt: number;
+  theme: ThemeColors;
+};
+
+const THEME_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 14;
+const getThemeStorageKey = (scope = 'default') => `colorTheme:${scope}`;
+const readCachedThemeColors = (scope = 'default'): ThemeColors | null => {
+  if (typeof window === 'undefined' || !window.localStorage) {
+    return null;
+  }
+
+  const storageKey = getThemeStorageKey(scope);
+  const storedTheme = localStorage.getItem(storageKey);
+  if (!storedTheme) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(storedTheme) as StoredThemeColors | ThemeColors;
+    if ('expiresAt' in parsed && parsed.expiresAt > Date.now()) {
+      return parsed.theme;
+    }
+    if (!('expiresAt' in parsed)) {
+      return parsed as ThemeColors;
+    }
+    localStorage.removeItem(storageKey);
+  } catch {
+    localStorage.removeItem(storageKey);
+  }
+
+  return null;
+};
 
 const initialThemeColors: ThemeColors = {
   calendar: {
@@ -431,21 +468,29 @@ const themeColorsReducer = (
   const newData: ThemeColors = cloneDeep(data);
   return newData;
 };
-const ThemeColorsProvider = ({ children }: AuxProps) => {
-  let initialTheme = initialThemeColors;
-  if (typeof window !== 'undefined' && window.localStorage) {
-    const storedTheme = localStorage.getItem('colorTheme');
-    initialTheme = storedTheme ? JSON.parse(storedTheme) : initialThemeColors;
+const ThemeColorsProvider = ({
+  children,
+  storageScope = 'default',
+  initialTheme,
+  persist = true
+}: AuxProps) => {
+  let initialProviderTheme = initialTheme || initialThemeColors;
+  if (!initialTheme && typeof window !== 'undefined' && window.localStorage) {
+    initialProviderTheme = readCachedThemeColors(storageScope) || initialProviderTheme;
+    localStorage.removeItem('colorTheme');
   }
   const [themeProv, dispatchDataProv] = useReducer(
     themeColorsReducer,
-    initialTheme
+    initialProviderTheme
   );
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      localStorage.setItem('colorTheme', JSON.stringify(themeProv));
+    if (persist && typeof window !== 'undefined' && window.localStorage) {
+      localStorage.setItem(getThemeStorageKey(storageScope), JSON.stringify({
+        expiresAt: Date.now() + THEME_CACHE_TTL_MS,
+        theme: themeProv
+      }));
     }
-  }, [themeProv]);
+  }, [persist, storageScope, themeProv]);
   return (
     <ThemeColorsContext.Provider value={themeProv}>
       <ThemeDispatchContext.Provider value={dispatchDataProv}>
@@ -462,5 +507,9 @@ const ThemeProvider = ({ children, ...props }: ThemeProviderProps) => <NextTheme
 
 export type { ThemeColors };
 export {
-  ThemeColorsProvider, useThemeColors, useThemeColorsDispach, ThemeProvider
+  ThemeColorsProvider,
+  readCachedThemeColors,
+  useThemeColors,
+  useThemeColorsDispach,
+  ThemeProvider
 };
