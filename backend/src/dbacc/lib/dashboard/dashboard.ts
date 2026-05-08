@@ -138,7 +138,7 @@ class Dashboard implements GenericTypes.BaseLib<
 
   findOneByShareInviteToken(token: string): Promise<DashboardTypes.DashboardType | null> {
     return this.modelInstance.DashboardModel.findOne(
-      { 'sharedWith.inviteToken': token },
+      { 'sharedWith.inviteToken': { $eq: token } },
       { __v: 0, _id: 0 }
     ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
   }
