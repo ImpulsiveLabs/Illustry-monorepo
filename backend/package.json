@@ -15,6 +15,7 @@
     "start:prod": "node ./build-dist/illustry.js",
     "seed:test-users": "node ./scripts/create-test-users.cjs",
     "provision:test-users": "node ./scripts/create-test-users.cjs",
+    "latency:api": "node ./scripts/check-api-latency.cjs",
     "test": "jest --detectOpenHandles --runInBand",
     "e2e:api": "playwright test -c playwright.api.config.ts",
     "webpack": "webpack --config webpack.config.js"

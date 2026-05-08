@@ -3,14 +3,20 @@ import BZLInstance from './bzl';
 import DbaccInstance from './dbacc/lib';
 import ModelInstance from './dbacc/models/modelInstance';
 import logger from './config/logger';
+import {
+  getMongoConnectTimeoutMs,
+  getMongoQueryTimeoutMs,
+  getMongoServerSelectionTimeoutMs,
+  getMongoSocketTimeoutMs
+} from './config/timeouts';
 import 'dotenv/config';
 
 class Factory {
-  private static _instance: Factory;
+  private static _instance?: Factory;
 
-  private static _dbaccInstance: DbaccInstance;
+  private static _dbaccInstance?: DbaccInstance;
 
-  private static _bzlInstance: BZLInstance;
+  private static _bzlInstance?: BZLInstance;
 
   private dbConnection: mongoose.Connection;
 
@@ -30,15 +36,25 @@ class Factory {
       ? MONGO_TEST_URL || ''
       : MONGO_URL || '';
     const uriHasCredentials = /:\/\/[^/]+@/.test(connectionUri);
+    const mongoQueryTimeoutMs = getMongoQueryTimeoutMs();
+
+    mongoose.set('bufferCommands', false);
+    mongoose.set('bufferTimeoutMS', 0);
+    mongoose.set('maxTimeMS', mongoQueryTimeoutMs);
+
     this.dbConnection = mongoose.createConnection(
       connectionUri,
       {
+        bufferCommands: false,
+        connectTimeoutMS: getMongoConnectTimeoutMs(),
         dbName: NODE_ENV === 'test' ? 'illustrytest' : MONGO_DB_NAME,
         user: uriHasCredentials ? undefined : MONGO_USER || undefined,
         pass: uriHasCredentials ? undefined : MONGO_PASSWORD || undefined,
-        serverSelectionTimeoutMS: Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 10000)
+        serverSelectionTimeoutMS: getMongoServerSelectionTimeoutMs(),
+        socketTimeoutMS: getMongoSocketTimeoutMs()
       }
     );
+    this.dbConnection.set('maxTimeMS', mongoQueryTimeoutMs);
     this.dbConnection.on?.('error', (error) => {
       logger.error(Factory.getReadableMongoError(error));
     });
@@ -51,25 +67,48 @@ class Factory {
     return Factory._instance || new Factory();
   }
 
+  static hasInstance(): boolean {
+    return Factory._instance !== undefined;
+  }
+
   getDbaccInstance(): DbaccInstance {
+    if (!Factory._dbaccInstance) {
+      throw new Error('Factory database access layer is not initialized');
+    }
+
     return Factory._dbaccInstance;
   }
 
   getModelInstance(): ModelInstance {
-    return Factory._dbaccInstance.getModelInstance();
+    return this.getDbaccInstance().getModelInstance();
   }
 
   getBZL(): BZLInstance {
+    if (!Factory._bzlInstance) {
+      throw new Error('Factory business layer is not initialized');
+    }
+
     return Factory._bzlInstance;
   }
 
   async connect(): Promise<void> {
+    if (this.isConnected()) {
+      return;
+    }
+
     await this.dbConnection.asPromise();
     logger.info('MongoDB connection established');
   }
 
-  cleanup(): void {
-    this.dbConnection.close(true);
+  isConnected(): boolean {
+    return this.dbConnection.readyState === 1;
+  }
+
+  async cleanup(): Promise<void> {
+    await Promise.resolve(this.dbConnection.close(true));
+    Factory._instance = undefined;
+    Factory._dbaccInstance = undefined;
+    Factory._bzlInstance = undefined;
   }
 
   private static getReadableMongoError(error: unknown): string {

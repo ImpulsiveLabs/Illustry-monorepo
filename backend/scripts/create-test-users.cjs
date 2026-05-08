@@ -62,7 +62,9 @@ const main = async () => {
   console.log(`Connecting to MongoDB database "${DB_NAME}" for test user provisioning...`);
   await mongoose.connect(MONGO_URL, {
     dbName: DB_NAME,
-    serverSelectionTimeoutMS: Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 10000)
+    connectTimeoutMS: Number(process.env.MONGO_CONNECT_TIMEOUT_MS || 300),
+    serverSelectionTimeoutMS: Number(process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS || 300),
+    socketTimeoutMS: Number(process.env.MONGO_SOCKET_TIMEOUT_MS || 300)
   });
   const User = mongoose.model('AuthUser', userSchema);
   const Project = mongoose.model('Project', projectSchema);

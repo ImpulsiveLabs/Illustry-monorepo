@@ -68,7 +68,7 @@ describe('helper utils', () => {
     const err = new Error('boom');
     returnResponse(res, err, null, next);
     expect(send).toHaveBeenCalledWith({ error: 'boom' });
-    expect(next).toHaveBeenCalledWith('boom');
+    expect(next).not.toHaveBeenCalledWith('boom');
   });
 
   it('handles returnResponse when probe is not available', () => {

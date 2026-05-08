@@ -31,6 +31,7 @@ import {
 import { getRequestClientMetadata } from '../../auth/middleware';
 import { resolveRequestAuthLocale, translateAuthText } from '../../auth/locale';
 import { AuthAvatarUpload, AuthPublicUser } from '../../auth/types';
+import { getExternalHttpTimeoutMs } from '../../config/timeouts';
 
 const googleOauthCookieOptions = {
   path: '/',
@@ -488,7 +489,7 @@ const googleCallback = async (
         redirect_uri: googleOauthRedirectUri,
         grant_type: 'authorization_code'
       }),
-      signal: AbortSignal.timeout(10_000)
+      signal: AbortSignal.timeout(getExternalHttpTimeoutMs())
     });
 
     if (!tokenResponse.ok) {
@@ -506,7 +507,7 @@ const googleCallback = async (
       headers: {
         Authorization: `Bearer ${accessToken}`
       },
-      signal: AbortSignal.timeout(10_000)
+      signal: AbortSignal.timeout(getExternalHttpTimeoutMs())
     });
 
     if (!profileResponse.ok) {

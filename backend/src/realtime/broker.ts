@@ -3,6 +3,10 @@ import { Duplex } from 'stream';
 import { createClient } from 'redis';
 import { WebSocket, WebSocketServer } from 'ws';
 import logger from '../config/logger';
+import {
+  getRedisConnectTimeoutMs,
+  getRedisSocketTimeoutMs
+} from '../config/timeouts';
 
 type RealtimeResource = 'dashboard' | 'visualization';
 
@@ -46,11 +50,14 @@ class RealtimeBroker {
 
   private readonly channels = new Map<string, Set<RealtimeSocket>>();
 
+  private closed = false;
+
   attach(server: HttpServer): void {
     if (this.webSocketServer) {
       return;
     }
 
+    this.closed = false;
     this.webSocketServer = new WebSocketServer({ noServer: true });
     server.on('upgrade', (request, socket, head) => {
       void this.handleUpgrade(request, socket, head);
@@ -72,23 +79,35 @@ class RealtimeBroker {
     void this.connectRedis();
   }
 
-  close(): void {
+  async close(): Promise<void> {
+    this.closed = true;
+
     if (this.heartbeat) {
       clearInterval(this.heartbeat);
       this.heartbeat = undefined;
     }
 
-    this.webSocketServer?.clients.forEach((client) => client.close());
-    this.webSocketServer?.close();
+    this.webSocketServer?.clients.forEach((client) => client.terminate());
+    const webSocketClose = this.webSocketServer
+      ? new Promise<void>((resolve) => {
+        this.webSocketServer?.close(() => resolve());
+      })
+      : Promise.resolve();
     this.webSocketServer = undefined;
     this.channels.clear();
 
-    void this.subscriber?.disconnect().catch((error) => logger.warn('Realtime Redis subscriber disconnect failed', error));
-    void this.publisher?.disconnect().catch((error) => logger.warn('Realtime Redis publisher disconnect failed', error));
+    const subscriber = this.subscriber;
+    const publisher = this.publisher;
     this.subscriber = undefined;
     this.publisher = undefined;
     this.redisReady = false;
     this.redisConnectPromise = undefined;
+
+    await Promise.all([
+      webSocketClose,
+      subscriber?.disconnect().catch((error) => logger.warn('Realtime Redis subscriber disconnect failed', error)),
+      publisher?.disconnect().catch((error) => logger.warn('Realtime Redis publisher disconnect failed', error))
+    ]);
   }
 
   publish(event: RealtimeEvent): void {
@@ -124,8 +143,17 @@ class RealtimeBroker {
 
     this.redisConnectPromise = (async () => {
       try {
-        const publisher = createClient({ url: redisUrl });
-        const subscriber = publisher.duplicate();
+        const redisOptions = {
+          url: redisUrl,
+          disableOfflineQueue: true,
+          socket: {
+            connectTimeout: getRedisConnectTimeoutMs(),
+            reconnectStrategy: false as const,
+            socketTimeout: getRedisSocketTimeoutMs()
+          }
+        };
+        const publisher = createClient(redisOptions);
+        const subscriber = publisher.duplicate(redisOptions);
 
         publisher.on('error', (error) => logger.warn('Realtime Redis publisher error', error));
         subscriber.on('error', (error) => logger.warn('Realtime Redis subscriber error', error));
@@ -139,6 +167,12 @@ class RealtimeBroker {
             logger.warn('Received malformed realtime Redis message', error);
           }
         });
+
+        if (this.closed) {
+          await subscriber.disconnect().catch(() => undefined);
+          await publisher.disconnect().catch(() => undefined);
+          return;
+        }
 
         this.publisher = publisher;
         this.subscriber = subscriber;
@@ -289,7 +323,7 @@ const authorizeRealtimeSubscription: RealtimeAuthorizer = async (
 const broker = new RealtimeBroker();
 
 const attachRealtimeServer = (server: HttpServer): void => broker.attach(server);
-const closeRealtimeServer = (): void => broker.close();
+const closeRealtimeServer = (): Promise<void> => broker.close();
 const publish = (event: RealtimeEvent): void => broker.publish(event);
 
 export type { RealtimeResource, RealtimeEvent, RealtimeAuthorizer };

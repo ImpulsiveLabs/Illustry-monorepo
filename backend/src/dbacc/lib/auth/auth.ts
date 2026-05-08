@@ -22,6 +22,14 @@ class Auth {
     return this.modelInstance.UserModel.findById(userId).exec();
   }
 
+  findUsersByIds(userIds: Array<string | Types.ObjectId>): Promise<AuthUser[]> {
+    if (userIds.length === 0) {
+      return Promise.resolve([]);
+    }
+
+    return this.modelInstance.UserModel.find({ _id: { $in: userIds } }).lean().exec() as unknown as Promise<AuthUser[]>;
+  }
+
   createUser(data: Partial<AuthUser>): Promise<AuthUser> {
     return this.modelInstance.UserModel.create(data);
   }

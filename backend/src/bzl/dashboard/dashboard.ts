@@ -73,20 +73,29 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     if (!dashboards) {
       return [];
     }
-    return Promise.all(dashboards.map(async (dashboard) => {
+
+    const ownerIds = Array.from(new Set(
+      dashboards
+        .map((dashboard) => dashboard.userId)
+        .filter((userId): userId is string => Boolean(userId))
+    ));
+    const owners = ownerIds.length > 0
+      ? await this.dbaccInstance.Auth.findUsersByIds(ownerIds).catch(() => [])
+      : [];
+    const ownersById = new Map(owners.map((owner) => [owner._id.toString(), owner]));
+
+    return dashboards.map((dashboard) => {
       const plainDashboard = typeof (dashboard as unknown as { toObject?: () => DashboardTypes.DashboardType }).toObject === 'function'
         ? (dashboard as unknown as { toObject: () => DashboardTypes.DashboardType }).toObject()
         : dashboard;
-      const owner = dashboard.userId
-        ? await this.dbaccInstance.Auth.findUserById(dashboard.userId).catch(() => null)
-        : null;
+      const owner = dashboard.userId ? ownersById.get(dashboard.userId) : undefined;
       return {
         ...plainDashboard,
         ownerEmail: owner?.email,
         ownerName: owner?.name,
         ...this.getCollaboratorMetadata(dashboard, requesterUserId)
       };
-    }));
+    });
   }
 
   private async hydrateVisualizations(
@@ -99,11 +108,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
       return dashboard;
     }
 
-    // eslint-disable-next-line no-restricted-syntax
-    for (const vis of Object.keys(visualizations)) {
+    const visualizationRows = await Promise.all(Object.keys(visualizations).map(async (vis) => {
       const splittedVis = vis.split('_');
-      // eslint-disable-next-line no-await-in-loop
-      const visualizationData = await Factory.getInstance()
+      return Factory.getInstance()
         .getBZL()
         .VisualizationBZL
         .findOne({
@@ -112,9 +119,9 @@ class DashboardBZL implements GenericTypes.BaseBZL<
           projectName,
           name: splittedVis.slice(0, splittedVis.length - 1).join('_')
         });
+    }));
 
-      visualizationsData.push(visualizationData);
-    }
+    visualizationsData.push(...visualizationRows);
 
     dashboard.visualizations = visualizationsData;
     return dashboard;
@@ -354,11 +361,11 @@ class DashboardBZL implements GenericTypes.BaseBZL<
       action: 'shared',
       updatedAt: new Date().toISOString()
     });
-    await Promise.all(sharedWith.map(async (sharedUser) => {
+    sharedWith.forEach((sharedUser) => {
       if (!sharedUser.email || !sharedUser.inviteToken || !sharedUser.inviteExpiresAt) {
         return;
       }
-      await new EmailService().sendShareInvitationEmail({
+      void new EmailService().sendShareInvitationEmail({
         email: sharedUser.email,
         ownerName: owner?.name || 'A teammate',
         resourceType: 'dashboard',
@@ -367,7 +374,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
         token: sharedUser.inviteToken,
         expiresAt: sharedUser.inviteExpiresAt
       }).catch((error) => logger.warn('Unable to send dashboard share invitation email', error));
-    }));
+    });
     return updatedDashboard;
   }
 

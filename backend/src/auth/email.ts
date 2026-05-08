@@ -4,6 +4,7 @@ import {
   emailServiceApiKey,
   emailServiceUrl
 } from './constants';
+import { getExternalHttpTimeoutMs } from '../config/timeouts';
 import { AuthLocale } from './locale';
 import { AuthHttpError } from './errors';
 
@@ -72,7 +73,7 @@ class EmailService {
         'X-Email-Service-Key': emailServiceApiKey
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10_000)
+      signal: AbortSignal.timeout(getExternalHttpTimeoutMs())
     });
 
     if (!response.ok) {

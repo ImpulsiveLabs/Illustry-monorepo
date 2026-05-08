@@ -80,8 +80,10 @@ class ProjectBZL implements GenericTypes.BaseBZL<
         projectName: filter.name
       });
     }
-    await Promise.resolve(this.dbaccInstance.Visualization.deleteMany(newVisualizationFilter));
-    await Promise.resolve(this.dbaccInstance.Dashboard.deleteMany(newDashboardFilter));
+    await Promise.all([
+      Promise.resolve(this.dbaccInstance.Visualization.deleteMany(newVisualizationFilter)),
+      Promise.resolve(this.dbaccInstance.Dashboard.deleteMany(newDashboardFilter))
+    ]);
     await Promise.resolve(this.dbaccInstance.Project.delete(newProjectFilter));
 
     return true;

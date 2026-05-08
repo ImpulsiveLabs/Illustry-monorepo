@@ -30,9 +30,11 @@ jest.mock('../../src/realtime/broker', () => ({
 jest.mock('../../src/factory', () => ({
   __esModule: true,
   default: {
+    hasInstance: () => true,
     getInstance: () => ({
       connect: connectMock,
       cleanup: cleanupMock,
+      isConnected: () => true,
       getBZL: () => ({
         AuthBZL: {
           register: registerMock,
@@ -85,6 +87,7 @@ describe('auth register route', () => {
 
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
+    await app.start();
     const server = app.httpServer;
     await waitForServer(server);
     const address = server.address();
@@ -112,9 +115,7 @@ describe('auth register route', () => {
     );
     expect(response.headers.get('set-cookie')).toContain('illustry_csrf=csrf-token');
 
-    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
-      error ? reject(error) : resolve()
-    )));
+    await app.stop();
   });
 
   it('rejects protected cookie-authenticated mutations without csrf before route handlers run', async () => {
@@ -133,6 +134,7 @@ describe('auth register route', () => {
 
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
+    await app.start();
     const server = app.httpServer;
     await waitForServer(server);
     const address = server.address();
@@ -153,14 +155,13 @@ describe('auth register route', () => {
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({ error: 'Missing CSRF token' });
 
-    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
-      error ? reject(error) : resolve()
-    )));
+    await app.stop();
   });
 
   it('rejects protected mutations without a session as unauthenticated', async () => {
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
+    await app.start();
     const server = app.httpServer;
     await waitForServer(server);
     const address = server.address();
@@ -180,9 +181,7 @@ describe('auth register route', () => {
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: 'Authentication required' });
 
-    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
-      error ? reject(error) : resolve()
-    )));
+    await app.stop();
   });
 
   it('rejects public unsafe auth requests without csrf when a session cookie is already present', async () => {
@@ -201,6 +200,7 @@ describe('auth register route', () => {
 
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
+    await app.start();
     const server = app.httpServer;
     await waitForServer(server);
     const address = server.address();
@@ -221,8 +221,6 @@ describe('auth register route', () => {
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({ error: 'Missing CSRF token' });
 
-    await new Promise<void>((resolve, reject) => server.close((error: Error | undefined) => (
-      error ? reject(error) : resolve()
-    )));
+    await app.stop();
   });
 });

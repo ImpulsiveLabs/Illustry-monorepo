@@ -78,7 +78,7 @@ describe('realtime broker', () => {
     });
 
     socket.terminate();
-    broker.close();
+    await broker.close();
     await closeServer(server);
   });
 
@@ -135,7 +135,7 @@ describe('realtime broker', () => {
     );
 
     socket.terminate();
-    broker.close();
+    await broker.close();
     await closeServer(server);
   });
 });

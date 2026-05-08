@@ -422,7 +422,7 @@ describe('api controllers', () => {
     const projectResult = await callHandler(projectApi.findOne, { params: { name: 'Project' }, body: {} });
     expect(projectResult.response.status).toHaveBeenCalledWith(400);
     expect(projectResult.response.send).toHaveBeenCalledWith({ error: 'Authentication required' });
-    expect(projectResult.next).toHaveBeenCalledWith('Authentication required');
+    expect(projectResult.next).not.toHaveBeenCalled();
 
     validateWithSchemaMock.mockImplementationOnce(() => {
       throw new Error('Invalid payload');

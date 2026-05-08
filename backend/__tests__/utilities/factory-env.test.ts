@@ -1,6 +1,12 @@
 describe('factory environment branches', () => {
   const originalEnv = process.env;
 
+  const createMockConnection = (close: jest.Mock) => ({
+    close,
+    on: jest.fn(),
+    set: jest.fn()
+  });
+
   beforeEach(() => {
     jest.resetModules();
     process.env = { ...originalEnv };
@@ -12,11 +18,11 @@ describe('factory environment branches', () => {
 
   it('uses MONGO_URL when NODE_ENV is not test', () => {
     const close = jest.fn();
-    const createConnection = jest.fn(() => ({ close }));
+    const createConnection = jest.fn(() => createMockConnection(close));
 
     jest.doMock('mongoose', () => ({
       __esModule: true,
-      default: { createConnection }
+      default: { createConnection, set: jest.fn() }
     }));
     jest.doMock('../../src/dbacc/lib', () => ({
       __esModule: true,
@@ -50,11 +56,11 @@ describe('factory environment branches', () => {
 
   it('uses MONGO_TEST_URL when NODE_ENV is test', () => {
     const close = jest.fn();
-    const createConnection = jest.fn(() => ({ close }));
+    const createConnection = jest.fn(() => createMockConnection(close));
 
     jest.doMock('mongoose', () => ({
       __esModule: true,
-      default: { createConnection }
+      default: { createConnection, set: jest.fn() }
     }));
     jest.doMock('../../src/dbacc/lib', () => ({
       __esModule: true,
@@ -82,11 +88,11 @@ describe('factory environment branches', () => {
 
   it('falls back to empty MONGO_URL string when missing in production', () => {
     const close = jest.fn();
-    const createConnection = jest.fn(() => ({ close }));
+    const createConnection = jest.fn(() => createMockConnection(close));
 
     jest.doMock('mongoose', () => ({
       __esModule: true,
-      default: { createConnection }
+      default: { createConnection, set: jest.fn() }
     }));
     jest.doMock('../../src/dbacc/lib', () => ({
       __esModule: true,
@@ -114,11 +120,11 @@ describe('factory environment branches', () => {
 
   it('falls back to empty MONGO_TEST_URL string when missing in test env', () => {
     const close = jest.fn();
-    const createConnection = jest.fn(() => ({ close }));
+    const createConnection = jest.fn(() => createMockConnection(close));
 
     jest.doMock('mongoose', () => ({
       __esModule: true,
-      default: { createConnection }
+      default: { createConnection, set: jest.fn() }
     }));
     jest.doMock('../../src/dbacc/lib', () => ({
       __esModule: true,

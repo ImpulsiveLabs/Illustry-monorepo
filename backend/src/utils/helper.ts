@@ -44,8 +44,13 @@ const returnResponse = (
   res: FileTypes.Response,
   err: Error | null,
   data: unknown,
-  next: (error: string | Error) => void
+  _next: (error: string | Error) => void
 ): void => {
+  if ((res as unknown as { headersSent?: boolean; writableEnded?: boolean }).headersSent
+    || (res as unknown as { headersSent?: boolean; writableEnded?: boolean }).writableEnded) {
+    return;
+  }
+
   if (res?.req?.probe) {
     const urlParts = url.parse(res.req.originalUrl || '');
     res.req.probe.stop(`Send response${urlParts.pathname}`);
@@ -59,7 +64,7 @@ const returnResponse = (
   } else {
     res.status(getStatusCode(err));
     res.send({ error: err.message });
-    next(err.message);
+    logger.error(err.message);
   }
 };
 

@@ -17,7 +17,7 @@ describe('dbacc visualization unit', () => {
       create: jest.fn().mockResolvedValue({ name: 'created' }),
       findOne: jest.fn(() => query(findOneExec)),
       find: jest.fn(() => query(findExec)),
-      countDocuments: jest.fn(() => countDocuments()),
+      countDocuments: jest.fn(() => ({ exec: countDocuments })),
       findOneAndUpdate: jest.fn(() => query(updateExec)),
       updateMany: jest.fn(() => ({ exec: updateManyExec })),
       deleteOne: jest.fn(() => ({ exec: deleteExec })),

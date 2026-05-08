@@ -78,20 +78,29 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     if (!visualizations) {
       return [];
     }
-    return Promise.all(visualizations.map(async (visualization) => {
+
+    const ownerIds = Array.from(new Set(
+      visualizations
+        .map((visualization) => visualization.userId)
+        .filter((userId): userId is string => Boolean(userId))
+    ));
+    const owners = ownerIds.length > 0
+      ? await this.dbaccInstance.Auth.findUsersByIds(ownerIds).catch(() => [])
+      : [];
+    const ownersById = new Map(owners.map((owner) => [owner._id.toString(), owner]));
+
+    return visualizations.map((visualization) => {
       const plainVisualization = typeof (visualization as unknown as { toObject?: () => VisualizationTypes.VisualizationType }).toObject === 'function'
         ? (visualization as unknown as { toObject: () => VisualizationTypes.VisualizationType }).toObject()
         : visualization;
-      const owner = visualization.userId
-        ? await this.dbaccInstance.Auth.findUserById(visualization.userId).catch(() => null)
-        : null;
+      const owner = visualization.userId ? ownersById.get(visualization.userId) : undefined;
       return {
         ...plainVisualization,
         ownerEmail: owner?.email,
         ownerName: owner?.name,
         ...this.getCollaboratorMetadata(visualization, requesterUserId)
       };
-    }));
+    });
   }
 
   create(data: VisualizationTypes.VisualizationCreate): Promise<VisualizationTypes.VisualizationType> {
@@ -427,11 +436,11 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       action: 'shared',
       updatedAt: new Date().toISOString()
     });
-    await Promise.all(sharedWith.map(async (sharedUser) => {
+    sharedWith.forEach((sharedUser) => {
       if (!sharedUser.email || !sharedUser.inviteToken || !sharedUser.inviteExpiresAt) {
         return;
       }
-      await new EmailService().sendShareInvitationEmail({
+      void new EmailService().sendShareInvitationEmail({
         email: sharedUser.email,
         ownerName: owner?.name || 'A teammate',
         resourceType: 'visualization',
@@ -440,7 +449,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         token: sharedUser.inviteToken,
         expiresAt: sharedUser.inviteExpiresAt
       }).catch((error) => logger.warn('Unable to send visualization share invitation email', error));
-    }));
+    });
     return updatedVisualization;
   }
 
@@ -558,8 +567,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
     const { dashboards } = await this.dbaccInstance.Dashboard.browse(dashboardUpdateFilter, true);
     if (dashboards) {
-      // eslint-disable-next-line no-restricted-syntax
-      for (const dashboard of dashboards) {
+      await Promise.all(dashboards.map(async (dashboard) => {
         if (dashboard.visualizations) {
           delete (dashboard.visualizations as { [name: string]: string; })[`${filter.name}_${filter.type}` as string];
           let reindexedLayouts: DashboardTypes.Layout[] = [];
@@ -578,7 +586,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
               name: dashboard.name
             }
           );
-          // eslint-disable-next-line no-await-in-loop
+
           await this.dbaccInstance.Dashboard.update(
             dashboardFilter,
             {
@@ -589,7 +597,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
             }
           );
         }
-      }
+      }));
     }
     const deletedVisualization = await this.dbaccInstance.Visualization.findOneWithSharing(queryFilter);
     await this.dbaccInstance.Visualization.deleteMany(queryFilter);

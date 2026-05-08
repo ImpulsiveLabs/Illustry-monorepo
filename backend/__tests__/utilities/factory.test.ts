@@ -12,8 +12,8 @@ describe('Factory tests', () => {
     factory = Factory.getInstance();
   });
 
-  afterAll(() => {
-    factory.cleanup();
+  afterAll(async () => {
+    await factory.cleanup();
   });
 
   it('Tries to use constructor instead of instance', () => {
