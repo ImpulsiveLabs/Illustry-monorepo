@@ -191,6 +191,11 @@ const respondToShareInvite = async (
 ): Promise<void> => {
   try {
     const { token, decision } = request.body as VisualizationTypes.VisualizationShareInviteDecision;
+
+    if (typeof token !== 'string' || (decision !== 'accept' && decision !== 'reject')) {
+      throw new Error('Invalid share invite payload');
+    }
+
     const data = await Factory.getInstance()
       .getBZL()
       .VisualizationBZL

@@ -155,7 +155,7 @@ class Visualization implements GenericTypes.BaseLib<
 
   findOneByShareInviteToken(token: string): Promise<VisualizationTypes.VisualizationType | null> {
     return this.modelInstance.VisualizationModel.findOne(
-      { 'sharedWith.inviteToken': token },
+      { 'sharedWith.inviteToken': { $eq: token } },
       { __v: 0, _id: 0 }
     ).lean().exec() as unknown as Promise<VisualizationTypes.VisualizationType | null>;
   }
