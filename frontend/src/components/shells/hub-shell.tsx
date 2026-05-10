@@ -15,15 +15,17 @@ import AxisChartsShellView from './axis/axis-shell';
 import TimelineShellView from './timeline/timeline-shell';
 import MatrixShellView from './matrix/matrix-shell';
 import HierarchicalEdgeBundlingShellView from './hierarchical-edge-bundling/hierarchical-edge-bundling-shell';
+import { ThemeColorsProvider, type ThemeColors } from '../providers/theme-provider';
 
 type HubShellProps = {
   data?: VisualizationTypes.VisualizationType | null;
+  useDataTheme?: boolean;
 } & WithFullScreen
   & WithLegend
   & WithFilter
 
 const HubShell = ({
-  data, fullScreen, filter, legend
+  data, fullScreen, filter, legend, useDataTheme = true
 }: HubShellProps) => {
   const renderGraph = () => {
     if (data) {
@@ -205,11 +207,25 @@ const HubShell = ({
     return null;
   };
 
-  return (
+  const content = (
     <div className={fullScreen ? '' : 'h-full [&>*]:h-full [&>*]:!mt-0'}>
       {renderGraph()}
     </div>
   );
+
+  if (useDataTheme && data?.theme) {
+    return (
+      <ThemeColorsProvider
+        initialTheme={data.theme as ThemeColors}
+        persist={false}
+        storageScope={`visualization:${data.shareId || `${data.name}:${data.type}`}`}
+      >
+        {content}
+      </ThemeColorsProvider>
+    );
+  }
+
+  return content;
 };
 
 export default HubShell;

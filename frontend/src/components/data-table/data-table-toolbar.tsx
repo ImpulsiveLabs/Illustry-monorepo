@@ -5,7 +5,7 @@ import type { Table } from '@tanstack/react-table';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import {
-  ComponentType, MouseEventHandler, useCallback, useState, useTransition
+  ComponentType, MouseEventHandler, ReactNode, useCallback, useState, useTransition
 } from 'react';
 import { Button } from '@/components/ui/button';
 import HintTooltip from '@/components/ui/hint-tooltip';
@@ -51,13 +51,15 @@ type DataTableToolbarProps<TData> = {
   filterableColumns?: DataTableFilterableColumn<TData>[];
   newRowLink?: string;
   deleteRowsAction?: MouseEventHandler<HTMLButtonElement>;
+  toolbarActions?: ReactNode;
 }
 
 const DataTableToolbar = <TData, >({
   table,
   filterableColumns = [],
   newRowLink,
-  deleteRowsAction
+  deleteRowsAction,
+  toolbarActions
 }: DataTableToolbarProps<TData>) => {
   const isFiltered = table.getState().columnFilters.length > 0;
   const [isPending, startTransition] = useTransition();
@@ -124,6 +126,7 @@ const DataTableToolbar = <TData, >({
               />
             )
           )}
+        {toolbarActions}
         {isFiltered && (
           <HintTooltip text={t('tooltip.resetFilters')}>
             <Button
@@ -154,3 +157,4 @@ const DataTableToolbar = <TData, >({
 };
 
 export default DataTableToolbar;
+export type { DataTableToolbarProps };

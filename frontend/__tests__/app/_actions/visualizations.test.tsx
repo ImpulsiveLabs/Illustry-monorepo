@@ -2,7 +2,8 @@ import {
     browseVisualizations,
     deleteVisualization,
     createOrUpdateVisualization,
-    findOneVisualization
+    findOneVisualization,
+    syncVisualizationThemes
 } from '@/app/_actions/visualization';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { VisualizationTypes } from '@illustry/types';
@@ -77,6 +78,19 @@ describe('Visualization Server Functions', () => {
         expect(result).toEqual(visualizationMock);
     });
 
+    it('syncVisualizationThemes calls makeRequest with PUT method and theme payload', async () => {
+        const syncResult = { updatedCount: 2, shareIds: ['viz-a', 'viz-b'] };
+        (makeRequest as any).mockResolvedValue(syncResult);
+        const result = await syncVisualizationThemes({ sankey: { light: { colors: ['#fff'] } } });
+        expect(makeRequest).toHaveBeenCalled();
+        const request = (makeRequest as any).mock.calls[0][0];
+        expect(request.method).toBe('PUT');
+        await expect(request.json()).resolves.toEqual({
+            theme: { sankey: { light: { colors: ['#fff'] } } }
+        });
+        expect(result).toEqual(syncResult);
+    });
+
     it('returns null on makeRequest failure for all functions', async () => {
         (makeRequest as any).mockImplementation(() => {
             throw new Error('Request failed');
@@ -93,5 +107,8 @@ describe('Visualization Server Functions', () => {
 
         const resultFind = await findOneVisualization({ name: 'TestVisualization' });
         expect(resultFind).toBeNull();
+
+        const resultSync = await syncVisualizationThemes({ sankey: {} });
+        expect(resultSync).toBeNull();
     });
 });

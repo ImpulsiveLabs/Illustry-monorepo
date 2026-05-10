@@ -14,9 +14,9 @@ vi.mock('@/app/_actions/dashboard', () => ({
 // 👇 Mock DashboardsTableShell component
 vi.mock('@/components/shells/dashboards-table-shell', () => ({
   __esModule: true,
-  default: ({ data, pageCount }: { data: any[]; pageCount: number }) => {
+  default: ({ data, pageCount, external }: { data: any[]; pageCount: number; external?: boolean }) => {
     return (
-      <div data-testid="dashboards-table-shell">
+      <div data-testid={external ? 'external-dashboards-table-shell' : 'dashboards-table-shell'}>
         <p>Mocked Table</p>
         <div data-testid="data-length">{data.length}</div>
         <div data-testid="page-count">{pageCount}</div>
@@ -47,13 +47,14 @@ describe('Dashboards', () => {
     render(await Dashboards({ searchParams }));
 
     expect(screen.getByTestId('dashboards-table-shell')).toBeInTheDocument();
-    expect(screen.getByTestId('data-length').textContent).toBe('2');
-    expect(screen.getByTestId('page-count').textContent).toBe('5');
+    expect(screen.getAllByTestId('data-length')[0].textContent).toBe('2');
+    expect(screen.getAllByTestId('page-count')[0].textContent).toBe('5');
 
-    expect(browseDashboards).toHaveBeenCalledWith({
+    expect(browseDashboards).toHaveBeenNthCalledWith(1, {
       page: 1,
       text: 'test',
       per_page: 10,
+      sharedScope: 'owned',
       sort: {
         sortOrder: 1,
         element: 'name',
@@ -71,12 +72,13 @@ describe('Dashboards', () => {
     render(await Dashboards({ searchParams: {} }));
 
     expect(screen.getByTestId('dashboards-table-shell')).toBeInTheDocument();
-    expect(screen.getByTestId('data-length').textContent).toBe('0');
-    expect(screen.getByTestId('page-count').textContent).toBe('1');
+    expect(screen.getAllByTestId('data-length')[0].textContent).toBe('0');
+    expect(screen.getAllByTestId('page-count')[0].textContent).toBe('1');
 
-    expect(browseDashboards).toHaveBeenCalledWith({
+    expect(browseDashboards).toHaveBeenNthCalledWith(1, {
       page: 1,
       per_page: 10,
+      sharedScope: 'owned',
       sort: undefined,
     } as const);
   });
@@ -95,12 +97,32 @@ describe('Dashboards', () => {
       },
     }));
 
-    expect(screen.getByTestId('data-length').textContent).toBe('0');
-    expect(screen.getByTestId('page-count').textContent).toBe('1');
-    expect(browseDashboards).toHaveBeenCalledWith({
+    expect(screen.getAllByTestId('data-length')[0].textContent).toBe('0');
+    expect(screen.getAllByTestId('page-count')[0].textContent).toBe('1');
+    expect(browseDashboards).toHaveBeenNthCalledWith(1, {
       page: 2,
       per_page: 20,
+      sharedScope: 'owned',
       sort: { sortOrder: -1, element: 'name' },
     } as const);
+  });
+
+  it('renders the external mode as a single table', async () => {
+    vi.mocked(browseDashboards).mockResolvedValue({
+      dashboards: [{ name: 'External dashboard' }],
+      pagination: { pageCount: 1 },
+    });
+
+    render(await Dashboards({ searchParams: { scope: 'external' } }));
+
+    expect(screen.getByTestId('external-dashboards-table-shell')).toBeInTheDocument();
+    expect(screen.queryByTestId('dashboards-table-shell')).not.toBeInTheDocument();
+    expect(browseDashboards).toHaveBeenCalledTimes(1);
+    expect(browseDashboards).toHaveBeenCalledWith({
+      page: 1,
+      per_page: 10,
+      sharedScope: 'external',
+      sort: undefined,
+    });
   });
 });

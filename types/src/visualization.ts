@@ -145,12 +145,37 @@ type VisualizationDataData = WordCloudData
 
 type VisualizationData = {
   userId?: string;
+  ownerEmail?: string;
+  ownerName?: string;
+  currentUserRole?: VisualizationSharePermission | 'owner';
+  shareStatus?: VisualizationShareStatus;
+  isExternal?: boolean;
+  shareId?: string;
+  sharedWith?: VisualizationSharedUser[];
   projectName: string;
   type: VisualizationTypesEnum | VisualizationTypesEnum[];
   description?: string;
   name: string;
   tags?: string | string[];
+  theme?: Record<string, unknown>;
   data: VisualizationDataData;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+type VisualizationSharePermission = 'viewer' | 'editor';
+type VisualizationShareStatus = 'pending' | 'accepted' | 'rejected';
+type VisualizationShareScope = 'owned' | 'external' | 'all';
+
+type VisualizationSharedUser = {
+  userId: string;
+  email?: string;
+  name?: string;
+  permission: VisualizationSharePermission;
+  status?: VisualizationShareStatus;
+  inviteToken?: string;
+  inviteExpiresAt?: Date;
+  respondedAt?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -180,6 +205,9 @@ type VisualizationUpdate = DeepPartial<VisualizationType>
 
 type VisualizationFilter = {
   userId?: string;
+  shareId?: string;
+  sharedWithUserId?: string;
+  sharedScope?: VisualizationShareScope;
   projectName?: string;
   type?: string | string[];
   name?: string;
@@ -191,6 +219,31 @@ type VisualizationFilter = {
     element: string;
     sortOrder: string | number;
   };
+}
+
+type VisualizationShareRequest = {
+  name?: string;
+  type?: string;
+  shareId?: string;
+  theme?: Record<string, unknown>;
+  collaborators: Array<{
+    email: string;
+    permission?: VisualizationSharePermission;
+  }>;
+}
+
+type VisualizationShareInviteDecision = {
+  token: string;
+  decision: 'accept' | 'reject';
+}
+
+type VisualizationThemeSyncRequest = {
+  theme: Record<string, unknown>;
+}
+
+type VisualizationThemeSyncResult = {
+  updatedCount: number;
+  shareIds: string[];
 }
 
 export {
@@ -219,5 +272,13 @@ export {
   VisualizationType,
   ExtendedVisualizationType,
   VisualizationUpdate,
-  VisualizationFilter
+  VisualizationFilter,
+  VisualizationSharePermission,
+  VisualizationShareStatus,
+  VisualizationShareScope,
+  VisualizationSharedUser,
+  VisualizationShareRequest,
+  VisualizationShareInviteDecision,
+  VisualizationThemeSyncRequest,
+  VisualizationThemeSyncResult
 }

@@ -4,12 +4,26 @@ import Hub from '@/app/(hub)/visualizationhub/page';
 import { findOneVisualization } from '@/app/_actions/visualization';
 import { describe, it, vi, expect } from 'vitest';
 
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    replace: vi.fn(),
+    refresh: vi.fn()
+  })
+}));
+
 // Mock the HubShell component
 vi.mock('@/components/shells/hub-shell', () => ({
   __esModule: true,
   default: ({ data }: any) => (
     <div data-testid="hub-shell">Mock HubShell - {data?.name}</div>
   ),
+}));
+
+vi.mock('@/app/(hub)/visualizationhub/visualization-hub-client', () => ({
+  __esModule: true,
+  default: ({ visualization }: any) => (
+    <div data-testid="hub-shell">Mock HubShell - {visualization?.name}</div>
+  )
 }));
 
 // Mock the findOneVisualization function

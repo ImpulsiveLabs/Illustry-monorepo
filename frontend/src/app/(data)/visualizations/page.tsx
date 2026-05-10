@@ -16,6 +16,7 @@ type VisualizationsProps = {
     text?: string;
     per_page?: string;
     sort?: string;
+    scope?: string;
   }>;
 };
 
@@ -26,11 +27,13 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
   const text = typeof sp.text === 'string' ? sp.text : undefined;
   const perPage = typeof sp.per_page === 'string' ? sp.per_page : undefined;
   const sort = typeof sp.sort === 'string' ? sp.sort : undefined;
+  const scope = sp.scope === 'external' ? 'external' : 'owned';
 
   const visualizations = await browseVisualizations({
     page: page ? Number(page) : 1,
     text,
     per_page: perPage ? Number(perPage) : 10,
+    sharedScope: scope === 'external' ? 'external' : 'owned',
     sort: sort
       ? {
         sortOrder: sort.split('.')[1] === 'asc' ? 1 : -1,
@@ -54,6 +57,7 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
         <VisualizationsTableShell
           data={visualizationRows}
           pageCount={visualizationsPageCount}
+          external={scope === 'external'}
         ></VisualizationsTableShell>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
-import { findOneVisualization } from '@/app/_actions/visualization';
-import HubShell from '@/components/shells/hub-shell';
+import { findOneVisualization, findSharedVisualization } from '@/app/_actions/visualization';
+import VisualizationHubClient from './visualization-hub-client';
 
 const metadata: Metadata = {
   title: 'Visualizations',
@@ -14,6 +14,7 @@ type HubProps = {
     [key: string]: string | string[] | undefined;
     name?: string;
     type?: string;
+    share?: string;
   }>;
 };
 
@@ -22,13 +23,16 @@ const VisualizationHub = async ({ searchParams }: HubProps) => {
 
   const name = typeof sp.name === 'string' ? sp.name : undefined;
   const type = typeof sp.type === 'string' ? sp.type : undefined;
+  const share = typeof sp.share === 'string' ? sp.share : undefined;
 
-  const visualization = await findOneVisualization({
-    name,
-    type,
-  } as VisualizationTypes.VisualizationFilter);
+  const visualization = share
+    ? await findSharedVisualization(share)
+    : await findOneVisualization({
+      name,
+      type,
+    } as VisualizationTypes.VisualizationFilter);
 
-  return <HubShell data={visualization} fullScreen filter legend />;
+  return <VisualizationHubClient visualization={visualization} />;
 };
 
 export default VisualizationHub;

@@ -17,6 +17,7 @@ import {
 import {
   ComponentType,
   MouseEventHandler,
+  ReactNode,
   useCallback,
   useEffect,
   useMemo,
@@ -56,6 +57,7 @@ type DataTableProps<TData, TValue> = {
   filterableColumns?: DataTableFilterableColumn<TData>[];
   newRowLink?: string;
   deleteRowsAction?: MouseEventHandler<HTMLButtonElement>;
+  toolbarActions?: ReactNode;
 }
 
 const DataTable = <TData, TValue>({
@@ -64,7 +66,8 @@ const DataTable = <TData, TValue>({
   pageCount,
   filterableColumns = [],
   newRowLink,
-  deleteRowsAction
+  deleteRowsAction,
+  toolbarActions
 }: DataTableProps<TData, TValue>) => {
   const { t } = useLocale();
   const router = useRouter();
@@ -225,6 +228,7 @@ const DataTable = <TData, TValue>({
         filterableColumns={filterableColumns}
         deleteRowsAction={deleteRowsAction}
         newRowLink={newRowLink}
+        toolbarActions={toolbarActions}
       />
       <div className="rounded-md border dark:border-gray-300">
         <Table>

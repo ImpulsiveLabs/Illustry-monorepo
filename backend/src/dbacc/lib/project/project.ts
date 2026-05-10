@@ -1,10 +1,18 @@
-import validator from 'validator';
 import {
   ProjectTypes, GenericTypes, UtilTypes
 } from '@illustry/types';
 import ModelInstance from '../../models/modelInstance';
+import {
+  DEFAULT_PAGE_SIZE,
+  buildSafeTextRegex,
+  getPageCount,
+  getPerPage,
+  getSafeSort,
+  getSkip
+} from '../query-utils';
 
-const PAGE_SIZE = 10;
+const SORT_FIELDS = new Set(['name', 'createdAt', 'updatedAt', 'isActive']);
+
 class Project implements GenericTypes.BaseLib<
   ProjectTypes.ProjectCreate,
   ProjectTypes.ProjectUpdate,
@@ -35,44 +43,30 @@ class Project implements GenericTypes.BaseLib<
       });
     }
     if (filter.text) {
-      const regexPattern = new RegExp(
-        validator.blacklist(filter.text, "<>\"'&;@()[]{}/\\|%+=?~`,$"),
-        'i'
-      );
-      (query.$and as Array<object>).push({
-        $or: [
-          {
-            name: { $regex: regexPattern }
-          },
-          {
-            description: { $regex: regexPattern }
-          }
-        ]
-      });
+      const regexPattern = buildSafeTextRegex(filter.text);
+      if (regexPattern) {
+        (query.$and as Array<object>).push({
+          $or: [
+            {
+              name: { $regex: regexPattern }
+            },
+            {
+              description: { $regex: regexPattern }
+            }
+          ]
+        });
+      }
     }
 
     if ((query.$and as Array<object>).length === 0) delete query.$and;
 
-    let skip: number = 0;
-    if (filter && filter.page && filter.page >= 1) {
-      if (filter.per_page) {
-        skip = (filter.page - 1) * filter.per_page;
-      } else {
-        skip = (filter.page - 1) * PAGE_SIZE;
-      }
-    }
+    const perPage = getPerPage(filter.per_page);
 
-    let sort = {};
-    if (filter.sort && filter.sort.element) {
-      const sortField = filter.sort.element;
-      const sortOrder = filter.sort.sortOrder === -1 ? -1 : 1;
-      sort = { [sortField]: sortOrder };
-    }
     return {
       query,
-      page: skip,
-      sort,
-      per_page: filter.per_page ? filter.per_page : PAGE_SIZE
+      page: getSkip(filter.page, perPage),
+      sort: getSafeSort(filter.sort, SORT_FIELDS, {}),
+      per_page: perPage
     };
   }
 
@@ -102,34 +96,33 @@ class Project implements GenericTypes.BaseLib<
       __v: 0,
       _id: 0,
       userId: 0
-    }).exec();
+    }).lean().exec() as unknown as Promise<ProjectTypes.ProjectType | null>;
   }
 
   async browse(filter: UtilTypes.ExtendedMongoQuery): Promise<ProjectTypes.ExtendedProjectType> {
-    const res = await this.modelInstance.ProjectModel.find(
-      filter.query ? filter.query : {},
-      {
-        __v: 0,
-        _id: 0,
-        userId: 0
-      },
-      {
-        sort: filter.sort ? filter.sort : { name: 1 },
-        skip: filter && filter.page ? filter.page : 0,
-        limit: filter.per_page
-      }
-    ).exec();
-    const count = await this.modelInstance.ProjectModel.countDocuments(
-      filter.query ? filter.query : {}
-    ).exec();
+    const query = filter.query ? filter.query : {};
+    const perPage = filter.per_page || DEFAULT_PAGE_SIZE;
+    const [res, count] = await Promise.all([
+      this.modelInstance.ProjectModel.find(
+        query,
+        {
+          __v: 0,
+          _id: 0,
+          userId: 0
+        },
+        {
+          sort: filter.sort ? filter.sort : { name: 1 },
+          skip: filter && filter.page ? filter.page : 0,
+          limit: perPage
+        }
+      ).lean().exec() as unknown as Promise<ProjectTypes.ProjectType[]>,
+      this.modelInstance.ProjectModel.countDocuments(query).exec()
+    ]);
     return {
       projects: res,
       pagination: {
         count,
-        pageCount:
-          count > 0
-            ? count / (filter.per_page ? filter.per_page : PAGE_SIZE)
-            : 1
+        pageCount: getPageCount(count, perPage)
       }
     };
   }

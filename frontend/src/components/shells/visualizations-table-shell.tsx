@@ -23,15 +23,18 @@ import { Button } from '../ui/button';
 import { Badge } from '../ui/badge';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
+import ExternalInternalToggle from '../data-table/external-internal-toggle';
 
 type VisualizationsTableShellProps = {
   data?: VisualizationTypes.VisualizationType[];
   pageCount?: number;
+  external?: boolean;
 }
 
 const VisualizationsTableShell = ({
   data,
-  pageCount
+  pageCount,
+  external = false
 }: VisualizationsTableShellProps) => {
   const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
@@ -141,6 +144,20 @@ const VisualizationsTableShell = ({
           return null;
         }
       },
+      ...(external ? [
+        {
+          accessorKey: 'ownerEmail',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="Owner" />
+          )
+        } as ColumnDef<VisualizationTypes.VisualizationType, unknown>,
+        {
+          accessorKey: 'currentUserRole',
+          header: ({ column }) => (
+            <DataTableColumnHeader column={column} title="My role" />
+          )
+        } as ColumnDef<VisualizationTypes.VisualizationType, unknown>
+      ] : []),
       {
         accessorKey: 'createdAt',
         header: ({ column }) => (
@@ -172,15 +189,30 @@ const VisualizationsTableShell = ({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
-              <DropdownMenuItem asChild>
-                <Link
-                  href={`/visualizationhub?name=${row.original.name}&type=${row.original.type}`}
-                >
+	              <DropdownMenuItem asChild>
+	                <Link
+	                  href={row.original.shareId && row.original.isExternal
+	                      ? `/visualizationhub?share=${row.original.shareId}`
+	                      : `/visualizationhub?name=${row.original.name}&type=${row.original.type}`}
+	                >
                   {t('table.view')}
                 </Link>
               </DropdownMenuItem>
 
-              <DropdownMenuSeparator />
+	              {!external && (
+	                <>
+	                  <DropdownMenuSeparator />
+		                  <DropdownMenuItem asChild>
+		                    <Link
+		                      href={`/share/visualization?name=${encodeURIComponent(row.original.name)}&type=${encodeURIComponent(String(row.original.type))}`}
+		                    >
+		                      Share
+		                    </Link>
+		                  </DropdownMenuItem>
+	                </>
+	              )}
+
+	              <DropdownMenuSeparator />
 
               <DropdownMenuItem
                 onClick={() => {
@@ -188,10 +220,11 @@ const VisualizationsTableShell = ({
                     row.toggleSelected(false);
 
                     toast.promise(
-                      deleteVisualization({
-                        name: row.original.name,
-                        type: row.original.type
-                      }),
+	                      deleteVisualization({
+	                        name: row.original.isExternal ? undefined : row.original.name,
+	                        type: row.original.isExternal ? undefined : row.original.type,
+	                        shareId: row.original.isExternal ? row.original.shareId : undefined
+	                      }),
                       {
                         loading: t('table.deleting'),
                         success: () => { router.refresh(); return t('toast.visualizationDeleted'); },
@@ -210,7 +243,7 @@ const VisualizationsTableShell = ({
         )
       }
     ],
-    [data, isPending, t]
+    [data, external, isPending, t]
   );
 
   const deleteSelectedRows = () => {
@@ -237,14 +270,17 @@ const VisualizationsTableShell = ({
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={data as VisualizationTypes.VisualizationType[]}
-      pageCount={pageCount as number}
-      filterableColumns={[]}
-      newRowLink="/visualizations/new"
-      deleteRowsAction={deleteSelectedRows}
-    />
+    <div className="space-y-3">
+      <DataTable
+        columns={columns}
+        data={data as VisualizationTypes.VisualizationType[]}
+        pageCount={pageCount as number}
+        filterableColumns={[]}
+        newRowLink={external ? undefined : '/visualizations/new'}
+        deleteRowsAction={external ? undefined : deleteSelectedRows}
+        toolbarActions={<ExternalInternalToggle mode={external ? 'external' : 'owned'} />}
+      />
+    </div>
   );
 };
 

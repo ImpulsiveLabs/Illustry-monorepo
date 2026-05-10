@@ -98,6 +98,139 @@ const findOne = async (
   }
 };
 
+const findShared = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { shareId } = request.params;
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .findShared(shareId, userId);
+
+    return returnResponse(response, null, data, next);
+  } catch (err) {
+    return returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const share = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name, type, shareId, collaborators, theme
+    } = request.body as VisualizationTypes.VisualizationShareRequest;
+
+    const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
+      shareId,
+      name,
+      type
+    };
+
+    ValidatorSchemas.validateWithSchema<
+      VisualizationTypes.VisualizationFilter
+    >(ValidatorSchemas.visualizationFilterSchema, visualizationFilter);
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .share(visualizationFilter, collaborators || [], theme);
+
+    return returnResponse(response, null, data, next);
+  } catch (err) {
+    return returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const update = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name, type, shareId, theme
+    } = request.body as VisualizationTypes.VisualizationUpdate;
+
+    const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
+      shareId,
+      name: name as string | undefined,
+      type: type as string | undefined
+    };
+
+    ValidatorSchemas.validateWithSchema<
+    VisualizationTypes.VisualizationFilter
+    >(ValidatorSchemas.visualizationFilterSchema, visualizationFilter);
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .update(visualizationFilter, { theme });
+
+    return returnResponse(response, null, data, next);
+  } catch (err) {
+    return returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const respondToShareInvite = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { token, decision } = request.body as VisualizationTypes.VisualizationShareInviteDecision;
+
+    if (typeof token !== 'string' || (decision !== 'accept' && decision !== 'reject')) {
+      throw new Error('Invalid share invite payload');
+    }
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .respondToInvite(token, decision);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const syncTheme = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { theme } = request.body as VisualizationTypes.VisualizationThemeSyncRequest;
+
+    if (!theme || typeof theme !== 'object' || Array.isArray(theme)) {
+      throw new Error('A valid theme payload is required');
+    }
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .syncEditableSharedThemes(userId, theme);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const browse = async (
   request: Request,
   response: Response,
@@ -107,13 +240,14 @@ const browse = async (
     const userId = getAuthenticatedUserId(request);
     const {
       body: {
-        text, page, sort, per_page: perPage
+        text, page, sort, sharedScope, per_page: perPage
       }
     } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
       userId,
       text,
+      sharedScope,
       page,
       sort,
       per_page: perPage
@@ -140,10 +274,11 @@ const _delete = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(request);
-    const { body: { name, type, projectName } } = request;
+    const { body: { name, type, projectName, shareId } } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
       userId,
+      shareId,
       name,
       type,
       projectName
@@ -187,6 +322,7 @@ const createOrUpdateExternal = async (
           type: visualizationData.type,
           description: visualizationData.description,
           tags: visualizationData.tags,
+          theme: visualizationData.theme,
         };
         ValidatorSchemas.validateWithSchema<
         VisualizationTypes.VisualizationCreate
@@ -202,5 +338,14 @@ const createOrUpdateExternal = async (
 };
 
 export {
-  createOrUpdate, findOne, browse, _delete, createOrUpdateExternal
+  createOrUpdate,
+  update,
+  findOne,
+  findShared,
+  share,
+  syncTheme,
+  respondToShareInvite,
+  browse,
+  _delete,
+  createOrUpdateExternal
 };

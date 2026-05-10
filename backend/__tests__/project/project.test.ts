@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import {
   ProjectTypes
 } from "@illustry/types";
@@ -8,11 +7,16 @@ process.env.NODE_ENV = "test";
 process.env.MONGO_TEST_URL = "mongodb://localhost:27017/illustrytest";
 process.env.MONGO_USER = "root"
 process.env.MONGO_PASSWORD = "rootPass"
+process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS = "5000";
+process.env.MONGO_CONNECT_TIMEOUT_MS = "5000";
+process.env.MONGO_SOCKET_TIMEOUT_MS = "5000";
+process.env.MONGO_QUERY_TIMEOUT_MS = "5000";
 
 const factory = Factory.getInstance();
 
 describe("project CRUD", () => {
   beforeAll(async () => {
+    await factory.connect();
     await factory.getBZL().ProjectBZL.delete({ name: "Test_Project1" }).catch(() => undefined);
     await factory.getBZL().ProjectBZL.delete({ name: "Test_Project2" }).catch(() => undefined);
   });
@@ -25,7 +29,7 @@ describe("project CRUD", () => {
     });
 
     await Promise.all(deletePromises);
-    await mongoose.disconnect();
+    await factory.cleanup();
     delete process.env.NODE_ENV;
   });
 

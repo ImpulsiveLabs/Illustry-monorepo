@@ -170,11 +170,14 @@ describe('providers', () => {
     it('hydrates and updates theme colors in storage', async () => {
         const user = userEvent.setup();
         localStorage.setItem(
-            'colorTheme',
+            'colorTheme:default',
             JSON.stringify({
-                calendar: {
-                    dark: { colors: ['#123456'] },
-                    light: { colors: ['#654321'] }
+                expiresAt: Date.now() + 60_000,
+                theme: {
+                    calendar: {
+                        dark: { colors: ['#123456'] },
+                        light: { colors: ['#654321'] }
+                    }
                 }
             })
         );
@@ -191,7 +194,7 @@ describe('providers', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('calendar-color')).toHaveTextContent('#000000');
-            const stored = localStorage.getItem('colorTheme') || '';
+            const stored = localStorage.getItem('colorTheme:default') || '';
             expect(stored).toContain('#000000');
         });
     });

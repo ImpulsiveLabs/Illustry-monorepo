@@ -6,6 +6,7 @@ describe('dbacc auth lib', () => {
   const buildModelInstance = () => {
     const userFindOneExec = buildExec({ id: 'user-by-email' });
     const userFindByIdExec = buildExec({ id: 'user-by-id' });
+    const userFindExec = { lean: () => buildExec([{ id: 'user-by-id' }]) };
     const userFindOneAndUpdateExec = buildExec({ id: 'updated-user' });
     const sessionFindOneExec = buildExec({ id: 'active-session' });
     const sessionUpdateOneExec = buildExec({});
@@ -25,6 +26,7 @@ describe('dbacc auth lib', () => {
       UserModel: {
         findOne: jest.fn(() => userFindOneExec),
         findById: jest.fn(() => userFindByIdExec),
+        find: jest.fn(() => userFindExec),
         create: jest.fn(async (data) => ({ created: true, ...data })),
         findOneAndUpdate: jest.fn(() => userFindOneAndUpdateExec)
       },
@@ -65,6 +67,9 @@ describe('dbacc auth lib', () => {
 
     await expect(auth.findUserById('user-id')).resolves.toEqual({ id: 'user-by-id' });
     expect(modelInstance.UserModel.findById).toHaveBeenCalledWith('user-id');
+
+    await expect(auth.findUsersByIds(['user-id'])).resolves.toEqual([{ id: 'user-by-id' }]);
+    expect(modelInstance.UserModel.find).toHaveBeenCalledWith({ _id: { $in: ['user-id'] } });
 
     await expect(auth.createUser({ email: 'user@example.com' } as any)).resolves.toEqual({ created: true, email: 'user@example.com' });
     expect(modelInstance.UserModel.create).toHaveBeenCalledWith({ email: 'user@example.com' });

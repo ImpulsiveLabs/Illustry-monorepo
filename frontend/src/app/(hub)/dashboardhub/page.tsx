@@ -1,7 +1,7 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { findOneDashboard } from '@/app/_actions/dashboard';
+import { findOneDashboard, findSharedDashboard } from '@/app/_actions/dashboard';
 import ResizableDashboard from '@/components/shells/dashboard-shell';
 
 export const metadata: Metadata = {
@@ -12,16 +12,20 @@ export const metadata: Metadata = {
 type DashboardProps = {
   searchParams: Promise<{
     [key: string]: string | string[] | undefined;
-    name?: string;
-  }>;
+	    name?: string;
+	    share?: string;
+	  }>;
 };
 
 const DashboardHub = async ({ searchParams }: DashboardProps) => {
   const sp = await searchParams;
   const name = typeof sp.name === 'string' ? sp.name : undefined;
+  const share = typeof sp.share === 'string' ? sp.share : undefined;
 
-  const dashboard = await findOneDashboard(name ?? '', true);
-  if (name && !dashboard) {
+  const dashboard = share
+    ? await findSharedDashboard(share, true)
+    : await findOneDashboard(name ?? '', true);
+  if ((name || share) && !dashboard) {
     notFound();
   }
 

@@ -2,12 +2,24 @@ import Illustry from './app';
 import logger from './config/logger';
 
 let illustry: Illustry;
+let shuttingDown = false;
 
-const cleanup = () => {
-  if (illustry) {
-    illustry.stop();
+const cleanup = async (exitCode = 0) => {
+  if (shuttingDown) {
+    return;
   }
-  process.exit(-1);
+
+  shuttingDown = true;
+  try {
+    if (illustry) {
+      await illustry.stop();
+    }
+  } catch (error) {
+    logger.error(error instanceof Error ? error.message : 'Error on cleanup');
+    exitCode = 1;
+  } finally {
+    process.exit(exitCode);
+  }
 };
 
 const restart = async (): Promise<void> => {
@@ -30,9 +42,12 @@ const startIllustry = async () => {
   await illustry.start();
 };
 
-process.on('beforeExit', cleanup);
-process.on('exit', cleanup);
-process.on('SIGINT', cleanup);
+process.on('SIGINT', () => {
+  void cleanup(0);
+});
+process.on('SIGTERM', () => {
+  void cleanup(0);
+});
 process.on('unhandledRejection', (err) => {
   logger.error(`Unhandled Rejection, reason:${err}`);
   processUnhandledError(err as Error).catch((error) => {
@@ -48,4 +63,7 @@ process.on('uncaughtException', (err) => {
   });
 });
 
-startIllustry();
+startIllustry().catch((error) => {
+  logger.error(error instanceof Error ? error.message : 'Unable to start Illustry service');
+  process.exit(1);
+});

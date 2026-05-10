@@ -4,6 +4,7 @@ import {
   emailServiceApiKey,
   emailServiceUrl
 } from './constants';
+import { getExternalHttpTimeoutMs } from '../config/timeouts';
 import { AuthLocale } from './locale';
 import { AuthHttpError } from './errors';
 
@@ -34,6 +35,28 @@ class EmailService {
     });
   }
 
+  async sendShareInvitationEmail(payload: {
+    email: string;
+    ownerName: string;
+    resourceType: 'dashboard' | 'visualization';
+    resourceName: string;
+    permission: 'viewer' | 'editor';
+    token: string;
+    expiresAt: Date;
+  }): Promise<void> {
+    const inviteUrl = `${appBaseUrl.replace(/\/$/, '')}/share-invite?token=${encodeURIComponent(payload.token)}`;
+
+    await this.sendThroughEmailService('/api/email/send-share-invitation', {
+      to: payload.email,
+      ownerName: payload.ownerName,
+      resourceType: payload.resourceType,
+      resourceName: payload.resourceName,
+      permission: payload.permission,
+      inviteUrl,
+      expiresAt: payload.expiresAt.toISOString()
+    });
+  }
+
   private async sendThroughEmailService(path: string, payload: Record<string, unknown>): Promise<void> {
     if (emailServiceUrl.length === 0) {
       throw new Error('EMAIL_SERVICE_URL is not configured');
@@ -50,7 +73,7 @@ class EmailService {
         'X-Email-Service-Key': emailServiceApiKey
       },
       body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(10_000)
+      signal: AbortSignal.timeout(getExternalHttpTimeoutMs())
     });
 
     if (!response.ok) {

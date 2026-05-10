@@ -456,7 +456,9 @@ class AuthBZL {
       expiresAt: new Date(Date.now() + emailVerificationTtlMinutes * 60 * 1000)
     });
 
-    await this.emailService.sendVerificationEmail(user.email, token, verificationCode, locale);
+    void this.emailService
+      .sendVerificationEmail(user.email, token, verificationCode, locale)
+      .catch((error) => logger.warn('Unable to send verification email', error));
   }
 
   private async sendPasswordReset(user: AuthUser, locale: AuthLocale): Promise<void> {
@@ -469,7 +471,9 @@ class AuthBZL {
       expiresAt: new Date(Date.now() + passwordResetTtlMinutes * 60 * 1000)
     });
 
-    await this.emailService.sendPasswordResetEmail(user.email, token, locale);
+    void this.emailService
+      .sendPasswordResetEmail(user.email, token, locale)
+      .catch((error) => logger.warn('Unable to send password reset email', error));
   }
 }
 

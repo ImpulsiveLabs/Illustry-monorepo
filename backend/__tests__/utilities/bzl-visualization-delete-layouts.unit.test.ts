@@ -15,6 +15,9 @@ describe('bzl visualization delete dashboard reindexing', () => {
     const mockDbacc = {
       Visualization: {
         createFilter,
+        findOneWithSharing: jest.fn().mockResolvedValue({
+          shareId: 'viz_shared'
+        }),
         deleteMany
       },
       Dashboard: {

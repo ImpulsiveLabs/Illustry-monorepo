@@ -20,9 +20,13 @@ describe('coverage gaps', () => {
     expect(() => resolveUserId()).toThrow('Missing userId');
   });
 
-  it('returns the model instance from the factory getter', () => {
+  it('returns the model instance from the factory getter', async () => {
     const close = jest.fn();
-    const createConnection = jest.fn(() => ({ close }));
+    const createConnection = jest.fn(() => ({
+      close,
+      on: jest.fn(),
+      set: jest.fn()
+    }));
     const modelInstance = { model: 'instance' };
     const dbaccInstance = {
       getModelInstance: jest.fn(() => modelInstance)
@@ -30,7 +34,7 @@ describe('coverage gaps', () => {
 
     jest.doMock('mongoose', () => ({
       __esModule: true,
-      default: { createConnection }
+      default: { createConnection, set: jest.fn() }
     }));
     jest.doMock('../../src/dbacc/lib', () => ({
       __esModule: true,
@@ -48,7 +52,7 @@ describe('coverage gaps', () => {
     expect(instance.getModelInstance()).toBe(modelInstance);
     expect(dbaccInstance.getModelInstance).toHaveBeenCalledTimes(1);
 
-    instance.cleanup();
+    await instance.cleanup();
     expect(close).toHaveBeenCalledWith(true);
   });
 

@@ -19,7 +19,12 @@ const finalupload = upload.fields([{ name: 'file', maxCount: 10 }]);
 router.use(requireAuthenticatedUser, requireVerifiedEmail);
 
 router.post('/api/visualization', requireCsrf, finalupload as any, VisualizationAPI.createOrUpdate);
+router.put('/api/visualization', requireCsrf, VisualizationAPI.update);
 router.post('/api/visualizations', VisualizationAPI.browse);
+router.put('/api/visualizations/theme', requireCsrf, VisualizationAPI.syncTheme);
+router.get('/api/visualization/shared/:shareId', VisualizationAPI.findShared);
+router.put('/api/visualization/share', requireCsrf, VisualizationAPI.share);
+router.post('/api/visualization/share/respond', requireCsrf, VisualizationAPI.respondToShareInvite);
 router.post('/api/visualization/:name', VisualizationAPI.findOne);
 router.delete('/api/visualization', requireCsrf, VisualizationAPI._delete);
 export default router;

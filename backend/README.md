@@ -39,6 +39,7 @@ Core:
 - `MONGO_URL`, `MONGO_TEST_URL`, `MONGO_USER`, `MONGO_PASSWORD`
 - `ILLUSTRY_PORT`
 - `CORS_ORIGIN_ALLOWLIST`
+- `REQUEST_LATENCY_BUDGET_MS` defaults to `300`; Mongo, Redis, and external HTTP timeout env vars default to this budget.
 
 Auth/cookies:
 
@@ -84,6 +85,12 @@ In production, set a real SMTP provider and keep all credentials in env vars.
 cd backend
 yarn install
 yarn start:dev
+```
+
+Run the live API latency guard against a running backend:
+
+```bash
+API_LATENCY_BASE_URL=http://127.0.0.1:7010 yarn latency:api
 ```
 
 ## Production notes

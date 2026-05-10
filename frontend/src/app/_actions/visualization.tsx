@@ -102,9 +102,119 @@ const findOneVisualization = async (
   }
 };
 
+const findSharedVisualization = async (shareId: string) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/shared/${shareId}`,
+    {
+      method: 'GET',
+      headers: await buildBackendHeaders({ asJson: false, withCsrf: false })
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const shareVisualization = async (
+  shareRequest: VisualizationTypes.VisualizationShareRequest
+) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/share`,
+    {
+      method: 'PUT',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(shareRequest)
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const updateVisualization = async (
+  visualizationUpdate: VisualizationTypes.VisualizationUpdate
+) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization`,
+    {
+      method: 'PUT',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(visualizationUpdate)
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const respondToVisualizationShareInvite = async (
+  decision: VisualizationTypes.VisualizationShareInviteDecision
+) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/share/respond`,
+    {
+      method: 'POST',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(decision)
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const syncVisualizationThemes = async (
+  theme: Record<string, unknown>
+) => {
+  const BACKEND = getBackendUrl() as string;
+  if (!BACKEND) {
+    return null;
+  }
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualizations/theme`,
+    {
+      method: 'PUT',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify({ theme })
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationThemeSyncResult>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 export {
   browseVisualizations,
   deleteVisualization,
   createOrUpdateVisualization,
-  findOneVisualization
+  findOneVisualization,
+  findSharedVisualization,
+  shareVisualization,
+  updateVisualization,
+  respondToVisualizationShareInvite,
+  syncVisualizationThemes
 };

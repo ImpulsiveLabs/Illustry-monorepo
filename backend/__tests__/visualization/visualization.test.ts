@@ -1,5 +1,4 @@
 import { ProjectTypes, FileTypes, VisualizationTypes, TransformerTypes } from "@illustry/types";
-import mongoose from "mongoose";
 import path from "path";
 import { copyDirectory } from "../../src/utils/helper";
 import Factory from "../../src/factory";
@@ -16,6 +15,10 @@ process.env.NODE_ENV = "test";
 process.env.MONGO_TEST_URL = "mongodb://localhost:27017/illustrytest";
 process.env.MONGO_USER = "root"
 process.env.MONGO_PASSWORD = "rootPass"
+process.env.MONGO_SERVER_SELECTION_TIMEOUT_MS = "5000";
+process.env.MONGO_CONNECT_TIMEOUT_MS = "5000";
+process.env.MONGO_SOCKET_TIMEOUT_MS = "5000";
+process.env.MONGO_QUERY_TIMEOUT_MS = "5000";
 
 const factory = Factory.getInstance();
 const jsonDirectoryPath = path.resolve(
@@ -36,6 +39,7 @@ const csvDirectoryPath = path.resolve(
 );
 describe("visualizations CRUD", () => {
   beforeAll(async () => {
+    await factory.connect();
     const expectedProject: ProjectTypes.ProjectCreate = {
       name: "Test_Project1",
       description: "Test_ProjectDescription1",
@@ -65,7 +69,7 @@ describe("visualizations CRUD", () => {
     });
 
     await Promise.all(deletePromises);
-    await mongoose.disconnect();
+    await factory.cleanup();
     delete process.env.NODE_ENV;
   });
   it("It creates a hierarchical-edge-bundling Visualization JSON with all the details in the JSON", async () => {
@@ -7314,7 +7318,7 @@ describe("visualizations CRUD", () => {
         .VisualizationBZL.update({ name: 'Sunburst_PartialDetails' }, {});
     }
     catch (err) {
-      expect((err as Error).message).toBe('Method not implemented.')
+      expect((err as Error).message).toBe('No supported visualization updates were provided')
     }
     try {
       await factory
