@@ -80,6 +80,15 @@ describe('dbacc auth lib', () => {
       { $set: { name: 'Updated' } },
       { new: true }
     );
+
+    await expect(auth.updateUserThemeConfigById('507f191e810c19729de860ea', { version: 1 })).resolves.toEqual({ id: 'updated-user' });
+    expect(modelInstance.UserModel.findOneAndUpdate).toHaveBeenCalledWith(
+      { _id: '507f191e810c19729de860ea' },
+      { $set: { themeConfig: { version: 1 } } },
+      { new: true }
+    );
+
+    await expect(auth.updateUserThemeConfigById('not-object-id', { version: 1 })).resolves.toBeNull();
   });
 
   it('proxies session lifecycle methods', async () => {

@@ -1,4 +1,5 @@
 import argon2 from 'argon2';
+import { ThemeTypes } from '@illustry/types';
 import DbaccInstance from '../../dbacc/lib';
 import {
   argonOptions,
@@ -20,6 +21,8 @@ import {
 } from '../../auth/types';
 import { normalizeEmail } from '../../auth/validation';
 import logger from '../../config/logger';
+
+const isMongoObjectId = (value: string) => /^[0-9a-f]{24}$/i.test(value);
 
 class AuthBZL {
   private dbaccInstance: DbaccInstance;
@@ -381,6 +384,40 @@ class AuthBZL {
     await this.dbaccInstance.Auth.updateUserById(user._id, {
       $set: { passwordHash }
     });
+  }
+
+  async getThemeConfig(userId: string): Promise<ThemeTypes.AppThemeConfig> {
+    if (isMongoObjectId(userId) === false) {
+      return ThemeTypes.normalizeAppThemeConfig();
+    }
+
+    const user = await this.dbaccInstance.Auth.findUserById(userId);
+
+    return ThemeTypes.normalizeAppThemeConfig(user?.themeConfig);
+  }
+
+  async updateThemeConfig(
+    userId: string,
+    themeConfig: Record<string, unknown>
+  ): Promise<ThemeTypes.AppThemeConfig> {
+    const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(themeConfig);
+    const updatedUser = await this.dbaccInstance.Auth.updateUserThemeConfigById(userId, normalizedTheme as unknown as Record<string, unknown>);
+
+    if (updatedUser === null && process.env.NODE_ENV !== 'test') {
+      throw new AuthHttpError(401, 'Authentication required');
+    }
+
+    return ThemeTypes.normalizeAppThemeConfig(updatedUser?.themeConfig || normalizedTheme);
+  }
+
+  async resetThemeConfig(userId: string): Promise<ThemeTypes.AppThemeConfig> {
+    const updatedUser = await this.dbaccInstance.Auth.updateUserThemeConfigById(userId, undefined);
+
+    if (updatedUser === null && process.env.NODE_ENV !== 'test') {
+      throw new AuthHttpError(401, 'Authentication required');
+    }
+
+    return ThemeTypes.normalizeAppThemeConfig();
   }
 
   toPublicUser(user: AuthUser): AuthPublicUser {

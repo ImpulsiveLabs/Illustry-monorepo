@@ -53,6 +53,68 @@ body {
     --ring: 240 5% 64.9%;
  
     --radius: 0.5rem;
+    --illustry-page-background: 0 0% 100%;
+    --illustry-surface: 0 0% 100%;
+    --illustry-section-background: 240 4.8% 95.9%;
+    --illustry-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --illustry-button-radius: 0.5rem;
+    --illustry-input-background: 0 0% 100%;
+    --illustry-input-foreground: 240 10% 3.9%;
+    --illustry-input-border: 240 5.9% 90%;
+    --illustry-card-background: 0 0% 100%;
+    --illustry-card-foreground: 240 10% 3.9%;
+    --illustry-card-border: 240 5.9% 90%;
+    --illustry-card-radius: 0.5rem;
+    --illustry-card-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --illustry-sidebar-background: 0 0% 100%;
+    --illustry-sidebar-foreground: 240 10% 3.9%;
+    --illustry-sidebar-muted-foreground: 240 3.8% 46.1%;
+    --illustry-sidebar-active-background: 240 4.8% 95.9%;
+    --illustry-sidebar-active-foreground: 240 5.9% 10%;
+    --illustry-sidebar-hover-background: 240 4.8% 95.9%;
+    --illustry-sidebar-hover-foreground: 240 5.9% 10%;
+    --illustry-sidebar-border: 240 5.9% 90%;
+    --illustry-sidebar-icon: 240 3.8% 46.1%;
+    --illustry-sidebar-active-icon: 240 5.9% 10%;
+    --illustry-sidebar-menu-background: 0 0% 100%;
+    --illustry-sidebar-menu-foreground: 240 10% 3.9%;
+    --illustry-sidebar-menu-border: 240 5.9% 90%;
+    --illustry-sidebar-menu-hover-background: 240 4.8% 95.9%;
+    --illustry-header-background: 0 0% 100%;
+    --illustry-header-foreground: 240 10% 3.9%;
+    --illustry-header-muted-foreground: 240 3.8% 46.1%;
+    --illustry-header-active-background: 240 4.8% 95.9%;
+    --illustry-header-active-foreground: 240 5.9% 10%;
+    --illustry-header-hover-background: 240 4.8% 95.9%;
+    --illustry-header-hover-foreground: 240 5.9% 10%;
+    --illustry-header-border: 240 5.9% 90%;
+    --illustry-header-icon: 240 3.8% 46.1%;
+    --illustry-header-active-icon: 240 5.9% 10%;
+    --illustry-header-menu-background: 0 0% 100%;
+    --illustry-header-menu-foreground: 240 10% 3.9%;
+    --illustry-header-menu-border: 240 5.9% 90%;
+    --illustry-header-menu-hover-background: 240 4.8% 95.9%;
+    --illustry-success: 142 71% 45%;
+    --illustry-success-foreground: 138 76% 97%;
+    --illustry-warning: 38 92% 50%;
+    --illustry-warning-foreground: 221 39% 11%;
+    --illustry-info: 199 89% 48%;
+    --illustry-info-foreground: 204 100% 97%;
+    --illustry-table-background: 0 0% 100%;
+    --illustry-table-header-background: 240 4.8% 95.9%;
+    --illustry-table-header-foreground: 240 10% 3.9%;
+    --illustry-table-row-background: 0 0% 100%;
+    --illustry-table-alternating-row-background: 0 0% 98%;
+    --illustry-table-row-hover-background: 240 4.8% 95.9%;
+    --illustry-table-selected-row-background: 240 5.9% 90%;
+    --illustry-table-border: 240 5.9% 90%;
+    --illustry-table-cell-foreground: 240 10% 3.9%;
+    --illustry-table-muted-cell-foreground: 240 3.8% 46.1%;
+    --illustry-table-pagination-background: 0 0% 100%;
+    --illustry-table-pagination-foreground: 240 10% 3.9%;
+    --illustry-table-empty-state-foreground: 240 3.8% 46.1%;
+    --illustry-tabs-list-background: 240 4.8% 95.9%;
+    --illustry-tabs-active-background: 0 0% 100%;
   }
  
   .dark {
@@ -84,6 +146,68 @@ body {
     --destructive-foreground: 0 85.7% 97.3%;
  
     --ring: 240 3.7% 15.9%;
+    --illustry-page-background: 240 10% 3.9%;
+    --illustry-surface: 240 10% 3.9%;
+    --illustry-section-background: 217 19% 27%;
+    --illustry-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+    --illustry-button-radius: 0.5rem;
+    --illustry-input-background: 240 10% 3.9%;
+    --illustry-input-foreground: 0 0% 98%;
+    --illustry-input-border: 240 3.7% 15.9%;
+    --illustry-card-background: 240 10% 3.9%;
+    --illustry-card-foreground: 0 0% 98%;
+    --illustry-card-border: 240 3.7% 15.9%;
+    --illustry-card-radius: 0.5rem;
+    --illustry-card-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.35);
+    --illustry-sidebar-background: 240 10% 3.9%;
+    --illustry-sidebar-foreground: 0 0% 98%;
+    --illustry-sidebar-muted-foreground: 240 5% 64.9%;
+    --illustry-sidebar-active-background: 240 3.7% 15.9%;
+    --illustry-sidebar-active-foreground: 0 0% 98%;
+    --illustry-sidebar-hover-background: 240 3.7% 15.9%;
+    --illustry-sidebar-hover-foreground: 0 0% 98%;
+    --illustry-sidebar-border: 240 3.7% 15.9%;
+    --illustry-sidebar-icon: 240 5% 64.9%;
+    --illustry-sidebar-active-icon: 0 0% 98%;
+    --illustry-sidebar-menu-background: 240 10% 3.9%;
+    --illustry-sidebar-menu-foreground: 0 0% 98%;
+    --illustry-sidebar-menu-border: 240 3.7% 15.9%;
+    --illustry-sidebar-menu-hover-background: 240 3.7% 15.9%;
+    --illustry-header-background: 240 10% 3.9%;
+    --illustry-header-foreground: 0 0% 98%;
+    --illustry-header-muted-foreground: 240 5% 64.9%;
+    --illustry-header-active-background: 240 3.7% 15.9%;
+    --illustry-header-active-foreground: 0 0% 98%;
+    --illustry-header-hover-background: 240 3.7% 15.9%;
+    --illustry-header-hover-foreground: 0 0% 98%;
+    --illustry-header-border: 240 3.7% 15.9%;
+    --illustry-header-icon: 240 5% 64.9%;
+    --illustry-header-active-icon: 0 0% 98%;
+    --illustry-header-menu-background: 240 10% 3.9%;
+    --illustry-header-menu-foreground: 0 0% 98%;
+    --illustry-header-menu-border: 240 3.7% 15.9%;
+    --illustry-header-menu-hover-background: 240 3.7% 15.9%;
+    --illustry-success: 142 71% 25%;
+    --illustry-success-foreground: 138 76% 94%;
+    --illustry-warning: 35 92% 31%;
+    --illustry-warning-foreground: 48 96% 89%;
+    --illustry-info: 199 89% 28%;
+    --illustry-info-foreground: 204 100% 94%;
+    --illustry-table-background: 240 10% 3.9%;
+    --illustry-table-header-background: 240 3.7% 15.9%;
+    --illustry-table-header-foreground: 0 0% 98%;
+    --illustry-table-row-background: 240 10% 3.9%;
+    --illustry-table-alternating-row-background: 240 5% 10%;
+    --illustry-table-row-hover-background: 240 3.7% 15.9%;
+    --illustry-table-selected-row-background: 240 3.7% 24%;
+    --illustry-table-border: 240 3.7% 15.9%;
+    --illustry-table-cell-foreground: 0 0% 98%;
+    --illustry-table-muted-cell-foreground: 240 5% 64.9%;
+    --illustry-table-pagination-background: 240 10% 3.9%;
+    --illustry-table-pagination-foreground: 0 0% 98%;
+    --illustry-table-empty-state-foreground: 240 5% 64.9%;
+    --illustry-tabs-list-background: 240 3.7% 15.9%;
+    --illustry-tabs-active-background: 240 10% 3.9%;
   }
 }
  
@@ -92,7 +216,7 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-[hsl(var(--illustry-page-background))] text-foreground;
   }
   .blinkingCursor {
     @apply relative left-3 top-0 opacity-100;

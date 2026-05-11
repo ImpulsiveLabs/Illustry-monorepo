@@ -10,7 +10,7 @@ const Card = React.forwardRef<
   <Comp
     ref={ref}
     className={cn(
-      'rounded-lg border bg-card text-card-foreground shadow-sm',
+      'rounded-[var(--illustry-card-radius)] border border-[hsl(var(--illustry-card-border))] bg-[hsl(var(--illustry-card-background))] text-[hsl(var(--illustry-card-foreground))] [box-shadow:var(--illustry-card-shadow)]',
       className
     )}
     {...props}

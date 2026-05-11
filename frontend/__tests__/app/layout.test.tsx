@@ -30,9 +30,13 @@ vi.mock('@/lib/fonts', () => ({
     fontMono: { variable: 'font-mono-variable' },
 }));
 
+vi.mock('@/app/_actions/theme', () => ({
+    getUserThemeConfig: vi.fn(async () => null)
+}));
+
 describe('RootLayout', () => {
-    it('renders children and mocked providers', () => {
-        const tree = RootLayout({
+    it('renders children and mocked providers', async () => {
+        const tree = await RootLayout({
             children: <div data-testid="child">Hello World</div>
         });
 

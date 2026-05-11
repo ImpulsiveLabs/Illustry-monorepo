@@ -119,7 +119,7 @@ const GenericThemesAccordion = ({
                   [inputKey(theme, index)]: color
                 }));
               }}
-              placeholder="#FFFFFF"
+              placeholder={t('theme.colorHexPlaceholder')}
             />
             <Popover
               open={activePickerKey === inputKey(theme, index)}
@@ -160,16 +160,20 @@ const GenericThemesAccordion = ({
         ))}
         <div className="flex items-center gap-2">
           <button
+            type="button"
             className={`w-6 h-6 border border-gray-300 rounded flex items-center justify-center cursor-pointer
              hover:bg-gray-100 dark:hover:bg-gray-700 ${colorsLength >= 10 ? 'opacity-50 pointer-events-none' : ''}`}
             onClick={() => colorsLength < 10 && handleColorAdd(visualization, theme)}
+            aria-label={`${t('tooltip.addColor')} ${t(theme === 'light' ? 'theme.light' : 'theme.dark')}`}
           >
             <Icons.add className={`text-gray-500 w-4 h-4 ${colorsLength >= 10 ? 'opacity-50' : ''}`} />
           </button>
           <button
+            type="button"
             className={`w-6 h-6 border border-gray-300 rounded flex items-center justify-center cursor-pointer
              hover:bg-gray-100 dark:hover:bg-gray-700 ${colorsLength <= 3 ? 'opacity-50 pointer-events-none' : ''}`}
             onClick={() => colorsLength > 3 && handleColorDelete(visualization, theme)}
+            aria-label={`${t('tooltip.removeColor')} ${t(theme === 'light' ? 'theme.light' : 'theme.dark')}`}
           >
             <Icons.remove className={`text-gray-500 w-4 h-4 ${colorsLength <= 3 ? 'opacity-50' : ''}`} />
           </button>

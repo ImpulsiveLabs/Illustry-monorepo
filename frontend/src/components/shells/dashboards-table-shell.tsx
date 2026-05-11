@@ -85,13 +85,13 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
         {
           accessorKey: 'ownerEmail',
           header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Owner" />
+            <DataTableColumnHeader column={column} title={t('table.owner')} />
           )
         } as ColumnDef<DashboardTypes.DashboardType, unknown>,
         {
           accessorKey: 'currentUserRole',
           header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="My role" />
+            <DataTableColumnHeader column={column} title={t('table.myRole')} />
           )
         } as ColumnDef<DashboardTypes.DashboardType, unknown>
       ] : []),

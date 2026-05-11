@@ -128,14 +128,14 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     delete updatedDash.visualizations;
     const result = await updateDashboard(updatedDash);
     if (result) {
-      toast.success('Dashboard layout saved');
+      toast.success(t('dashboard.layoutSaved'));
       setHasLayoutChanged(false);
       hasLayoutChangedRef.current = false;
     } else {
-      toast.error('Unable to save dashboard layout');
+      toast.error(t('dashboard.layoutSaveError'));
     }
     setLayoutPending(false);
-  }, [activeBreakpoint]);
+  }, [activeBreakpoint, t]);
 
   useEffect(() => {
     if (

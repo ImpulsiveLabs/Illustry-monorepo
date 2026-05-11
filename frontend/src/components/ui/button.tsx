@@ -3,7 +3,7 @@ import { cva, type VariantProps } from 'class-variance-authority';
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-const buttonBase = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors '
+const buttonBase = 'inline-flex items-center justify-center rounded-[var(--illustry-button-radius)] text-sm font-medium transition-colors '
   + 'focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50';
 
 const buttonVariants = cva(
@@ -24,8 +24,8 @@ const buttonVariants = cva(
       },
       size: {
         default: 'h-9 px-4 py-2',
-        sm: 'h-8 rounded-md px-3 text-xs',
-        lg: 'h-10 rounded-md px-8',
+        sm: 'h-8 rounded-[var(--illustry-button-radius)] px-3 text-xs',
+        lg: 'h-10 rounded-[var(--illustry-button-radius)] px-8',
         icon: 'h-9 w-9'
       }
     },

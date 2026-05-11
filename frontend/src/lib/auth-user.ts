@@ -7,6 +7,7 @@ type CurrentUser = {
   hasAvatar: boolean;
   avatarUpdatedAt?: string;
   avatarUrl?: string;
+  themeConfig?: Record<string, unknown>;
 };
 
 export type {

@@ -39,6 +39,55 @@ describe('types package runtime exports', () => {
     expect(Types.TransformerTypes).toBeDefined();
     expect(Types.GenericTypes).toBeDefined();
     expect(Types.UtilTypes).toBeDefined();
+    expect(Types.ThemeTypes.DEFAULT_APP_THEME_CONFIG.version).toBe(1);
+  });
+
+  it('normalizes theme configs with defaults, legacy visualization themes, and dark-mode fallbacks', () => {
+    const theme = Types.ThemeTypes.normalizeAppThemeConfig({
+      presetId: 'custom',
+      global: {
+        primary: '#123456'
+      },
+      sankey: {
+        light: { colors: ['#111111'] }
+      },
+      pages: {
+        projects: {
+          background: '#101010',
+          surface: '#111111',
+          foreground: '#f8f8f8',
+          components: {
+            button: {
+              primaryBackground: '#151515'
+            },
+            table: {
+              headerBackground: '#202020'
+            }
+          }
+        }
+      },
+      unknown: {
+        should: 'not crash'
+      }
+    });
+
+    expect(theme.version).toBe(1);
+    expect(theme.presetId).toBe('custom');
+    expect(theme.global.primary).toBe('#123456');
+    expect(theme.global.background).toBe('#ffffff');
+    expect(theme.visualizations.sankey.light.colors).toEqual(['#111111']);
+    expect(theme.visualizations.calendar.light.colors.length).toBeGreaterThan(0);
+    expect(theme.pages.projects.background).toBe('#101010');
+    expect(theme.pages.projects.components.button.primaryBackground).toBe('#151515');
+    expect(theme.pages.projects.components.table.headerBackground).toBe('#202020');
+
+    const dark = Types.ThemeTypes.resolveThemeVisualConfig(theme, 'dark');
+    expect(dark.global.background).toBe('#09090b');
+    expect(Types.ThemeTypes.resolveThemePageConfig(theme, 'projects').background).toBe('#101010');
+    expect(Types.ThemeTypes.resolveThemeTableConfig(theme, 'projects').headerBackground).toBe('#202020');
+    expect(Types.ThemeTypes.resolveThemeTableConfig(theme, 'projects').background).toBe('#111111');
+    expect(Types.ThemeTypes.resolveThemeTableConfig(theme, 'projects').cellForeground).toBe('#f8f8f8');
+    expect(Types.ThemeTypes.APP_THEME_PAGES.some((page) => page.id === 'themes')).toBe(true);
   });
 });
 

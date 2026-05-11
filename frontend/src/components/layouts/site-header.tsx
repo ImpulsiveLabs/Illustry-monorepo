@@ -9,7 +9,7 @@ type SiteHeaderProps = {
 };
 
 const SiteHeader = ({ user }: SiteHeaderProps) => (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
+    <header className="sticky top-0 z-40 w-full border-b border-[hsl(var(--illustry-header-border))] bg-[hsl(var(--illustry-header-background))] text-[hsl(var(--illustry-header-foreground))]">
       <div className="container flex h-16 items-center">
         <MainNav items={siteConfig.mainNav} user={user} />
         <MobileNav

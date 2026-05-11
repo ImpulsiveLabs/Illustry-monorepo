@@ -45,7 +45,7 @@ const DataTableLoading = ({
           <Skeleton className="ml-auto hidden h-7 w-[70px] lg:flex" />
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="rounded-md border border-[hsl(var(--illustry-table-border))] bg-[hsl(var(--illustry-table-background))]">
         <Table className="min-w-[640px]">
           <TableHeader>
             {Array.from({ length: 1 }).map((_, i) => (
@@ -71,7 +71,7 @@ const DataTableLoading = ({
           </TableBody>
         </Table>
       </div>
-      <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto px-2 py-1 sm:flex-row sm:gap-8">
+      <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto rounded-md bg-[hsl(var(--illustry-table-pagination-background))] px-2 py-1 sm:flex-row sm:gap-8">
         <div className="flex-1">
           <Skeleton className="h-8 w-40" />
         </div>

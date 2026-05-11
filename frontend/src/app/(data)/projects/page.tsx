@@ -49,7 +49,7 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
     : 1;
 
   return (
-    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-gray-50 rounded-3xl dark:bg-gray-800">
+    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)]">
       <div className="space-y-2.5">
         <ProjectsTableShell
           data={projectRows}

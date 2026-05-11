@@ -10,6 +10,9 @@ import {
 import {
     ThemeProvider,
     ThemeColorsProvider,
+    buildThemeStyleText,
+    useAppThemeConfig,
+    useAppThemeConfigDispatch,
     useThemeColors,
     useThemeColorsDispach
 } from '@/components/providers/theme-provider';
@@ -90,6 +93,43 @@ const ThemeDispatchOutsideProvider = () => {
     return <span data-testid="dispatch-defined">{String(Boolean(dispatch))}</span>;
 };
 
+const AppThemeConsumer = () => {
+    const themeConfig = useAppThemeConfig();
+    const dispatch = useAppThemeConfigDispatch();
+    return (
+        <>
+            <span data-testid="app-theme-primary">{themeConfig.global.primary}</span>
+            <button
+                onClick={() => dispatch?.({
+                    type: 'set',
+                    themeConfig: {
+                        version: 1,
+                        global: {
+                            primary: '#abcdef'
+                        }
+                    }
+                })}
+            >
+                update-app-theme
+            </button>
+            <button
+                onClick={() => dispatch?.({
+                    type: 'set',
+                    themeConfig: {
+                        version: 1,
+                        global: {
+                            primary: '#fedcba'
+                        }
+                    },
+                    touch: false
+                })}
+            >
+                accept-saved-theme
+            </button>
+        </>
+    );
+};
+
 const LocaleConsumer = () => {
     const { locale, setLocale, t } = useLocale();
     return (
@@ -113,6 +153,7 @@ describe('providers', () => {
         clearCookie('illustry-country');
         document.documentElement.lang = '';
         document.documentElement.dir = '';
+        document.getElementById('illustry-user-theme-vars')?.remove();
     });
 
     it('throws when active project hooks are used outside provider', () => {
@@ -216,6 +257,131 @@ describe('providers', () => {
     it('returns undefined dispatch outside ThemeColorsProvider', () => {
         render(<ThemeDispatchOutsideProvider />);
         expect(screen.getByTestId('dispatch-defined')).toHaveTextContent('false');
+    });
+
+    it('hydrates, updates, persists, and applies app theme config', async () => {
+        const user = userEvent.setup();
+        localStorage.setItem(
+            'appTheme:default',
+            JSON.stringify({
+                expiresAt: Date.now() + 60_000,
+                themeConfig: {
+                    version: 1,
+                    presetId: 'stored',
+                    global: {
+                        primary: '#123456'
+                    }
+                }
+            })
+        );
+
+        render(
+            <ThemeColorsProvider applyAppTheme>
+                <AppThemeConsumer />
+            </ThemeColorsProvider>
+        );
+
+        expect(screen.getByTestId('app-theme-primary')).toHaveTextContent('#123456');
+        expect(buildThemeStyleText({
+            version: 1,
+            presetId: 'preview',
+            global: { primary: '#111111' },
+            pages: {
+                projects: {
+                    background: '#222222',
+                    components: {
+                        button: {
+                            primaryBackground: '#121212'
+                        },
+                        input: {
+                            border: '#232323'
+                        },
+                        card: {
+                            background: '#343434'
+                        },
+                        table: {
+                            headerBackground: '#333333'
+                        }
+                    }
+                }
+            }
+        } as any)).toContain('--primary');
+        expect(buildThemeStyleText({
+            version: 1,
+            presetId: 'preview',
+            pages: {
+                projects: {
+                    background: '#222222',
+                    components: {
+                        table: {
+                            headerBackground: '#333333'
+                        }
+                    }
+                }
+            }
+        } as any)).toContain('[data-illustry-page="projects"]');
+        expect(buildThemeStyleText({
+            version: 1,
+            presetId: 'preview',
+            pages: {
+                projects: {
+                    components: {
+                        button: {
+                            primaryBackground: '#121212'
+                        },
+                        input: {
+                            border: '#232323'
+                        },
+                        card: {
+                            background: '#343434'
+                        }
+                    }
+                }
+            }
+        } as any)).toContain('--illustry-input-border');
+        const pageScopedTheme = buildThemeStyleText({
+            version: 1,
+            presetId: 'preview',
+            global: {
+                primary: '#111111',
+                accent: '#eeeeee'
+            },
+            components: {
+                button: {
+                    primaryBackground: '#0055ff'
+                }
+            },
+            pages: {
+                projects: {}
+            }
+        } as any);
+        expect(pageScopedTheme).toContain('[data-illustry-page="projects"]');
+        expect(pageScopedTheme).toContain('--primary: 220 100% 50%;');
+        expect(pageScopedTheme).not.toContain('--primary: 0 0% 93.3%;');
+        expect(buildThemeStyleText({
+            version: 1,
+            presetId: 'preview',
+            global: {
+                primary: '#ff5500'
+            }
+        } as any)).toContain('--primary: 20 100% 50%;');
+        expect(document.getElementById('illustry-user-theme-vars')?.textContent).toContain('--primary');
+
+        await user.click(screen.getByRole('button', { name: 'update-app-theme' }));
+
+        await waitFor(() => {
+            expect(screen.getByTestId('app-theme-primary')).toHaveTextContent('#abcdef');
+            expect(localStorage.getItem('appTheme:default')).toContain('#abcdef');
+            expect(document.getElementById('illustry-user-theme-vars')?.textContent).toContain('--primary');
+        });
+
+        await user.click(screen.getByRole('button', { name: 'accept-saved-theme' }));
+
+        await waitFor(() => {
+            const stored = JSON.parse(localStorage.getItem('appTheme:default') || '{}');
+            expect(screen.getByTestId('app-theme-primary')).toHaveTextContent('#fedcba');
+            expect(stored.dirty).toBe(false);
+        });
     });
 
     it('keeps state unchanged for unknown active-project reducer actions', async () => {

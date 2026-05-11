@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import type { CurrentUser } from '@/lib/auth-user';
 import siteConfig from '@/config/site';
@@ -35,6 +36,7 @@ type MainNavProps = {
 
 const MainNav = ({ items, user }: MainNavProps) => {
   const [isMounted, setIsMounted] = useState(false);
+  const pathname = usePathname() || '';
   const activeProject = useActiveProject();
   const { t } = useLocale();
 
@@ -43,7 +45,6 @@ const MainNav = ({ items, user }: MainNavProps) => {
       '/projects': 'nav.projects',
       '/visualizations': 'nav.visualizations',
       '/dashboards': 'nav.dashboards',
-      '/theme': 'nav.theme',
       '/playground': 'nav.playground'
     };
 
@@ -69,7 +70,7 @@ const MainNav = ({ items, user }: MainNavProps) => {
             href="/"
             className="flex items-center gap-2 px-0 py-2 transition-colors hover:opacity-80"
           >
-            <Icons.logo className="h-6 w-6" aria-hidden="true" />
+            <Icons.logo className="h-6 w-6 text-[hsl(var(--illustry-header-icon))]" aria-hidden="true" />
             <span className="font-bold tracking-tight">
               {siteConfig.name}
             </span>
@@ -81,6 +82,7 @@ const MainNav = ({ items, user }: MainNavProps) => {
           <NavigationMenuList>
             {items?.map((item) => {
               const isDisabled = !activeProject && !item.clickableNoActiveProject;
+              const isActive = Boolean(item.href && (pathname === item.href || pathname.startsWith(`${item.href}/`)));
               return (
                 <NavigationMenuItem key={item.title}>
                   <NavigationMenuLink asChild>
@@ -89,10 +91,13 @@ const MainNav = ({ items, user }: MainNavProps) => {
                       aria-disabled={isDisabled}
                       className={cn(
                         navigationMenuTriggerStyle(),
+                        'text-[hsl(var(--illustry-header-foreground))]',
+                        'hover:bg-[hsl(var(--illustry-header-hover-background))] hover:text-[hsl(var(--illustry-header-hover-foreground))]',
+                        isActive && 'bg-[hsl(var(--illustry-header-active-background))] text-[hsl(var(--illustry-header-active-foreground))]',
                         isDisabled ? 'pointer-events-none opacity-50' : ''
                       )}
                     >
-                      <NavigationMenuTrigger className="h-auto capitalize">
+                      <NavigationMenuTrigger className="h-auto capitalize text-inherit hover:bg-transparent focus:bg-transparent data-[state=open]:bg-transparent">
                         {getNavigationLabel(item)}
                       </NavigationMenuTrigger>
                     </Link>

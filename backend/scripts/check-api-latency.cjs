@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-/* eslint-disable no-console */
 const { performance } = require('perf_hooks');
 
 const baseUrl = (process.env.API_LATENCY_BASE_URL || 'http://127.0.0.1:7010').replace(/\/$/, '');
@@ -29,6 +28,22 @@ const requests = [
     method: 'POST',
     path: '/api/dashboards',
     body: { page: 1, per_page: 1 }
+  },
+  {
+    name: 'theme config read',
+    method: 'GET',
+    path: '/api/auth/me/theme'
+  },
+  {
+    name: 'theme config save',
+    method: 'PUT',
+    path: '/api/auth/me/theme',
+    body: { themeConfig: { version: 1, presetId: 'default' } }
+  },
+  {
+    name: 'theme config reset',
+    method: 'DELETE',
+    path: '/api/auth/me/theme'
   }
 ];
 

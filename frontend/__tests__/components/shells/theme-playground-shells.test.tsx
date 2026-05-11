@@ -5,15 +5,23 @@ import userEvent from '@testing-library/user-event';
 import ThemeShell from '@/components/shells/theme-shell';
 import PlaygroundShell from '@/components/shells/playground-shell';
 
-const { themeDispatch, catchErrorSpy, validateWithSchemaSpy } = vi.hoisted(() => ({
+const { themeDispatch, appThemeDispatch, catchErrorSpy, validateWithSchemaSpy } = vi.hoisted(() => ({
     themeDispatch: vi.fn(),
+    appThemeDispatch: vi.fn(),
     catchErrorSpy: vi.fn(),
     validateWithSchemaSpy: vi.fn()
 }));
 let themeDispatchEnabled = true;
 
-vi.mock('@/components/providers/theme-provider', () => ({
-    useThemeColors: () => ({
+vi.mock('next-themes', () => ({
+    useTheme: () => ({
+        resolvedTheme: 'light'
+    })
+}));
+
+vi.mock('@/components/providers/theme-provider', async () => {
+    const actualTypes = await vi.importActual<any>('@illustry/types');
+    const themeColors = {
         sankey: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
         calendar: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
         flg: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
@@ -26,9 +34,14 @@ vi.mock('@/components/providers/theme-provider', () => ({
         treeMap: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
         sunburst: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } },
         funnel: { light: { colors: ['#111', '#222', '#333'] }, dark: { colors: ['#111', '#222', '#333'] } }
-    }),
-    useThemeColorsDispach: () => (themeDispatchEnabled ? themeDispatch : undefined)
-}));
+    };
+    return {
+        useThemeColors: () => themeColors,
+        useThemeColorsDispach: () => (themeDispatchEnabled ? themeDispatch : undefined),
+        useAppThemeConfig: () => actualTypes.ThemeTypes.normalizeAppThemeConfig({ visualizations: themeColors }),
+        useAppThemeConfigDispatch: () => (themeDispatchEnabled ? appThemeDispatch : undefined)
+    };
+});
 
 vi.mock('@/lib/utils', async () => {
     const actual = await vi.importActual<any>('@/lib/utils');
@@ -51,7 +64,7 @@ vi.mock('@illustry/types', async () => {
 
 vi.mock('@/components/ui/theme/default-themes', () => ({
     default: ({ handleApplyTheme }: any) => (
-        <button onClick={() => handleApplyTheme('default')}>apply-default-theme</button>
+        <button onClick={() => handleApplyTheme('FreshMeadow')}>apply-default-theme</button>
     )
 }));
 
@@ -280,6 +293,7 @@ describe('theme + playground shells', () => {
         await user.click(screen.getByRole('button', { name: 'delete-color-calendar' }));
         await user.click(screen.getByRole('button', { name: 'change-color-calendar' }));
         expect(themeDispatch).not.toHaveBeenCalled();
+        expect(appThemeDispatch).not.toHaveBeenCalled();
     }, 30000);
 
     it('keeps diagram hidden before submit and handles multiple-active default validation switch', async () => {

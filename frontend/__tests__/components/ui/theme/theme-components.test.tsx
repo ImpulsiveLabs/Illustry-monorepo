@@ -67,7 +67,7 @@ describe('theme ui components', () => {
             />
         );
 
-        expect(document.querySelector('.bg-blue-600')).toBeInTheDocument();
+        expect(document.querySelector('.bg-primary')).toBeInTheDocument();
     });
 
     it('renders generic theme tabs and handles add/delete/input interactions', async () => {

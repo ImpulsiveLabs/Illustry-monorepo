@@ -310,7 +310,7 @@ const AccountEditForm = ({ user }: AccountEditFormProps) => {
                   onChange={(event) => setConfirmPassword(event.target.value)}
                 />
               </div>
-              <div className="rounded-md border bg-slate-50/80 p-3 text-sm dark:bg-slate-900/60">
+              <div className="rounded-md border bg-[hsl(var(--illustry-section-background))] p-3 text-sm">
                 <p className="mb-2 font-medium">{t('auth.account.passwordChecklist')}</p>
                 <ul className="space-y-1 text-muted-foreground">
                   {passwordRules.map((rule) => (

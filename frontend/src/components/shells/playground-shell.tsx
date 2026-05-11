@@ -114,7 +114,7 @@ const PlaygroundShell = () => {
     }
   };
   const createVisualizations = () => (
-    <div className="overflow-auto flex-grow bg-gray-50 rounded-3xl dark:bg-gray-800 p-4 m-4 visualization-div">
+    <div className="overflow-auto flex-grow bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)] p-4 m-4 visualization-div">
       {Object.keys(showDiagram).map(
         (key) => showDiagram[key as keyof ShowDiagramState] && (
           <div key={key} className="w-full h-full">
@@ -272,7 +272,7 @@ const PlaygroundShell = () => {
         <Separator />
         <div className="flex flex-1">
           <div className="w-[50%] md:w-1/3 p-2">
-            <div className="container h-full p-2 bg-gray-50 rounded-3xl dark:bg-gray-800">
+            <div className="container h-full p-2 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)]">
               <Editor
                 height="700px"
                 defaultLanguage="json"
@@ -288,7 +288,7 @@ const PlaygroundShell = () => {
                   automaticLayout: true,
                   padding: { top: 16, bottom: 16 }
                 }}
-                className="w-full border-gray-300 bg-gray-50 rounded-3xl dark:border-gray-700 dark:bg-gray-800"
+                className="w-full border-gray-300 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)] dark:border-gray-700 "
               />
               <div className="flex justify-center mt-4">
                 <Button onClick={handleSubmit}>{t('common.submit')}</Button>

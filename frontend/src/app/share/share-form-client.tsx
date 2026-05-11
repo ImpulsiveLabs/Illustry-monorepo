@@ -17,6 +17,7 @@ import {
 import { shareDashboard } from '@/app/_actions/dashboard';
 import { shareVisualization } from '@/app/_actions/visualization';
 import { useThemeColors } from '@/components/providers/theme-provider';
+import { useLocale } from '@/components/providers/locale-provider';
 import { catchError } from '@/lib/utils';
 
 type ShareRole = 'viewer' | 'editor';
@@ -51,6 +52,7 @@ const ShareFormClient = ({
   currentUserEmail
 }: ShareFormClientProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const activeTheme = useThemeColors();
   const [isPending, startTransition] = useTransition();
   const [rows, setRows] = useState<ShareRow[]>([createRow()]);
@@ -77,15 +79,15 @@ const ShareFormClient = ({
         message: isEmpty
           ? ''
           : invalid
-            ? 'Invalid email address'
+            ? t('share.validation.invalidEmail')
             : self
-              ? 'You cannot share with yourself'
+              ? t('share.validation.self')
               : duplicate
-                ? 'Duplicate email'
-                : 'Valid'
+                ? t('share.validation.duplicate')
+                : t('share.validation.valid')
       };
     });
-  }, [currentUserEmailNormalized, rows]);
+  }, [currentUserEmailNormalized, rows, t]);
 
   const validCollaborators = rows
     .map((row, index) => ({ row, validation: validations[index] }))
@@ -128,15 +130,15 @@ const ShareFormClient = ({
           });
 
         if (!result) {
-          throw new Error('Unable to send invitations');
+          throw new Error(t('share.toast.unableToSend'));
         }
 
         router.push(resource === 'dashboard' ? '/dashboards' : '/visualizations');
         router.refresh();
         return result;
       })(), {
-        loading: 'Sending invitations',
-        success: 'Invitations sent',
+        loading: t('share.toast.sending'),
+        success: t('share.toast.sent'),
         error: (err: unknown) => catchError(err)
       });
     });
@@ -145,7 +147,9 @@ const ShareFormClient = ({
   return (
     <div className="mx-auto mt-24 max-w-3xl space-y-4 rounded-lg bg-background p-6 shadow-sm ring-1 ring-border">
       <div>
-        <h1 className="text-2xl font-semibold">Share {resource}</h1>
+        <h1 className="text-2xl font-semibold">
+          {resource === 'dashboard' ? t('share.titleDashboard') : t('share.titleVisualization')}
+        </h1>
         <p className="text-sm text-muted-foreground">{name}</p>
       </div>
       <div className="space-y-3">
@@ -153,9 +157,9 @@ const ShareFormClient = ({
           <div key={row.id} className="grid gap-2 md:grid-cols-[1fr_150px_40px]">
             <div>
               <Input
-                aria-label={`Email ${index + 1}`}
+                aria-label={`${t('auth.common.email')} ${index + 1}`}
                 type="email"
-                placeholder="teammate@example.com"
+                placeholder={t('share.emailPlaceholder')}
                 value={row.email}
                 onChange={(event) => updateRow(row.id, { email: event.target.value })}
               />
@@ -171,16 +175,16 @@ const ShareFormClient = ({
               value={row.permission}
               onValueChange={(permission) => updateRow(row.id, { permission: permission as ShareRole })}
             >
-              <SelectTrigger aria-label={`Role ${index + 1}`}>
+              <SelectTrigger aria-label={`${t('share.roleLabel')} ${index + 1}`}>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="viewer">Viewer</SelectItem>
-                <SelectItem value="editor">Editor</SelectItem>
+                <SelectItem value="viewer">{t('share.role.viewer')}</SelectItem>
+                <SelectItem value="editor">{t('share.role.editor')}</SelectItem>
               </SelectContent>
             </Select>
             <Button
-              aria-label={`Remove email ${index + 1}`}
+              aria-label={`${t('share.removeEmail')} ${index + 1}`}
               type="button"
               variant="ghost"
               size="icon"
@@ -199,12 +203,12 @@ const ShareFormClient = ({
           onClick={() => setRows((currentRows) => [...currentRows, createRow()])}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add user
+          {t('share.addUser')}
         </Button>
         <div className="flex gap-2">
-          <Button type="button" variant="ghost" onClick={() => router.back()}>Cancel</Button>
+          <Button type="button" variant="ghost" onClick={() => router.back()}>{t('common.cancel')}</Button>
           <Button type="button" disabled={!canSubmit || isPending} onClick={submit}>
-            Share
+            {t('share.action')}
           </Button>
         </div>
       </div>

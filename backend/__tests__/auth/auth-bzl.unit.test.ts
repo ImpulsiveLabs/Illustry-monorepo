@@ -178,6 +178,60 @@ describe('AuthBZL', () => {
     });
   });
 
+  it('normalizes, saves, reads, and resets the user theme config', async () => {
+    const user = buildUser({
+      themeConfig: {
+        version: 1,
+        presetId: 'stored',
+        global: {
+          primary: '#123456'
+        }
+      }
+    });
+    const dbaccInstance = {
+      Auth: {
+        findUserById: jest.fn(async () => user),
+        updateUserThemeConfigById: jest.fn(async (_userId, themeConfig) => buildUser({ themeConfig }))
+      }
+    } as any;
+
+    const { default: AuthBZL } = await import('../../src/bzl/auth/auth');
+    const authBZL = new AuthBZL(dbaccInstance);
+
+    const storedTheme = await authBZL.getThemeConfig(user._id);
+    expect(storedTheme.presetId).toBe('stored');
+    expect(storedTheme.global.primary).toBe('#123456');
+    expect(storedTheme.global.background).toBe('#ffffff');
+
+    const savedTheme = await authBZL.updateThemeConfig(user._id, {
+      version: 1,
+      presetId: 'custom',
+      visualizations: {
+        sankey: {
+          light: { colors: ['#111111'] }
+        }
+      }
+    });
+    expect(savedTheme.presetId).toBe('custom');
+    expect(savedTheme.visualizations.sankey.light.colors).toEqual(['#111111']);
+    expect(dbaccInstance.Auth.updateUserThemeConfigById).toHaveBeenCalledWith(
+      user._id,
+      expect.objectContaining({
+        version: 1,
+        presetId: 'custom'
+      })
+    );
+
+    const resetTheme = await authBZL.resetThemeConfig(user._id);
+    expect(resetTheme.presetId).toBe('default');
+    expect(dbaccInstance.Auth.updateUserThemeConfigById).toHaveBeenCalledWith(user._id, undefined);
+
+    await expect(authBZL.getThemeConfig('not-object-id')).resolves.toMatchObject({
+      version: 1,
+      presetId: 'default'
+    });
+  });
+
 
   it('rejects login when the account does not exist and returns the original user when no avatar is provided', async () => {
     const { default: AuthBZL } = await import('../../src/bzl/auth/auth');

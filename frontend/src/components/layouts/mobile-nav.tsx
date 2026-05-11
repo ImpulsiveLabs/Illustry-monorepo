@@ -61,8 +61,10 @@ const MobileLink = ({
     href={href}
     className={cn(
       'block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors',
-      'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground',
-      pathname === href,
+      'text-[hsl(var(--illustry-sidebar-foreground))]',
+      'hover:bg-[hsl(var(--illustry-sidebar-hover-background))] hover:text-[hsl(var(--illustry-sidebar-hover-foreground))]',
+      'focus:bg-[hsl(var(--illustry-sidebar-hover-background))] focus:text-[hsl(var(--illustry-sidebar-hover-foreground))]',
+      pathname === href && 'bg-[hsl(var(--illustry-sidebar-active-background))] text-[hsl(var(--illustry-sidebar-active-foreground))]',
       disabled && 'pointer-events-none opacity-60'
     )}
     onClick={() => setIsOpen(false)}
@@ -83,7 +85,6 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
       '/projects': 'nav.projects',
       '/visualizations': 'nav.visualizations',
       '/dashboards': 'nav.dashboards',
-      '/theme': 'nav.theme',
       '/playground': 'nav.playground'
     };
 
@@ -147,7 +148,7 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
               suppressHydrationWarning
               aria-label={t('common.toggleMenu')}
               variant="ghost"
-              className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent
+              className="mr-2 px-0 text-base text-[hsl(var(--illustry-header-icon))] hover:bg-transparent focus-visible:bg-transparent
               focus-visible:ring-0 focus-visible:ring-offset-0"
             >
               <Icons.menu className="h-6 w-6" />
@@ -162,28 +163,31 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
             href="/"
             className="ml-auto flex items-center gap-2 px-0 py-2 text-right transition-colors hover:opacity-80"
           >
-            <Icons.logo className="h-5 w-5" aria-hidden="true" />
+            <Icons.logo className="h-5 w-5 text-[hsl(var(--illustry-header-icon))]" aria-hidden="true" />
             <span className="text-sm font-bold tracking-tight">{siteConfig.name}</span>
           </Link>
         </HintTooltip>
       </div>
-      <SheetContent side="left" className="pl-1 pr-0">
+      <SheetContent
+        side="left"
+        className="border-[hsl(var(--illustry-sidebar-border))] bg-[hsl(var(--illustry-sidebar-background))] pl-1 pr-0 text-[hsl(var(--illustry-sidebar-foreground))]"
+      >
         <div className="px-7">
           <HintTooltip text={t('tooltip.home')}>
             <Link
               aria-label={t('common.home')}
               href="/"
-              className="flex items-center"
+              className="flex items-center text-[hsl(var(--illustry-sidebar-foreground))]"
               onClick={() => setIsOpen(false)}
             >
-              <Icons.logo className="mr-2 h-4 w-4" aria-hidden="true" />
+              <Icons.logo className="mr-2 h-4 w-4 text-[hsl(var(--illustry-sidebar-icon))]" aria-hidden="true" />
               <span className="font-bold">{siteConfig.name}</span>
             </Link>
           </HintTooltip>
         </div>
         <ScrollArea className="my-4 h-[calc(100vh-8rem)] pb-10 pl-6">
           <div className="pl-1 pr-7">
-            <div className="mb-4 flex items-center gap-3 rounded-lg border px-3 py-3">
+            <div className="mb-4 flex items-center gap-3 rounded-lg border border-[hsl(var(--illustry-sidebar-border))] bg-[hsl(var(--illustry-sidebar-menu-background))] px-3 py-3 text-[hsl(var(--illustry-sidebar-menu-foreground))]">
               {user.avatarUrl ? (
                 <img
                   src={user.avatarUrl}
@@ -191,7 +195,7 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
                   className="h-10 w-10 rounded-full object-cover"
                 />
               ) : (
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-900 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--illustry-sidebar-active-background))] text-sm font-semibold text-[hsl(var(--illustry-sidebar-active-foreground))]">
                   {(user.name || user.email)
                     .split(/\s+/)
                     .slice(0, 2)
@@ -201,7 +205,7 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
               )}
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium">{user.name}</p>
-                <p className="truncate text-xs text-muted-foreground">{user.email}</p>
+                <p className="truncate text-xs text-[hsl(var(--illustry-sidebar-muted-foreground))]">{user.email}</p>
               </div>
             </div>
             {items?.map((item) => (
@@ -226,7 +230,7 @@ const MobileNav = ({ items, user }: MobileNavProps) => {
               pathname={pathname}
               setIsOpen={setIsOpen}
             >
-              Logout
+              {t('auth.userMenu.logout')}
             </MobileLink>
           </div>
         </ScrollArea>
