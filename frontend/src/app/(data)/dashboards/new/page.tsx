@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import React from 'react';
+import { AppPage, PageSection } from '@/components/layouts/app-page';
 import { browseVisualizations } from '@/app/_actions/visualization';
 import AddDashboardForm from '@/components/form/add-dashboard-form';
 
@@ -22,11 +23,12 @@ const NewDashboardPage = async () => {
     }, {} as Record<string, string>);
 
   return (
-    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)]">
-      <div className="space-y-2.5">
+    <AppPage>
+      <PageSection className="p-4 md:p-6">
+      
         <AddDashboardForm visualizations={visualizationsObject} />
-      </div>
-    </div>
+      </PageSection>
+    </AppPage>
   );
 };
 

@@ -115,10 +115,7 @@ const RootLayout = async ({ children }: RootLayoutProps) => {
 
           <LocaleProvider>
             <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-              <ThemeColorsProvider
-                initialAppTheme={initialAppTheme}
-                applyAppTheme
-              >
+              <ThemeColorsProvider initialAppTheme={initialAppTheme}>
                 <ActiveProjectProvider>
                   <ThemeRouteScope>
                     {children}

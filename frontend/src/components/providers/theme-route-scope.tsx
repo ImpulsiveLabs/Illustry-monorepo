@@ -79,7 +79,7 @@ const ThemeRouteScope = ({ children }: ThemeRouteScopeProps) => {
     <div
       data-illustry-page={pageId}
       data-illustry-page-path={pathname}
-      className="min-h-screen bg-[hsl(var(--illustry-page-background))] text-foreground"
+      className="min-h-screen bg-background text-foreground"
     >
       {children}
     </div>

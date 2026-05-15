@@ -47,7 +47,7 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
           <Button
             variant="ghost"
             aria-label={t('auth.userMenu.account')}
-            className="h-10 w-10 rounded-full p-0 text-[hsl(var(--illustry-header-icon))] hover:bg-[hsl(var(--illustry-header-hover-background))]"
+            className="h-10 w-10 rounded-full p-0 text-muted-foreground hover:bg-muted"
           >
             {avatarUrl ? (
               <img
@@ -56,7 +56,7 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
                 className="h-10 w-10 rounded-full object-cover"
               />
             ) : (
-              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[hsl(var(--illustry-header-active-background))] text-sm font-semibold text-[hsl(var(--illustry-header-active-foreground))]">
+              <span className="flex h-10 w-10 items-center justify-center rounded-full bg-accent text-sm font-semibold text-accent-foreground">
                 {getInitials(name, email)}
               </span>
             )}
@@ -64,21 +64,21 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
-          className="w-56 border-[hsl(var(--illustry-header-menu-border))] bg-[hsl(var(--illustry-header-menu-background))] text-[hsl(var(--illustry-header-menu-foreground))]"
+          className="w-56"
         >
           <DropdownMenuLabel className="space-y-1">
             <div className="truncate text-sm font-medium">{name}</div>
-            <div className="truncate text-xs font-normal text-[hsl(var(--illustry-header-muted-foreground))]">{email}</div>
+            <div className="truncate text-xs font-normal text-muted-foreground">{email}</div>
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild className="focus:bg-[hsl(var(--illustry-header-menu-hover-background))]">
+          <DropdownMenuItem asChild>
             <Link href="/account">{t('auth.userMenu.account')}</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem asChild className="focus:bg-[hsl(var(--illustry-header-menu-hover-background))]">
+          <DropdownMenuItem asChild>
             <Link href="/account/edit">{t('auth.userMenu.editProfile')}</Link>
           </DropdownMenuItem>
           <DropdownMenuItem
-            className="focus:bg-[hsl(var(--illustry-header-menu-hover-background))]"
+            className=""
             onSelect={(event) => {
               event.preventDefault();
               setIsThemeDialogOpen(true);
@@ -87,7 +87,7 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
             {t('theme.settingsTitle')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem asChild className="focus:bg-[hsl(var(--illustry-header-menu-hover-background))]">
+          <DropdownMenuItem asChild>
             <Link href="/logout">{t('auth.userMenu.logout')}</Link>
           </DropdownMenuItem>
         </DropdownMenuContent>

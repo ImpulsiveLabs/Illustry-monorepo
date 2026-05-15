@@ -106,8 +106,9 @@ const EXTENDED_BASE_MESSAGES: Record<string, string> = {
   "theme.light": "Light",
   "theme.dark": "Dark",
   "theme.colors": "Colors",
-  "theme.settingsTitle": "Theme settings",
-  "theme.settingsDescription": "Manage personal colors, page overrides, component tokens, palettes, import and export.",
+  "theme.settingsTitle": "Visualization palettes",
+  "theme.settingsDescription": "Customize chart colors and series palettes. These settings apply to visualizations only—not the app layout, navigation, or pages.",
+  "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   "theme.section.presets": "Default Schemes",
   "theme.section.global": "Global Colors",
   "theme.section.layout": "Layout",
@@ -117,15 +118,15 @@ const EXTENDED_BASE_MESSAGES: Record<string, string> = {
   "theme.section.advanced": "Advanced JSON",
   "theme.section.importExport": "Import / Export",
   "theme.section.visualizationPalettes": "Visualization Palettes",
-  "theme.description.presets": "Start from a generic palette, preview it live, then save only when it is right.",
+  "theme.description.presets": "Apply a color scheme to all visualization types at once. Preview charts on the right, then save when ready.",
   "theme.description.global": "Core colors for text, surfaces, borders and status states.",
   "theme.description.layout": "Page backgrounds, surfaces, section color, radius and shadow tokens.",
   "theme.description.navigation": "Header, topbar, sidebar, icon and menu colors used across the app.",
   "theme.description.components": "Shared tokens for buttons, inputs, cards, badges, tables and tabs.",
   "theme.description.pages": "Page overrides stay empty when they should inherit from component and global tokens.",
   "theme.description.advanced": "Edit the complete versioned JSON. Invalid configs are rejected safely.",
-  "theme.description.importExport": "Export a complete config, or import JSON and let missing fields fall back safely.",
-  "theme.description.visualizationPalettes": "Keep the existing visualization palettes for light and dark previews.",
+  "theme.description.importExport": "Export or import visualization palette JSON. App UI settings are not included.",
+  "theme.description.visualizationPalettes": "Fine-tune colors per chart type for light and dark mode.",
   "theme.palette.apply": "Apply palette",
   "theme.palette.globalLabel": "Palette for the global theme",
   "theme.palette.globalDescription": "Updates global colors and the related component accents.",
@@ -141,12 +142,12 @@ const EXTENDED_BASE_MESSAGES: Record<string, string> = {
   "theme.action.copy": "Copy",
   "theme.action.export": "Export",
   "theme.action.importConfig": "Import config",
-  "theme.action.resetDefault": "Reset to default theme",
-  "theme.action.save": "Save theme",
+  "theme.action.resetDefault": "Reset palettes",
+  "theme.action.save": "Save palettes",
   "theme.badge.preset": "Preset",
   "theme.badge.mode": "Mode",
   "theme.preset.custom": "custom",
-  "theme.confirm.reset": "Reset your personal theme to the default theme?",
+  "theme.confirm.reset": "Reset all visualization palettes to the defaults?",
   "theme.feedback.presetApplied": "Preset applied. Save when you want to keep it.",
   "theme.feedback.paletteApplied": "Palette applied.",
   "theme.feedback.pagePaletteApplied": "Page palette applied.",
@@ -162,10 +163,10 @@ const EXTENDED_BASE_MESSAGES: Record<string, string> = {
   "theme.toast.imported": "Theme imported.",
   "theme.toast.copied": "Theme JSON copied.",
   "theme.error.invalidJson": "Invalid JSON",
-  "theme.export.title": "Export current config",
+  "theme.export.title": "Export palettes",
   "theme.export.description": "Complete JSON with normalized fallback values.",
   "theme.export.includeDocumentation": "Include documentation in _documentation",
-  "theme.import.title": "Import config JSON",
+  "theme.import.title": "Import palette JSON",
   "theme.import.description": "Missing fields are filled from the default theme. _documentation is ignored safely.",
   "theme.navigation.sidebar": "Sidebar",
   "theme.navigation.header": "Header",
@@ -698,7 +699,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Accept",
     "shareInvite.reject": "Reject",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "es": {
     "common.name": "Nombre",
@@ -1048,7 +1050,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Aceptar",
     "shareInvite.reject": "Rechazar",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "fr": {
     "common.name": "Nom",
@@ -1398,7 +1401,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Accepter",
     "shareInvite.reject": "Refuser",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "de": {
     "common.name": "Name",
@@ -1748,7 +1752,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Annehmen",
     "shareInvite.reject": "Ablehnen",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "it": {
     "common.name": "Nome",
@@ -2098,7 +2103,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Accetta",
     "shareInvite.reject": "Rifiuta",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "pt": {
     "common.name": "Nome",
@@ -2448,7 +2454,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Aceitar",
     "shareInvite.reject": "Recusar",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ru": {
     "common.name": "Имя",
@@ -2798,7 +2805,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Принять",
     "shareInvite.reject": "Отклонить",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "uk": {
     "common.name": "Ім'я",
@@ -3148,7 +3156,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Прийняти",
     "shareInvite.reject": "Відхилити",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ro": {
     "common.name": "Nume",
@@ -3498,7 +3507,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Acceptă",
     "shareInvite.reject": "Respinge",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "nl": {
     "common.name": "Naam",
@@ -3848,7 +3858,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Accepteren",
     "shareInvite.reject": "Weigeren",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "pl": {
     "common.name": "Nazwa",
@@ -4198,7 +4209,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Akceptuj",
     "shareInvite.reject": "Odrzuć",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "tr": {
     "common.name": "İsim",
@@ -4548,7 +4560,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Kabul et",
     "shareInvite.reject": "Reddet",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "el": {
     "common.name": "Ονομα",
@@ -4898,7 +4911,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Αποδοχή",
     "shareInvite.reject": "Απόρριψη",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ar": {
     "common.name": "اسم",
@@ -5248,7 +5262,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "قبول",
     "shareInvite.reject": "رفض",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "he": {
     "common.name": "שֵׁם",
@@ -5598,7 +5613,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "אשר",
     "shareInvite.reject": "דחה",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "hi": {
     "common.name": "नाम",
@@ -5948,7 +5964,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "स्वीकार करें",
     "shareInvite.reject": "अस्वीकार करें",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "bn": {
     "common.name": "নাম",
@@ -6298,7 +6315,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "গ্রহণ করুন",
     "shareInvite.reject": "প্রত্যাখ্যান করুন",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ur": {
     "common.name": "نام",
@@ -6648,7 +6666,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "قبول کریں",
     "shareInvite.reject": "مسترد کریں",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "id": {
     "common.name": "Nama",
@@ -6998,7 +7017,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Terima",
     "shareInvite.reject": "Tolak",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "vi": {
     "common.name": "Tên",
@@ -7348,7 +7368,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "Chấp nhận",
     "shareInvite.reject": "Từ chối",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "th": {
     "common.name": "ชื่อ",
@@ -7698,7 +7719,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "ยอมรับ",
     "shareInvite.reject": "ปฏิเสธ",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ja": {
     "common.name": "名前",
@@ -8048,7 +8070,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "承認",
     "shareInvite.reject": "拒否",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "ko": {
     "common.name": "이름",
@@ -8398,7 +8421,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "수락",
     "shareInvite.reject": "거절",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
   },
   "zh": {
     "common.name": "姓名",
@@ -8748,7 +8772,8 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.accept": "接受",
     "shareInvite.reject": "拒绝",
     "theme.colorHexPlaceholder": "#FFFFFF",
-    "theme.import.placeholder": "{\n  \"version\": 1\n}"
+    "theme.import.placeholder": "{\n  \"version\": 1\n}",
+    "theme.scopeHelper": "以下调色板和配色方案仅影响图表和可视化。应用程序界面使用固定的设计系统。"
   }
 };
 

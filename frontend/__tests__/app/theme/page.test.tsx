@@ -18,8 +18,8 @@ describe('Theme Page', () => {
 
   it('exports correct metadata', () => {
     expect(metadata).toEqual({
-      title: 'Theme',
-      description: 'Manage your Theme'
+      title: 'Visualization palettes',
+      description: 'Customize chart colors and visualization palettes'
     });
   });
 });

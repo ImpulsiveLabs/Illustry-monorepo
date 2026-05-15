@@ -1,4 +1,5 @@
 import React from 'react';
+import { AppPage, PageSection } from '@/components/layouts/app-page';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
 import { browseVisualizations } from '@/app/_actions/visualization';
@@ -52,15 +53,16 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
     : 1;
 
   return (
-    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)]">
-      <div className="space-y-2.5">
+    <AppPage>
+      <PageSection className="p-4 md:p-6">
+      
         <VisualizationsTableShell
           data={visualizationRows}
           pageCount={visualizationsPageCount}
           external={scope === 'external'}
         ></VisualizationsTableShell>
-      </div>
-    </div>
+      </PageSection>
+    </AppPage>
   );
 };
 

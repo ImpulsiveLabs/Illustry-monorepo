@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import type { ProjectTypes } from '@illustry/types';
 import { browseProjects } from '@/app/_actions/project';
 import ProjectsTableShell from '@/components/shells/projects-table-shell';
+import { AppPage, PageSection } from '@/components/layouts/app-page';
 
 export const metadata: Metadata = {
   title: 'Projects',
@@ -49,14 +50,14 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
     : 1;
 
   return (
-    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-[hsl(var(--illustry-section-background))] rounded-3xl shadow-[var(--illustry-shadow)]">
-      <div className="space-y-2.5">
+    <AppPage>
+      <PageSection className="p-4 md:p-6">
         <ProjectsTableShell
           data={projectRows}
           pageCount={projectsPageCount}
         />
-      </div>
-    </div>
+      </PageSection>
+    </AppPage>
   );
 };
 
