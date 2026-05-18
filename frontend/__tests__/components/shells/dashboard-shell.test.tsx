@@ -27,51 +27,6 @@ vi.mock('@/components/shells/hub-shell', () => ({
     default: () => <div data-testid="hub-shell" />
 }));
 
-vi.mock('react-grid-layout', () => ({
-    WidthProvider: (Comp: any) => Comp,
-    Responsive: ({ children, onLayoutChange, onDragStop, onBreakpointChange }: any) => (
-        <div>
-            <button
-                onClick={() => {
-                    const nextLayout = [{ i: '0', x: 1, y: 1, w: 2, h: 2 }];
-                    onLayoutChange(nextLayout, { lg: nextLayout });
-                    onDragStop(nextLayout);
-                }}
-            >
-                change-layout
-            </button>
-            <button
-                onClick={() => {
-                    const nextLayout = [{ i: '0', x: 2, y: 2, w: 3, h: 3 }];
-                    onLayoutChange(nextLayout, { md: nextLayout });
-                }}
-            >
-                layout-without-lg
-            </button>
-            <button
-                onClick={() => {
-                    const nextLayout = [{ i: '0', x: 4, y: 4, w: 2, h: 2 }];
-                    onLayoutChange(nextLayout, undefined as any);
-                }}
-            >
-                layout-undefined
-            </button>
-            <button
-                onClick={() => {
-                    const nextLayout = [{ i: '0', x: 3, y: 3, w: 2, h: 2 }];
-                    onDragStop(nextLayout);
-                }}
-            >
-                change-layout-md
-            </button>
-            <button onClick={() => onBreakpointChange('md')}>
-                set-md
-            </button>
-            {children}
-        </div>
-    )
-}));
-
 describe('ResizableDashboard', () => {
     beforeEach(() => {
         delete process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL;
@@ -99,7 +54,7 @@ describe('ResizableDashboard', () => {
         expect(push).toHaveBeenCalledWith('/visualizationhub?name=Sales&type=bar-chart');
     });
 
-    it('persists layout when the save layout button is clicked after layout change', async () => {
+    it('persists the canonical fixed layout when the save layout button is clicked', async () => {
         const user = userEvent.setup();
         render(
             <ResizableDashboard
@@ -111,46 +66,104 @@ describe('ResizableDashboard', () => {
             />
         );
 
-        await user.click(screen.getByRole('button', { name: 'change-layout' }));
         await user.click(screen.getByRole('button', { name: /Save layout/ }));
 
         await waitFor(() => {
             expect(updateDashboard).toHaveBeenCalled();
         });
-        expect(updateDashboard.mock.calls[0][0]).not.toHaveProperty('visualizations');
-        expect(updateDashboard.mock.calls[0][0].layouts).toEqual([{ i: '0', x: 1, y: 1, w: 2, h: 2 }]);
+        expect(updateDashboard.mock.calls[0][0]).toEqual({
+            name: 'dash',
+            shareId: undefined,
+            layouts: [{ i: '0', x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 }]
+        });
     });
 
-    it('persists md drag-stop through the save button', async () => {
-        const user = userEvent.setup();
-        render(
+    it('renders fixed CSS grid tiles without transform-grid translated state', () => {
+        const { container } = render(
             <ResizableDashboard
                 dashboard={{
                     name: 'dash',
-                    layouts: [],
-                    visualizations: [{ name: 'Sales', type: 'bar-chart', data: {} }]
+                    layouts: [{ i: '0', x: 11, y: 0, w: 12, h: 12 }],
+                    visualizations: [
+                        { name: 'Sales', type: 'bar-chart', data: {} },
+                        { name: 'Nodes', type: 'sankey', data: {} }
+                    ]
                 } as any}
             />
         );
 
-        await user.click(screen.getByRole('button', { name: 'set-md' }));
-        await user.click(screen.getByRole('button', { name: 'layout-without-lg' }));
-        await user.click(screen.getByRole('button', { name: 'change-layout-md' }));
-
-        await user.click(screen.getByRole('button', { name: /Save layout/ }));
-
-        await waitFor(() => {
-            expect(updateDashboard).toHaveBeenCalled();
-        });
+        expect(screen.getByTestId('dashboard-fixed-grid')).toHaveClass('grid');
+        expect(container.querySelector('.react-grid-item')).not.toBeInTheDocument();
+        expect(container.querySelector('.draggable-corner')).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Move Sales')).toHaveAttribute('draggable', 'true');
+        expect(screen.getAllByTestId('hub-shell')).toHaveLength(2);
     });
 
-    it('keeps save disabled when no layout change happened', () => {
+    it('drags cards by swapping only fixed dashboard slots', async () => {
+        const user = userEvent.setup();
+        const dataTransfer = {
+            value: '',
+            effectAllowed: '',
+            dropEffect: '',
+            setData: vi.fn((_type: string, value: string) => {
+                dataTransfer.value = value;
+            }),
+            getData: vi.fn(() => dataTransfer.value)
+        };
+
         render(
             <ResizableDashboard
                 dashboard={{
                     name: 'dash',
                     layouts: [],
-                    visualizations: [{ name: 'Sales', type: 'bar-chart', data: {} }]
+                    visualizations: [
+                        { name: 'Sales', type: 'bar-chart', data: {} },
+                        { name: 'Nodes', type: 'sankey', data: {} }
+                    ]
+                } as any}
+            />
+        );
+
+        fireEvent.dragStart(screen.getByLabelText('Move Sales'), { dataTransfer });
+        fireEvent.dragOver(screen.getByTestId('dashboard-card-1'), { dataTransfer });
+        fireEvent.drop(screen.getByTestId('dashboard-card-1'), { dataTransfer });
+        await user.click(screen.getByRole('button', { name: /Save layout/ }));
+
+        await waitFor(() => {
+            expect(updateDashboard).toHaveBeenCalled();
+        });
+        expect(updateDashboard.mock.calls[0][0].layouts).toEqual([
+            { i: '0', x: 4, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
+            { i: '1', x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 }
+        ]);
+    });
+
+    it('renders at most six dashboard visualizations', () => {
+        render(
+            <ResizableDashboard
+                dashboard={{
+                    name: 'dash',
+                    layouts: [],
+                    visualizations: Array.from({ length: 7 }, (_, index) => ({
+                        name: `Viz ${index + 1}`,
+                        type: 'bar-chart',
+                        data: {}
+                    }))
+                } as any}
+            />
+        );
+
+        expect(screen.getAllByTestId('hub-shell')).toHaveLength(6);
+        expect(screen.queryByText('Viz 7 (Bar Chart)')).not.toBeInTheDocument();
+    });
+
+    it('keeps save disabled when there are no visualizations', () => {
+        render(
+            <ResizableDashboard
+                dashboard={{
+                    name: 'dash',
+                    layouts: [],
+                    visualizations: []
                 } as any}
             />
         );
@@ -159,47 +172,30 @@ describe('ResizableDashboard', () => {
         expect(updateDashboard).not.toHaveBeenCalled();
     });
 
-    it('persists lg fallback layout when responsive payload omits lg', async () => {
+    it('normalizes predefined layouts into fixed slots before saving', async () => {
         const user = userEvent.setup();
         render(
             <ResizableDashboard
                 dashboard={{
                     name: 'dash',
-                    layouts: [],
-                    visualizations: [{ name: 'Sales', type: 'bar-chart', data: {} }]
+                    layouts: [{ i: '0', x: 11, y: 0, w: 12, h: 12 }],
+                    visualizations: [
+                        { name: 'Sales', type: 'bar-chart', data: {} },
+                        { name: 'Nodes', type: 'sankey', data: {} }
+                    ]
                 } as any}
             />
         );
 
-        await user.click(screen.getByRole('button', { name: 'layout-without-lg' }));
-        await user.click(screen.getByRole('button', { name: 'change-layout' }));
         await user.click(screen.getByRole('button', { name: /Save layout/ }));
 
         await waitFor(() => {
             expect(updateDashboard).toHaveBeenCalled();
         });
-    });
-
-    it('supports predefined layouts and undefined allLayouts payloads', async () => {
-        const user = userEvent.setup();
-        const { unmount } = render(
-            <ResizableDashboard
-                dashboard={{
-                    name: 'dash',
-                    layouts: [{ i: '0', x: 0, y: 0, w: 2, h: 2 }],
-                    visualizations: [{ name: 'Sales', type: 'bar-chart', data: {} }]
-                } as any}
-            />
-        );
-
-        await user.click(screen.getByRole('button', { name: 'layout-undefined' }));
-        await user.click(screen.getByRole('button', { name: 'change-layout' }));
-        await user.click(screen.getByRole('button', { name: /Save layout/ }));
-        unmount();
-
-        await waitFor(() => {
-            expect(updateDashboard).toHaveBeenCalled();
-        });
+        expect(updateDashboard.mock.calls[0][0].layouts).toEqual([
+            { i: '0', x: 8, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
+            { i: '1', x: 4, y: 0, w: 4, h: 4, minW: 2, minH: 2 }
+        ]);
     });
 
     it('subscribes to shared dashboards over websocket and refreshes on live updates', async () => {

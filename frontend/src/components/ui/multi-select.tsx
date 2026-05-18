@@ -49,6 +49,7 @@ type MultiSelectProps = {
   placeholder?: string;
   animation?: number;
   maxCount?: number;
+  selectionLimit?: number;
   modalPopover?: boolean;
   asChild?: boolean;
   className?: string;
@@ -64,6 +65,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       placeholder,
       animation = 0,
       maxCount = 3,
+      selectionLimit,
       modalPopover = false,
       className,
       ...props
@@ -87,6 +89,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     };
 
     const toggleOption = (option: string) => {
+      if (!selectedValues.includes(option) && selectionLimit && selectedValues.length >= selectionLimit) {
+        return;
+      }
       const newSelectedValues = selectedValues.includes(option)
         ? selectedValues.filter((value) => value !== option)
         : [...selectedValues, option];
@@ -113,7 +118,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       if (selectedValues.length === options.length) {
         handleClear();
       } else {
-        const allValues = options.map((option) => option.value);
+        const allValues = options
+          .map((option) => option.value)
+          .slice(0, selectionLimit ?? options.length);
         setSelectedValues(allValues);
         onValueChange(allValues);
       }
@@ -235,11 +242,14 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                     const option = options[index - 1];
                     if (!option) return null;
                     const isSelected = selectedValues.includes(option.value);
+                    const isDisabled = !isSelected
+                      && Boolean(selectionLimit)
+                      && selectedValues.length >= (selectionLimit ?? options.length);
                     return (
                       <CommandItem
                         key={option.value}
                         onSelect={() => toggleOption(option.value)}
-                        className="cursor-pointer"
+                        className={cn('cursor-pointer', isDisabled && 'cursor-not-allowed opacity-50')}
                       >
                         <div
                           className={cn(

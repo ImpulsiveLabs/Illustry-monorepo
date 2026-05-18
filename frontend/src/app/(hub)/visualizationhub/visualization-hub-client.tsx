@@ -63,7 +63,7 @@ const VisualizationThemeToolbar = ({
   };
 
   return (
-    <div className="flex flex-wrap justify-end gap-2 border-b bg-background p-2">
+    <div className="flex flex-wrap justify-end gap-2 border-b bg-background p-2" data-export-exclude="true">
       <Button
         type="button"
         variant="outline"

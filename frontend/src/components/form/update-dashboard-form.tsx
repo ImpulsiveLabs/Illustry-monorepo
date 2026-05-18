@@ -22,6 +22,8 @@ import { updateDashboard } from '@/app/_actions/dashboard';
 import { useLocale } from '@/components/providers/locale-provider';
 import MultiSelect from '../ui/multi-select';
 
+const DASHBOARD_VISUALIZATION_LIMIT = 6;
+
 type UpdateDashboardFormProps = {
   dashboard: DashboardTypes.DashboardUpdate | null;
   visualizations: Record<string, string>
@@ -98,28 +100,31 @@ const UpdateDashboardForm = ({ dashboard, visualizations }: UpdateDashboardFormP
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('form.dashboard.visualizations')}</FormLabel>
-                <FormControl>
-                  <MultiSelect
-                    options={visualizationOptions}
-                    defaultValue={predefinedOptions}
-                    onValueChange={(selectedValues) => {
-                      const formattedVisualizations = selectedValues.reduce(
-                        (acc, value) => {
-                          const name = value.match(/^[^(]+/)?.[0];
-                          const type = value.match(/\(([^)]+)\)/)?.[1];
-                          if (name && type) {
-                            acc[`${name}_${type}`] = type;
-                          }
-                          return acc;
-                        },
-                        {} as Record<string, string>
-                      );
-                      field.onChange(formattedVisualizations);
-                      form.setValue('visualizations', formattedVisualizations);
-                    }}
-                    placeholder={t('form.dashboard.selectVisualizations')}
-                    maxCount={5}
-                  />
+	                <FormControl>
+	                  <MultiSelect
+	                    options={visualizationOptions}
+	                    defaultValue={predefinedOptions.slice(0, DASHBOARD_VISUALIZATION_LIMIT)}
+	                    onValueChange={(selectedValues) => {
+	                      const formattedVisualizations = selectedValues
+	                        .slice(0, DASHBOARD_VISUALIZATION_LIMIT)
+	                        .reduce(
+	                          (acc, value) => {
+	                            const name = value.match(/^[^(]+/)?.[0];
+	                            const type = value.match(/\(([^)]+)\)/)?.[1];
+	                            if (name && type) {
+	                              acc[`${name}_${type}`] = type;
+	                            }
+	                            return acc;
+	                          },
+	                          {} as Record<string, string>
+	                        );
+	                      field.onChange(formattedVisualizations);
+	                      form.setValue('visualizations', formattedVisualizations);
+	                    }}
+	                    placeholder={t('form.dashboard.selectVisualizations')}
+	                    maxCount={DASHBOARD_VISUALIZATION_LIMIT}
+	                    selectionLimit={DASHBOARD_VISUALIZATION_LIMIT}
+	                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>

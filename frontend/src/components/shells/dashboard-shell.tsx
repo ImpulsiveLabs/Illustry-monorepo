@@ -3,10 +3,9 @@
 import React, {
   useEffect, useState, useCallback, useMemo, useRef
 } from 'react';
-import { Responsive, WidthProvider } from 'react-grid-layout';
 import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import { useRouter } from 'next/navigation';
-import { Save } from 'lucide-react';
+import { ChevronDown, Download, GripHorizontal, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Card, CardContent, CardHeader, CardTitle
@@ -14,74 +13,175 @@ import {
 import { updateDashboard } from '@/app/_actions/dashboard';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/components/providers/locale-provider';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { exportDashboardCharts, type ChartExportFormat } from '@/lib/chart-export';
 import HubShell from './hub-shell';
-
-const ResponsiveGridLayout = WidthProvider(Responsive) as unknown as React.FC<Record<string, unknown>>;
 
 type VisualizationData = {
   dashboard: DashboardTypes.DashboardType | null;
 };
-type ResponsiveLayouts = Record<string, DashboardTypes.Layout[]>;
+type DashboardBreakpoint = 'lg' | 'md' | 'sm' | 'xs' | 'xxs';
 
-const createInitialLayout = (
-  layouts: DashboardTypes.Layout[],
-  visualizations: VisualizationTypes.VisualizationType[]
-) => (layouts.length ? layouts
-  : Array.from({ length: visualizations.length }, (_, index) => ({
+const dashboardCols: Record<DashboardBreakpoint, number> = {
+  lg: 12,
+  md: 10,
+  sm: 6,
+  xs: 4,
+  xxs: 2
+};
+
+const dashboardTileWidths: Record<DashboardBreakpoint, number> = {
+  lg: 4,
+  md: 5,
+  sm: 6,
+  xs: 4,
+  xxs: 2
+};
+
+const DASHBOARD_TILE_HEIGHT = 4;
+const DASHBOARD_TILE_MIN_WIDTH = 2;
+const DASHBOARD_TILE_MIN_HEIGHT = 2;
+const DASHBOARD_MAX_VISIBLE_VISUALIZATIONS = 6;
+
+const dashboardExportFormats: Array<{ label: string; value: ChartExportFormat }> = [
+  { label: 'PNG', value: 'png' },
+  { label: 'JPG', value: 'jpg' },
+  { label: 'WebP', value: 'webp' },
+  { label: 'SVG', value: 'svg' }
+];
+
+const createDefaultFixedLayoutItem = (
+  index: number,
+  breakpoint: DashboardBreakpoint
+): DashboardTypes.Layout => {
+  const cols = dashboardCols[breakpoint];
+  const width = dashboardTileWidths[breakpoint];
+  const tilesPerRow = Math.max(1, Math.floor(cols / width));
+
+  return {
     i: index.toString(),
-    x: 4 * (index % 3),
-    y: Math.floor(index / 3) * 4,
-    w: 4,
-    h: 4,
-    minW: 3,
-    minH: 2
-  })) as DashboardTypes.Layout[]);
+    x: (index % tilesPerRow) * width,
+    y: Math.floor(index / tilesPerRow) * DASHBOARD_TILE_HEIGHT,
+    w: width,
+    h: DASHBOARD_TILE_HEIGHT,
+    minW: DASHBOARD_TILE_MIN_WIDTH,
+    minH: DASHBOARD_TILE_MIN_HEIGHT
+  };
+};
+
+const getSlotMetrics = (breakpoint: DashboardBreakpoint) => {
+  const width = dashboardTileWidths[breakpoint];
+  const cols = dashboardCols[breakpoint];
+  return {
+    width,
+    tilesPerRow: Math.max(1, Math.floor(cols / width))
+  };
+};
+
+const getLayoutSlot = (
+  layout: DashboardTypes.Layout | undefined,
+  index: number,
+  breakpoint: DashboardBreakpoint
+) => {
+  const fallback = createDefaultFixedLayoutItem(index, breakpoint);
+  const { width, tilesPerRow } = getSlotMetrics(breakpoint);
+  const rawX = layout?.x ?? fallback.x;
+  const rawY = layout?.y ?? fallback.y;
+  const column = Math.max(0, Math.min(tilesPerRow - 1, Math.round(rawX / width)));
+  const row = Math.max(0, Math.round(rawY / DASHBOARD_TILE_HEIGHT));
+
+  return row * tilesPerRow + column;
+};
+
+const createLayoutItemForSlot = (
+  index: number,
+  slot: number,
+  breakpoint: DashboardBreakpoint
+): DashboardTypes.Layout => {
+  const { width, tilesPerRow } = getSlotMetrics(breakpoint);
+
+  return {
+    i: index.toString(),
+    x: (slot % tilesPerRow) * width,
+    y: Math.floor(slot / tilesPerRow) * DASHBOARD_TILE_HEIGHT,
+    w: width,
+    h: DASHBOARD_TILE_HEIGHT,
+    minW: DASHBOARD_TILE_MIN_WIDTH,
+    minH: DASHBOARD_TILE_MIN_HEIGHT
+  };
+};
+
+const createFixedLayout = (
+  layouts: DashboardTypes.Layout[],
+  visualizations: VisualizationTypes.VisualizationType[],
+  breakpoint: DashboardBreakpoint
+) => {
+  const layoutsById = new Map(layouts.map((layout) => [layout.i, layout]));
+  const usedSlots = new Set<number>();
+
+  return visualizations.map((_, index) => {
+    const preferredSlot = getLayoutSlot(layoutsById.get(index.toString()), index, breakpoint);
+    const slot = Array.from(
+      { length: DASHBOARD_MAX_VISIBLE_VISUALIZATIONS },
+      (__, slotIndex) => slotIndex
+    )
+      .sort((a, b) => Math.abs(a - preferredSlot) - Math.abs(b - preferredSlot))
+      .find((slotIndex) => !usedSlots.has(slotIndex)) ?? index;
+
+    usedSlots.add(slot);
+    return createLayoutItemForSlot(index, slot, breakpoint);
+  });
+};
+
+const normalizeLayoutForBreakpoint = (
+  layouts: DashboardTypes.Layout[],
+  visualizations: VisualizationTypes.VisualizationType[],
+  breakpoint: string
+): DashboardTypes.Layout[] => createFixedLayout(
+  layouts,
+  visualizations,
+  (breakpoint in dashboardCols ? breakpoint : 'lg') as DashboardBreakpoint
+);
 
 const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const { t } = useLocale();
   const router = useRouter();
-  const { layouts = [], visualizations = [] } = dashboard as DashboardTypes.DashboardType;
+  const {
+    layouts = [],
+    visualizations = []
+  } = (dashboard ?? {}) as Partial<DashboardTypes.DashboardType>;
   const visualizationsList = visualizations as VisualizationTypes.VisualizationType[];
-  const initialLayoutSignature = JSON.stringify({
-    layouts,
-    visualizations: visualizationsList.map((viz) => ({
-      name: viz.name,
-      type: viz.type
+  const visibleVisualizations = useMemo(
+    () => visualizationsList.slice(0, DASHBOARD_MAX_VISIBLE_VISUALIZATIONS),
+    [visualizationsList]
+  );
+  const fixedLayout = useMemo(
+    () => normalizeLayoutForBreakpoint(layouts, visibleVisualizations, 'lg'),
+    [layouts, visibleVisualizations]
+  );
+  const [currentLayout, setCurrentLayout] = useState<DashboardTypes.Layout[]>(fixedLayout);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+  const fixedDashboardItems = useMemo(() => visibleVisualizations
+    .map((viz, index) => ({
+      viz,
+      index,
+      slot: currentLayout[index] ? currentLayout[index].y * 100 + currentLayout[index].x : index
     }))
-  });
-  const initialLayout = useMemo(
-    () => createInitialLayout(layouts, visualizationsList),
-    [initialLayoutSignature]
-  );
+    .sort((a, b) => a.slot - b.slot || a.index - b.index), [currentLayout, visibleVisualizations]);
 
-  const [, setLayout] = useState<DashboardTypes.Layout[]>(initialLayout);
-  const [activeBreakpoint, setActiveBreakpoint] = useState('lg');
-  const [hasLayoutChanged, setHasLayoutChanged] = useState(false);
   const [layoutPending, setLayoutPending] = useState(false);
+  const [exportPendingFormat, setExportPendingFormat] = useState<ChartExportFormat | null>(null);
   const [currentShareId, setCurrentShareId] = useState(dashboard?.shareId);
-  const hasLayoutChangedRef = useRef(false);
   const dashboardRef = useRef(dashboard);
-  const responsiveLayoutsRef = useRef<ResponsiveLayouts>({});
-  const cloneLayout = useCallback(
-    (items: DashboardTypes.Layout[]) => items.map((item) => ({ ...item })),
-    []
-  );
-  const [responsiveLayouts, setResponsiveLayouts] = useState<ResponsiveLayouts>(() => ({
-    lg: cloneLayout(initialLayout)
-  }));
-
-  useEffect(() => {
-    setLayout(initialLayout);
-    setResponsiveLayouts((prev) => ({
-      ...prev,
-      lg: cloneLayout(initialLayout)
-    }));
-    setHasLayoutChanged(false);
-  }, [cloneLayout, initialLayout]);
-
-  useEffect(() => {
-    hasLayoutChangedRef.current = hasLayoutChanged;
-  }, [hasLayoutChanged]);
+  const dashboardExportRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     dashboardRef.current = dashboard;
@@ -89,53 +189,101 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   }, [dashboard]);
 
   useEffect(() => {
-    responsiveLayoutsRef.current = responsiveLayouts;
-  }, [responsiveLayouts]);
+    setCurrentLayout(fixedLayout);
+  }, [fixedLayout]);
 
-  const onLayoutChange = useCallback(
-    (newLayout: DashboardTypes.Layout[], allLayouts: ResponsiveLayouts) => {
-      setResponsiveLayouts((prev) => {
-        const nextLayouts: ResponsiveLayouts = { ...prev };
-        Object.entries(allLayouts || {}).forEach(([breakpoint, bpLayout]) => {
-          nextLayouts[breakpoint] = cloneLayout(bpLayout);
-        });
-        return nextLayouts;
-      });
+  const swapDashboardSlots = useCallback((sourceIndex: number, targetIndex: number) => {
+    if (sourceIndex === targetIndex) {
+      return;
+    }
 
-      if (activeBreakpoint === 'lg') {
-        setLayout(cloneLayout(newLayout));
+    setCurrentLayout((previousLayout) => {
+      const nextLayout = normalizeLayoutForBreakpoint(
+        previousLayout,
+        visibleVisualizations,
+        'lg'
+      ).map((item) => ({ ...item }));
+      const source = nextLayout[sourceIndex];
+      const target = nextLayout[targetIndex];
+
+      if (!source || !target) {
+        return previousLayout;
       }
-    },
-    [activeBreakpoint, cloneLayout]
-  );
 
-  const onBreakpointChange = useCallback((newBreakpoint: string) => {
-    setActiveBreakpoint(newBreakpoint);
+      const sourcePosition = { x: source.x, y: source.y };
+      source.x = target.x;
+      source.y = target.y;
+      target.x = sourcePosition.x;
+      target.y = sourcePosition.y;
+
+      return nextLayout;
+    });
+  }, [visibleVisualizations]);
+
+  const handleDragStart = useCallback((
+    event: React.DragEvent<HTMLElement>,
+    sourceIndex: number
+  ) => {
+    setDraggedIndex(sourceIndex);
+    event.dataTransfer.effectAllowed = 'move';
+    event.dataTransfer.setData('text/plain', sourceIndex.toString());
+  }, []);
+
+  const handleDragOver = useCallback((
+    event: React.DragEvent<HTMLElement>,
+    targetIndex: number
+  ) => {
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    setDragOverIndex(targetIndex);
+  }, []);
+
+  const handleDrop = useCallback((
+    event: React.DragEvent<HTMLElement>,
+    targetIndex: number
+  ) => {
+    event.preventDefault();
+    const rawSourceIndex = event.dataTransfer.getData('text/plain');
+    const sourceIndex = Number(rawSourceIndex);
+
+    if (Number.isInteger(sourceIndex)) {
+      swapDashboardSlots(sourceIndex, targetIndex);
+    }
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  }, [swapDashboardSlots]);
+
+  const clearDragState = useCallback(() => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
   }, []);
 
   const updateDashboardLayout = useCallback(async () => {
     const currentDashboard = dashboardRef.current;
-    if (!currentDashboard || !hasLayoutChangedRef.current) {
+    if (!currentDashboard || !visibleVisualizations.length) {
       return;
     }
     setLayoutPending(true);
-    const updatedDash = {
-      ...currentDashboard,
-      layouts: responsiveLayoutsRef.current.lg
-        || responsiveLayoutsRef.current[activeBreakpoint]
-        || []
+    const updatedDash: DashboardTypes.DashboardUpdate = {
+      name: currentDashboard.name,
+      shareId: currentDashboard.shareId,
+      layouts: normalizeLayoutForBreakpoint(currentLayout, visibleVisualizations, 'lg')
+        .map((item) => ({ ...item }))
     };
-    delete updatedDash.visualizations;
-    const result = await updateDashboard(updatedDash);
-    if (result) {
-      toast.success(t('dashboard.layoutSaved'));
-      setHasLayoutChanged(false);
-      hasLayoutChangedRef.current = false;
-    } else {
+    try {
+      const result = await updateDashboard(updatedDash);
+      if (result) {
+        toast.success(t('dashboard.layoutSaved'));
+      } else {
+        toast.error(t('dashboard.layoutSaveError'));
+      }
+    } catch {
       toast.error(t('dashboard.layoutSaveError'));
+    } finally {
+      setLayoutPending(false);
     }
-    setLayoutPending(false);
-  }, [activeBreakpoint, t]);
+  }, [currentLayout, t, visibleVisualizations]);
 
   useEffect(() => {
     if (
@@ -194,25 +342,31 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     };
   }, [currentShareId, router]);
 
-  const handleUserLayoutCommit = useCallback((newLayout: DashboardTypes.Layout[]) => {
-    const cloned = cloneLayout(newLayout);
-    responsiveLayoutsRef.current = {
-      ...responsiveLayoutsRef.current,
-      [activeBreakpoint]: cloned,
-      lg: activeBreakpoint === 'lg' ? cloned : (responsiveLayoutsRef.current.lg || cloned)
-    };
-    hasLayoutChangedRef.current = true;
-    setLayout(cloned);
-    setResponsiveLayouts((prev) => ({
-      ...prev,
-      lg: cloned
-    }));
-    setHasLayoutChanged(true);
-  }, [activeBreakpoint, cloneLayout]);
-
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
     const url = `/visualizationhub?name=${viz.name}&type=${viz.type}`;
     router.push(url);
+  };
+
+  const handleDashboardExport = async (format: ChartExportFormat) => {
+    const element = dashboardExportRef.current;
+    if (!element) {
+      toast.error('The dashboard is not ready to export yet.');
+      return;
+    }
+
+    setExportPendingFormat(format);
+    try {
+      await exportDashboardCharts({
+        element,
+        filename: `dashboard-${dashboard?.name || 'export'}`,
+        format
+      });
+      toast.success(`${format.toUpperCase()} dashboard export started`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to export this dashboard.');
+    } finally {
+      setExportPendingFormat(null);
+    }
   };
 
   const getTypeLabel = useCallback(
@@ -255,66 +409,90 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   );
 
   return (
-    <div className="p-4">
-      <div className="sticky top-20 z-20 mb-4 flex justify-end">
+    <div className="flex h-[calc(100dvh-6rem)] flex-col overflow-hidden p-3">
+      <div className="mb-3 flex shrink-0 justify-end gap-2">
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              className="shadow-sm"
+              disabled={!visualizationsList.length || Boolean(exportPendingFormat)}
+              aria-label="Export dashboard"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {exportPendingFormat ? 'Exporting' : 'Export'}
+              <ChevronDown className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuLabel>Save dashboard as</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            {dashboardExportFormats.map((format) => (
+              <DropdownMenuItem
+                key={format.value}
+                onSelect={() => {
+                  void handleDashboardExport(format.value);
+                }}
+              >
+                {format.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Button
           type="button"
           className="shadow-sm"
           onClick={() => void updateDashboardLayout()}
-          disabled={!hasLayoutChanged || layoutPending}
+          disabled={!visibleVisualizations.length || layoutPending}
         >
           <Save className="mr-2 h-4 w-4" />
           {layoutPending ? 'Saving' : 'Save layout'}
         </Button>
       </div>
-      <ResponsiveGridLayout
-        className="layout"
-        layouts={responsiveLayouts}
-        breakpoints={{
-          lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0
-        }}
-        cols={{
-          lg: 12, md: 10, sm: 6, xs: 4, xxs: 2
-        }}
-        rowHeight={150}
-        onLayoutChange={onLayoutChange}
-        onBreakpointChange={onBreakpointChange}
-        onDragStop={handleUserLayoutCommit}
-        onResizeStop={handleUserLayoutCommit}
-        isDraggable={true}
-        isResizable={true}
-        draggableHandle=".draggable-corner"
+      <div
+        ref={dashboardExportRef}
+        className="grid min-h-0 flex-1 grid-cols-3 grid-rows-2 gap-3 overflow-hidden max-lg:grid-cols-2 max-lg:grid-rows-3 max-sm:grid-cols-1 max-sm:grid-rows-6"
+        data-testid="dashboard-fixed-grid"
       >
-        {visualizationsList.map((viz, i) => (
+        {fixedDashboardItems.map(({ viz, index }) => (
           <div
-            key={i}
-            className="border border-gray-200 rounded-lg shadow-sm overflow-hidden"
+            key={`${viz.name}-${index}`}
+            className={[
+              'min-h-0 overflow-hidden rounded-lg border bg-card shadow-sm',
+              dragOverIndex === index && draggedIndex !== index
+                ? 'border-primary ring-2 ring-primary/20'
+                : 'border-gray-200',
+              draggedIndex === index ? 'opacity-70' : ''
+            ].filter(Boolean).join(' ')}
+            onDragOver={(event) => handleDragOver(event, index)}
+            onDrop={(event) => handleDrop(event, index)}
+            onDragLeave={() => setDragOverIndex((current) => (current === index ? null : current))}
+            data-testid={`dashboard-card-${index}`}
           >
-            <Card className="h-full">
-              <div className="relative h-full">
-                {/* Draggable corners */}
-                {['top-left', 'top-right', 'bottom-left', 'bottom-right'].map((position) => (
-                  <div
-                    key={position}
-                    className={`draggable-corner absolute ${position} w-[10%] h-[10%] cursor-move bg-transparent`}
-                  ></div>
-                ))}
+            <Card className="h-full min-h-0 border-0 shadow-none">
+              <div className="relative flex h-full min-h-0 flex-col">
                 <CardHeader
-                  className="cursor-pointer flex justify-center items-center h-[4rem]"
+                  className="flex h-10 shrink-0 cursor-grab items-center justify-center gap-2 px-3 py-2 active:cursor-grabbing"
                   onClick={() => handleCardClick(viz)}
+                  draggable
+                  onDragStart={(event) => handleDragStart(event, index)}
+                  onDragEnd={clearDragState}
+                  aria-label={`Move ${viz.name}`}
                 >
-                  <CardTitle className="text-center">
+                  <GripHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  <CardTitle className="line-clamp-1 text-center text-sm leading-tight">
                     {viz.name} ({getTypeLabel(viz.type)})
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="h-[calc(100%-4rem)] overflow-hidden">
+                <CardContent className="min-h-0 flex-1 overflow-hidden p-2">
                   <HubShell data={viz} fullScreen={false} filter={false} legend={true} />
                 </CardContent>
               </div>
             </Card>
           </div>
         ))}
-      </ResponsiveGridLayout>
+      </div>
     </div>
   );
 };
