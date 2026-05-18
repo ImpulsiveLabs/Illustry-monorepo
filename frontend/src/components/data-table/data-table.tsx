@@ -230,7 +230,7 @@ const DataTable = <TData, TValue>({
         newRowLink={newRowLink}
         toolbarActions={toolbarActions}
       />
-      <div className="rounded-md border border-[hsl(var(--illustry-table-border))] bg-[hsl(var(--illustry-table-background))]">
+      <div className="overflow-hidden rounded-2xl">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

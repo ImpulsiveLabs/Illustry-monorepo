@@ -1051,7 +1051,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Rechazar",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Las paletas y combinaciones de color de abajo solo afectan a gráficos y visualizaciones. La interfaz de la aplicación usa un sistema de diseño fijo.",
   },
   "fr": {
     "common.name": "Nom",
@@ -1402,7 +1402,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Refuser",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Les palettes et jeux de couleurs ci-dessous affectent uniquement les graphiques et les visualisations. L’interface de l’application utilise un système de design fixe.",
   },
   "de": {
     "common.name": "Name",
@@ -1753,7 +1753,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Ablehnen",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Die folgenden Paletten und Farbschemata wirken sich nur auf Diagramme und Visualisierungen aus. Die Anwendungsoberfläche verwendet ein festes Designsystem.",
   },
   "it": {
     "common.name": "Nome",
@@ -2104,7 +2104,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Rifiuta",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Le palette e gli schemi colore qui sotto influiscono solo su grafici e visualizzazioni. L’interfaccia dell’applicazione usa un sistema di design fisso.",
   },
   "pt": {
     "common.name": "Nome",
@@ -2455,7 +2455,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Recusar",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "As paletas e esquemas de cores abaixo afetam apenas gráficos e visualizações. A interface do aplicativo usa um sistema de design fixo.",
   },
   "ru": {
     "common.name": "Имя",
@@ -2806,7 +2806,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Отклонить",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Палитры и цветовые схемы ниже влияют только на графики и визуализации. Интерфейс приложения использует фиксированную дизайн-систему.",
   },
   "uk": {
     "common.name": "Ім'я",
@@ -3157,7 +3157,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Відхилити",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Палітри та колірні схеми нижче впливають лише на графіки й візуалізації. Інтерфейс застосунку використовує фіксовану дизайн-систему.",
   },
   "ro": {
     "common.name": "Nume",
@@ -3508,7 +3508,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Respinge",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Paletele și schemele de culori de mai jos afectează doar graficele și vizualizările. Interfața aplicației folosește un sistem de design fix.",
   },
   "nl": {
     "common.name": "Naam",
@@ -3859,7 +3859,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Weigeren",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "De onderstaande paletten en kleurenschema’s beïnvloeden alleen grafieken en visualisaties. De applicatie-interface gebruikt een vast designsysteem.",
   },
   "pl": {
     "common.name": "Nazwa",
@@ -4210,7 +4210,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Odrzuć",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Poniższe palety i schematy kolorów wpływają tylko na wykresy i wizualizacje. Interfejs aplikacji używa stałego systemu projektowego.",
   },
   "tr": {
     "common.name": "İsim",
@@ -4561,7 +4561,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Reddet",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Aşağıdaki paletler ve renk şemaları yalnızca grafik ve görselleştirmeleri etkiler. Uygulama arayüzü sabit bir tasarım sistemi kullanır.",
   },
   "el": {
     "common.name": "Ονομα",
@@ -4912,7 +4912,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Απόρριψη",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Οι παρακάτω παλέτες και χρωματικοί συνδυασμοί επηρεάζουν μόνο γραφήματα και οπτικοποιήσεις. Η διεπαφή της εφαρμογής χρησιμοποιεί σταθερό σύστημα σχεδίασης.",
   },
   "ar": {
     "common.name": "اسم",
@@ -5263,7 +5263,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "رفض",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "تؤثر اللوحات وأنظمة الألوان أدناه فقط في المخططات والتصورات. تستخدم واجهة التطبيق نظام تصميم ثابتًا.",
   },
   "he": {
     "common.name": "שֵׁם",
@@ -5614,7 +5614,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "דחה",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "לוחות הצבעים וסכמות הצבעים שלמטה משפיעים רק על תרשימים והמחשות. ממשק היישום משתמש במערכת עיצוב קבועה.",
   },
   "hi": {
     "common.name": "नाम",
@@ -5965,7 +5965,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "अस्वीकार करें",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "नीचे दिए गए पैलेट और रंग योजनाएँ केवल चार्ट और विज़ुअलाइज़ेशन को प्रभावित करती हैं। एप्लिकेशन इंटरफ़ेस एक निश्चित डिज़ाइन सिस्टम का उपयोग करता है।",
   },
   "bn": {
     "common.name": "নাম",
@@ -6316,7 +6316,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "প্রত্যাখ্যান করুন",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "নিচের প্যালেট ও রঙের স্কিমগুলো শুধু চার্ট ও ভিজ্যুয়ালাইজেশনে প্রভাব ফেলে। অ্যাপ্লিকেশন ইন্টারফেস একটি নির্দিষ্ট ডিজাইন সিস্টেম ব্যবহার করে।",
   },
   "ur": {
     "common.name": "نام",
@@ -6667,7 +6667,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "مسترد کریں",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "نیچے دی گئی پیلیٹس اور رنگ اسکیمیں صرف چارٹس اور ویژولائزیشنز کو متاثر کرتی ہیں۔ ایپلیکیشن انٹرفیس ایک مقررہ ڈیزائن سسٹم استعمال کرتا ہے۔",
   },
   "id": {
     "common.name": "Nama",
@@ -7018,7 +7018,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Tolak",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Palet dan skema warna di bawah ini hanya memengaruhi bagan dan visualisasi. Antarmuka aplikasi menggunakan sistem desain tetap.",
   },
   "vi": {
     "common.name": "Tên",
@@ -7369,7 +7369,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "Từ chối",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "Các bảng màu và phối màu bên dưới chỉ ảnh hưởng đến biểu đồ và trực quan hóa. Giao diện ứng dụng dùng một hệ thống thiết kế cố định.",
   },
   "th": {
     "common.name": "ชื่อ",
@@ -7720,7 +7720,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "ปฏิเสธ",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "พาเลตและชุดสีด้านล่างมีผลเฉพาะกับแผนภูมิและการแสดงผลข้อมูลเท่านั้น อินเทอร์เฟซของแอปใช้ระบบดีไซน์แบบคงที่",
   },
   "ja": {
     "common.name": "名前",
@@ -8071,7 +8071,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "拒否",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "下のパレットと配色は、チャートとビジュアライゼーションにのみ影響します。アプリケーションのインターフェイスには固定のデザインシステムが使われます。",
   },
   "ko": {
     "common.name": "이름",
@@ -8422,7 +8422,7 @@ const EXTENDED_MESSAGES: Record<string, Record<string, string>> = {
     "shareInvite.reject": "거절",
     "theme.colorHexPlaceholder": "#FFFFFF",
     "theme.import.placeholder": "{\n  \"version\": 1\n}",
-    "theme.scopeHelper": "Palettes and color schemes below affect charts and visualizations only. The application interface uses a fixed design system.",
+    "theme.scopeHelper": "아래 팔레트와 색 구성은 차트와 시각화에만 적용됩니다. 애플리케이션 인터페이스는 고정된 디자인 시스템을 사용합니다.",
   },
   "zh": {
     "common.name": "姓名",

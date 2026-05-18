@@ -94,8 +94,12 @@ const GenericThemesAccordion = ({
           <div className="flex items-center gap-2" key={index}>
             <input
               type="text"
-              className={`w-full rounded p-1 border ${isValidHex(draftColors[inputKey(theme, index)] ?? color) ? 'border-gray-300' : 'border-red-500'} 
-              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white`}
+              aria-invalid={!isValidHex(draftColors[inputKey(theme, index)] ?? color)}
+              className={`h-9 w-full rounded-[var(--illustry-button-radius)] border bg-[hsl(var(--illustry-input-background)/0.78)] px-3 py-2 text-sm text-[hsl(var(--illustry-input-foreground))] shadow-sm outline-none transition-[border-color,box-shadow,background-color] duration-200 placeholder:text-muted-foreground focus:border-[hsl(var(--ring)/0.6)] focus:ring-4 focus:ring-ring/15 ${
+                isValidHex(draftColors[inputKey(theme, index)] ?? color)
+                  ? 'border-[hsl(var(--illustry-input-border)/0.78)]'
+                  : 'border-destructive/60 ring-4 ring-destructive/10'
+              }`}
               value={draftColors[inputKey(theme, index)] ?? color}
               onChange={(e) => {
                 setDraftColors((prev) => ({

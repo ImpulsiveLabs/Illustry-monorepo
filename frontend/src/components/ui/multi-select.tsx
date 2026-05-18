@@ -3,7 +3,6 @@ import React from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/providers/locale-provider';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Popover,
@@ -22,7 +21,7 @@ import {
 import Icons from '../icons';
 
 const multiSelectVariants = cva(
-  'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300',
+  'm-1 transition duration-200 hover:-translate-y-0.5',
   {
     variants: {
       variant: {
@@ -123,13 +122,15 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
-          <Button
+          <button
+            type="button"
             ref={ref}
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto',
-              'items-center justify-between bg-inherit hover:bg-inherit',
+              'flex min-h-10 w-full items-center justify-between rounded-[var(--illustry-button-radius)] border border-[hsl(var(--illustry-input-border)/0.78)] bg-[hsl(var(--illustry-input-background)/0.78)] p-1 text-left text-sm text-[hsl(var(--illustry-input-foreground))] shadow-[0_1px_0_hsl(var(--border)/0.35)] backdrop-blur',
+              'transition-[border-color,box-shadow,background-color] duration-200 hover:bg-background/90 focus-visible:outline-none focus-visible:border-[hsl(var(--ring)/0.6)] focus-visible:ring-4 focus-visible:ring-ring/15',
+              'disabled:cursor-not-allowed disabled:bg-muted/55 disabled:text-muted-foreground disabled:opacity-100',
               className
             )}
           >
@@ -198,7 +199,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                 <Icons.chevronDown className="h-4 cursor-pointer text-muted-foreground mx-2" />
               </div>
             )}
-          </Button>
+          </button>
         </PopoverTrigger>
         <PopoverContent
           className={cn('w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0')}

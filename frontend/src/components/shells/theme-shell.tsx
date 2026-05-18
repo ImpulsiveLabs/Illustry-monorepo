@@ -211,7 +211,7 @@ const ColorField = ({
         type="color"
         value={getColorInputValue(value, fallback)}
         onChange={(event) => onChange(event.target.value)}
-        className="h-9 w-10 shrink-0 rounded-md border border-input bg-background p-1"
+        className="h-9 w-10 shrink-0 cursor-pointer rounded-[var(--illustry-button-radius)] border border-[hsl(var(--illustry-input-border)/0.78)] bg-[hsl(var(--illustry-input-background)/0.78)] p-1 shadow-sm transition-colors focus:outline-none focus:ring-4 focus:ring-ring/15"
       />
       <Input
         id={id}

@@ -24,7 +24,7 @@ const HintTooltip = ({
       <TooltipTrigger asChild>
         <span className="inline-flex">{children}</span>
       </TooltipTrigger>
-      <TooltipContent side={side} className="max-w-[220px] text-[11px]">
+      <TooltipContent side={side} className="max-w-[260px] whitespace-pre-line text-[11px]">
         {text}
       </TooltipContent>
     </Tooltip>

@@ -9,6 +9,10 @@ type ColorPickerProps = {
 const ColorPicker = ({
   initialColor,
   changeColor
-}: ColorPickerProps) => <HexColorPicker color={initialColor} onChange={changeColor}/>;
+}: ColorPickerProps) => (
+  <div className="rounded-2xl border border-border/70 bg-background/80 p-2 shadow-sm backdrop-blur [&_.react-colorful]:w-full [&_.react-colorful__hue]:mt-2 [&_.react-colorful__hue]:h-3 [&_.react-colorful__hue]:rounded-full [&_.react-colorful__pointer]:h-4 [&_.react-colorful__pointer]:w-4 [&_.react-colorful__pointer]:border-2 [&_.react-colorful__pointer]:border-background [&_.react-colorful__pointer]:shadow-md [&_.react-colorful__saturation]:rounded-xl">
+    <HexColorPicker color={initialColor} onChange={changeColor}/>
+  </div>
+);
 
 export default ColorPicker;

@@ -29,7 +29,7 @@ const DataTablePagination = <TData, >({
 }: DataTablePaginationProps<TData>) => {
   const { t } = useLocale();
   return (
-    <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto rounded-md bg-[hsl(var(--illustry-table-pagination-background))] px-2 py-1 text-[hsl(var(--illustry-table-pagination-foreground))] sm:flex-row sm:gap-8">
+    <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto rounded-2xl bg-[hsl(var(--illustry-table-pagination-background)/0.68)] px-3 py-2 text-[hsl(var(--illustry-table-pagination-foreground))] sm:flex-row sm:gap-8">
       <div className="flex-1 whitespace-nowrap text-sm text-[hsl(var(--illustry-table-muted-cell-foreground))]">
         {table.getFilteredSelectedRowModel().rows.length} /{' '}
         {table.getFilteredRowModel().rows.length} {t('table.rowsSelected')}
@@ -43,7 +43,7 @@ const DataTablePagination = <TData, >({
               table.setPageSize(Number(value));
             }}
           >
-            <SelectTrigger className="h-8 w-[70px] border-[hsl(var(--illustry-table-border))]">
+            <SelectTrigger className="h-9 w-[76px] border-[hsl(var(--illustry-table-border)/0.78)]">
               <SelectValue placeholder={table.getState().pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top">

@@ -7,7 +7,7 @@ const Table = forwardRef<
   HTMLTableElement,
   HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div data-illustry-component="table" className="w-full overflow-auto rounded-md bg-[hsl(var(--illustry-table-background))] text-[hsl(var(--illustry-table-cell-foreground))]">
+  <div data-illustry-component="table" className="w-full overflow-auto rounded-2xl border border-[hsl(var(--illustry-table-border)/0.72)] bg-[hsl(var(--illustry-table-background)/0.9)] text-[hsl(var(--illustry-table-cell-foreground))] shadow-sm backdrop-blur">
     <table
       ref={ref}
       className={cn('w-full caption-bottom text-sm', className)}
@@ -24,7 +24,7 @@ const TableHeader = forwardRef<
   <thead
     ref={ref}
     className={cn(
-      'bg-[hsl(var(--illustry-table-header-background))] text-[hsl(var(--illustry-table-header-foreground))] [&_tr]:border-b [&_tr]:border-[hsl(var(--illustry-table-border))]',
+      'bg-[hsl(var(--illustry-table-header-background))] text-[hsl(var(--illustry-table-header-foreground))] [&_tr]:border-b [&_tr]:border-[hsl(var(--illustry-table-border)/0.72)]',
       className
     )}
     {...props}
@@ -66,7 +66,7 @@ const TableRow = forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b border-[hsl(var(--illustry-table-border))] bg-[hsl(var(--illustry-table-row-background))] transition-colors hover:bg-[hsl(var(--illustry-table-row-hover-background))] data-[state=selected]:bg-[hsl(var(--illustry-table-selected-row-background))]',
+      'border-b border-[hsl(var(--illustry-table-border)/0.68)] bg-[hsl(var(--illustry-table-row-background))] transition-colors hover:bg-[hsl(var(--illustry-table-row-hover-background))] data-[state=selected]:bg-[hsl(var(--illustry-table-selected-row-background))]',
       className
     )}
     {...props}

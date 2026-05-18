@@ -15,7 +15,7 @@ const FileUpload = ({
   removeFile,
   fileFormat
 }: FileUploadProps) => (
-    <>
+    <div className="rounded-2xl border border-dashed border-border/80 bg-background/55 p-3 shadow-sm transition-colors hover:border-primary/45 hover:bg-background/75">
       <Dropzone
         onChange={updateFiles}
         value={acceptedFiles}
@@ -25,7 +25,7 @@ const FileUpload = ({
           <FileMosaic key={file.id} {...file} onDelete={removeFile} info />
         ))}
       </Dropzone>
-    </>
+    </div>
 );
 
 export default FileUpload;

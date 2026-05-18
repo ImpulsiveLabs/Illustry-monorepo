@@ -3,7 +3,6 @@
 import { Cross2Icon } from '@radix-ui/react-icons';
 import type { Table } from '@tanstack/react-table';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import {
   ComponentType, MouseEventHandler, ReactNode, useCallback, useState, useTransition
 } from 'react';
@@ -15,20 +14,18 @@ import DataTableViewOptions from '@/components/data-table/data-table-view-option
 import useDebounce from '@/lib/hooks/use-debounce';
 import { useLocale } from '@/components/providers/locale-provider';
 import ActionButton from '../ui/table-action-button';
+import Icons from '../icons';
 
 type SearchButtonProps = {
   containerStyles: string;
 }
 
 const SearchButton = ({ containerStyles }: SearchButtonProps) => (
-  <button type="submit" className={`-ml-3 z-10 ${containerStyles}`}>
-    <Image
-      src="/magnifying-glass.svg"
-      alt=""
-      width={40}
-      height={40}
-      className="object-contain "
-    />
+  <button
+    type="submit"
+    className={`z-10 inline-flex h-9 w-9 items-center justify-center rounded-[var(--illustry-button-radius)] border border-input bg-background/70 text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15 ${containerStyles}`}
+  >
+    <Icons.search className="h-4 w-4" aria-hidden="true" />
   </button>
 );
 type Option = {
@@ -90,8 +87,8 @@ const DataTableToolbar = <TData, >({
   );
 
   return (
-    <div className="flex w-full items-center justify-between space-x-2 overflow-auto p-1">
-      <div className="flex flex-1 items-center space-x-2">
+    <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
+      <div className="flex flex-1 items-center gap-2">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -105,15 +102,15 @@ const DataTableToolbar = <TData, >({
               }
             );
           }}
-          className="flex items-center space-x-2" // Added flex container
+          className="flex items-center gap-2"
         >
           <Input
             placeholder={t('table.filterPlaceholder')}
             value={text}
             onChange={(event) => setText(event.target.value)}
-            className="h-8 w-[150px] lg:w-[250px]"
+            className="h-9 w-[160px] lg:w-[260px]"
           />
-          <SearchButton containerStyles="ml-[5%]" />
+          <SearchButton containerStyles="" />
         </form>
         {filterableColumns.length > 0
           && filterableColumns.map(
