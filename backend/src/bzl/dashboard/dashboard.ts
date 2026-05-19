@@ -378,6 +378,63 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     return updatedDashboard;
   }
 
+  async revokeShare(
+    filter: DashboardTypes.DashboardFilter,
+    sharedUserId: string
+  ): Promise<DashboardTypes.DashboardType> {
+    const userId = resolveUserId(filter.userId);
+    const dashboard = await this.findOne(filter, false);
+    if (!dashboard.shareId) {
+      throw new NoDataFoundError('Dashboard is not shared');
+    }
+
+    const revokedUser = (dashboard.sharedWith || []).find((sharedUser) => sharedUser.userId === sharedUserId);
+    if (!revokedUser) {
+      throw new NoDataFoundError('Shared user was not found');
+    }
+
+    const owner = await this.dbaccInstance.Auth.findUserById(userId);
+    const nextSharedWith = (dashboard.sharedWith || []).filter((sharedUser) => sharedUser.userId !== sharedUserId);
+    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
+    if (!projects || projects.length === 0) {
+      throw new Error('No active project');
+    }
+
+    const updatedDashboard = await this.dbaccInstance.Dashboard.updateSharing(
+      this.dbaccInstance.Dashboard.createFilter({
+        userId,
+        projectName: projects[0].name,
+        name: filter.name
+      }),
+      {
+        shareId: dashboard.shareId,
+        sharedWith: nextSharedWith
+      }
+    );
+    if (!updatedDashboard) {
+      throw new NoDataFoundError('Dashboard was not found');
+    }
+
+    publish({
+      resource: 'dashboard',
+      shareId: dashboard.shareId,
+      action: 'shared',
+      updatedAt: new Date().toISOString()
+    });
+
+    if (revokedUser.email) {
+      void new EmailService().sendShareRevocationEmail({
+        email: revokedUser.email,
+        ownerName: owner?.name || 'A teammate',
+        resourceType: 'dashboard',
+        resourceName: dashboard.name
+      }).catch((error) => logger.warn('Unable to send dashboard share revocation email', error));
+    }
+
+    return updatedDashboard;
+  }
+
   async respondToInvite(token: string, decision: 'accept' | 'reject'): Promise<DashboardTypes.DashboardType> {
     const dashboard = await this.dbaccInstance.Dashboard.findOneByShareInviteToken(token);
     if (!dashboard) {

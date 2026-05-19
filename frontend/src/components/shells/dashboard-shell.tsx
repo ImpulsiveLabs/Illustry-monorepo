@@ -157,6 +157,9 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     layouts = [],
     visualizations = []
   } = (dashboard ?? {}) as Partial<DashboardTypes.DashboardType>;
+  const canEditDashboard = !dashboard?.isExternal
+    || dashboard.currentUserRole === 'owner'
+    || dashboard.currentUserRole === 'editor';
   const visualizationsList = visualizations as VisualizationTypes.VisualizationType[];
   const visibleVisualizations = useMemo(
     () => visualizationsList.slice(0, DASHBOARD_MAX_VISIBLE_VISUALIZATIONS),
@@ -224,24 +227,34 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     event: React.DragEvent<HTMLElement>,
     sourceIndex: number
   ) => {
+    if (!canEditDashboard) {
+      event.preventDefault();
+      return;
+    }
     setDraggedIndex(sourceIndex);
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', sourceIndex.toString());
-  }, []);
+  }, [canEditDashboard]);
 
   const handleDragOver = useCallback((
     event: React.DragEvent<HTMLElement>,
     targetIndex: number
   ) => {
+    if (!canEditDashboard) {
+      return;
+    }
     event.preventDefault();
     event.dataTransfer.dropEffect = 'move';
     setDragOverIndex(targetIndex);
-  }, []);
+  }, [canEditDashboard]);
 
   const handleDrop = useCallback((
     event: React.DragEvent<HTMLElement>,
     targetIndex: number
   ) => {
+    if (!canEditDashboard) {
+      return;
+    }
     event.preventDefault();
     const rawSourceIndex = event.dataTransfer.getData('text/plain');
     const sourceIndex = Number(rawSourceIndex);
@@ -252,7 +265,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
     setDraggedIndex(null);
     setDragOverIndex(null);
-  }, [swapDashboardSlots]);
+  }, [canEditDashboard, swapDashboardSlots]);
 
   const clearDragState = useCallback(() => {
     setDraggedIndex(null);
@@ -261,7 +274,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
   const updateDashboardLayout = useCallback(async () => {
     const currentDashboard = dashboardRef.current;
-    if (!currentDashboard || !visibleVisualizations.length) {
+    if (!canEditDashboard || !currentDashboard || !visibleVisualizations.length) {
       return;
     }
     setLayoutPending(true);
@@ -283,7 +296,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     } finally {
       setLayoutPending(false);
     }
-  }, [currentLayout, t, visibleVisualizations]);
+  }, [canEditDashboard, currentLayout, t, visibleVisualizations]);
 
   useEffect(() => {
     if (
@@ -444,7 +457,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
           type="button"
           className="shadow-sm"
           onClick={() => void updateDashboardLayout()}
-          disabled={!visibleVisualizations.length || layoutPending}
+          disabled={!canEditDashboard || !visibleVisualizations.length || layoutPending}
         >
           <Save className="mr-2 h-4 w-4" />
           {layoutPending ? 'Saving' : 'Save layout'}
@@ -473,9 +486,11 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
             <Card className="h-full min-h-0 border-0 shadow-none">
               <div className="relative flex h-full min-h-0 flex-col">
                 <CardHeader
-                  className="flex h-10 shrink-0 cursor-grab items-center justify-center gap-2 px-3 py-2 active:cursor-grabbing"
+                  className={`flex h-10 shrink-0 items-center justify-center gap-2 px-3 py-2 ${
+                    canEditDashboard ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'
+                  }`}
                   onClick={() => handleCardClick(viz)}
-                  draggable
+                  draggable={canEditDashboard}
                   onDragStart={(event) => handleDragStart(event, index)}
                   onDragEnd={clearDragState}
                   aria-label={`Move ${viz.name}`}

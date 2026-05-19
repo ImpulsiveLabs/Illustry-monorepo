@@ -94,8 +94,17 @@ const UserNav = ({ email, name, avatarUrl }: UserNavProps) => {
       </DropdownMenu>
       {isThemeDialogOpen && (
         <Dialog open={isThemeDialogOpen} onOpenChange={setIsThemeDialogOpen}>
-          <DialogContent className="max-h-[92vh] max-w-[min(1280px,calc(100vw-2rem))] overflow-hidden p-0">
-            <DialogHeader className="border-b px-5 py-4">
+          <DialogContent
+            className="flex max-w-[min(1480px,calc(100vw-2rem))] flex-col overflow-hidden p-0"
+            style={{
+              top: '1rem',
+              bottom: '1rem',
+              height: 'auto',
+              maxHeight: 'none',
+              transform: 'translateX(-50%)'
+            }}
+          >
+            <DialogHeader className="shrink-0 border-b px-5 py-4">
               <DialogTitle>{t('theme.settingsTitle')}</DialogTitle>
               <DialogDescription>{t('theme.settingsDescription')}</DialogDescription>
             </DialogHeader>

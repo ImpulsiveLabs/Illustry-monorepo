@@ -453,6 +453,65 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     return updatedVisualization;
   }
 
+  async revokeShare(
+    filter: VisualizationTypes.VisualizationFilter,
+    sharedUserId: string
+  ): Promise<VisualizationTypes.VisualizationType> {
+    const userId = resolveUserId(filter.userId);
+    const visualization = await this.findOne(filter);
+    if (!visualization.shareId) {
+      throw new NoDataFoundError('Visualization is not shared');
+    }
+
+    const revokedUser = (visualization.sharedWith || []).find((sharedUser) => sharedUser.userId === sharedUserId);
+    if (!revokedUser) {
+      throw new NoDataFoundError('Shared user was not found');
+    }
+
+    const owner = await this.dbaccInstance.Auth.findUserById(userId);
+    const nextSharedWith = (visualization.sharedWith || []).filter((sharedUser) => sharedUser.userId !== sharedUserId);
+    const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
+    const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
+    if (!projects || projects.length === 0) {
+      throw new Error('No active project');
+    }
+
+    const updatedVisualization = await this.dbaccInstance.Visualization.updateSharing(
+      this.dbaccInstance.Visualization.createFilter({
+        userId,
+        projectName: projects[0].name,
+        name: filter.name,
+        type: filter.type
+      }),
+      {
+        shareId: visualization.shareId,
+        sharedWith: nextSharedWith,
+        theme: visualization.theme
+      }
+    );
+    if (!updatedVisualization) {
+      throw new NoDataFoundError('Visualization was not found');
+    }
+
+    publish({
+      resource: 'visualization',
+      shareId: visualization.shareId,
+      action: 'shared',
+      updatedAt: new Date().toISOString()
+    });
+
+    if (revokedUser.email) {
+      void new EmailService().sendShareRevocationEmail({
+        email: revokedUser.email,
+        ownerName: owner?.name || 'A teammate',
+        resourceType: 'visualization',
+        resourceName: visualization.name
+      }).catch((error) => logger.warn('Unable to send visualization share revocation email', error));
+    }
+
+    return updatedVisualization;
+  }
+
   async browse(filter: VisualizationTypes.VisualizationFilter): Promise<VisualizationTypes.ExtendedVisualizationType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
     const userId = resolveUserId(filter.userId);

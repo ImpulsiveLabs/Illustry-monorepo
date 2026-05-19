@@ -3,7 +3,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { ShareFormClient } from '@/app/share/share-form-client';
-import { shareDashboard } from '@/app/_actions/dashboard';
+import { revokeDashboardShare, shareDashboard } from '@/app/_actions/dashboard';
 
 const push = vi.fn();
 const refresh = vi.fn();
@@ -14,16 +14,19 @@ vi.mock('next/navigation', () => ({
 }));
 
 vi.mock('@/app/_actions/dashboard', () => ({
-  shareDashboard: vi.fn(() => Promise.resolve({ shareId: 'dash_shared' }))
+  shareDashboard: vi.fn(() => Promise.resolve({ shareId: 'dash_shared' })),
+  revokeDashboardShare: vi.fn(() => Promise.resolve({ shareId: 'dash_shared' }))
 }));
 
 vi.mock('@/app/_actions/visualization', () => ({
-  shareVisualization: vi.fn(() => Promise.resolve({ shareId: 'viz_shared' }))
+  shareVisualization: vi.fn(() => Promise.resolve({ shareId: 'viz_shared' })),
+  revokeVisualizationShare: vi.fn(() => Promise.resolve({ shareId: 'viz_shared' }))
 }));
 
 describe('ShareFormClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.restoreAllMocks();
   });
 
   it('submits multiple valid users with different roles', async () => {
@@ -81,5 +84,39 @@ describe('ShareFormClient', () => {
     expect(screen.getAllByText('Duplicate email')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'Share' })).toBeDisabled();
     expect(shareDashboard).not.toHaveBeenCalled();
+  });
+
+  it('renders current permissions and revokes a collaborator', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValueOnce(true);
+
+    render(
+      <ShareFormClient
+        resource="dashboard"
+        name="Revenue"
+        currentUserEmail="owner@example.com"
+        existingShares={[
+          {
+            userId: 'user-2',
+            email: 'viewer@example.com',
+            name: 'Viewer User',
+            permission: 'viewer',
+            status: 'accepted'
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText('Current permissions')).toBeInTheDocument();
+    expect(screen.getByText('viewer@example.com')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Revoke' }));
+
+    await waitFor(() => {
+      expect(revokeDashboardShare).toHaveBeenCalledWith({
+        name: 'Revenue',
+        userId: 'user-2'
+      });
+    });
   });
 });

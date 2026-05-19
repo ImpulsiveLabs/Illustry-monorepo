@@ -14,6 +14,7 @@ router.post('/api/dashboard', requireCsrf, dashboardAPI.create);
 router.post('/api/dashboards', dashboardAPI.browse);
 router.get('/api/dashboard/shared/:shareId', dashboardAPI.findShared);
 router.put('/api/dashboard/share', requireCsrf, dashboardAPI.share);
+router.delete('/api/dashboard/share', requireCsrf, dashboardAPI.revokeShare);
 router.post('/api/dashboard/share/respond', requireCsrf, dashboardAPI.respondToShareInvite);
 router.post('/api/dashboard/:name', dashboardAPI.findOne);
 router.put('/api/dashboard', requireCsrf, dashboardAPI.update);

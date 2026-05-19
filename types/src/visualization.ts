@@ -232,6 +232,13 @@ type VisualizationShareRequest = {
   }>;
 }
 
+type VisualizationShareRevokeRequest = {
+  name?: string;
+  type?: string;
+  shareId?: string;
+  userId: string;
+}
+
 type VisualizationShareInviteDecision = {
   token: string;
   decision: 'accept' | 'reject';
@@ -278,6 +285,7 @@ export {
   VisualizationShareScope,
   VisualizationSharedUser,
   VisualizationShareRequest,
+  VisualizationShareRevokeRequest,
   VisualizationShareInviteDecision,
   VisualizationThemeSyncRequest,
   VisualizationThemeSyncResult

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/app/_actions/auth';
+import { findOneVisualization } from '@/app/_actions/visualization';
 import { ShareFormClient } from '../share-form-client';
 
 type ShareVisualizationPageProps = {
@@ -16,12 +17,15 @@ const ShareVisualizationPage = async ({ searchParams }: ShareVisualizationPagePr
     redirect('/visualizations');
   }
 
+  const visualization = await findOneVisualization({ name, type });
+
   return (
     <ShareFormClient
       resource="visualization"
       name={name}
       type={type}
       currentUserEmail={currentUser.email}
+      existingShares={visualization?.sharedWith || []}
     />
   );
 };

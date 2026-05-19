@@ -85,13 +85,13 @@ const GenericThemesAccordion = ({
 
   // Common color row rendering function
   const renderColorRow = (theme: 'light' | 'dark', colors: string[], colorsLength: number) => (
-    <div className="flex items-start mt-4 gap-4">
-      <div className="text-sm font-medium pr-4 min-w-[80px]">
+    <div className="mt-4 grid gap-3">
+      <div className="text-sm font-medium">
         {t('theme.colors')}
       </div>
-      <div className="flex flex-col gap-2 w-[75%] relative">
+      <div className="grid max-w-[560px] gap-2">
         {colors.map((color, index) => (
-          <div className="flex items-center gap-2" key={index}>
+          <div className="grid grid-cols-[minmax(0,1fr)_2.25rem] items-center gap-2" key={index}>
             <input
               type="text"
               aria-invalid={!isValidHex(draftColors[inputKey(theme, index)] ?? color)}
@@ -137,7 +137,7 @@ const GenericThemesAccordion = ({
                   aria-label={`${t('tooltip.openColorPicker')} ${theme} ${index + 1}`}
                 />
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-2">
+              <PopoverContent side="left" align="center" sideOffset={10} className="w-[244px] p-2">
                 <div className="relative">
                   <ColorPicker
                     initialColor={color}
@@ -152,7 +152,7 @@ const GenericThemesAccordion = ({
                   <button
                     type="button"
                     onClick={() => setActivePickerKey(null)}
-                    className="absolute right-1 top-1 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full bg-background/90 text-gray-500 shadow-sm hover:text-gray-700 dark:hover:text-gray-300"
                     aria-label={t('tooltip.closeColorPicker')}
                   >
                     <Icons.close className="h-4 w-4" />
@@ -162,7 +162,7 @@ const GenericThemesAccordion = ({
             </Popover>
           </div>
         ))}
-        <div className="flex items-center gap-2">
+        <div className="mt-1 flex items-center gap-2">
           <button
             type="button"
             className={`w-6 h-6 border border-gray-300 rounded flex items-center justify-center cursor-pointer

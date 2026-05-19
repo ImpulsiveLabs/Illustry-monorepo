@@ -714,6 +714,8 @@ const ThemeColorsProvider = ({
   const [themeProv, dispatchDataProv] = useReducer(themeColorsReducer, initialProviderTheme);
   const [appThemeProv, dispatchAppThemeBase] = useReducer(appThemeReducer, initialProviderAppTheme);
   const appThemeDirtyRef = useRef(false);
+  const initialThemeSyncKeyRef = useRef<string | null>(null);
+  const initialAppThemeSyncKeyRef = useRef<string | null>(null);
   const dispatchAppTheme = useCallback((action: AppThemeAction) => {
     if (action.type !== 'set') {
       dispatchAppThemeBase(action);
@@ -736,6 +738,41 @@ const ThemeColorsProvider = ({
 
     dispatchAppThemeBase({ type: 'set', themeConfig: normalizedTheme, touch: false });
   }, [applyAppTheme, persist, storageScope]);
+
+  useEffect(() => {
+    if (!initialTheme) {
+      initialThemeSyncKeyRef.current = null;
+      return;
+    }
+
+    const normalizedTheme = ThemeTypes.normalizeAppThemeConfig({
+      visualizations: initialTheme
+    }).visualizations;
+    const nextSyncKey = JSON.stringify(normalizedTheme);
+    if (initialThemeSyncKeyRef.current === nextSyncKey) {
+      return;
+    }
+
+    initialThemeSyncKeyRef.current = nextSyncKey;
+    dispatchDataProv({ type: 'apply', modifiedData: normalizedTheme });
+  }, [initialTheme]);
+
+  useEffect(() => {
+    if (!initialAppTheme) {
+      initialAppThemeSyncKeyRef.current = null;
+      return;
+    }
+
+    const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(initialAppTheme);
+    const nextSyncKey = JSON.stringify(normalizedTheme);
+    if (initialAppThemeSyncKeyRef.current === nextSyncKey) {
+      return;
+    }
+
+    initialAppThemeSyncKeyRef.current = nextSyncKey;
+    dispatchAppTheme({ type: 'set', themeConfig: normalizedTheme, touch: false });
+    dispatchDataProv({ type: 'apply', modifiedData: normalizedTheme.visualizations });
+  }, [dispatchAppTheme, initialAppTheme]);
 
   useEffect(() => {
     let cancelled = false;

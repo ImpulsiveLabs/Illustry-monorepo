@@ -80,6 +80,22 @@ const shareDashboard = async (shareRequest: DashboardTypes.DashboardShareRequest
   }
 };
 
+const revokeDashboardShare = async (revokeRequest: DashboardTypes.DashboardShareRevokeRequest) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/dashboard/share`, {
+    method: 'DELETE',
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+    body: JSON.stringify(revokeRequest)
+  });
+  try {
+    return await makeRequest<DashboardTypes.DashboardType>(request, ['dashboards']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 const respondToDashboardShareInvite = async (decision: DashboardTypes.DashboardShareInviteDecision) => {
   const BACKEND = getBackendUrl() as string;
 
@@ -160,6 +176,7 @@ export {
   deleteDashboard,
   updateDashboard,
   shareDashboard,
+  revokeDashboardShare,
   respondToDashboardShareInvite,
   createDashboard,
   findOneDashboard,

@@ -47,10 +47,16 @@ const VisualizationThemeToolbar = ({
 
   const saveTheme = (theme: ThemeColors, successMessage: string) => {
     toast.promise(
-      updateVisualization({
-        ...getVisualizationUpdateIdentity(visualization),
-        theme: theme as unknown as Record<string, unknown>
-      }),
+      (async () => {
+        const result = await updateVisualization({
+          ...getVisualizationUpdateIdentity(visualization),
+          theme: theme as unknown as Record<string, unknown>
+        });
+        if (!result) {
+          throw new Error('Unable to save visualization theme');
+        }
+        return result;
+      })(),
       {
         loading: 'Saving visualization theme',
         success: () => {

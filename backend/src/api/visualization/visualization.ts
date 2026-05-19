@@ -151,6 +151,43 @@ const share = async (
   }
 };
 
+const revokeShare = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name, type, shareId, userId: sharedUserId
+    } = request.body as VisualizationTypes.VisualizationShareRevokeRequest;
+
+    if (!sharedUserId) {
+      throw new Error('Shared user is required');
+    }
+
+    const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+      userId,
+      shareId,
+      name,
+      type
+    };
+
+    ValidatorSchemas.validateWithSchema<
+      VisualizationTypes.VisualizationFilter
+    >(ValidatorSchemas.visualizationFilterSchema, visualizationFilter);
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .revokeShare(visualizationFilter, sharedUserId);
+
+    return returnResponse(response, null, data, next);
+  } catch (err) {
+    return returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const update = async (
   request: Request,
   response: Response,
@@ -343,6 +380,7 @@ export {
   findOne,
   findShared,
   share,
+  revokeShare,
   syncTheme,
   respondToShareInvite,
   browse,

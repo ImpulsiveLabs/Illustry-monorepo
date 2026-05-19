@@ -157,6 +157,37 @@ const share = async (
   }
 };
 
+const revokeShare = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { name, shareId, userId: sharedUserId } = request.body as DashboardTypes.DashboardShareRevokeRequest;
+    if (!sharedUserId) {
+      throw new Error('Shared user is required');
+    }
+
+    const dashboardFilter: DashboardTypes.DashboardFilter = {
+      userId,
+      shareId,
+      name
+    };
+
+    ValidatorSchemas.validateWithSchema<DashboardTypes.DashboardFilter>(ValidatorSchemas.dashboardFilterSchema, dashboardFilter);
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .DashboardBZL
+      .revokeShare(dashboardFilter, sharedUserId);
+
+    returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const respondToShareInvite = async (
   request: Request,
   response: Response,
@@ -246,5 +277,5 @@ const browse = async (
 };
 
 export {
-  create, update, findOne, findShared, share, respondToShareInvite, _delete, browse
+  create, update, findOne, findShared, share, revokeShare, respondToShareInvite, _delete, browse
 };

@@ -101,6 +101,12 @@ type DashboardShareRequest = {
     }>;
 };
 
+type DashboardShareRevokeRequest = {
+    name?: string;
+    shareId?: string;
+    userId: string;
+};
+
 type DashboardShareInviteDecision = {
     token: string;
     decision: 'accept' | 'reject';
@@ -118,5 +124,6 @@ export {
     DashboardShareScope,
     DashboardSharedUser,
     DashboardShareRequest,
+    DashboardShareRevokeRequest,
     DashboardShareInviteDecision
 }

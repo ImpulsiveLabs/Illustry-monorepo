@@ -141,6 +141,27 @@ const shareVisualization = async (
   }
 };
 
+const revokeVisualizationShare = async (
+  revokeRequest: VisualizationTypes.VisualizationShareRevokeRequest
+) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/share`,
+    {
+      method: 'DELETE',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(revokeRequest)
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 const updateVisualization = async (
   visualizationUpdate: VisualizationTypes.VisualizationUpdate
 ) => {
@@ -214,6 +235,7 @@ export {
   findOneVisualization,
   findSharedVisualization,
   shareVisualization,
+  revokeVisualizationShare,
   updateVisualization,
   respondToVisualizationShareInvite,
   syncVisualizationThemes

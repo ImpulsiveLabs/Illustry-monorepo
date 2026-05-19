@@ -14,8 +14,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { shareDashboard } from '@/app/_actions/dashboard';
-import { shareVisualization } from '@/app/_actions/visualization';
+import { revokeDashboardShare, shareDashboard } from '@/app/_actions/dashboard';
+import { revokeVisualizationShare, shareVisualization } from '@/app/_actions/visualization';
 import { useThemeColors } from '@/components/providers/theme-provider';
 import { useLocale } from '@/components/providers/locale-provider';
 import { catchError } from '@/lib/utils';
@@ -28,11 +28,20 @@ type ShareRow = {
   permission: ShareRole;
 }
 
+type ExistingShare = {
+  userId: string;
+  email?: string;
+  name?: string;
+  permission: ShareRole;
+  status?: 'pending' | 'accepted' | 'rejected';
+}
+
 type ShareFormClientProps = {
   resource: 'dashboard' | 'visualization';
   name: string;
   type?: string;
   currentUserEmail: string;
+  existingShares?: ExistingShare[];
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -49,7 +58,8 @@ const ShareFormClient = ({
   resource,
   name,
   type,
-  currentUserEmail
+  currentUserEmail,
+  existingShares = []
 }: ShareFormClientProps) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -110,6 +120,39 @@ const ShareFormClient = ({
     setRows((currentRows) => (currentRows.length === 1 ? currentRows : currentRows.filter((row) => row.id !== id)));
   };
 
+  const revokeShare = (share: ExistingShare) => {
+    const label = share.email || share.name || 'this user';
+    if (!window.confirm(`Revoke access for ${label}?`)) {
+      return;
+    }
+
+    startTransition(() => {
+      toast.promise((async () => {
+        const result = resource === 'dashboard'
+          ? await revokeDashboardShare({
+            name,
+            userId: share.userId
+          })
+          : await revokeVisualizationShare({
+            name,
+            type,
+            userId: share.userId
+          });
+
+        if (!result) {
+          throw new Error('Unable to revoke permission');
+        }
+
+        router.refresh();
+        return result;
+      })(), {
+        loading: 'Revoking permission',
+        success: 'Permission revoked',
+        error: (err: unknown) => catchError(err)
+      });
+    });
+  };
+
   const submit = () => {
     if (!canSubmit) {
       return;
@@ -133,7 +176,7 @@ const ShareFormClient = ({
           throw new Error(t('share.toast.unableToSend'));
         }
 
-        router.push(resource === 'dashboard' ? '/dashboards' : '/visualizations');
+        setRows([createRow()]);
         router.refresh();
         return result;
       })(), {
@@ -145,13 +188,52 @@ const ShareFormClient = ({
   };
 
   return (
-    <div className="mx-auto mt-24 max-w-3xl space-y-4 rounded-lg bg-background p-6 shadow-sm ring-1 ring-border">
+    <div className="mx-auto mt-16 max-w-4xl space-y-5 rounded-lg bg-background p-6 shadow-sm ring-1 ring-border">
       <div>
         <h1 className="text-2xl font-semibold">
           {resource === 'dashboard' ? t('share.titleDashboard') : t('share.titleVisualization')}
         </h1>
         <p className="text-sm text-muted-foreground">{name}</p>
       </div>
+      <section className="rounded-md border bg-muted/20 p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <div>
+            <h2 className="text-sm font-semibold">Current permissions</h2>
+            <p className="text-xs text-muted-foreground">People who currently have an invitation or active access.</p>
+          </div>
+        </div>
+        {existingShares.length > 0 ? (
+          <div className="divide-y rounded-md border bg-background">
+            {existingShares.map((share) => (
+              <div key={share.userId} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_110px_110px_auto] md:items-center">
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{share.name || share.email || 'Shared user'}</p>
+                  {share.email && <p className="truncate text-xs text-muted-foreground">{share.email}</p>}
+                </div>
+                <span className="rounded-full bg-secondary px-2.5 py-1 text-center text-xs font-medium capitalize text-secondary-foreground">
+                  {share.permission}
+                </span>
+                <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
+                  {share.status || 'accepted'}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={isPending}
+                  onClick={() => revokeShare(share)}
+                >
+                  Revoke
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-md border border-dashed bg-background p-4 text-sm text-muted-foreground">
+            No permissions have been granted yet.
+          </p>
+        )}
+      </section>
       <div className="space-y-3">
         {rows.map((row, index) => (
           <div key={row.id} className="grid gap-2 md:grid-cols-[1fr_150px_40px]">
