@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
 import { getStoredTheme } from '@/lib/theme-mode';
 import { VisualizationTypes } from '@illustry/types';
-import { useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { WithFullScreen, WithLegend, WithOptions } from '@/lib/types/utils';
 import { computeCategoriesFLGOrHEB, computeNodesHEB } from '@/lib/visualizations/node-link/helper';
 import {
@@ -22,28 +20,52 @@ type HierarchicalEdgeBundlingGraphProp = {
   & WithOptions
   & WithFullScreen
 
+type EChartsLike = {
+  on: (eventName: 'mouseover' | 'mouseout', handler: (params: HebMouseParams) => void) => void;
+  off?: (eventName: 'mouseover' | 'mouseout', handler: (params: HebMouseParams) => void) => void;
+  setOption: (option: unknown) => void;
+};
+
+type EChartsHandle = {
+  getEchartsInstance?: () => EChartsLike | undefined;
+};
+
+type HebMouseParams = {
+  dataType?: string;
+  data?: {
+    id?: string;
+    name?: string;
+    prop?: string;
+    source?: string;
+    target?: string;
+    value?: number | string;
+  };
+};
+
 const HierarchicalEdgeBundlingGraphView = ({
   nodes, links, legend, fullScreen
 }: HierarchicalEdgeBundlingGraphProp) => {
   const activeTheme = useThemeColors();
   const { t } = useLocale();
   const isDarkTheme = getStoredTheme() === 'dark';
-  const colors = isDarkTheme ? activeTheme.flg.dark.colors : activeTheme.flg.light.colors;
+  const colors = isDarkTheme ? activeTheme.heb.dark.colors : activeTheme.heb.light.colors;
   const categories = computeCategoriesFLGOrHEB(nodes, colors);
   const categoryNames = categories.map((category) => category.name);
   const chartTop = getChartTopPadding(legend);
-  const chartRef = useRef(null);
+  const chartRef = useRef<EChartsHandle | null>(null);
   const recomputedNodes = computeNodesHEB(nodes, categories);
-  const inOutColors = colors.slice(categories.length);
+  const inOutColors = useMemo(() => colors.slice(categories.length), [categories.length, colors]);
   const option = {
     legend: buildLegendOption(legend, categoryNames),
     tooltip: {
-      formatter: (params: any) => {
+      formatter: (params: HebMouseParams) => {
         if (params.dataType === 'edge') {
-          // eslint-disable-next-line max-len
-          return `${params.data.source} → ${params.data.target}<br />Value: ${params.data.value || 0} ${params.data.prop ? `<br/> ${params.data.prop}` : ''}`;
+          const data = params.data || {};
+          const extra = data.prop ? `<br/> ${data.prop}` : '';
+          return `${data.source} → ${data.target}<br />Value: ${data.value || 0} ${extra}`;
         }
-        return `${params.data.name} ${params.data.prop ? `<br/> ${params.data.prop}` : ''}`;
+        const data = params.data || {};
+        return `${data.name} ${data.prop ? `<br/> ${data.prop}` : ''}`;
       }
     },
     animationDurationUpdate: 1500,
@@ -75,11 +97,11 @@ const HierarchicalEdgeBundlingGraphView = ({
     ]
   };
   useEffect(() => {
-    const chartInstance = (chartRef.current as any)?.getEchartsInstance();
-    chartInstance?.on('mouseover', (params: any) => {
+    const chartInstance = chartRef.current?.getEchartsInstance?.();
+    const handleMouseOver = (params: HebMouseParams) => {
       let newLinks: Record<string, unknown>[] = [...links];
       if (params.dataType === 'node') {
-        const nodeId = params.data.id;
+        const nodeId = params.data?.id;
         newLinks = links.map((link) => {
           if (link.source === nodeId) {
             return { ...link, lineStyle: { color: inOutColors[0], width: 3 } };
@@ -91,27 +113,30 @@ const HierarchicalEdgeBundlingGraphView = ({
       }
       if (params.dataType === 'edge') {
         const mouseOverLink = params.data;
-        // eslint-disable-next-line max-len
-        const foundlinkIndex = links.findIndex((link) => link.target === mouseOverLink.target && link.source === mouseOverLink.source);
-        newLinks[foundlinkIndex] = {
-          ...links[foundlinkIndex],
-          lineStyle: {
-            width: 5
-          }
-        };
+        const foundlinkIndex = links.findIndex(
+          (link) => link.target === mouseOverLink?.target && link.source === mouseOverLink?.source
+        );
+        if (foundlinkIndex >= 0) {
+          newLinks[foundlinkIndex] = {
+            ...links[foundlinkIndex],
+            lineStyle: {
+              width: 5
+            }
+          };
+        }
       }
-      chartInstance.setOption({
+      chartInstance?.setOption({
         series: [
           {
             edges: newLinks
           }
         ]
       });
-    });
+    };
 
-    chartInstance?.on('mouseout', (params: any) => {
+    const handleMouseOut = (params: HebMouseParams) => {
       if (params.dataType === 'node' || params.dataType === 'edge') {
-        chartInstance.setOption({
+        chartInstance?.setOption({
           series: [
             {
               edges: links
@@ -119,8 +144,16 @@ const HierarchicalEdgeBundlingGraphView = ({
           ]
         });
       }
-    });
-  }, [links, nodes]);
+    };
+
+    chartInstance?.on('mouseover', handleMouseOver);
+    chartInstance?.on('mouseout', handleMouseOut);
+
+    return () => {
+      chartInstance?.off?.('mouseover', handleMouseOver);
+      chartInstance?.off?.('mouseout', handleMouseOut);
+    };
+  }, [inOutColors, links]);
   const height = fullScreen ? '73.5vh' : '100%';
   return (
     <div className="relative mt-[4%] flex flex-col items-center">

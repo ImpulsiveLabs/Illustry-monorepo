@@ -267,54 +267,6 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     }));
   }
 
-  private getDashboardVisualizationReferences(
-    dashboard: DashboardTypes.DashboardType
-  ): Array<{ name: string; type: string }> {
-    const { visualizations } = dashboard;
-    if (!visualizations || Array.isArray(visualizations)) {
-      return [];
-    }
-
-    return Object.keys(visualizations)
-      .map((visualizationKey) => {
-        const keyParts = visualizationKey.split('_');
-        return {
-          name: keyParts.slice(0, keyParts.length - 1).join('_'),
-          type: (visualizations as { [name: string]: string })[visualizationKey]
-        };
-      })
-      .filter((visualization) => Boolean(visualization.name && visualization.type));
-  }
-
-  private async deleteDashboardVisualizations(
-    dashboard: DashboardTypes.DashboardType,
-    originClientId?: string
-  ): Promise<void> {
-    if (!dashboard.userId || !dashboard.projectName) {
-      return;
-    }
-
-    await Promise.all(this.getDashboardVisualizationReferences(dashboard).map(async (visualization) => {
-      const queryFilter = this.dbaccInstance.Visualization.createFilter({
-        userId: dashboard.userId,
-        projectName: dashboard.projectName,
-        name: visualization.name,
-        type: visualization.type
-      });
-      const visualizationToDelete = await this.dbaccInstance.Visualization.findOneWithSharing(queryFilter);
-      await this.dbaccInstance.Visualization.deleteMany(queryFilter);
-      if (visualizationToDelete?.shareId) {
-        publish({
-          resource: 'visualization',
-          shareId: visualizationToDelete.shareId,
-          action: 'deleted',
-          updatedAt: new Date().toISOString(),
-          originClientId
-        });
-      }
-    }));
-  }
-
   async create(dashboard: DashboardTypes.DashboardCreate): Promise<DashboardTypes.DashboardType> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
     const userId = resolveUserId(dashboard.userId);
@@ -736,9 +688,6 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     const deletedShareId = filter.shareId || dashboardToDelete?.shareId;
     if (dashboardToDelete?.shareId) {
       await this.cleanupDashboardVisualizationShares(dashboardToDelete);
-    }
-    if (dashboardToDelete) {
-      await this.deleteDashboardVisualizations(dashboardToDelete, originClientId);
     }
     await Promise.resolve(this.dbaccInstance.Dashboard.delete(queryFilter));
     if (deletedShareId) {

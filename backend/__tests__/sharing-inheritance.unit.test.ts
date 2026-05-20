@@ -52,6 +52,7 @@ describe('share inheritance behavior', () => {
         },
         Dashboard: {
           createFilter: jest.fn((query) => ({ query })),
+          delete: jest.fn().mockResolvedValue(true),
           findOne: jest.fn().mockResolvedValue(dashboard),
           findOneWithSharing: jest.fn().mockResolvedValue(dashboard),
           updateSharing
@@ -66,6 +67,7 @@ describe('share inheritance behavior', () => {
             shareId: 'viz_direct',
             sharedWith: []
           }),
+          deleteMany: jest.fn().mockResolvedValue(true),
           updateSharing: jest.fn().mockResolvedValue({})
         }
       }
@@ -169,6 +171,22 @@ describe('share inheritance behavior', () => {
         sharedWith: [expect.objectContaining({ sharedViaResource: 'visualization' })]
       })
     );
+  });
+
+  it('deletes the dashboard without deleting its visualizations', async () => {
+    const { dbacc } = createDashboardDbacc();
+    const bzl = new DashboardBZL(dbacc as any);
+
+    await bzl.delete({ name: 'Dashboard', userId: 'owner-1' });
+
+    expect(dbacc.Dashboard.delete).toHaveBeenCalledWith(expect.objectContaining({
+      query: expect.objectContaining({
+        name: 'Dashboard',
+        userId: 'owner-1',
+        projectName: 'Project'
+      })
+    }));
+    expect(dbacc.Visualization.deleteMany).not.toHaveBeenCalled();
   });
 
   it('allows visualization access through a shared dashboard without a direct visualization share', async () => {
