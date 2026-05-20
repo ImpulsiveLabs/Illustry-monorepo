@@ -118,6 +118,31 @@ const findShared = async (
   }
 };
 
+const findSharedThroughDashboard = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const { dashboardShareId } = request.params;
+    const { name, type } = request.query;
+
+    if (typeof name !== 'string' || typeof type !== 'string') {
+      throw new Error('Visualization name and type are required');
+    }
+
+    const data = await Factory.getInstance()
+      .getBZL()
+      .VisualizationBZL
+      .findSharedThroughDashboard(dashboardShareId, name, type, userId);
+
+    return returnResponse(response, null, data, next);
+  } catch (err) {
+    return returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const share = async (
   request: Request,
   response: Response,
@@ -196,8 +221,8 @@ const update = async (
   try {
     const userId = getAuthenticatedUserId(request);
     const {
-      name, type, shareId, theme
-    } = request.body as VisualizationTypes.VisualizationUpdate;
+      name, type, shareId, theme, realtimeClientId
+    } = request.body as VisualizationTypes.VisualizationUpdate & { realtimeClientId?: string };
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
       userId,
@@ -213,7 +238,7 @@ const update = async (
     const data = await Factory.getInstance()
       .getBZL()
       .VisualizationBZL
-      .update(visualizationFilter, { theme });
+      .update(visualizationFilter, { theme }, realtimeClientId as string | undefined);
 
     return returnResponse(response, null, data, next);
   } catch (err) {
@@ -251,7 +276,9 @@ const syncTheme = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(request);
-    const { theme } = request.body as VisualizationTypes.VisualizationThemeSyncRequest;
+    const { theme, realtimeClientId } = request.body as VisualizationTypes.VisualizationThemeSyncRequest & {
+      realtimeClientId?: string;
+    };
 
     if (!theme || typeof theme !== 'object' || Array.isArray(theme)) {
       throw new Error('A valid theme payload is required');
@@ -260,7 +287,7 @@ const syncTheme = async (
     const data = await Factory.getInstance()
       .getBZL()
       .VisualizationBZL
-      .syncEditableSharedThemes(userId, theme);
+      .syncEditableSharedThemes(userId, theme, realtimeClientId);
 
     returnResponse(response, null, data, next);
   } catch (err) {
@@ -311,7 +338,11 @@ const _delete = async (
 ): Promise<void> => {
   try {
     const userId = getAuthenticatedUserId(request);
-    const { body: { name, type, projectName, shareId } } = request;
+    const {
+      body: {
+        name, type, projectName, shareId, realtimeClientId
+      }
+    } = request;
 
     const visualizationFilter: VisualizationTypes.VisualizationFilter = {
       userId,
@@ -327,7 +358,7 @@ const _delete = async (
 
     const data = await Factory.getInstance()
       .getBZL()
-      .VisualizationBZL.delete(visualizationFilter);
+      .VisualizationBZL.delete(visualizationFilter, realtimeClientId);
 
     return returnResponse(response, null, data, next);
   } catch (err) {
@@ -379,6 +410,7 @@ export {
   update,
   findOne,
   findShared,
+  findSharedThroughDashboard,
   share,
   revokeShare,
   syncTheme,

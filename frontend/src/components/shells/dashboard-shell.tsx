@@ -22,6 +22,7 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { exportDashboardCharts, type ChartExportFormat } from '@/lib/chart-export';
+import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 import HubShell from './hub-shell';
 
 type VisualizationData = {
@@ -181,6 +182,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const [layoutPending, setLayoutPending] = useState(false);
   const [exportPendingFormat, setExportPendingFormat] = useState<ChartExportFormat | null>(null);
   const [currentShareId, setCurrentShareId] = useState(dashboard?.shareId);
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
   const dashboardRef = useRef(dashboard);
   const dashboardExportRef = useRef<HTMLDivElement | null>(null);
 
@@ -279,9 +281,10 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     const updatedDash: DashboardTypes.DashboardUpdate = {
       name: currentDashboard.name,
       shareId: currentDashboard.shareId,
+      realtimeClientId,
       layouts: normalizeLayoutForBreakpoint(currentLayout, visibleVisualizations, 'lg')
         .map((item) => ({ ...item }))
-    };
+    } as DashboardTypes.DashboardUpdate & { realtimeClientId: string };
     try {
       const result = await updateDashboard(updatedDash);
       if (result) {
@@ -294,7 +297,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     } finally {
       setLayoutPending(false);
     }
-  }, [canEditDashboard, currentLayout, t, visibleVisualizations]);
+  }, [canEditDashboard, currentLayout, realtimeClientId, t, visibleVisualizations]);
 
   useEffect(() => {
     if (
@@ -309,6 +312,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
     url.searchParams.set('resource', 'dashboard');
     url.searchParams.set('shareId', currentShareId);
+    url.searchParams.set('clientId', realtimeClientId);
 
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let socket: WebSocket | undefined;
@@ -318,17 +322,22 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       socket = new WebSocket(url.toString());
       socket.onmessage = (event) => {
         try {
-          const payload = JSON.parse(event.data) as { type?: string; action?: string };
-          if (payload.type !== 'connected') {
-            if (payload.action === 'deleted') {
-              router.replace('/dashboards?scope=external');
-              router.refresh();
-              return;
-            }
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
+            return;
+          }
+          if (payload.action === 'deleted') {
+            toast.error('This dashboard was deleted by its owner.');
+            closedByComponent = true;
+            socket?.close();
+            router.replace('/');
+            return;
+          }
+          if (payload.action === 'updated' || payload.action === 'shared' || payload.action === 'theme-updated') {
             router.refresh();
           }
         } catch {
-          router.refresh();
+          // Ignore malformed realtime messages instead of disturbing the current session.
         }
       };
       socket.onclose = () => {
@@ -351,10 +360,69 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         // The browser may already have torn the socket down during navigation.
       }
     };
-  }, [currentShareId, router]);
+  }, [currentShareId, realtimeClientId, router]);
+
+  useEffect(() => {
+    if (
+      !canEditDashboard
+      || currentShareId
+      || !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
+      || typeof WebSocket === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.searchParams.set('resource', 'user');
+    url.searchParams.set('shareId', 'me');
+    url.searchParams.set('clientId', realtimeClientId);
+
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket | undefined;
+    let closedByComponent = false;
+
+    const connect = () => {
+      socket = new WebSocket(url.toString());
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
+            return;
+          }
+          if (payload.action === 'updated') {
+            router.refresh();
+          }
+        } catch {
+          // Ignore malformed realtime messages instead of disturbing the current dashboard.
+        }
+      };
+      socket.onclose = () => {
+        if (!closedByComponent) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByComponent = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      socket?.close();
+    };
+  }, [canEditDashboard, currentShareId, realtimeClientId, router]);
 
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
     if (dashboard?.isExternal) {
+      if (viz.accessType === 'inherited' && viz.sourceDashboardId) {
+        router.push(
+          `/visualizationhub?dashboardShare=${encodeURIComponent(viz.sourceDashboardId)}&name=${encodeURIComponent(viz.name)}&type=${encodeURIComponent(String(viz.type))}`
+        );
+        return;
+      }
       if (viz.shareId) {
         router.push(`/visualizationhub?share=${encodeURIComponent(viz.shareId)}`);
         return;
@@ -512,7 +580,13 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="min-h-0 flex-1 overflow-hidden p-2">
-                  <HubShell data={viz} fullScreen={false} filter={false} legend={true} />
+                  <HubShell
+                    data={viz}
+                    fullScreen={false}
+                    filter={false}
+                    legend={true}
+                    useDataTheme={Boolean(dashboard?.isExternal)}
+                  />
                 </CardContent>
               </div>
             </Card>

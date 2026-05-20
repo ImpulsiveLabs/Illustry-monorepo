@@ -32,6 +32,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import Checkbox from '@/components/ui/checkbox';
 import Fallback from '@/components/ui/fallback';
 import Icons from '@/components/icons';
+import { getRealtimeClientId } from '@/lib/realtime-client';
 import { cn } from '@/lib/utils';
 import {
   useAppThemeConfig,
@@ -261,6 +262,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
   const themeSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const appThemeSyncMountedRef = useRef(false);
   const appThemeSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
   const hasResolvedInitialModeRef = useRef(false);
   const [selectedSchemeName, setSelectedSchemeName] = useState<string | null>(appTheme.presetId || null);
   const [activeSection, setActiveSection] = useState<ThemeSectionId>('presets');
@@ -326,7 +328,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
     }
 
     themeSyncTimerRef.current = setTimeout(() => {
-      void syncVisualizationThemes(activeTheme as unknown as Record<string, unknown>);
+      void syncVisualizationThemes(activeTheme as unknown as Record<string, unknown>, realtimeClientId);
     }, 1000);
 
     return () => {
@@ -334,7 +336,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
         clearTimeout(themeSyncTimerRef.current);
       }
     };
-  }, [activeTheme]);
+  }, [activeTheme, realtimeClientId]);
 
   useEffect(() => {
     if (!appThemeSyncMountedRef.current) {
@@ -351,7 +353,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
     appThemeSyncTimerRef.current = setTimeout(() => {
       const themeToSave = ThemeTypes.normalizeAppThemeConfig(appTheme);
       setSyncState('syncing');
-      void saveUserThemeConfig(themeToSave).then((savedTheme) => {
+      void saveUserThemeConfig(themeToSave, realtimeClientId).then((savedTheme) => {
         setSyncState(savedTheme ? 'synced' : 'error');
       });
     }, 1600);
@@ -361,7 +363,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
         clearTimeout(appThemeSyncTimerRef.current);
       }
     };
-  }, [appTheme]);
+  }, [appTheme, realtimeClientId]);
 
   const dispatchThemeConfig = (nextTheme: ThemeTypes.AppThemeConfig, touch = true) => {
     const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(nextTheme);
@@ -443,7 +445,10 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
 
   const saveTheme = async () => {
     const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(appTheme);
-    const savedTheme = await saveUserThemeConfig(normalizedTheme);
+    const [savedTheme] = await Promise.all([
+      saveUserThemeConfig(normalizedTheme, realtimeClientId),
+      syncVisualizationThemes(normalizedTheme.visualizations as unknown as Record<string, unknown>, realtimeClientId)
+    ]);
     if (!savedTheme) {
       toast.error(t('theme.toast.saveError'));
       return;
@@ -460,7 +465,7 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
       return;
     }
 
-    const resetThemeConfig = await resetUserThemeConfig();
+    const resetThemeConfig = await resetUserThemeConfig(realtimeClientId);
     const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(resetThemeConfig || undefined);
     dispatchThemeConfig(normalizedTheme);
     setSelectedSchemeName('default');

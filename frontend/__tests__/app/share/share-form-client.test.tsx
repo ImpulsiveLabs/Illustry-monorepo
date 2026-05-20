@@ -36,9 +36,11 @@ describe('ShareFormClient', () => {
         resource="dashboard"
         name="Revenue"
         currentUserEmail="owner@example.com"
+        includedVisualizationCount={2}
       />
     );
 
+    expect(screen.getByText(/also gives view-only access to 2 dashboard visualizations/i)).toBeInTheDocument();
     await user.type(screen.getByLabelText('Email 1'), 'viewer@example.com');
     await user.click(screen.getByRole('button', { name: 'Add user' }));
     await user.type(screen.getByLabelText('Email 2'), 'second@example.com');
@@ -134,6 +136,7 @@ describe('ShareFormClient', () => {
 
     expect(screen.getByText('Current permissions')).toBeInTheDocument();
     expect(screen.getByText('viewer@example.com')).toBeInTheDocument();
+    expect(screen.getByText('direct')).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Revoke' }));
 
@@ -143,5 +146,36 @@ describe('ShareFormClient', () => {
         userId: 'user-2'
       });
     });
+  });
+
+  it('labels inherited visualization access and blocks revoking it as a direct share', async () => {
+    const user = userEvent.setup();
+    const confirm = vi.spyOn(window, 'confirm').mockReturnValueOnce(true);
+
+    render(
+      <ShareFormClient
+        resource="visualization"
+        name="Revenue"
+        type="bar-chart"
+        currentUserEmail="owner@example.com"
+        existingShares={[
+          {
+            userId: 'user-2',
+            email: 'viewer@example.com',
+            name: 'Viewer User',
+            permission: 'viewer',
+            status: 'accepted',
+            accessType: 'inherited',
+            sourceType: 'dashboard',
+            sourceDashboardId: 'dash_shared'
+          }
+        ]}
+      />
+    );
+
+    expect(screen.getByText('inherited')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Revoke' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Revoke' }));
+    expect(confirm).not.toHaveBeenCalled();
   });
 });

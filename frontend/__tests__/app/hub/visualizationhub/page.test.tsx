@@ -1,7 +1,7 @@
 import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Hub from '@/app/(hub)/visualizationhub/page';
-import { findOneVisualization } from '@/app/_actions/visualization';
+import { findDashboardSharedVisualization, findOneVisualization } from '@/app/_actions/visualization';
 import { describe, it, vi, expect } from 'vitest';
 
 vi.mock('next/navigation', () => ({
@@ -30,6 +30,8 @@ vi.mock('@/app/(hub)/visualizationhub/visualization-hub-client', () => ({
 vi.mock('@/app/_actions/visualization', async () => {
   return {
     findOneVisualization: vi.fn(),
+    findSharedVisualization: vi.fn(),
+    findDashboardSharedVisualization: vi.fn(),
   };
 });
 
@@ -60,5 +62,21 @@ describe('Hub page', () => {
     );
 
     expect(findOneVisualization).toHaveBeenCalledWith({ name: undefined, type: undefined });
+  });
+
+  it('fetches inherited visualizations through a dashboard share context', async () => {
+    const mockedData = { name: 'Inherited Viz', type: 'bar-chart' };
+    (findDashboardSharedVisualization as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockedData);
+
+    render(
+      await Hub({
+        searchParams: { dashboardShare: 'dash_shared', name: 'Inherited Viz', type: 'bar-chart' },
+      })
+    );
+
+    expect(findDashboardSharedVisualization).toHaveBeenCalledWith(
+      'dash_shared',
+      { name: 'Inherited Viz', type: 'bar-chart' }
+    );
   });
 });

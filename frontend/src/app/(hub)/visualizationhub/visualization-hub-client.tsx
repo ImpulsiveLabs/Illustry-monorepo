@@ -3,106 +3,36 @@
 import { VisualizationTypes } from '@illustry/types';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import HubShell from '@/components/shells/hub-shell';
 import {
   ThemeColorsProvider,
-  readCachedThemeColors,
-  useThemeColors,
-  useThemeColorsDispach,
   type ThemeColors
 } from '@/components/providers/theme-provider';
-import { Button } from '@/components/ui/button';
-import { updateVisualization } from '@/app/_actions/visualization';
-import { catchError } from '@/lib/utils';
+import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 
 type VisualizationHubClientProps = {
   visualization: VisualizationTypes.VisualizationType | null;
 }
 
-const getVisualizationUpdateIdentity = (visualization: VisualizationTypes.VisualizationType) => (
-  visualization.shareId && visualization.isExternal
-    ? { shareId: visualization.shareId }
-    : { name: visualization.name, type: visualization.type }
-);
-
-const VisualizationThemeToolbar = ({
-  visualization
-}: VisualizationHubClientProps) => {
-  const router = useRouter();
-  const displayedTheme = useThemeColors();
-  const themeDispatch = useThemeColorsDispach();
-
-  if (!visualization) {
-    return null;
-  }
-
-  const canEditTheme = !visualization.isExternal;
-
-  if (!canEditTheme) {
-    return null;
-  }
-
-  const saveTheme = (theme: ThemeColors, successMessage: string) => {
-    toast.promise(
-      (async () => {
-        const result = await updateVisualization({
-          ...getVisualizationUpdateIdentity(visualization),
-          theme: theme as unknown as Record<string, unknown>
-        });
-        if (!result) {
-          throw new Error('Unable to save visualization theme');
-        }
-        return result;
-      })(),
-      {
-        loading: 'Saving visualization theme',
-        success: () => {
-          router.refresh();
-          return successMessage;
-        },
-        error: (err: unknown) => catchError(err)
-      }
-    );
-  };
-
-  return (
-    <div className="flex flex-wrap justify-end gap-2 border-b bg-background p-2" data-export-exclude="true">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        onClick={() => saveTheme(displayedTheme, 'Visualization theme saved')}
-      >
-        Save theme
-      </Button>
-      <Button
-        type="button"
-        size="sm"
-        onClick={() => {
-          const cachedTheme = readCachedThemeColors('default');
-          if (!cachedTheme) {
-            saveTheme(displayedTheme, 'Visualization theme saved');
-            return;
-          }
-          themeDispatch?.({ type: 'apply', modifiedData: cachedTheme });
-          saveTheme(cachedTheme, 'Visualization theme updated from your theme');
-        }}
-      >
-        Use my theme
-      </Button>
-    </div>
-  );
-};
-
 const VisualizationHubClient = ({
   visualization
 }: VisualizationHubClientProps) => {
   const router = useRouter();
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
+  const realtimeSubscription = useMemo(() => {
+    if (visualization?.shareId) {
+      return { resource: 'visualization', shareId: visualization.shareId };
+    }
+    if (visualization?.sourceType === 'dashboard' && visualization.sourceDashboardId) {
+      return { resource: 'dashboard', shareId: visualization.sourceDashboardId };
+    }
+    return null;
+  }, [visualization?.shareId, visualization?.sourceDashboardId, visualization?.sourceType]);
 
   useEffect(() => {
     if (
-      !visualization?.shareId
+      !realtimeSubscription
       || !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
       || typeof WebSocket === 'undefined'
     ) {
@@ -111,8 +41,9 @@ const VisualizationHubClient = ({
 
     const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
     url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
-    url.searchParams.set('resource', 'visualization');
-    url.searchParams.set('shareId', visualization.shareId);
+    url.searchParams.set('resource', realtimeSubscription.resource);
+    url.searchParams.set('shareId', realtimeSubscription.shareId);
+    url.searchParams.set('clientId', realtimeClientId);
 
     let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
     let socket: WebSocket | undefined;
@@ -122,18 +53,26 @@ const VisualizationHubClient = ({
       socket = new WebSocket(url.toString());
       socket.onmessage = (event) => {
         try {
-          const payload = JSON.parse(event.data) as { type?: string; action?: string };
-          if (payload.type === 'connected') {
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
             return;
           }
           if (payload.action === 'deleted') {
-            router.replace('/visualizations?scope=external');
-            router.refresh();
+            toast.error(
+              realtimeSubscription.resource === 'dashboard'
+                ? 'This dashboard was deleted by its owner.'
+                : 'This visualization was deleted by its owner.'
+            );
+            closedByComponent = true;
+            socket?.close();
+            router.replace('/');
             return;
           }
-          router.refresh();
+          if (payload.action === 'updated' || payload.action === 'shared' || payload.action === 'theme-updated') {
+            router.refresh();
+          }
         } catch {
-          router.refresh();
+          // Ignore malformed realtime messages instead of disturbing the current session.
         }
       };
       socket.onclose = () => {
@@ -152,16 +91,19 @@ const VisualizationHubClient = ({
       }
       socket?.close();
     };
-  }, [router, visualization?.shareId]);
+  }, [realtimeClientId, realtimeSubscription, router]);
 
   const content = (
-    <>
-      <VisualizationThemeToolbar visualization={visualization} />
-      <HubShell data={visualization} fullScreen filter legend useDataTheme={false} />
-    </>
+    <HubShell
+      data={visualization}
+      fullScreen
+      filter
+      legend
+      useDataTheme={Boolean(visualization?.isExternal)}
+    />
   );
 
-  if (visualization?.theme) {
+  if (visualization?.isExternal && visualization?.theme) {
     return (
       <ThemeColorsProvider
         initialTheme={visualization.theme as ThemeColors}

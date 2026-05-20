@@ -150,6 +150,9 @@ type VisualizationData = {
   currentUserRole?: VisualizationSharePermission | 'owner';
   shareStatus?: VisualizationShareStatus;
   isExternal?: boolean;
+  accessType?: 'direct' | 'inherited';
+  sourceType?: 'dashboard' | 'visualization';
+  sourceDashboardId?: string;
   shareId?: string;
   sharedWith?: VisualizationSharedUser[];
   projectName: string;
@@ -248,11 +251,13 @@ type VisualizationShareInviteDecision = {
 
 type VisualizationThemeSyncRequest = {
   theme: Record<string, unknown>;
+  realtimeClientId?: string;
 }
 
 type VisualizationThemeSyncResult = {
   updatedCount: number;
   shareIds: string[];
+  dashboardShareIds?: string[];
 }
 
 export {

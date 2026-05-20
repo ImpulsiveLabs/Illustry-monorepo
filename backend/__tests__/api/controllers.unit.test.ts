@@ -7,6 +7,7 @@ const projectBrowseMock = jest.fn();
 const visualizationCreateOrUpdateMock = jest.fn();
 const visualizationCreateOrUpdateFromFilesMock = jest.fn();
 const visualizationFindOneMock = jest.fn();
+const visualizationFindSharedThroughDashboardMock = jest.fn();
 const visualizationDeleteMock = jest.fn();
 const visualizationBrowseMock = jest.fn();
 const dashboardCreateMock = jest.fn();
@@ -60,6 +61,7 @@ jest.mock('../../src/factory', () => ({
           createOrUpdate: visualizationCreateOrUpdateMock,
           createOrUpdateFromFiles: visualizationCreateOrUpdateFromFilesMock,
           findOne: visualizationFindOneMock,
+          findSharedThroughDashboard: visualizationFindSharedThroughDashboardMock,
           delete: visualizationDeleteMock,
           browse: visualizationBrowseMock
         },
@@ -138,6 +140,7 @@ describe('api controllers', () => {
     visualizationCreateOrUpdateMock.mockResolvedValue({ visualization: true });
     visualizationCreateOrUpdateFromFilesMock.mockResolvedValue({ uploaded: true });
     visualizationFindOneMock.mockResolvedValue({ found: true });
+    visualizationFindSharedThroughDashboardMock.mockResolvedValue({ found: true });
     visualizationDeleteMock.mockResolvedValue({ deleted: true });
     visualizationBrowseMock.mockResolvedValue([{ name: 'Chart' }]);
     dashboardCreateMock.mockResolvedValue({ ok: true });
@@ -351,7 +354,8 @@ describe('api controllers', () => {
     });
     expect(dashboardUpdateMock).toHaveBeenCalledWith(
       { userId: 'user-1', name: 'Dashboard' },
-      expect.objectContaining({ layouts: { lg: [] } })
+      expect.objectContaining({ layouts: { lg: [] } }),
+      undefined
     );
 
     await callHandler(dashboardApi.findOne, {
@@ -365,7 +369,7 @@ describe('api controllers', () => {
     expect(dashboardBrowseMock).toHaveBeenCalledWith(expect.objectContaining({ per_page: 25 }));
 
     await callHandler(dashboardApi._delete, { auth, body: { name: 'Dashboard' } });
-    expect(dashboardDeleteMock).toHaveBeenCalledWith({ userId: 'user-1', name: 'Dashboard' });
+    expect(dashboardDeleteMock).toHaveBeenCalledWith({ userId: 'user-1', name: 'Dashboard' }, undefined);
   });
 
   it('runs visualization controller success paths', async () => {
@@ -408,6 +412,18 @@ describe('api controllers', () => {
     });
     expect(visualizationFindOneMock).toHaveBeenCalledWith({ userId: 'user-1', name: 'Chart', type: 'bar-chart' });
 
+    await callHandler(visualizationApi.findSharedThroughDashboard, {
+      auth,
+      params: { dashboardShareId: 'dash_shared' },
+      query: { name: 'Chart', type: 'bar-chart' }
+    });
+    expect(visualizationFindSharedThroughDashboardMock).toHaveBeenCalledWith(
+      'dash_shared',
+      'Chart',
+      'bar-chart',
+      'user-1'
+    );
+
     await callHandler(visualizationApi.browse, { auth, body: { text: 'chart', page: 1, sort: 'name', per_page: 50 } });
     expect(visualizationBrowseMock).toHaveBeenCalledWith(expect.objectContaining({ per_page: 50 }));
 
@@ -415,7 +431,10 @@ describe('api controllers', () => {
       auth,
       body: { name: 'Chart', type: 'bar-chart', projectName: 'Project' }
     });
-    expect(visualizationDeleteMock).toHaveBeenCalledWith(expect.objectContaining({ projectName: 'Project' }));
+    expect(visualizationDeleteMock).toHaveBeenCalledWith(
+      expect.objectContaining({ projectName: 'Project' }),
+      undefined
+    );
   });
 
   it('returns controller errors through response helpers', async () => {

@@ -1,5 +1,4 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-/* eslint-disable no-unused-vars */
 import {
   VisualizationTypes, ProjectTypes, FileTypes, UtilTypes, GenericTypes, ValidatorSchemas,
   DashboardTypes
@@ -45,29 +44,82 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       return true;
     }
 
-    const collaborator = visualization.sharedWith?.find((sharedUser) => sharedUser.userId === userId);
+    const collaborator = this.getActiveDirectShare(visualization, userId);
     if (!collaborator) {
-      return false;
-    }
-    if (collaborator.status && collaborator.status !== 'accepted') {
       return false;
     }
 
     return requiredPermission === 'viewer';
   }
 
+  private getActiveDirectShare(
+    visualization: VisualizationTypes.VisualizationType,
+    userId: string
+  ): VisualizationTypes.VisualizationSharedUser | undefined {
+    return visualization.sharedWith?.find((sharedUser) => (
+      sharedUser.userId === userId
+      && (!sharedUser.status || sharedUser.status === 'accepted')
+      && (
+        !sharedUser.sharedViaResource
+        || sharedUser.sharedViaResource === 'visualization'
+        || sharedUser.sharedViaShareId === visualization.shareId
+      )
+    ));
+  }
+
   private getCollaboratorMetadata(
     visualization: VisualizationTypes.VisualizationType,
     userId: string
-  ): Pick<VisualizationTypes.VisualizationType, 'currentUserRole' | 'shareStatus' | 'isExternal'> {
+  ): Pick<
+    VisualizationTypes.VisualizationType,
+    'currentUserRole' | 'shareStatus' | 'isExternal' | 'accessType' | 'sourceType' | 'sourceDashboardId'
+  > {
     if (visualization.userId === userId) {
-      return { currentUserRole: 'owner', shareStatus: 'accepted', isExternal: false };
+      return {
+        currentUserRole: 'owner',
+        shareStatus: 'accepted',
+        isExternal: false,
+        accessType: 'direct',
+        sourceType: 'visualization'
+      };
     }
-    const collaborator = visualization.sharedWith?.find((sharedUser) => sharedUser.userId === userId);
+    const collaborator = this.getActiveDirectShare(visualization, userId);
     return {
       currentUserRole: collaborator ? 'viewer' : undefined,
       shareStatus: collaborator?.status || 'accepted',
-      isExternal: true
+      isExternal: true,
+      accessType: 'direct',
+      sourceType: 'visualization'
+    };
+  }
+
+  private annotateInheritedDashboardAccess(
+    visualization: VisualizationTypes.VisualizationType,
+    requesterUserId: string,
+    sourceDashboardId?: string
+  ): VisualizationTypes.VisualizationType {
+    const directShare = this.getActiveDirectShare(visualization, requesterUserId);
+    if (directShare) {
+      return {
+        ...visualization,
+        ownerEmail: visualization.ownerEmail,
+        ownerName: visualization.ownerName,
+        currentUserRole: 'viewer',
+        shareStatus: directShare.status || 'accepted',
+        isExternal: true,
+        accessType: 'direct',
+        sourceType: 'visualization'
+      };
+    }
+
+    return {
+      ...visualization,
+      currentUserRole: 'viewer',
+      shareStatus: 'accepted',
+      isExternal: true,
+      accessType: 'inherited',
+      sourceType: 'dashboard',
+      sourceDashboardId
     };
   }
 
@@ -109,14 +161,16 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
   update(
     filter: VisualizationTypes.VisualizationFilter,
-    data: UtilTypes.DeepPartial<VisualizationTypes.VisualizationType>
+    data: UtilTypes.DeepPartial<VisualizationTypes.VisualizationType>,
+    originClientId?: string
   ): Promise<VisualizationTypes.VisualizationType | null> {
-    return this.updateVisualization(filter, data);
+    return this.updateVisualization(filter, data, originClientId);
   }
 
   private async updateVisualization(
     filter: VisualizationTypes.VisualizationFilter,
-    data: VisualizationTypes.VisualizationUpdate
+    data: VisualizationTypes.VisualizationUpdate,
+    originClientId?: string
   ): Promise<VisualizationTypes.VisualizationType | null> {
     const userId = resolveUserId(filter.userId);
     const allowedUpdate: VisualizationTypes.VisualizationUpdate = {};
@@ -142,7 +196,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           resource: 'visualization',
           shareId: updatedVisualization.shareId,
           action: 'updated',
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          originClientId
         });
       }
       return updatedVisualization;
@@ -169,7 +224,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         resource: 'visualization',
         shareId: updatedVisualization.shareId,
         action: 'updated',
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        originClientId
       });
     }
     return updatedVisualization;
@@ -177,7 +233,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
 
   async syncEditableSharedThemes(
     userId: string,
-    theme: Record<string, unknown>
+    theme: Record<string, unknown>,
+    originClientId?: string
   ): Promise<VisualizationTypes.VisualizationThemeSyncResult> {
     if (!theme || typeof theme !== 'object' || Array.isArray(theme)) {
       throw new Error('A valid theme payload is required');
@@ -190,21 +247,38 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         .map((target) => target.shareId)
         .filter((shareId): shareId is string => Boolean(shareId))
     ));
+    const dashboardTargets = await this.dbaccInstance.Dashboard.findSharedThemeTargets(scopedUserId);
+    const dashboardShareIds = Array.from(new Set(
+      dashboardTargets
+        .map((target) => target.shareId)
+        .filter((shareId): shareId is string => Boolean(shareId))
+    ));
 
-    const updatedCount = await this.dbaccInstance.Visualization.updateThemeForShareIds(shareIds, theme);
+    const updatedCount = await this.dbaccInstance.Visualization.updateThemeForUser(scopedUserId, theme);
     const updatedAt = new Date().toISOString();
     shareIds.forEach((shareId) => {
       publish({
         resource: 'visualization',
         shareId,
         action: 'theme-updated',
-        updatedAt
+        updatedAt,
+        originClientId
+      });
+    });
+    dashboardShareIds.forEach((shareId) => {
+      publish({
+        resource: 'dashboard',
+        shareId,
+        action: 'theme-updated',
+        updatedAt,
+        originClientId
       });
     });
 
     return {
       updatedCount,
-      shareIds
+      shareIds,
+      dashboardShareIds
     };
   }
 
@@ -369,6 +443,48 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     };
   }
 
+  async findSharedThroughDashboard(
+    dashboardShareId: string,
+    visualizationName: string,
+    visualizationType: string,
+    requesterUserId: string
+  ): Promise<VisualizationTypes.VisualizationType> {
+    const dashboard = await Factory.getInstance()
+      .getBZL()
+      .DashboardBZL
+      .findShared(dashboardShareId, requesterUserId, false);
+
+    const visualizations = dashboard.visualizations;
+    if (!visualizations || Array.isArray(visualizations)) {
+      throw new NoDataFoundError('Shared dashboard visualization was not found');
+    }
+
+    if (visualizations[`${visualizationName}_${visualizationType}`] !== visualizationType) {
+      throw new NoDataFoundError('Shared dashboard visualization was not found');
+    }
+
+    const queryFilter = this.dbaccInstance.Visualization.createFilter({
+      userId: dashboard.userId,
+      projectName: dashboard.projectName,
+      name: visualizationName,
+      type: visualizationType
+    });
+    const visualization = await this.dbaccInstance.Visualization.findOneWithSharing(queryFilter);
+    if (!visualization) {
+      throw new NoDataFoundError('Shared dashboard visualization was not found');
+    }
+
+    const owner = visualization.userId
+      ? await this.dbaccInstance.Auth.findUserById(visualization.userId).catch(() => null)
+      : null;
+
+    return this.annotateInheritedDashboardAccess({
+      ...visualization,
+      ownerEmail: owner?.email,
+      ownerName: owner?.name
+    }, requesterUserId, dashboard.shareId);
+  }
+
   async share(
     filter: VisualizationTypes.VisualizationFilter,
     collaborators: VisualizationTypes.VisualizationShareRequest['collaborators'],
@@ -392,7 +508,17 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         throw new NoDataFoundError(`No user was found for ${collaborator.email}`);
       }
 
-      const previous = existingSharedWith.find((sharedUser) => sharedUser.userId === user._id.toString());
+      const previous = this.getActiveDirectShare(
+        visualization,
+        user._id.toString()
+      ) || existingSharedWith.find((sharedUser) => (
+        sharedUser.userId === user._id.toString()
+        && (
+          !sharedUser.sharedViaResource
+          || sharedUser.sharedViaResource === 'visualization'
+          || sharedUser.sharedViaShareId === existingShareId
+        )
+      ));
       const createdAt = previous?.createdAt || now;
       if (previous) {
         return null;
@@ -416,7 +542,14 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       (sharedUser): sharedUser is VisualizationTypes.VisualizationSharedUser => Boolean(sharedUser)
     );
     const mergedSharedWith = [
-      ...existingSharedWith.filter((existing) => !sharedWith.some((next) => next.userId === existing.userId)),
+      ...existingSharedWith.filter((existing) => !sharedWith.some((next) => (
+        next.userId === existing.userId
+        && (
+          !existing.sharedViaResource
+          || existing.sharedViaResource === 'visualization'
+          || existing.sharedViaShareId === existingShareId
+        )
+      ))),
       ...sharedWith
     ];
 
@@ -597,7 +730,7 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
     return updatedVisualization;
   }
 
-  async delete(filter: VisualizationTypes.VisualizationFilter): Promise<boolean> {
+  async delete(filter: VisualizationTypes.VisualizationFilter, originClientId?: string): Promise<boolean> {
     const projectBZL = Factory.getInstance().getBZL().ProjectBZL;
     const userId = resolveUserId(filter.userId);
 
@@ -607,19 +740,12 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         const currentShare = (sharedVisualization.sharedWith || []).find(
           (sharedUser) => sharedUser.userId === userId
         );
-        const now = new Date();
-        const nextSharedWith = currentShare?.sharedViaResource === 'dashboard'
-          ? (sharedVisualization.sharedWith || []).map((sharedUser) => (sharedUser.userId === userId
-            ? {
-              ...sharedUser,
-              status: 'rejected' as VisualizationTypes.VisualizationShareStatus,
-              inviteToken: undefined,
-              inviteExpiresAt: undefined,
-              respondedAt: now,
-              updatedAt: now
-            }
-            : sharedUser))
-          : (sharedVisualization.sharedWith || []).filter((sharedUser) => sharedUser.userId !== userId);
+        if (currentShare?.sharedViaResource === 'dashboard') {
+          throw new Error('Dashboard visualization access can only be managed from the shared dashboard');
+        }
+        const nextSharedWith = (sharedVisualization.sharedWith || []).filter(
+          (sharedUser) => sharedUser.userId !== userId
+        );
         await this.dbaccInstance.Visualization.updateSharing(
           this.dbaccInstance.Visualization.createFilter({ shareId: filter.shareId }),
           { shareId: filter.shareId, sharedWith: nextSharedWith, theme: sharedVisualization.theme }
@@ -628,7 +754,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           resource: 'visualization',
           shareId: filter.shareId,
           action: 'shared',
-          updatedAt: new Date().toISOString()
+          updatedAt: new Date().toISOString(),
+          originClientId
         });
         return true;
       }
@@ -700,7 +827,8 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         resource: 'visualization',
         shareId: deletedVisualization.shareId,
         action: 'deleted',
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
+        originClientId
       });
     }
     return true;

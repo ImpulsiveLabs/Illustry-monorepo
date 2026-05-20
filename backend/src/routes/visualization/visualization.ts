@@ -23,6 +23,7 @@ router.put('/api/visualization', requireCsrf, VisualizationAPI.update);
 router.post('/api/visualizations', VisualizationAPI.browse);
 router.put('/api/visualizations/theme', requireCsrf, VisualizationAPI.syncTheme);
 router.get('/api/visualization/shared/:shareId', VisualizationAPI.findShared);
+router.get('/api/visualization/shared-dashboard/:dashboardShareId', VisualizationAPI.findSharedThroughDashboard);
 router.put('/api/visualization/share', requireCsrf, VisualizationAPI.share);
 router.delete('/api/visualization/share', requireCsrf, VisualizationAPI.revokeShare);
 router.post('/api/visualization/share/respond', requireCsrf, VisualizationAPI.respondToShareInvite);

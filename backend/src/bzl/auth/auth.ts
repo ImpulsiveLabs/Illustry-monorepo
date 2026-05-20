@@ -21,6 +21,7 @@ import {
 } from '../../auth/types';
 import { normalizeEmail } from '../../auth/validation';
 import logger from '../../config/logger';
+import { publish } from '../../realtime/broker';
 
 const isMongoObjectId = (value: string) => /^[0-9a-f]{24}$/i.test(value);
 
@@ -398,7 +399,8 @@ class AuthBZL {
 
   async updateThemeConfig(
     userId: string,
-    themeConfig: Record<string, unknown>
+    themeConfig: Record<string, unknown>,
+    originClientId?: string
   ): Promise<ThemeTypes.AppThemeConfig> {
     const normalizedTheme = ThemeTypes.normalizeAppThemeConfig(themeConfig);
     const updatedUser = await this.dbaccInstance.Auth.updateUserThemeConfigById(userId, normalizedTheme as unknown as Record<string, unknown>);
@@ -407,15 +409,31 @@ class AuthBZL {
       throw new AuthHttpError(401, 'Authentication required');
     }
 
+    publish({
+      resource: 'theme',
+      shareId: userId,
+      action: 'theme-updated',
+      updatedAt: new Date().toISOString(),
+      originClientId
+    });
+
     return ThemeTypes.normalizeAppThemeConfig(updatedUser?.themeConfig || normalizedTheme);
   }
 
-  async resetThemeConfig(userId: string): Promise<ThemeTypes.AppThemeConfig> {
+  async resetThemeConfig(userId: string, originClientId?: string): Promise<ThemeTypes.AppThemeConfig> {
     const updatedUser = await this.dbaccInstance.Auth.updateUserThemeConfigById(userId, undefined);
 
     if (updatedUser === null && process.env.NODE_ENV !== 'test') {
       throw new AuthHttpError(401, 'Authentication required');
     }
+
+    publish({
+      resource: 'theme',
+      shareId: userId,
+      action: 'theme-updated',
+      updatedAt: new Date().toISOString(),
+      originClientId
+    });
 
     return ThemeTypes.normalizeAppThemeConfig();
   }

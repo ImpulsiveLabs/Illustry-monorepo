@@ -8,13 +8,14 @@ import {
   getRedisSocketTimeoutMs
 } from '../config/timeouts';
 
-type RealtimeResource = 'dashboard' | 'visualization';
+type RealtimeResource = 'dashboard' | 'visualization' | 'theme' | 'user';
 
 type RealtimeEvent = {
   resource: RealtimeResource;
   shareId: string;
   action: 'created' | 'updated' | 'deleted' | 'shared' | 'theme-updated';
   updatedAt: string;
+  originClientId?: string;
 };
 
 type RealtimeSocket = WebSocket & {
@@ -27,7 +28,7 @@ type RealtimeAuthorizer = (
   request: IncomingMessage,
   resource: RealtimeResource,
   shareId: string
-) => Promise<void>;
+) => Promise<string | void>;
 
 const REALTIME_PATH = '/api/realtime';
 const REDIS_CHANNEL = process.env.REDIS_REALTIME_CHANNEL || 'illustry:realtime';
@@ -207,15 +208,20 @@ class RealtimeBroker {
     const resource = parsedUrl.searchParams.get('resource') as RealtimeResource | null;
     const shareId = parsedUrl.searchParams.get('shareId');
 
-    if (!shareId || (resource !== 'dashboard' && resource !== 'visualization')) {
+    if (!shareId || (
+      resource !== 'dashboard'
+      && resource !== 'visualization'
+      && resource !== 'theme'
+      && resource !== 'user'
+    )) {
       this.rejectSocket(socket, 400, 'Invalid realtime subscription');
       return;
     }
 
     try {
-      await this.authorizer(request, resource, shareId);
+      const authorizedShareId = await this.authorizer(request, resource, shareId);
       this.webSocketServer.handleUpgrade(request, socket, head, (webSocket) => {
-        this.register(webSocket as RealtimeSocket, resource, shareId);
+        this.register(webSocket as RealtimeSocket, resource, authorizedShareId || shareId);
       });
     } catch (error) {
       logger.warn('Realtime websocket authorization rejected', error);
@@ -315,6 +321,10 @@ const authorizeRealtimeSubscription: RealtimeAuthorizer = async (
   if (resource === 'dashboard') {
     await bzl.DashboardBZL.findShared(shareId, principal.user._id.toString(), false);
     return;
+  }
+
+  if (resource === 'theme' || resource === 'user') {
+    return principal.user._id.toString();
   }
 
   await bzl.VisualizationBZL.findShared(shareId, principal.user._id.toString());

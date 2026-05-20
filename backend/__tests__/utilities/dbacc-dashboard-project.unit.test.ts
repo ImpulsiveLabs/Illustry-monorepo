@@ -83,6 +83,7 @@ describe('dbacc dashboard/project unit branches', () => {
 
     await expect(lib.create({ name: 'd-create' } as any)).resolves.toEqual({ name: 'created' });
     await expect(lib.findOne({ query: { name: 'd1' } } as any)).resolves.toEqual({ name: 'dashboard' });
+    await expect(lib.findSharedThemeTargets('user-1')).resolves.toEqual([{ name: 'dashboard' }]);
 
     const withoutViz = await lib.browse({ query: {}, page: 0, per_page: 2, sort: { name: 1 } } as any, false);
     expect(withoutViz.dashboards).toEqual([{ name: 'dashboard' }]);

@@ -27,6 +27,11 @@ type ExistingShare = {
   name?: string;
   permission: ShareRole | 'editor';
   status?: 'pending' | 'accepted' | 'rejected';
+  accessType?: 'direct' | 'inherited';
+  sourceType?: 'dashboard' | 'visualization';
+  sourceDashboardId?: string;
+  sharedViaResource?: 'dashboard' | 'visualization';
+  sharedViaShareId?: string;
 }
 
 type ShareFormClientProps = {
@@ -35,6 +40,7 @@ type ShareFormClientProps = {
   type?: string;
   currentUserEmail: string;
   existingShares?: ExistingShare[];
+  includedVisualizationCount?: number;
 }
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -52,7 +58,8 @@ const ShareFormClient = ({
   name,
   type,
   currentUserEmail,
-  existingShares = []
+  existingShares = [],
+  includedVisualizationCount = 0
 }: ShareFormClientProps) => {
   const router = useRouter();
   const { t } = useLocale();
@@ -61,7 +68,20 @@ const ShareFormClient = ({
   const [rows, setRows] = useState<ShareRow[]>([createRow()]);
   const currentUserEmailNormalized = normalizeEmail(currentUserEmail);
   const activeExistingShares = useMemo(
-    () => existingShares.filter((share) => share.status !== 'rejected'),
+    () => {
+      const sharesByUser = new Map<string, ExistingShare>();
+      existingShares
+        .filter((share) => share.status !== 'rejected')
+        .forEach((share) => {
+          const existing = sharesByUser.get(share.userId);
+          const isDirect = share.accessType !== 'inherited' && share.sharedViaResource !== 'dashboard';
+          const existingIsInherited = existing?.accessType === 'inherited' || existing?.sharedViaResource === 'dashboard';
+          if (!existing || (isDirect && existingIsInherited)) {
+            sharesByUser.set(share.userId, share);
+          }
+        });
+      return Array.from(sharesByUser.values());
+    },
     [existingShares]
   );
   const existingShareEmails = useMemo(() => new Set(
@@ -126,6 +146,11 @@ const ShareFormClient = ({
   };
 
   const revokeShare = (share: ExistingShare) => {
+    if (resource === 'visualization' && (share.accessType === 'inherited' || share.sharedViaResource === 'dashboard')) {
+      toast.error('Inherited dashboard access must be revoked from the dashboard share.');
+      return;
+    }
+
     const label = share.email || share.name || 'this user';
     if (!window.confirm(`Revoke access for ${label}?`)) {
       return;
@@ -199,6 +224,17 @@ const ShareFormClient = ({
           {resource === 'dashboard' ? t('share.titleDashboard') : t('share.titleVisualization')}
         </h1>
         <p className="text-sm text-muted-foreground">{name}</p>
+        {resource === 'dashboard' && (
+          <p className="mt-2 rounded-md border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
+            Sharing this dashboard also gives view-only access to
+            {' '}
+            {includedVisualizationCount}
+            {' '}
+            dashboard visualization
+            {includedVisualizationCount === 1 ? '' : 's'}
+            .
+          </p>
+        )}
       </div>
       <section className="rounded-md border bg-muted/20 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -209,8 +245,10 @@ const ShareFormClient = ({
         </div>
         {activeExistingShares.length > 0 ? (
           <div className="divide-y rounded-md border bg-background">
-            {activeExistingShares.map((share) => (
-              <div key={share.userId} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_110px_110px_auto] md:items-center">
+            {activeExistingShares.map((share) => {
+              const inherited = share.accessType === 'inherited' || share.sharedViaResource === 'dashboard';
+              return (
+                <div key={share.userId} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_110px_110px_110px_auto] md:items-center">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{share.name || share.email || 'Shared user'}</p>
                   {share.email && <p className="truncate text-xs text-muted-foreground">{share.email}</p>}
@@ -219,19 +257,23 @@ const ShareFormClient = ({
                   viewer
                 </span>
                 <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
+                  {inherited ? 'inherited' : 'direct'}
+                </span>
+                <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
                   {share.status || 'accepted'}
                 </span>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  disabled={isPending}
+                  disabled={isPending || inherited}
                   onClick={() => revokeShare(share)}
                 >
                   Revoke
                 </Button>
               </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <p className="rounded-md border border-dashed bg-background p-4 text-sm text-muted-foreground">

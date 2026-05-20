@@ -1,7 +1,11 @@
 import React from 'react';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
-import { findOneVisualization, findSharedVisualization } from '@/app/_actions/visualization';
+import {
+  findDashboardSharedVisualization,
+  findOneVisualization,
+  findSharedVisualization
+} from '@/app/_actions/visualization';
 import VisualizationHubClient from './visualization-hub-client';
 
 const metadata: Metadata = {
@@ -15,6 +19,7 @@ type HubProps = {
     name?: string;
     type?: string;
     share?: string;
+    dashboardShare?: string;
   }>;
 };
 
@@ -24,9 +29,12 @@ const VisualizationHub = async ({ searchParams }: HubProps) => {
   const name = typeof sp.name === 'string' ? sp.name : undefined;
   const type = typeof sp.type === 'string' ? sp.type : undefined;
   const share = typeof sp.share === 'string' ? sp.share : undefined;
+  const dashboardShare = typeof sp.dashboardShare === 'string' ? sp.dashboardShare : undefined;
 
   const visualization = share
     ? await findSharedVisualization(share)
+    : dashboardShare && name && type
+      ? await findDashboardSharedVisualization(dashboardShare, { name, type })
     : await findOneVisualization({
       name,
       type,

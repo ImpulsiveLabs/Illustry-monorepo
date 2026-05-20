@@ -54,7 +54,8 @@ const update = async (
       shareId,
       description,
       visualizations,
-      layouts
+      layouts,
+      realtimeClientId
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
@@ -75,7 +76,7 @@ const update = async (
     const data = await Factory.getInstance()
       .getBZL()
       .DashboardBZL
-      .update(dashboardFilter, dashboard);
+      .update(dashboardFilter, dashboard, realtimeClientId);
 
     returnResponse(response, null, data, next);
   } catch (err) {
@@ -215,7 +216,8 @@ const _delete = async (
     const userId = getAuthenticatedUserId(request);
     const {
       name,
-      shareId
+      shareId,
+      realtimeClientId
     } = request.body;
 
     const dashboardFilter: DashboardTypes.DashboardFilter = {
@@ -229,7 +231,7 @@ const _delete = async (
     const data = await Factory.getInstance()
       .getBZL()
       .DashboardBZL
-      .delete(dashboardFilter);
+      .delete(dashboardFilter, realtimeClientId);
 
     returnResponse(response, null, data, next);
   } catch (err) {

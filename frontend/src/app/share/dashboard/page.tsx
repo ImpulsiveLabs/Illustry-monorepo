@@ -17,6 +17,9 @@ const ShareDashboardPage = async ({ searchParams }: ShareDashboardPageProps) => 
   }
 
   const dashboard = await findOneDashboard(name);
+  const includedVisualizationCount = dashboard?.visualizations && !Array.isArray(dashboard.visualizations)
+    ? Object.keys(dashboard.visualizations).length
+    : 0;
 
   return (
     <ShareFormClient
@@ -24,6 +27,7 @@ const ShareDashboardPage = async ({ searchParams }: ShareDashboardPageProps) => 
       name={name}
       currentUserEmail={currentUser.email}
       existingShares={dashboard?.sharedWith || []}
+      includedVisualizationCount={includedVisualizationCount}
     />
   );
 };

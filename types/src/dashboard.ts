@@ -42,6 +42,9 @@ type DashboardData = {
     currentUserRole?: DashboardSharePermission | 'owner';
     shareStatus?: DashboardShareStatus;
     isExternal?: boolean;
+    accessType?: 'direct' | 'inherited';
+    sourceType?: 'dashboard' | 'visualization';
+    sourceDashboardId?: string;
     shareId?: string;
     sharedWith?: DashboardSharedUser[];
     name: string;

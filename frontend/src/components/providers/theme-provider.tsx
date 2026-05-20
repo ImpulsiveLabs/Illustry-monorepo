@@ -14,6 +14,8 @@ import {
   useRef
 } from 'react';
 import { ThemeTypes, UtilTypes } from '@illustry/types';
+import { getUserThemeConfig } from '@/app/_actions/theme';
+import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 import { cloneDeep } from '@/lib/utils';
 
 type ThemeColors = ThemeTypes.VisualizationThemeConfig;
@@ -716,6 +718,7 @@ const ThemeColorsProvider = ({
   const appThemeDirtyRef = useRef(false);
   const initialThemeSyncKeyRef = useRef<string | null>(null);
   const initialAppThemeSyncKeyRef = useRef<string | null>(null);
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
   const dispatchAppTheme = useCallback((action: AppThemeAction) => {
     if (action.type !== 'set') {
       dispatchAppThemeBase(action);
@@ -821,6 +824,68 @@ const ThemeColorsProvider = ({
       applyThemeStyleText(appThemeProv);
     }
   }, [appThemeProv, applyAppTheme]);
+
+  useEffect(() => {
+    if (
+      !persist
+      || !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
+      || typeof WebSocket === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.searchParams.set('resource', 'theme');
+    url.searchParams.set('shareId', 'me');
+    url.searchParams.set('clientId', realtimeClientId);
+
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket | undefined;
+    let closedByComponent = false;
+
+    const applyLatestTheme = async () => {
+      const latestTheme = await getUserThemeConfig();
+      if (!latestTheme || closedByComponent) {
+        return;
+      }
+
+      dispatchAppTheme({ type: 'set', themeConfig: latestTheme, touch: false });
+      dispatchDataProv({ type: 'apply', modifiedData: latestTheme.visualizations });
+    };
+
+    const connect = () => {
+      socket = new WebSocket(url.toString());
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
+            return;
+          }
+          if (payload.action === 'theme-updated') {
+            void applyLatestTheme();
+          }
+        } catch {
+          // Ignore malformed realtime messages instead of disturbing the current theme.
+        }
+      };
+      socket.onclose = () => {
+        if (!closedByComponent) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByComponent = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      socket?.close();
+    };
+  }, [dispatchAppTheme, persist, realtimeClientId]);
 
   return (
     <AppThemeContext.Provider value={appThemeProv}>

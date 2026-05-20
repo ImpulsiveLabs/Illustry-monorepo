@@ -248,6 +248,9 @@ const updateThemeConfig = async (
     }
 
     const themePayload = request.body?.themeConfig;
+    const realtimeClientId = typeof request.body?.realtimeClientId === 'string'
+      ? request.body.realtimeClientId
+      : undefined;
     if (!themePayload || typeof themePayload !== 'object' || Array.isArray(themePayload)) {
       response.status(400).send({ error: 'A valid themeConfig payload is required' });
       return;
@@ -255,7 +258,8 @@ const updateThemeConfig = async (
 
     const themeConfig = await Factory.getInstance().getBZL().AuthBZL.updateThemeConfig(
       userId,
-      themePayload as Record<string, unknown>
+      themePayload as Record<string, unknown>,
+      realtimeClientId
     );
     response.status(200).send({ themeConfig });
   } catch (error) {
@@ -276,7 +280,10 @@ const resetThemeConfig = async (
       return;
     }
 
-    const themeConfig = await Factory.getInstance().getBZL().AuthBZL.resetThemeConfig(userId);
+    const realtimeClientId = typeof request.body?.realtimeClientId === 'string'
+      ? request.body.realtimeClientId
+      : undefined;
+    const themeConfig = await Factory.getInstance().getBZL().AuthBZL.resetThemeConfig(userId, realtimeClientId);
     response.status(200).send({ themeConfig });
   } catch (error) {
     sendAuthError(response, next, error, resolveRequestAuthLocale(request));

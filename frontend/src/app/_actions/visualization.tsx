@@ -120,6 +120,34 @@ const findSharedVisualization = async (shareId: string) => {
   }
 };
 
+const findDashboardSharedVisualization = async (
+  dashboardShareId: string,
+  visualizationFilter: Pick<VisualizationTypes.VisualizationFilter, 'name' | 'type'>
+) => {
+  const BACKEND = getBackendUrl() as string;
+  const params = new URLSearchParams();
+  if (visualizationFilter.name) {
+    params.set('name', visualizationFilter.name);
+  }
+  if (typeof visualizationFilter.type === 'string') {
+    params.set('type', visualizationFilter.type);
+  }
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/shared-dashboard/${dashboardShareId}?${params.toString()}`,
+    {
+      method: 'GET',
+      headers: await buildBackendHeaders({ asJson: false, withCsrf: false })
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 const shareVisualization = async (
   shareRequest: VisualizationTypes.VisualizationShareRequest
 ) => {
@@ -205,7 +233,8 @@ const respondToVisualizationShareInvite = async (
 };
 
 const syncVisualizationThemes = async (
-  theme: Record<string, unknown>
+  theme: Record<string, unknown>,
+  realtimeClientId?: string
 ) => {
   const BACKEND = getBackendUrl() as string;
   if (!BACKEND) {
@@ -217,7 +246,7 @@ const syncVisualizationThemes = async (
     {
       method: 'PUT',
       headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
-      body: JSON.stringify({ theme })
+      body: JSON.stringify({ theme, realtimeClientId })
     }
   );
   try {
@@ -234,6 +263,7 @@ export {
   createOrUpdateVisualization,
   findOneVisualization,
   findSharedVisualization,
+  findDashboardSharedVisualization,
   shareVisualization,
   revokeVisualizationShare,
   updateVisualization,
