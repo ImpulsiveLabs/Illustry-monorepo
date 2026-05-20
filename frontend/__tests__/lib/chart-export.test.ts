@@ -59,6 +59,37 @@ describe('lib/chart-export', () => {
     });
   });
 
+  it('downloads single chart web component exports with the current option embedded', async () => {
+    const chart = {
+      getOption: vi.fn(() => ({
+        tooltip: {
+          formatter: (params: { name: string }) => params.name
+        },
+        series: [{ type: 'bar', data: [1, 2, 3] }]
+      }))
+    };
+
+    await exportChart({
+      chart: chart as never,
+      filename: 'Sales Web Component',
+      format: 'web-component'
+    });
+
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]?.[0] as Blob | undefined;
+    expect(blob).toBeInstanceOf(Blob);
+    if (!blob) {
+      throw new Error('Expected web component export to create a Blob URL.');
+    }
+
+    expect(blob.type).toBe('text/html;charset=utf-8');
+    const html = await blob.text();
+    expect(html).toContain('<illustry-visualization></illustry-visualization>');
+    expect(html).toContain("customElements.define('illustry-visualization'");
+    expect(html).toContain('"type":"bar"');
+    expect(html).toContain('__illustryFunction');
+    expect(chart.getOption).toHaveBeenCalled();
+  });
+
   it('downloads dashboard SVG exports without calling ECharts connected SVG export', async () => {
     const chartElement = document.createElement('div');
     chartElement.setAttribute('_echarts_instance_', 'chart-id');
@@ -100,5 +131,40 @@ describe('lib/chart-export', () => {
       excludeComponents: ['toolbox']
     });
     await expect(blob.text()).resolves.toContain('<image href="data:image/png;base64,dashboard-image" width="900" height="420" />');
+  });
+
+  it('downloads dashboard web component exports with chart titles and options', async () => {
+    const chartElement = document.createElement('div');
+    chartElement.setAttribute('_echarts_instance_', 'chart-id');
+    const cardElement = document.createElement('article');
+    cardElement.dataset.dashboardVisualizationTitle = 'Sales (Bar Chart)';
+    cardElement.appendChild(chartElement);
+    const dashboardElement = document.createElement('section');
+    dashboardElement.appendChild(cardElement);
+
+    const chart = {
+      getOption: vi.fn(() => ({
+        series: [{ type: 'line', data: [4, 5, 6] }]
+      }))
+    };
+    vi.mocked(echarts.getInstanceByDom).mockReturnValue(chart as never);
+
+    await exportDashboardCharts({
+      element: dashboardElement,
+      filename: 'Main dashboard',
+      format: 'web-component'
+    });
+
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]?.[0] as Blob | undefined;
+    if (!blob) {
+      throw new Error('Expected dashboard web component export to create a Blob URL.');
+    }
+
+    const html = await blob.text();
+    expect(html).toContain('<illustry-dashboard></illustry-dashboard>');
+    expect(html).toContain("customElements.define('illustry-dashboard'");
+    expect(html).toContain('Sales (Bar Chart)');
+    expect(html).toContain('"type":"line"');
+    expect(chart.getOption).toHaveBeenCalled();
   });
 });

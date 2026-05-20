@@ -86,8 +86,13 @@ const chartExportFormats: Array<{ label: string; value: ChartExportFormat }> = [
   { label: 'PNG', value: 'png' },
   { label: 'JPG', value: 'jpg' },
   { label: 'WebP', value: 'webp' },
-  { label: 'SVG', value: 'svg' }
+  { label: 'SVG', value: 'svg' },
+  { label: 'Web Component', value: 'web-component' }
 ];
+
+const getExportFormatLabel = (format: ChartExportFormat) => (
+  format === 'web-component' ? 'Web Component' : format.toUpperCase()
+);
 
 const getVisualizationExportFilename = () => {
   if (window.location.pathname.includes('/playground')) {
@@ -187,7 +192,7 @@ const ReactEcharts = forwardRef(<T,>(
         filename: getVisualizationExportFilename(),
         format
       });
-      toast.success(`${format.toUpperCase()} export started`);
+      toast.success(`${getExportFormatLabel(format)} export started`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to export this visualization.');
     } finally {
@@ -213,7 +218,7 @@ const ReactEcharts = forwardRef(<T,>(
                 <ChevronDown className="h-3 w-3" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-[160px]">
+            <DropdownMenuContent align="end" className="w-[190px]">
               <DropdownMenuLabel>Save as</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {chartExportFormats.map((format) => (

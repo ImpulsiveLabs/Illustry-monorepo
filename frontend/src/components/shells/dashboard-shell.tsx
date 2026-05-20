@@ -55,8 +55,13 @@ const dashboardExportFormats: Array<{ label: string; value: ChartExportFormat }>
   { label: 'PNG', value: 'png' },
   { label: 'JPG', value: 'jpg' },
   { label: 'WebP', value: 'webp' },
-  { label: 'SVG', value: 'svg' }
+  { label: 'SVG', value: 'svg' },
+  { label: 'Web Component', value: 'web-component' }
 ];
+
+const getExportFormatLabel = (format: ChartExportFormat) => (
+  format === 'web-component' ? 'Web Component' : format.toUpperCase()
+);
 
 const createDefaultFixedLayoutItem = (
   index: number,
@@ -449,7 +454,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         filename: `dashboard-${dashboard?.name || 'export'}`,
         format
       });
-      toast.success(`${format.toUpperCase()} dashboard export started`);
+      toast.success(`${getExportFormatLabel(format)} dashboard export started`);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to export this dashboard.');
     } finally {
@@ -513,7 +518,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
               <ChevronDown className="ml-2 h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuContent align="end" className="w-[190px]">
             <DropdownMenuLabel>Save dashboard as</DropdownMenuLabel>
             <DropdownMenuSeparator />
             {dashboardExportFormats.map((format) => (
@@ -548,6 +553,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         {fixedDashboardItems.map(({ viz, index }) => (
           <div
             key={`${viz.name}-${index}`}
+            data-dashboard-visualization-title={`${viz.name} (${getTypeLabel(viz.type)})`}
             className={[
               'min-h-0 overflow-hidden rounded-lg border bg-card shadow-sm',
               dragOverIndex === index && draggedIndex !== index
