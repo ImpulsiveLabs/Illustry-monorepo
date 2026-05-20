@@ -7,20 +7,13 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import Input from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
 import { revokeDashboardShare, shareDashboard } from '@/app/_actions/dashboard';
 import { revokeVisualizationShare, shareVisualization } from '@/app/_actions/visualization';
 import { useThemeColors } from '@/components/providers/theme-provider';
 import { useLocale } from '@/components/providers/locale-provider';
 import { catchError } from '@/lib/utils';
 
-type ShareRole = 'viewer' | 'editor';
+type ShareRole = 'viewer';
 
 type ShareRow = {
   id: string;
@@ -32,7 +25,7 @@ type ExistingShare = {
   userId: string;
   email?: string;
   name?: string;
-  permission: ShareRole;
+  permission: ShareRole | 'editor';
   status?: 'pending' | 'accepted' | 'rejected';
 }
 
@@ -67,6 +60,15 @@ const ShareFormClient = ({
   const [isPending, startTransition] = useTransition();
   const [rows, setRows] = useState<ShareRow[]>([createRow()]);
   const currentUserEmailNormalized = normalizeEmail(currentUserEmail);
+  const activeExistingShares = useMemo(
+    () => existingShares.filter((share) => share.status !== 'rejected'),
+    [existingShares]
+  );
+  const existingShareEmails = useMemo(() => new Set(
+    activeExistingShares
+      .map((share) => (share.email ? normalizeEmail(share.email) : ''))
+      .filter(Boolean)
+  ), [activeExistingShares]);
 
   const validations = useMemo(() => {
     const counts = new Map<string, number>();
@@ -83,9 +85,10 @@ const ShareFormClient = ({
       const invalid = !isEmpty && !emailPattern.test(normalized);
       const self = normalized.length > 0 && normalized === currentUserEmailNormalized;
       const duplicate = normalized.length > 0 && (counts.get(normalized) || 0) > 1;
+      const alreadyShared = normalized.length > 0 && existingShareEmails.has(normalized);
       return {
         normalized,
-        valid: !isEmpty && !invalid && !self && !duplicate,
+        valid: !isEmpty && !invalid && !self && !duplicate && !alreadyShared,
         message: isEmpty
           ? ''
           : invalid
@@ -94,19 +97,21 @@ const ShareFormClient = ({
               ? t('share.validation.self')
               : duplicate
                 ? t('share.validation.duplicate')
-                : t('share.validation.valid')
+                : alreadyShared
+                  ? 'This user already has access.'
+                  : t('share.validation.valid')
       };
     });
-  }, [currentUserEmailNormalized, rows, t]);
+  }, [currentUserEmailNormalized, existingShareEmails, rows, t]);
 
   const validCollaborators = rows
     .map((row, index) => ({ row, validation: validations[index] }))
     .filter((entry): entry is { row: ShareRow; validation: NonNullable<typeof entry.validation> } => (
       entry.validation?.valid === true
     ))
-    .map(({ row, validation }) => ({
+    .map(({ validation }) => ({
       email: validation.normalized,
-      permission: row.permission
+      permission: 'viewer' as const
     }));
 
   const canSubmit = validCollaborators.length > 0
@@ -202,16 +207,16 @@ const ShareFormClient = ({
             <p className="text-xs text-muted-foreground">People who currently have an invitation or active access.</p>
           </div>
         </div>
-        {existingShares.length > 0 ? (
+        {activeExistingShares.length > 0 ? (
           <div className="divide-y rounded-md border bg-background">
-            {existingShares.map((share) => (
+            {activeExistingShares.map((share) => (
               <div key={share.userId} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_110px_110px_auto] md:items-center">
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium">{share.name || share.email || 'Shared user'}</p>
                   {share.email && <p className="truncate text-xs text-muted-foreground">{share.email}</p>}
                 </div>
                 <span className="rounded-full bg-secondary px-2.5 py-1 text-center text-xs font-medium capitalize text-secondary-foreground">
-                  {share.permission}
+                  viewer
                 </span>
                 <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
                   {share.status || 'accepted'}
@@ -236,7 +241,7 @@ const ShareFormClient = ({
       </section>
       <div className="space-y-3">
         {rows.map((row, index) => (
-          <div key={row.id} className="grid gap-2 md:grid-cols-[1fr_150px_40px]">
+          <div key={row.id} className="grid gap-2 md:grid-cols-[1fr_90px_40px]">
             <div>
               <Input
                 aria-label={`${t('auth.common.email')} ${index + 1}`}
@@ -253,18 +258,9 @@ const ShareFormClient = ({
                 </p>
               )}
             </div>
-            <Select
-              value={row.permission}
-              onValueChange={(permission) => updateRow(row.id, { permission: permission as ShareRole })}
-            >
-              <SelectTrigger aria-label={`${t('share.roleLabel')} ${index + 1}`}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="viewer">{t('share.role.viewer')}</SelectItem>
-                <SelectItem value="editor">{t('share.role.editor')}</SelectItem>
-              </SelectContent>
-            </Select>
+            <span className="flex h-10 items-center justify-center rounded-md border bg-muted/30 px-3 text-sm font-medium text-muted-foreground">
+              {t('share.role.viewer')}
+            </span>
             <Button
               aria-label={`${t('share.removeEmail')} ${index + 1}`}
               type="button"

@@ -173,6 +173,8 @@ type VisualizationSharedUser = {
   name?: string;
   permission: VisualizationSharePermission;
   status?: VisualizationShareStatus;
+  sharedViaResource?: 'visualization' | 'dashboard';
+  sharedViaShareId?: string;
   inviteToken?: string;
   inviteExpiresAt?: Date;
   respondedAt?: Date;

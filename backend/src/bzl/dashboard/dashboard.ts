@@ -16,6 +16,7 @@ import EmailService from '../../auth/email';
 import { normalizeShareCollaborators } from '../share-collaborators';
 
 const createDashboardShareId = () => `dash_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
+const createVisualizationShareId = () => `viz_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 const createInviteToken = () => `share_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 const getInviteTtlMs = () => Number(process.env.SHARE_INVITE_TTL_HOURS || 72) * 60 * 60 * 1000;
 
@@ -48,7 +49,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
       return false;
     }
 
-    return requiredPermission === 'viewer' || collaborator.permission === 'editor';
+    return requiredPermission === 'viewer';
   }
 
   private getCollaboratorMetadata(
@@ -60,7 +61,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     }
     const collaborator = dashboard.sharedWith?.find((sharedUser) => sharedUser.userId === userId);
     return {
-      currentUserRole: collaborator?.permission,
+      currentUserRole: collaborator ? 'viewer' : undefined,
       shareStatus: collaborator?.status || 'accepted',
       isExternal: true
     };
@@ -125,6 +126,86 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
     dashboard.visualizations = visualizationsData;
     return dashboard;
+  }
+
+  private async syncDashboardVisualizationShares(
+    dashboard: DashboardTypes.DashboardType,
+    sharedWith: DashboardTypes.DashboardSharedUser[]
+  ): Promise<void> {
+    const { visualizations, projectName, shareId, userId } = dashboard;
+    if (!shareId || !userId || !visualizations || Array.isArray(visualizations)) {
+      return;
+    }
+
+    await Promise.all(Object.keys(visualizations).map(async (visualizationKey) => {
+      const keyParts = visualizationKey.split('_');
+      const visualizationName = keyParts.slice(0, keyParts.length - 1).join('_');
+      const visualizationType = (visualizations as { [name: string]: string })[visualizationKey];
+      if (!visualizationName || !visualizationType) {
+        return;
+      }
+
+      const foundVisualization = await this.dbaccInstance.Visualization.findOneWithSharing(
+        this.dbaccInstance.Visualization.createFilter({
+          userId,
+          projectName,
+          name: visualizationName,
+          type: visualizationType
+        })
+      );
+      if (!foundVisualization) {
+        return;
+      }
+
+      const existingSharedWith = foundVisualization.sharedWith || [];
+      const existingNonDashboardShares = existingSharedWith.filter(
+        (sharedUser) => !(
+          sharedUser.sharedViaResource === 'dashboard'
+          && sharedUser.sharedViaShareId === shareId
+          && sharedUser.status !== 'rejected'
+        )
+      );
+      const dashboardShares: VisualizationTypes.VisualizationSharedUser[] = sharedWith.map((sharedUser) => ({
+        userId: sharedUser.userId,
+        email: sharedUser.email,
+        name: sharedUser.name,
+        permission: 'viewer',
+        status: sharedUser.status,
+        createdAt: sharedUser.createdAt,
+        updatedAt: sharedUser.updatedAt,
+        respondedAt: sharedUser.respondedAt,
+        sharedViaResource: 'dashboard',
+        sharedViaShareId: shareId
+      }));
+      const directShareUserIds = new Set(existingNonDashboardShares.map((sharedUser) => sharedUser.userId));
+      const nextSharedWith = [
+        ...existingNonDashboardShares,
+        ...dashboardShares.filter((sharedUser) => !directShareUserIds.has(sharedUser.userId))
+      ];
+      const visualizationShareId = foundVisualization.shareId || createVisualizationShareId();
+      const updatedVisualization = await this.dbaccInstance.Visualization.updateSharing(
+        this.dbaccInstance.Visualization.createFilter({
+          userId,
+          projectName,
+          name: visualizationName,
+          type: visualizationType
+        }),
+        {
+          shareId: visualizationShareId,
+          sharedWith: nextSharedWith,
+          theme: foundVisualization.theme
+        }
+      );
+
+      if (updatedVisualization?.shareId) {
+        publish({
+          resource: 'visualization',
+          shareId: updatedVisualization.shareId,
+          action: 'shared',
+          updatedAt: new Date().toISOString()
+        });
+      }
+    }));
   }
 
   async create(dashboard: DashboardTypes.DashboardCreate): Promise<DashboardTypes.DashboardType> {
@@ -192,6 +273,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     }
 
     if (fullVisualizations) {
+      await this.syncDashboardVisualizationShares(foundDashboard, foundDashboard.sharedWith || []);
       await this.hydrateVisualizations(foundDashboard, resolveUserId(foundDashboard.userId));
     }
 
@@ -313,25 +395,35 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     const existingSharedWith = dashboard.sharedWith || [];
     const now = new Date();
     const expiresAt = new Date(now.getTime() + getInviteTtlMs());
-    const sharedWith = await Promise.all(normalizedCollaborators.map(async (collaborator) => {
+    const sharedWithResults = await Promise.all(normalizedCollaborators.map(async (collaborator) => {
       const user = await this.dbaccInstance.Auth.findUserByEmailNormalized(collaborator.email);
       if (!user) {
         throw new NoDataFoundError(`No user was found for ${collaborator.email}`);
       }
 
       const previous = existingSharedWith.find((sharedUser) => sharedUser.userId === user._id.toString());
+      const createdAt = previous?.createdAt || now;
+      if (previous) {
+        return null;
+      }
+
       return {
         userId: user._id.toString(),
         email: user.email,
         name: user.name,
-        permission: collaborator.permission === 'editor' ? 'editor' : 'viewer',
+        permission: 'viewer',
         status: 'pending',
         inviteToken: createInviteToken(),
         inviteExpiresAt: expiresAt,
-        createdAt: previous?.createdAt || now,
+        sharedViaResource: 'dashboard',
+        sharedViaShareId: existingShareId,
+        createdAt,
         updatedAt: now
       } as DashboardTypes.DashboardSharedUser;
     }));
+    const sharedWith = sharedWithResults.filter(
+      (sharedUser): sharedUser is DashboardTypes.DashboardSharedUser => Boolean(sharedUser)
+    );
     const mergedSharedWith = [
       ...existingSharedWith.filter((existing) => !sharedWith.some((next) => next.userId === existing.userId)),
       ...sharedWith
@@ -361,6 +453,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
       action: 'shared',
       updatedAt: new Date().toISOString()
     });
+    await this.syncDashboardVisualizationShares(updatedDashboard, mergedSharedWith);
     sharedWith.forEach((sharedUser) => {
       if (!sharedUser.email || !sharedUser.inviteToken || !sharedUser.inviteExpiresAt) {
         return;
@@ -422,6 +515,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
       action: 'shared',
       updatedAt: new Date().toISOString()
     });
+    await this.syncDashboardVisualizationShares(updatedDashboard, nextSharedWith);
 
     if (revokedUser.email) {
       void new EmailService().sendShareRevocationEmail({
@@ -462,6 +556,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     if (!updatedDashboard) {
       throw new NoDataFoundError('Dashboard was not found');
     }
+    await this.syncDashboardVisualizationShares(updatedDashboard, sharedWith);
     return updatedDashboard;
   }
 
@@ -483,6 +578,7 @@ class DashboardBZL implements GenericTypes.BaseBZL<
           action: 'shared',
           updatedAt: new Date().toISOString()
         });
+        await this.syncDashboardVisualizationShares(sharedDashboard, nextSharedWith);
         return true;
       }
     }
@@ -503,7 +599,11 @@ class DashboardBZL implements GenericTypes.BaseBZL<
 
     const queryFilter: UtilTypes.ExtendedMongoQuery = this.dbaccInstance.Dashboard.createFilter(updatedFilter);
 
-    const deletedShareId = filter.shareId || (await this.dbaccInstance.Dashboard.findOneWithSharing(queryFilter))?.shareId;
+    const dashboardToDelete = await this.dbaccInstance.Dashboard.findOneWithSharing(queryFilter);
+    const deletedShareId = filter.shareId || dashboardToDelete?.shareId;
+    if (dashboardToDelete?.shareId) {
+      await this.syncDashboardVisualizationShares(dashboardToDelete, []);
+    }
     await Promise.resolve(this.dbaccInstance.Dashboard.delete(queryFilter));
     if (deletedShareId) {
       publish({

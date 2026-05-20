@@ -24,7 +24,7 @@ const normalizeShareCollaborators = <TPermission extends SharePermission>(
     if (ownerEmailNormalized && email === ownerEmailNormalized) {
       throw new Error(`You cannot share a ${resourceName} with yourself`);
     }
-    unique.set(email, (collaborator.permission === 'editor' ? 'editor' : 'viewer') as TPermission);
+    unique.set(email, 'viewer' as TPermission);
   });
 
   if (unique.size === 0) {

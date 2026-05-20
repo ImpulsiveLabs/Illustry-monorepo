@@ -157,9 +157,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     layouts = [],
     visualizations = []
   } = (dashboard ?? {}) as Partial<DashboardTypes.DashboardType>;
-  const canEditDashboard = !dashboard?.isExternal
-    || dashboard.currentUserRole === 'owner'
-    || dashboard.currentUserRole === 'editor';
+  const canEditDashboard = !dashboard?.isExternal;
   const visualizationsList = visualizations as VisualizationTypes.VisualizationType[];
   const visibleVisualizations = useMemo(
     () => visualizationsList.slice(0, DASHBOARD_MAX_VISIBLE_VISUALIZATIONS),
@@ -356,7 +354,16 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   }, [currentShareId, router]);
 
   const handleCardClick = (viz: VisualizationTypes.VisualizationType) => {
-    const url = `/visualizationhub?name=${viz.name}&type=${viz.type}`;
+    if (dashboard?.isExternal) {
+      if (viz.shareId) {
+        router.push(`/visualizationhub?share=${encodeURIComponent(viz.shareId)}`);
+        return;
+      }
+      toast.error('This visualization is only available inside the shared dashboard.');
+      return;
+    }
+
+    const url = `/visualizationhub?name=${encodeURIComponent(viz.name)}&type=${encodeURIComponent(String(viz.type))}`;
     router.push(url);
   };
 
@@ -453,15 +460,17 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-        <Button
-          type="button"
-          className="shadow-sm"
-          onClick={() => void updateDashboardLayout()}
-          disabled={!canEditDashboard || !visibleVisualizations.length || layoutPending}
-        >
-          <Save className="mr-2 h-4 w-4" />
-          {layoutPending ? 'Saving' : 'Save layout'}
-        </Button>
+        {canEditDashboard ? (
+          <Button
+            type="button"
+            className="shadow-sm"
+            onClick={() => void updateDashboardLayout()}
+            disabled={!visibleVisualizations.length || layoutPending}
+          >
+            <Save className="mr-2 h-4 w-4" />
+            {layoutPending ? 'Saving' : 'Save layout'}
+          </Button>
+        ) : null}
       </div>
       <div
         ref={dashboardExportRef}
@@ -478,9 +487,9 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
                 : 'border-gray-200',
               draggedIndex === index ? 'opacity-70' : ''
             ].filter(Boolean).join(' ')}
-            onDragOver={(event) => handleDragOver(event, index)}
-            onDrop={(event) => handleDrop(event, index)}
-            onDragLeave={() => setDragOverIndex((current) => (current === index ? null : current))}
+            onDragOver={canEditDashboard ? (event) => handleDragOver(event, index) : undefined}
+            onDrop={canEditDashboard ? (event) => handleDrop(event, index) : undefined}
+            onDragLeave={canEditDashboard ? () => setDragOverIndex((current) => (current === index ? null : current)) : undefined}
             data-testid={`dashboard-card-${index}`}
           >
             <Card className="h-full min-h-0 border-0 shadow-none">
@@ -493,9 +502,11 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
                   draggable={canEditDashboard}
                   onDragStart={(event) => handleDragStart(event, index)}
                   onDragEnd={clearDragState}
-                  aria-label={`Move ${viz.name}`}
+                  aria-label={canEditDashboard ? `Move ${viz.name}` : `Open ${viz.name}`}
                 >
-                  <GripHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  {canEditDashboard ? (
+                    <GripHorizontal className="h-4 w-4 shrink-0 text-muted-foreground" />
+                  ) : null}
                   <CardTitle className="line-clamp-1 text-center text-sm leading-tight">
                     {viz.name} ({getTypeLabel(viz.type)})
                   </CardTitle>

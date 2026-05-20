@@ -164,21 +164,7 @@ class Visualization implements GenericTypes.BaseLib<
     return this.modelInstance.VisualizationModel.find(
       {
         shareId: { $exists: true, $ne: null },
-        $or: [
-          { userId },
-          {
-            sharedWith: {
-              $elemMatch: {
-                userId,
-                permission: 'editor',
-                $or: [
-                  { status: 'accepted' },
-                  { status: { $exists: false } }
-                ]
-              }
-            }
-          }
-        ]
+        userId
       },
       { _id: 0, shareId: 1 }
     ).lean().exec() as unknown as Promise<Array<Pick<VisualizationTypes.VisualizationType, 'shareId'>>>;

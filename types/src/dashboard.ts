@@ -26,6 +26,8 @@ type DashboardSharedUser = {
     name?: string;
     permission: DashboardSharePermission;
     status?: DashboardShareStatus;
+    sharedViaResource?: 'dashboard';
+    sharedViaShareId?: string;
     inviteToken?: string;
     inviteExpiresAt?: Date;
     respondedAt?: Date;

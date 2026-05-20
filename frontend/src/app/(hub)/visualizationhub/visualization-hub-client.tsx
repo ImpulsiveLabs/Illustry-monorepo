@@ -37,9 +37,7 @@ const VisualizationThemeToolbar = ({
     return null;
   }
 
-  const canEditTheme = !visualization.isExternal
-    || visualization.currentUserRole === 'owner'
-    || visualization.currentUserRole === 'editor';
+  const canEditTheme = !visualization.isExternal;
 
   if (!canEditTheme) {
     return null;

@@ -54,6 +54,27 @@ describe('ResizableDashboard', () => {
         expect(push).toHaveBeenCalledWith('/visualizationhub?name=Sales&type=bar-chart');
     });
 
+    it('opens dashboard-propagated shared visualizations from external dashboards', async () => {
+        const user = userEvent.setup();
+        render(
+            <ResizableDashboard
+                dashboard={{
+                    name: 'dash',
+                    shareId: 'dash_shared',
+                    isExternal: true,
+                    currentUserRole: 'editor',
+                    layouts: [],
+                    visualizations: [
+                        { name: 'Sales', type: 'bar-chart', shareId: 'viz_shared', data: {} }
+                    ]
+                } as any}
+            />
+        );
+
+        await user.click(screen.getByText('Sales (Bar Chart)'));
+        expect(push).toHaveBeenCalledWith('/visualizationhub?share=viz_shared');
+    });
+
     it('persists the canonical fixed layout when the save layout button is clicked', async () => {
         const user = userEvent.setup();
         render(
@@ -136,6 +157,40 @@ describe('ResizableDashboard', () => {
             { i: '0', x: 4, y: 0, w: 4, h: 4, minW: 2, minH: 2 },
             { i: '1', x: 0, y: 0, w: 4, h: 4, minW: 2, minH: 2 }
         ]);
+    });
+
+    it('keeps external viewers read-only with no drag or layout save affordance', () => {
+        const dataTransfer = {
+            value: '',
+            effectAllowed: '',
+            dropEffect: '',
+            setData: vi.fn((_type: string, value: string) => {
+                dataTransfer.value = value;
+            }),
+            getData: vi.fn(() => dataTransfer.value)
+        };
+
+        render(
+            <ResizableDashboard
+                dashboard={{
+                    name: 'dash',
+                    shareId: 'dash_shared',
+                    isExternal: true,
+                    currentUserRole: 'viewer',
+                    layouts: [],
+                    visualizations: [
+                        { name: 'Sales', type: 'bar-chart', shareId: 'viz_shared', data: {} },
+                        { name: 'Nodes', type: 'sankey', shareId: 'viz_nodes', data: {} }
+                    ]
+                } as any}
+            />
+        );
+
+        expect(screen.queryByRole('button', { name: /Save layout/ })).not.toBeInTheDocument();
+        expect(screen.getByLabelText('Open Sales')).toHaveAttribute('draggable', 'false');
+        fireEvent.dragStart(screen.getByLabelText('Open Sales'), { dataTransfer });
+        fireEvent.drop(screen.getByTestId('dashboard-card-1'), { dataTransfer });
+        expect(updateDashboard).not.toHaveBeenCalled();
     });
 
     it('renders at most six dashboard visualizations', () => {

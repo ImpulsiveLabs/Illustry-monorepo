@@ -1,14 +1,14 @@
 import { normalizeShareCollaborators } from '../src/bzl/share-collaborators';
 
 describe('share collaborator validation', () => {
-  it('normalizes multiple users with different roles and deduplicates case-insensitively', () => {
+  it('normalizes multiple users as viewers and deduplicates case-insensitively', () => {
     expect(normalizeShareCollaborators([
       { email: ' Viewer@Example.com ', permission: 'viewer' },
       { email: 'editor@example.com', permission: 'editor' },
       { email: 'viewer@example.com', permission: 'editor' }
     ], 'owner@example.com', 'dashboard')).toEqual([
-      { email: 'viewer@example.com', permission: 'editor' },
-      { email: 'editor@example.com', permission: 'editor' }
+      { email: 'viewer@example.com', permission: 'viewer' },
+      { email: 'editor@example.com', permission: 'viewer' }
     ]);
   });
 

@@ -29,7 +29,7 @@ describe('ShareFormClient', () => {
     vi.restoreAllMocks();
   });
 
-  it('submits multiple valid users with different roles', async () => {
+  it('submits multiple valid users as viewers', async () => {
     const user = userEvent.setup();
     render(
       <ShareFormClient
@@ -41,9 +41,7 @@ describe('ShareFormClient', () => {
 
     await user.type(screen.getByLabelText('Email 1'), 'viewer@example.com');
     await user.click(screen.getByRole('button', { name: 'Add user' }));
-    await user.type(screen.getByLabelText('Email 2'), 'editor@example.com');
-    await user.click(screen.getByLabelText('Role 2'));
-    await user.click(screen.getByRole('option', { name: 'Editor' }));
+    await user.type(screen.getByLabelText('Email 2'), 'second@example.com');
     await user.click(screen.getByRole('button', { name: 'Share' }));
 
     await waitFor(() => {
@@ -51,10 +49,11 @@ describe('ShareFormClient', () => {
         name: 'Revenue',
         collaborators: [
           { email: 'viewer@example.com', permission: 'viewer' },
-          { email: 'editor@example.com', permission: 'editor' }
+          { email: 'second@example.com', permission: 'viewer' }
         ]
       });
     });
+    expect(screen.queryByRole('option', { name: 'Editor' })).not.toBeInTheDocument();
   });
 
   it('marks invalid, self, and duplicate emails and blocks submit', async () => {
@@ -82,6 +81,32 @@ describe('ShareFormClient', () => {
     await user.type(screen.getByLabelText('Email 2'), 'DUPE@example.com');
 
     expect(screen.getAllByText('Duplicate email')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: 'Share' })).toBeDisabled();
+    expect(shareDashboard).not.toHaveBeenCalled();
+  });
+
+  it('blocks sharing a user who already has active access', async () => {
+    const user = userEvent.setup();
+    render(
+      <ShareFormClient
+        resource="dashboard"
+        name="Revenue"
+        currentUserEmail="owner@example.com"
+        existingShares={[
+          {
+            userId: 'user-2',
+            email: 'viewer@example.com',
+            name: 'Viewer User',
+            permission: 'viewer',
+            status: 'accepted'
+          }
+        ]}
+      />
+    );
+
+    await user.type(screen.getByLabelText('Email 1'), 'VIEWER@example.com');
+
+    expect(screen.getByText('This user already has access.')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Share' })).toBeDisabled();
     expect(shareDashboard).not.toHaveBeenCalled();
   });
