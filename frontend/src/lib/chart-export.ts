@@ -8,6 +8,19 @@ const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min
 const ECHARTS_WORDCLOUD_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js';
 
 export type ChartExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component';
+export type ServerChartExportFormat = ChartExportFormat | 'excel';
+
+export type ServerChartExportPayload = {
+  title: string;
+  option: unknown;
+  width: number;
+  height: number;
+  previewDataUrl?: string;
+};
+
+type ServerChartExportPayloadOptions = {
+  includePreview?: boolean;
+};
 
 type ExportChartOptions = {
   chart: EChartsType;
@@ -92,6 +105,70 @@ const downloadBlob = (blob: Blob, filename: string) => {
   window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
 };
 
+export const downloadBase64File = ({
+  base64,
+  filename,
+  mimeType
+}: {
+  base64: string;
+  filename: string;
+  mimeType: string;
+}) => {
+  const bytes = Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+  downloadBlob(new Blob([bytes], { type: mimeType }), filename);
+};
+
+const getFilenameFromDisposition = (contentDisposition: string | null, fallback: string) => {
+  const matched = contentDisposition?.match(/filename\*?=(?:UTF-8'')?"?([^";]+)"?/i);
+  const filename = matched?.[1];
+  return filename ? decodeURIComponent(filename) : fallback;
+};
+
+export const downloadExportFromApi = async ({
+  endpoint,
+  payload,
+  fallbackFilename
+}: {
+  endpoint: string;
+  payload: unknown;
+  fallbackFilename: string;
+}) => {
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload),
+    cache: 'no-store'
+  });
+
+  if (!response.ok) {
+    const errorPayload = await response.json().catch(async () => ({ error: await response.text() }));
+    throw new Error(errorPayload?.error || 'Unable to prepare the export.');
+  }
+
+  const blob = await response.blob();
+  if (blob.size === 0) {
+    throw new Error('The generated export was empty.');
+  }
+
+  const filename = getFilenameFromDisposition(response.headers.get('content-disposition'), fallbackFilename);
+  downloadBlob(blob, filename);
+
+  return {
+    filename,
+    bundled: response.headers.get('x-illustry-bundled') === 'true'
+  };
+};
+
+export const downloadOfficeAddinManifest = async () => {
+  const response = await fetch('/office/manifest.xml', { cache: 'no-store' });
+  if (!response.ok) {
+    throw new Error('Unable to prepare the Office add-in manifest.');
+  }
+  downloadBlob(await response.blob(), 'illustry-excel-addin-manifest.xml');
+};
+
 const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key, item) => {
   if (typeof item === 'function') {
     return {
@@ -101,6 +178,8 @@ const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key
 
   return item;
 });
+
+const serializeForServerExport = (value: unknown) => JSON.parse(serializeForWebComponent(value));
 
 const escapeScriptJson = (value: string) => value
   .replace(/</g, '\\u003c')
@@ -313,6 +392,28 @@ const getChartExportSize = (chart: EChartsType) => {
   };
 };
 
+export const getServerChartExportPayload = (
+  chart: EChartsType,
+  title: string,
+  options: ServerChartExportPayloadOptions = {}
+): ServerChartExportPayload => {
+  const payload: ServerChartExportPayload = {
+    title,
+    option: serializeForServerExport(chart.getOption()),
+    ...getChartExportSize(chart)
+  };
+
+  if (options.includePreview) {
+    try {
+      payload.previewDataUrl = getEChartsPngDataUrl(chart);
+    } catch {
+      // The backend can still render a fallback preview if the live chart image is unavailable.
+    }
+  }
+
+  return payload;
+};
+
 const getDashboardCharts = (element: HTMLElement) => Array.from(
   element.querySelectorAll<HTMLElement>('[_echarts_instance_]')
 )
@@ -333,6 +434,23 @@ const getDashboardWebComponentCharts = (element: HTMLElement): WebComponentChart
       title,
       option: chart.getOption()
     });
+    return charts;
+  }, []);
+
+export const getServerDashboardExportPayload = (
+  element: HTMLElement,
+  options: ServerChartExportPayloadOptions = {}
+): ServerChartExportPayload[] => Array.from(
+  element.querySelectorAll<HTMLElement>('[_echarts_instance_]')
+)
+  .reduce<ServerChartExportPayload[]>((charts, chartElement, index) => {
+    const chart = echarts.getInstanceByDom(chartElement);
+    if (!chart) {
+      return charts;
+    }
+    const cardElement = chartElement.closest<HTMLElement>('[data-dashboard-visualization-title]');
+    const title = cardElement?.dataset.dashboardVisualizationTitle || `Visualization ${index + 1}`;
+    charts.push(getServerChartExportPayload(chart, title, options));
     return charts;
   }, []);
 
@@ -359,6 +477,11 @@ const getDashboardPngDataUrl = (charts: EChartsType[]) => {
       chart.group = previousGroup ?? '';
     });
   }
+};
+
+export const getServerDashboardPreviewDataUrl = (element: HTMLElement) => {
+  const charts = getDashboardCharts(element);
+  return charts.length ? getDashboardPngDataUrl(charts) : undefined;
 };
 
 const getDashboardExportSize = (element: HTMLElement) => {

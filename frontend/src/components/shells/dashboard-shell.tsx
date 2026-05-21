@@ -5,7 +5,7 @@ import React, {
 } from 'react';
 import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, Download, GripHorizontal, Save } from 'lucide-react';
+import { Download, GripHorizontal, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   Card, CardContent, CardHeader, CardTitle
@@ -14,15 +14,12 @@ import { updateDashboard } from '@/app/_actions/dashboard';
 import { Button } from '@/components/ui/button';
 import { useLocale } from '@/components/providers/locale-provider';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
-import { exportDashboardCharts, type ChartExportFormat } from '@/lib/chart-export';
+  downloadExportFromApi,
+  getServerDashboardExportPayload,
+  getServerDashboardPreviewDataUrl
+} from '@/lib/chart-export';
 import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
+import ExportDownloadDialog, { type ExportDownloadValues } from '@/components/export/export-download-dialog';
 import HubShell from './hub-shell';
 
 type VisualizationData = {
@@ -50,18 +47,6 @@ const DASHBOARD_TILE_HEIGHT = 4;
 const DASHBOARD_TILE_MIN_WIDTH = 2;
 const DASHBOARD_TILE_MIN_HEIGHT = 2;
 const DASHBOARD_MAX_VISIBLE_VISUALIZATIONS = 6;
-
-const dashboardExportFormats: Array<{ label: string; value: ChartExportFormat }> = [
-  { label: 'PNG', value: 'png' },
-  { label: 'JPG', value: 'jpg' },
-  { label: 'WebP', value: 'webp' },
-  { label: 'SVG', value: 'svg' },
-  { label: 'Web Component', value: 'web-component' }
-];
-
-const getExportFormatLabel = (format: ChartExportFormat) => (
-  format === 'web-component' ? 'Web Component' : format.toUpperCase()
-);
 
 const createDefaultFixedLayoutItem = (
   index: number,
@@ -185,7 +170,8 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     .sort((a, b) => a.slot - b.slot || a.index - b.index), [currentLayout, visibleVisualizations]);
 
   const [layoutPending, setLayoutPending] = useState(false);
-  const [exportPendingFormat, setExportPendingFormat] = useState<ChartExportFormat | null>(null);
+  const [exportPending, setExportPending] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const [currentShareId, setCurrentShareId] = useState(dashboard?.shareId);
   const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
   const dashboardRef = useRef(dashboard);
@@ -440,25 +426,43 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
     router.push(url);
   };
 
-  const handleDashboardExport = async (format: ChartExportFormat) => {
+  const handleDashboardExport = async (values: ExportDownloadValues) => {
     const element = dashboardExportRef.current;
     if (!element) {
       toast.error('The dashboard is not ready to export yet.');
       return;
     }
+    if (!dashboard?.name && !dashboard?.shareId) {
+      toast.error('The dashboard is not ready to export yet.');
+      return;
+    }
 
-    setExportPendingFormat(format);
+    const charts = getServerDashboardExportPayload(element);
+    if (!charts.length) {
+      toast.error('No dashboard visualizations are ready to export yet.');
+      return;
+    }
+
+    setExportPending(true);
     try {
-      await exportDashboardCharts({
-        element,
-        filename: `dashboard-${dashboard?.name || 'export'}`,
-        format
+      const result = await downloadExportFromApi({
+        endpoint: '/api/export/dashboard',
+        fallbackFilename: 'illustry-dashboard-export',
+        payload: {
+          name: dashboard?.isExternal ? undefined : dashboard?.name,
+          shareId: dashboard?.isExternal ? dashboard?.shareId : undefined,
+          title: `dashboard-${dashboard?.name || 'export'}`,
+          charts,
+          previewDataUrl: values.formats.includes('excel') ? getServerDashboardPreviewDataUrl(element) : undefined,
+          ...values
+        }
       });
-      toast.success(`${getExportFormatLabel(format)} dashboard export started`);
+      toast.success(result.bundled ? 'Dashboard ZIP export started' : 'Dashboard export started');
+      setExportDialogOpen(false);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Unable to export this dashboard.');
     } finally {
-      setExportPendingFormat(null);
+      setExportPending(false);
     }
   };
 
@@ -503,36 +507,27 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
 
   return (
     <div className="flex h-[calc(100dvh-6rem)] flex-col overflow-hidden p-3">
+      <ExportDownloadDialog
+        open={exportDialogOpen}
+        pending={exportPending}
+        title="Export dashboard"
+        description="Choose one or more formats. The backend prepares one file directly or packages multiple exports into a ZIP."
+        defaultSheetName="Dashboard"
+        onOpenChange={setExportDialogOpen}
+        onSubmit={(values) => void handleDashboardExport(values)}
+      />
       <div className="mb-3 flex shrink-0 justify-end gap-2">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="outline"
-              className="shadow-sm"
-              disabled={!visualizationsList.length || Boolean(exportPendingFormat)}
-              aria-label="Export dashboard"
-            >
-              <Download className="mr-2 h-4 w-4" />
-              {exportPendingFormat ? 'Exporting' : 'Export'}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-[190px]">
-            <DropdownMenuLabel>Save dashboard as</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {dashboardExportFormats.map((format) => (
-              <DropdownMenuItem
-                key={format.value}
-                onSelect={() => {
-                  void handleDashboardExport(format.value);
-                }}
-              >
-                {format.label}
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Button
+          type="button"
+          variant="outline"
+          className="shadow-sm"
+          disabled={!visualizationsList.length || exportPending}
+          aria-label="Export dashboard"
+          onClick={() => setExportDialogOpen(true)}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {exportPending ? 'Exporting' : 'Export'}
+        </Button>
         {canEditDashboard ? (
           <Button
             type="button"

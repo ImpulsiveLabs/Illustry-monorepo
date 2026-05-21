@@ -16,11 +16,15 @@ const upload = multer({
 });
 const finalupload = upload.fields([{ name: 'file', maxCount: 10 }]);
 
+router.post('/api/office/visualization/preview', VisualizationAPI.previewOfficeVisualization);
+
 router.use(requireAuthenticatedUser, requireVerifiedEmail);
 
 router.post('/api/visualization', requireCsrf, finalupload as any, VisualizationAPI.createOrUpdate);
 router.put('/api/visualization', requireCsrf, VisualizationAPI.update);
 router.post('/api/visualizations', VisualizationAPI.browse);
+router.post('/api/visualization/export/excel', requireCsrf, VisualizationAPI.exportExcel);
+router.post('/api/visualization/export/bundle', requireCsrf, VisualizationAPI.exportBundle);
 router.put('/api/visualizations/theme', requireCsrf, VisualizationAPI.syncTheme);
 router.get('/api/visualization/shared/:shareId', VisualizationAPI.findShared);
 router.get('/api/visualization/shared-dashboard/:dashboardShareId', VisualizationAPI.findSharedThroughDashboard);

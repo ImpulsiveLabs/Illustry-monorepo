@@ -2,7 +2,15 @@ import {
   afterEach, beforeEach, describe, expect, it, vi
 } from 'vitest';
 import * as echarts from 'echarts/core';
-import { exportChart, exportDashboardCharts } from '@/lib/chart-export';
+import {
+  downloadBase64File,
+  downloadExportFromApi,
+  downloadOfficeAddinManifest,
+  exportChart,
+  exportDashboardCharts,
+  getServerChartExportPayload,
+  getServerDashboardExportPayload
+} from '@/lib/chart-export';
 
 vi.mock('echarts/core', () => ({
   connect: vi.fn(() => 'dashboard-export-group'),
@@ -26,6 +34,7 @@ describe('lib/chart-export', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.unstubAllGlobals();
   });
 
   it('downloads single chart SVG exports without requiring an SVG ECharts painter', async () => {
@@ -166,5 +175,124 @@ describe('lib/chart-export', () => {
     expect(html).toContain('Sales (Bar Chart)');
     expect(html).toContain('"type":"line"');
     expect(chart.getOption).toHaveBeenCalled();
+  });
+
+  it('collects server export payloads without doing browser-side file generation', () => {
+    const chartElement = document.createElement('div');
+    chartElement.setAttribute('_echarts_instance_', 'chart-id');
+    const cardElement = document.createElement('article');
+    cardElement.dataset.dashboardVisualizationTitle = 'Sales (Bar Chart)';
+    cardElement.appendChild(chartElement);
+    const dashboardElement = document.createElement('section');
+    dashboardElement.appendChild(cardElement);
+
+    const chart = {
+      getOption: vi.fn(() => ({ series: [{ type: 'bar', data: [1] }] })),
+      getDom: vi.fn(() => ({
+        getBoundingClientRect: () => ({ width: 700, height: 400 })
+      })),
+      getWidth: vi.fn(() => 700),
+      getHeight: vi.fn(() => 400),
+      getDataURL: vi.fn(() => 'data:image/png;base64,live-preview')
+    };
+    vi.mocked(echarts.getInstanceByDom).mockReturnValue(chart as never);
+
+    expect(getServerChartExportPayload(chart as never, 'Sales')).toEqual({
+      title: 'Sales',
+      option: { series: [{ type: 'bar', data: [1] }] },
+      width: 700,
+      height: 400
+    });
+    expect(getServerChartExportPayload(chart as never, 'Sales', { includePreview: true })).toEqual({
+      title: 'Sales',
+      option: { series: [{ type: 'bar', data: [1] }] },
+      width: 700,
+      height: 400,
+      previewDataUrl: 'data:image/png;base64,live-preview'
+    });
+    expect(getServerDashboardExportPayload(dashboardElement)).toEqual([{
+      title: 'Sales (Bar Chart)',
+      option: { series: [{ type: 'bar', data: [1] }] },
+      width: 700,
+      height: 400
+    }]);
+    expect(getServerDashboardExportPayload(dashboardElement, { includePreview: true })).toEqual([{
+      title: 'Sales (Bar Chart)',
+      option: { series: [{ type: 'bar', data: [1] }] },
+      width: 700,
+      height: 400,
+      previewDataUrl: 'data:image/png;base64,live-preview'
+    }]);
+  });
+
+  it('serializes formatter functions for backend exports', () => {
+    const chart = {
+      getOption: vi.fn(() => ({
+        tooltip: {
+          formatter: (params: { name: string }) => params.name
+        },
+        series: [{ type: 'bar', data: [1] }]
+      })),
+      getDom: vi.fn(() => ({
+        getBoundingClientRect: () => ({ width: 700, height: 400 })
+      })),
+      getWidth: vi.fn(() => 700),
+      getHeight: vi.fn(() => 400)
+    };
+
+    const payload = getServerChartExportPayload(chart as never, 'Sales');
+    expect((payload.option as any).tooltip.formatter.__illustryFunction).toContain('params.name');
+  });
+
+  it('downloads backend-returned base64 files', () => {
+    downloadBase64File({
+      base64: 'ZmFrZQ==',
+      filename: 'export.zip',
+      mimeType: 'application/zip'
+    });
+
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]?.[0] as Blob | undefined;
+    expect(blob?.type).toBe('application/zip');
+    expect(HTMLAnchorElement.prototype.click).toHaveBeenCalled();
+  });
+
+  it('downloads binary exports from the API proxy without base64 server-action payloads', async () => {
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('zip-bytes', {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/zip',
+        'Content-Disposition': 'attachment; filename="bundle.zip"',
+        'X-Illustry-Bundled': 'true'
+      }
+    })));
+
+    const result = await downloadExportFromApi({
+      endpoint: '/api/export/dashboard',
+      payload: { formats: ['png', 'svg'] },
+      fallbackFilename: 'fallback.zip'
+    });
+
+    expect(fetch).toHaveBeenCalledWith('/api/export/dashboard', expect.objectContaining({
+      method: 'POST',
+      body: JSON.stringify({ formats: ['png', 'svg'] })
+    }));
+    expect(result).toEqual({ filename: 'bundle.zip', bundled: true });
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]?.[0] as Blob | undefined;
+    expect(blob?.type).toBe('application/zip');
+  });
+
+  it('downloads the Office add-in manifest', async () => {
+    const manifest = '<OfficeApp><DisplayName DefaultValue="Illustry Visualization" /></OfficeApp>';
+    vi.stubGlobal('fetch', vi.fn(async () => ({
+      ok: true,
+      blob: async () => new Blob([manifest], { type: 'application/xml' })
+    })));
+
+    await downloadOfficeAddinManifest();
+
+    expect(fetch).toHaveBeenCalledWith('/office/manifest.xml', { cache: 'no-store' });
+    const blob = vi.mocked(URL.createObjectURL).mock.calls[0]?.[0] as Blob | undefined;
+    expect(blob).toBeInstanceOf(Blob);
+    await expect(blob?.text()).resolves.toContain('Illustry Visualization');
   });
 });

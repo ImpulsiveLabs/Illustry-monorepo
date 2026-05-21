@@ -3,6 +3,13 @@ import { FileTypes, VisualizationTypes, ValidatorSchemas } from '@illustry/types
 import { returnResponse } from '../../utils/helper';
 import FileError from '../../errors/fileError';
 import Factory from '../../factory';
+import { createVisualizationExcelWorkbook, EXCEL_MIME } from '../../utils/excel-export';
+import {
+  createVisualizationExportBundle,
+  type ExportChartPayload,
+  type ExportFormat
+} from '../../utils/export-bundle';
+import { createOfficeVisualizationPreview, type OfficeRangePayload } from '../../utils/office-addin';
 
 const getAuthenticatedUserId = (request: Request): string => {
   const userId = request.auth?.userId;
@@ -295,6 +302,179 @@ const syncTheme = async (
   }
 };
 
+const exportExcel = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name,
+      type,
+      shareId,
+      dashboardShareId,
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename
+    } = request.body as VisualizationTypes.VisualizationFilter & {
+      dashboardShareId?: string;
+      sheetName?: string;
+      cellRange?: string;
+      templateWorkbookBase64?: string;
+      templateWorkbookFilename?: string;
+    };
+
+    let visualization: VisualizationTypes.VisualizationType;
+    if (dashboardShareId && name && typeof type === 'string') {
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findSharedThroughDashboard(dashboardShareId, name, type, userId);
+    } else if (shareId) {
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findShared(shareId, userId);
+    } else {
+      const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+        userId,
+        name,
+        type
+      };
+      ValidatorSchemas.validateWithSchema<
+        VisualizationTypes.VisualizationFilter
+      >(ValidatorSchemas.visualizationFilterSchema, visualizationFilter);
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findOne(visualizationFilter);
+    }
+
+    const workbook = await createVisualizationExcelWorkbook(visualization, {
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename
+    });
+
+    response.setHeader('Content-Type', EXCEL_MIME);
+    response.setHeader('Content-Disposition', `attachment; filename="${workbook.filename}"`);
+    response.send(workbook.buffer);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const exportBundle = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name,
+      type,
+      shareId,
+      dashboardShareId,
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename,
+      formats,
+      charts,
+      previewDataUrl,
+      title
+    } = request.body as VisualizationTypes.VisualizationFilter & {
+      dashboardShareId?: string;
+      sheetName?: string;
+      cellRange?: string;
+      templateWorkbookBase64?: string;
+      templateWorkbookFilename?: string;
+      formats?: ExportFormat[];
+      charts?: ExportChartPayload[];
+      previewDataUrl?: string;
+      title?: string;
+    };
+
+    const wantsExcel = Array.isArray(formats) && formats.includes('excel');
+    let visualization: VisualizationTypes.VisualizationType | undefined;
+
+    if (dashboardShareId && name && typeof type === 'string') {
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findSharedThroughDashboard(dashboardShareId, name, type, userId);
+    } else if (shareId) {
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findShared(shareId, userId);
+    } else if (name && typeof type === 'string') {
+      const visualizationFilter: VisualizationTypes.VisualizationFilter = {
+        userId,
+        name,
+        type
+      };
+      ValidatorSchemas.validateWithSchema<
+        VisualizationTypes.VisualizationFilter
+      >(ValidatorSchemas.visualizationFilterSchema, visualizationFilter);
+      visualization = await Factory.getInstance()
+        .getBZL()
+        .VisualizationBZL
+        .findOne(visualizationFilter);
+    }
+
+    if (!visualization && wantsExcel) {
+      throw new Error('Open a saved visualization before exporting as Excel.');
+    }
+
+    const exportTitle = title || visualization?.name || name || 'Illustry visualization';
+    const bundle = await createVisualizationExportBundle({
+      title: exportTitle,
+      formats: formats || [],
+      charts: charts || [],
+      previewDataUrl,
+      excelOptions: {
+        sheetName,
+        cellRange,
+        templateWorkbookBase64,
+        templateWorkbookFilename
+      },
+      visualization: visualization || ({
+        _id: 'detached-export',
+        userId,
+        projectName: 'Detached export',
+        name: exportTitle,
+        type: typeof type === 'string' ? type : 'custom',
+        data: {}
+      } as VisualizationTypes.VisualizationType)
+    });
+
+    response.setHeader('Content-Type', bundle.mimeType);
+    response.setHeader('Content-Disposition', `attachment; filename="${bundle.filename}"`);
+    response.setHeader('X-Illustry-Bundled', bundle.bundled ? 'true' : 'false');
+    response.send(bundle.buffer);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const previewOfficeVisualization = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const preview = createOfficeVisualizationPreview(request.body as OfficeRangePayload);
+    returnResponse(response, null, preview, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
 const browse = async (
   request: Request,
   response: Response,
@@ -414,6 +594,9 @@ export {
   share,
   revokeShare,
   syncTheme,
+  exportExcel,
+  exportBundle,
+  previewOfficeVisualization,
   respondToShareInvite,
   browse,
   _delete,

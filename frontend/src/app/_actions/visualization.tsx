@@ -257,6 +257,110 @@ const syncVisualizationThemes = async (
   }
 };
 
+type ExcelExportRequest = VisualizationTypes.VisualizationFilter & {
+  dashboardShareId?: string;
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+};
+
+type ExcelExportResponse = {
+  filename: string;
+  mimeType: string;
+  base64: string;
+};
+
+type VisualizationBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+
+type VisualizationBundleExportChart = {
+  title?: string;
+  option: unknown;
+  width?: number;
+  height?: number;
+};
+
+type VisualizationBundleExportRequest = VisualizationTypes.VisualizationFilter & {
+  dashboardShareId?: string;
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+  formats: VisualizationBundleExportFormat[];
+  charts: VisualizationBundleExportChart[];
+  title?: string;
+};
+
+type VisualizationBundleExportResponse = ExcelExportResponse & {
+  bundled: boolean;
+};
+
+const getFilenameFromDisposition = (contentDisposition: string | null, fallback: string) => {
+  const matched = contentDisposition?.match(/filename="?([^"]+)"?/);
+  return matched?.[1] || fallback;
+};
+
+const exportVisualizationExcel = async (
+  exportRequest: ExcelExportRequest
+): Promise<ExcelExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/export/excel`,
+    {
+      method: 'POST',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(exportRequest)
+    }
+  );
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-visualization.xlsx'),
+      mimeType: response.headers.get('content-type') || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      base64: buffer.toString('base64')
+    };
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const exportVisualizationBundle = async (
+  exportRequest: VisualizationBundleExportRequest
+): Promise<VisualizationBundleExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/export/bundle`,
+    {
+      method: 'POST',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(exportRequest)
+    }
+  );
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-visualization-export'),
+      mimeType: response.headers.get('content-type') || 'application/octet-stream',
+      base64: buffer.toString('base64'),
+      bundled: response.headers.get('x-illustry-bundled') === 'true'
+    };
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 export {
   browseVisualizations,
   deleteVisualization,
@@ -268,5 +372,15 @@ export {
   revokeVisualizationShare,
   updateVisualization,
   respondToVisualizationShareInvite,
-  syncVisualizationThemes
+  syncVisualizationThemes,
+  exportVisualizationExcel,
+  exportVisualizationBundle
+};
+export type {
+  ExcelExportRequest,
+  ExcelExportResponse,
+  VisualizationBundleExportChart,
+  VisualizationBundleExportFormat,
+  VisualizationBundleExportRequest,
+  VisualizationBundleExportResponse
 };

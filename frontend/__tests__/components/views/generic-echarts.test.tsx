@@ -1,9 +1,26 @@
 import React, { createRef } from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, screen } from '@testing-library/react';
+import {
+    act, fireEvent, render, screen, waitFor
+} from '@testing-library/react';
 
 const resizeSpy = vi.fn();
-const getInstance = vi.fn(() => ({ id: 'instance', resize: resizeSpy }));
+const { downloadExportFromApi } = vi.hoisted(() => ({
+    downloadExportFromApi: vi.fn(async () => ({
+        filename: 'Sales.png',
+        bundled: false
+    }))
+}));
+const getInstance = vi.fn(() => ({
+    id: 'instance',
+    resize: resizeSpy,
+    getOption: vi.fn(() => ({ series: [{ type: 'bar', data: [1, 2] }] })),
+    getDom: vi.fn(() => ({
+        getBoundingClientRect: () => ({ width: 640, height: 360 })
+    })),
+    getWidth: vi.fn(() => 640),
+    getHeight: vi.fn(() => 360)
+}));
 const echartsLibPropsSpy = vi.fn();
 
 vi.mock('echarts/core', () => ({
@@ -30,11 +47,33 @@ vi.mock('echarts-for-react', () => ({
     })
 }));
 
+vi.mock('@/lib/chart-export', async (importOriginal) => ({
+    ...(await importOriginal<typeof import('@/lib/chart-export')>()),
+    downloadExportFromApi
+}));
+
 import ReactEcharts from '@/components/views/generic/echarts';
 
 describe('ReactEcharts wrapper', () => {
     beforeEach(() => {
         window.history.pushState({}, '', '/');
+        downloadExportFromApi.mockClear();
+        Object.defineProperty(URL, 'createObjectURL', {
+            configurable: true,
+            value: vi.fn(() => 'blob:http://localhost/export')
+        });
+        Object.defineProperty(URL, 'revokeObjectURL', {
+            configurable: true,
+            value: vi.fn()
+        });
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+        vi.stubGlobal('ResizeObserver', class {
+            observe() {}
+
+            unobserve() {}
+
+            disconnect() {}
+        });
     });
 
     it('forwards props and exposes getEchartsInstance via ref', () => {
@@ -80,6 +119,8 @@ describe('ReactEcharts wrapper', () => {
 
             observe() {}
 
+            unobserve() {}
+
             disconnect() {
                 disconnect();
             }
@@ -111,5 +152,36 @@ describe('ReactEcharts wrapper', () => {
         window.history.pushState({}, '', '/visualizationhub?name=Sales&type=bar-chart');
         rerender(<ReactEcharts option={{ series: [] }} />);
         expect(screen.getByRole('button', { name: 'Export visualization' })).toBeInTheDocument();
+    });
+
+    it('opens the export modal and sends selected formats to the backend bundle endpoint', async () => {
+        window.history.pushState({}, '', '/visualizationhub?name=Sales&type=bar-chart');
+        render(<ReactEcharts option={{ series: [] }} />);
+
+        fireEvent.click(screen.getByRole('button', { name: 'Export visualization' }));
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        expect(screen.getByText('Export as Excel')).toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', { name: 'Download' }));
+
+        await waitFor(() => {
+            expect(downloadExportFromApi).toHaveBeenCalled();
+        });
+        expect(downloadExportFromApi.mock.calls[0][0]).toMatchObject({
+            endpoint: '/api/export/visualization',
+            fallbackFilename: 'illustry-visualization-export',
+            payload: {
+                name: 'Sales',
+                type: 'bar-chart',
+                formats: ['png'],
+                sheetName: 'Visualization',
+                cellRange: 'B2:K19'
+            }
+        });
+        expect(downloadExportFromApi.mock.calls[0][0].payload.charts[0]).toMatchObject({
+            title: 'visualization-Sales',
+            width: 640,
+            height: 360
+        });
     });
 });

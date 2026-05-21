@@ -2,6 +2,12 @@ import { NextFunction, Request, Response } from 'express';
 import { DashboardTypes, ValidatorSchemas } from '@illustry/types';
 import Factory from '../../factory';
 import { returnResponse } from '../../utils/helper';
+import { createDashboardExcelWorkbook, EXCEL_MIME } from '../../utils/excel-export';
+import {
+  createDashboardExportBundle,
+  type ExportChartPayload,
+  type ExportFormat
+} from '../../utils/export-bundle';
 
 const getAuthenticatedUserId = (request: Request): string => {
   const userId = request.auth?.userId;
@@ -79,6 +85,114 @@ const update = async (
       .update(dashboardFilter, dashboard, realtimeClientId);
 
     returnResponse(response, null, data, next);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const exportExcel = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name,
+      shareId,
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename
+    } = request.body as DashboardTypes.DashboardFilter & {
+      sheetName?: string;
+      cellRange?: string;
+      templateWorkbookBase64?: string;
+      templateWorkbookFilename?: string;
+    };
+
+    const dashboard = shareId
+      ? await Factory.getInstance()
+        .getBZL()
+        .DashboardBZL
+        .findShared(shareId, userId, true)
+      : await Factory.getInstance()
+        .getBZL()
+        .DashboardBZL
+        .findOne({ userId, name }, true);
+
+    const workbook = await createDashboardExcelWorkbook(dashboard, {
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename
+    });
+
+    response.setHeader('Content-Type', EXCEL_MIME);
+    response.setHeader('Content-Disposition', `attachment; filename="${workbook.filename}"`);
+    response.send(workbook.buffer);
+  } catch (err) {
+    returnResponse(response, (err as Error), null, next);
+  }
+};
+
+const exportBundle = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = getAuthenticatedUserId(request);
+    const {
+      name,
+      shareId,
+      sheetName,
+      cellRange,
+      templateWorkbookBase64,
+      templateWorkbookFilename,
+      formats,
+      charts,
+      previewDataUrl,
+      title
+    } = request.body as DashboardTypes.DashboardFilter & {
+      sheetName?: string;
+      cellRange?: string;
+      templateWorkbookBase64?: string;
+      templateWorkbookFilename?: string;
+      formats?: ExportFormat[];
+      charts?: ExportChartPayload[];
+      previewDataUrl?: string;
+      title?: string;
+    };
+
+    const dashboard = shareId
+      ? await Factory.getInstance()
+        .getBZL()
+        .DashboardBZL
+        .findShared(shareId, userId, true)
+      : await Factory.getInstance()
+        .getBZL()
+        .DashboardBZL
+        .findOne({ userId, name }, true);
+
+    const bundle = await createDashboardExportBundle({
+      title: title || dashboard.name || name || 'Illustry dashboard',
+      formats: formats || [],
+      charts: charts || [],
+      previewDataUrl,
+      excelOptions: {
+        sheetName,
+        cellRange,
+        templateWorkbookBase64,
+        templateWorkbookFilename
+      },
+      dashboard
+    });
+
+    response.setHeader('Content-Type', bundle.mimeType);
+    response.setHeader('Content-Disposition', `attachment; filename="${bundle.filename}"`);
+    response.setHeader('X-Illustry-Bundled', bundle.bundled ? 'true' : 'false');
+    response.send(bundle.buffer);
   } catch (err) {
     returnResponse(response, (err as Error), null, next);
   }
@@ -279,5 +393,15 @@ const browse = async (
 };
 
 export {
-  create, update, findOne, findShared, share, revokeShare, respondToShareInvite, _delete, browse
+  create,
+  update,
+  exportExcel,
+  exportBundle,
+  findOne,
+  findShared,
+  share,
+  revokeShare,
+  respondToShareInvite,
+  _delete,
+  browse
 };

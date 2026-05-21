@@ -171,6 +171,104 @@ const findSharedDashboard = async (shareId: string, fullVisualizations: boolean 
   }
 };
 
+type DashboardExcelExportRequest = DashboardTypes.DashboardFilter & {
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+};
+
+type DashboardExcelExportResponse = {
+  filename: string;
+  mimeType: string;
+  base64: string;
+};
+
+type DashboardBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+
+type DashboardBundleExportChart = {
+  title?: string;
+  option: unknown;
+  width?: number;
+  height?: number;
+};
+
+type DashboardBundleExportRequest = DashboardTypes.DashboardFilter & {
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+  formats: DashboardBundleExportFormat[];
+  charts: DashboardBundleExportChart[];
+  title?: string;
+};
+
+type DashboardBundleExportResponse = DashboardExcelExportResponse & {
+  bundled: boolean;
+};
+
+const getFilenameFromDisposition = (contentDisposition: string | null, fallback: string) => {
+  const matched = contentDisposition?.match(/filename="?([^"]+)"?/);
+  return matched?.[1] || fallback;
+};
+
+const exportDashboardExcel = async (
+  exportRequest: DashboardExcelExportRequest
+): Promise<DashboardExcelExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/dashboard/export/excel`, {
+    method: 'POST',
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+    body: JSON.stringify(exportRequest)
+  });
+
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-dashboard.xlsx'),
+      mimeType: response.headers.get('content-type') || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      base64: buffer.toString('base64')
+    };
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const exportDashboardBundle = async (
+  exportRequest: DashboardBundleExportRequest
+): Promise<DashboardBundleExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(`${BACKEND as string}/api/dashboard/export/bundle`, {
+    method: 'POST',
+    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+    body: JSON.stringify(exportRequest)
+  });
+
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-dashboard-export'),
+      mimeType: response.headers.get('content-type') || 'application/octet-stream',
+      base64: buffer.toString('base64'),
+      bundled: response.headers.get('x-illustry-bundled') === 'true'
+    };
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 export {
   browseDashboards,
   deleteDashboard,
@@ -180,5 +278,15 @@ export {
   respondToDashboardShareInvite,
   createDashboard,
   findOneDashboard,
-  findSharedDashboard
+  findSharedDashboard,
+  exportDashboardExcel,
+  exportDashboardBundle
+};
+export type {
+  DashboardExcelExportRequest,
+  DashboardExcelExportResponse,
+  DashboardBundleExportChart,
+  DashboardBundleExportFormat,
+  DashboardBundleExportRequest,
+  DashboardBundleExportResponse
 };

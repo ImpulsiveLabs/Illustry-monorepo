@@ -5,13 +5,25 @@ import userEvent from '@testing-library/user-event';
 import ResizableDashboard from '@/components/shells/dashboard-shell';
 
 const {
-    push, replace, refresh, updateDashboard, shareDashboard
+    push, replace, refresh, updateDashboard, shareDashboard,
+    getServerDashboardExportPayload, getServerDashboardPreviewDataUrl, downloadExportFromApi
 } = vi.hoisted(() => ({
     push: vi.fn(),
     replace: vi.fn(),
     refresh: vi.fn(),
     updateDashboard: vi.fn(() => Promise.resolve({})),
-    shareDashboard: vi.fn(() => Promise.resolve({ shareId: 'dash_shared' }))
+    shareDashboard: vi.fn(() => Promise.resolve({ shareId: 'dash_shared' })),
+    downloadExportFromApi: vi.fn(async () => ({
+        filename: 'dash.zip',
+        bundled: true
+    })),
+    getServerDashboardExportPayload: vi.fn(() => [{
+        title: 'Sales (Bar Chart)',
+        option: { series: [{ type: 'bar', data: [1, 2] }] },
+        width: 640,
+        height: 360
+    }]),
+    getServerDashboardPreviewDataUrl: vi.fn(() => 'data:image/png;base64,dashboard-preview'),
 }));
 
 vi.mock('next/navigation', () => ({
@@ -23,8 +35,29 @@ vi.mock('@/app/_actions/dashboard', () => ({
     shareDashboard
 }));
 
+vi.mock('@/lib/chart-export', () => ({
+    getServerDashboardExportPayload,
+    getServerDashboardPreviewDataUrl,
+    downloadExportFromApi
+}));
+
 vi.mock('@/components/shells/hub-shell', () => ({
     default: () => <div data-testid="hub-shell" />
+}));
+
+vi.mock('@/components/export/export-download-dialog', () => ({
+    default: ({ open, onSubmit }: any) => (open ? (
+        <button
+            type="button"
+            onClick={() => onSubmit({
+                formats: ['png', 'svg'],
+                sheetName: 'Dashboard',
+                cellRange: 'B2:K19'
+            })}
+        >
+            Mock dashboard download
+        </button>
+    ) : null)
 }));
 
 describe('ResizableDashboard', () => {
@@ -33,6 +66,13 @@ describe('ResizableDashboard', () => {
         window.sessionStorage.setItem('illustry:realtime-client-id', 'test-client');
         vi.clearAllMocks();
         vi.unstubAllGlobals();
+        vi.stubGlobal('ResizeObserver', class {
+            observe() {}
+
+            unobserve() {}
+
+            disconnect() {}
+        });
     });
 
     it('renders dashboard cards and navigates to visualization hub on title click', async () => {
@@ -254,6 +294,36 @@ describe('ResizableDashboard', () => {
 
         expect(screen.getByRole('button', { name: /Save layout/ })).toBeDisabled();
         expect(updateDashboard).not.toHaveBeenCalled();
+    });
+
+    it('opens the dashboard export modal and sends a multi-format request to the backend', async () => {
+        render(
+            <ResizableDashboard
+                dashboard={{
+                    name: 'dash',
+                    layouts: [],
+                    visualizations: [{ name: 'Sales', type: 'bar-chart', data: {} }]
+                } as any}
+            />
+        );
+
+        fireEvent.click(screen.getByRole('button', { name: 'Export dashboard' }));
+        fireEvent.click(screen.getByRole('button', { name: 'Mock dashboard download' }));
+
+        await waitFor(() => {
+            expect(downloadExportFromApi).toHaveBeenCalled();
+        });
+        expect(downloadExportFromApi.mock.calls[0][0]).toMatchObject({
+            endpoint: '/api/export/dashboard',
+            fallbackFilename: 'illustry-dashboard-export',
+            payload: {
+                name: 'dash',
+                formats: ['png', 'svg'],
+                sheetName: 'Dashboard',
+                cellRange: 'B2:K19'
+            }
+        });
+        expect(getServerDashboardExportPayload).toHaveBeenCalled();
     });
 
     it('normalizes predefined layouts into fixed slots before saving', async () => {
