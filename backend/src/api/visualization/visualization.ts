@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { FileTypes, VisualizationTypes, ValidatorSchemas } from '@illustry/types';
+import path from 'path';
 import { returnResponse } from '../../utils/helper';
 import FileError from '../../errors/fileError';
 import Factory from '../../factory';
@@ -52,6 +53,23 @@ const getUploadedTemplateFiles = (request: Request) => {
   };
 };
 
+const normalizeSourceFileType = (file: FileTypes.UploadedFile & { originalname?: string }) => {
+  const extension = path.extname(file.originalname || '').toLowerCase();
+  if (extension === '.xlsx') {
+    return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  }
+  if (extension === '.csv') {
+    return 'text/csv';
+  }
+  if (extension === '.json') {
+    return 'application/json';
+  }
+  if (extension === '.xml') {
+    return 'text/xml';
+  }
+  return file.mimetype;
+};
+
 const createOrUpdate = async (
   request: Request,
   response: Response,
@@ -75,7 +93,7 @@ const createOrUpdate = async (
 
     const computedFiles: FileTypes.FileProperties[] = requestFiles.map((f) => ({
       filePath: f.path,
-      type: f.mimetype
+      type: normalizeSourceFileType(f)
     }));
 
     const { fileDetails: reqFDet, visualizationDetails: reqVisDet, fullDetails } = request.body;

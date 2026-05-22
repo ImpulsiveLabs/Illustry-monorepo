@@ -20,6 +20,7 @@ import FileUpload from '@/components/ui/file-upload';
 import Icons from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { ServerChartExportFormat } from '@/lib/chart-export';
+import { UPLOAD_CONSTRAINTS } from '@/lib/upload-constraints';
 
 type ExportDownloadValues = {
   formats: ServerChartExportFormat[];
@@ -400,6 +401,7 @@ const ExportDownloadDialog = ({
                           removeFile={(id) => removeTemplateUpload(upload.format, id)}
                           fileFormat={upload.accept}
                           maxFiles={1}
+                          maxFileSize={UPLOAD_CONSTRAINTS['export-template'].maxBytes}
                           label={`Drag ${upload.label.toLowerCase()} here or click to browse`}
                           className={pending ? 'pointer-events-none opacity-60' : ''}
                         />

@@ -16,6 +16,14 @@ import {
   FormLabel,
   FormMessage
 } from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
 import Textarea from '@/components/ui/textarea';
 import Icons from '@/components/icons';
@@ -52,7 +60,10 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
     const finalData = { ...data, visualizations: form.getValues('visualizations') };
     startTransition(async () => {
       try {
-        await createDashboard({ ...finalData });
+        const created = await createDashboard({ ...finalData });
+        if (!created) {
+          throw new Error('Unable to create the dashboard.');
+        }
         form.reset();
         toast.success(t('toast.dashboardAdded'));
         router.push('/dashboards');
@@ -63,90 +74,115 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
   };
 
   return (
-    <div>
-      <h2 className="text-2xl font-bold mb-4">{t('form.dashboard.addTitle')}</h2>
+    <Dialog open onOpenChange={(open) => {
+      if (!open) {
+        router.push('/dashboards');
+      }
+    }}>
       <Form {...form}>
         <form
-          className="grid w-full max-w-xl gap-5"
+          id="dashboard-create-form"
           onSubmit={form.handleSubmit(onSubmit)}
         >
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('common.name')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('form.dashboard.namePlaceholder')} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('common.description')}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    placeholder={t('form.dashboard.descriptionPlaceholder')}
-                    {...field}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="visualizations"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('form.dashboard.visualizations')}</FormLabel>
-	                <FormControl>
-	                  <MultiSelect
-	                    options={visualizationOptions}
-	                    onValueChange={(selectedValues) => {
-	                      const formattedVisualizations = selectedValues
-	                        .slice(0, DASHBOARD_VISUALIZATION_LIMIT)
-	                        .reduce(
-	                          (acc, value) => {
-	                            const name = value.match(/^[^(]+/)?.[0];
-	                            const type = value.match(/\(([^)]+)\)/)?.[1];
-	                            if (name && type) {
-	                              acc[`${name}_${type}`] = type;
-	                            }
-	                            return acc;
-	                          },
-	                          {} as Record<string, string>
-	                        );
-	                      field.onChange(formattedVisualizations);
-	                      form.setValue('visualizations', formattedVisualizations);
-	                    }}
-	                    placeholder={t('form.dashboard.selectVisualizations')}
-	                    maxCount={DASHBOARD_VISUALIZATION_LIMIT}
-	                    selectionLimit={DASHBOARD_VISUALIZATION_LIMIT}
-	                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <Button className="w-fit" disabled={isPending} type="submit">
-            {isPending && (
-              <Icons.spinner
-                className="mr-2 h-4 w-4 animate-spin"
-                aria-hidden="true"
-              />
-            )}
-            {t('form.dashboard.addAction')}
-            <span className="sr-only">{t('form.dashboard.addAction')}</span>
-          </Button>
+          <DialogContent className="max-h-[calc(100vh-2rem)] max-w-3xl overflow-hidden p-0">
+            <div className="flex max-h-[calc(100vh-2rem)] flex-col">
+              <DialogHeader className="border-b bg-muted/20 px-6 py-5">
+                <DialogTitle className="flex items-center gap-3 text-xl">
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Icons.chart className="h-4 w-4" />
+                  </span>
+                  {t('form.dashboard.addTitle')}
+                </DialogTitle>
+                <DialogDescription>
+                  Build a dashboard from the visualizations already in this project.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid w-full gap-5 overflow-y-auto px-6 py-5">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('common.name')}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t('form.dashboard.namePlaceholder')} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('common.description')}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('form.dashboard.descriptionPlaceholder')}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="visualizations"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('form.dashboard.visualizations')}</FormLabel>
+                      <FormControl>
+                        <MultiSelect
+                          options={visualizationOptions}
+                          onValueChange={(selectedValues) => {
+                            const formattedVisualizations = selectedValues
+                              .slice(0, DASHBOARD_VISUALIZATION_LIMIT)
+                              .reduce(
+                                (acc, value) => {
+                                  const name = value.match(/^[^(]+/)?.[0];
+                                  const type = value.match(/\(([^)]+)\)/)?.[1];
+                                  if (name && type) {
+                                    acc[`${name}_${type}`] = type;
+                                  }
+                                  return acc;
+                                },
+                                {} as Record<string, string>
+                              );
+                            field.onChange(formattedVisualizations);
+                            form.setValue('visualizations', formattedVisualizations);
+                          }}
+                          placeholder={t('form.dashboard.selectVisualizations')}
+                          maxCount={DASHBOARD_VISUALIZATION_LIMIT}
+                          selectionLimit={DASHBOARD_VISUALIZATION_LIMIT}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <DialogFooter className="border-t bg-background px-6 py-4">
+                <Button type="button" variant="outline" disabled={isPending} onClick={() => router.push('/dashboards')}>
+                  Cancel
+                </Button>
+                <Button disabled={isPending} type="submit" form="dashboard-create-form">
+                  {isPending && (
+                    <Icons.spinner
+                      className="mr-2 h-4 w-4 animate-spin"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {t('form.dashboard.addAction')}
+                  <span className="sr-only">{t('form.dashboard.addAction')}</span>
+                </Button>
+              </DialogFooter>
+            </div>
+          </DialogContent>
         </form>
       </Form>
-    </div>
+    </Dialog>
   );
 };
 

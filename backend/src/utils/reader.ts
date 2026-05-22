@@ -19,6 +19,7 @@ const readJsonFile = (
 ) => new Promise((resolve, reject) => {
   if (file.type !== 'application/json') {
     reject(new FileError('The provided file is not JSON format'));
+    return;
   }
   const buffer = fs.createReadStream(file.filePath);
   let finalText: string = '';
@@ -42,8 +43,9 @@ const readXmlFile = (
   visualizationType: VisualizationTypes.VisualizationTypesEnum,
   allFileDetails: boolean
 ) => new Promise((resolve, reject) => {
-  if (file.type !== 'text/xml') {
+  if (!['text/xml', 'application/xml'].includes(file.type)) {
     reject(new FileError('The provided file is not XML format'));
+    return;
   }
   const buffer = fs.createReadStream(file.filePath);
   let finalText: string = '';
@@ -77,10 +79,10 @@ const readExcelFile = (
   allFileDetails: boolean
 ) => new Promise((resolve, reject) => {
   if (
-    file.type
-    !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    file.type !== 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ) {
     reject(new FileError('The provided file is not EXCEL format'));
+    return;
   }
   const loadWorkbook = async () => {
     const workbook = new ExcelJS.Workbook();
@@ -127,8 +129,9 @@ const readCsvFile = (
 ) => {
   const computedRows: TransformerTypes.RowType[] = [];
   return new Promise((resolve, reject) => {
-    if (file.type !== 'text/csv') {
+    if (!['text/csv', 'application/csv'].includes(file.type)) {
       reject(new FileError('The provided file is not CSV format'));
+      return;
     }
     const readStream = fs.createReadStream(file.filePath);
     const readliner = readline.createInterface({

@@ -2291,6 +2291,7 @@ __metadata:
     mongoose: "npm:8.24.0"
     multer: "npm:2.1.1"
     pdf-lib: "npm:1.17.1"
+    pptxgenjs: "npm:4.0.1"
     redis: "npm:5.12.1"
     sharp: "npm:0.33.5"
     shebang-loader: "npm:0.0.1"
@@ -5299,6 +5300,15 @@ __metadata:
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10/76cc44487faa0bf5302c84e5317de4b9727ea4e4b86d59d18d25435f4ccd7e6c584614dea061256f24a097c25a1d82dac1cd134357b42ae28006ba113c97f490
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.8.1":
+  version: 22.19.19
+  resolution: "@types/node@npm:22.19.19"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10/d404eb0bc391805537a172fcc607f7f9c142e20edc01a4203ec33e33a3c4e98fbe3a7ddb63725c399dd05947fac938722a6e05afe1c3d92017ac05c9a6b3ed8f
   languageName: node
   linkType: hard
 
@@ -10775,6 +10785,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"https@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "https@npm:1.0.0"
+  checksum: 10/ccea8a8363a018d4b241db7748cff3a85c9f5b71bf80639e9c37dc6823f590f35dda098b80b726930e9f945387c8bfd6b1461df25cab5bf65a31903d81875b5d
+  languageName: node
+  linkType: hard
+
 "human-signals@npm:^2.1.0":
   version: 2.1.0
   resolution: "human-signals@npm:2.1.0"
@@ -10866,6 +10883,17 @@ __metadata:
     typescript: "npm:5.5.4"
   languageName: unknown
   linkType: soft
+
+"image-size@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "image-size@npm:1.2.1"
+  dependencies:
+    queue: "npm:6.0.2"
+  bin:
+    image-size: bin/image-size.js
+  checksum: 10/b290c6cc5635565b1da51991472eb6522808430dbe3415823649723dc5f5fd8263f0f98f9bdec46184274ea24fe4f3f7a297c84b647b412e14d2208703dd8a19
+  languageName: node
+  linkType: hard
 
 "immediate@npm:~3.0.5":
   version: 3.0.6
@@ -15173,6 +15201,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"pptxgenjs@npm:4.0.1":
+  version: 4.0.1
+  resolution: "pptxgenjs@npm:4.0.1"
+  dependencies:
+    "@types/node": "npm:^22.8.1"
+    https: "npm:^1.0.0"
+    image-size: "npm:^1.2.1"
+    jszip: "npm:^3.10.1"
+  checksum: 10/b3e1f5a151364af91ad717f01fafee56dc52a2d4ab35ee67d6d1e1d22bc1a522f5bc612812c7f53b372a41c1f030bfbcece3d3492f9c5afbfd71a78e8b59bf67
+  languageName: node
+  linkType: hard
+
 "prelude-ls@npm:^1.2.1":
   version: 1.2.1
   resolution: "prelude-ls@npm:1.2.1"
@@ -15323,6 +15363,15 @@ __metadata:
   version: 1.2.3
   resolution: "queue-microtask@npm:1.2.3"
   checksum: 10/72900df0616e473e824202113c3df6abae59150dfb73ed13273503127235320e9c8ca4aaaaccfd58cf417c6ca92a6e68ee9a5c3182886ae949a768639b388a7b
+  languageName: node
+  linkType: hard
+
+"queue@npm:6.0.2":
+  version: 6.0.2
+  resolution: "queue@npm:6.0.2"
+  dependencies:
+    inherits: "npm:~2.0.3"
+  checksum: 10/3437954ef1442c86ff01a0fbe3dc6222838823b1ca97f37eff651bc20b868c0c2904424ef2c0d44cba46055f54b578f92866e573125dc9a5e8823d751e4d1585
   languageName: node
   linkType: hard
 

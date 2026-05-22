@@ -184,7 +184,7 @@ type DashboardExcelExportResponse = {
   base64: string;
 };
 
-type DashboardBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+type DashboardBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt';
 
 type DashboardBundleExportChart = {
   title?: string;

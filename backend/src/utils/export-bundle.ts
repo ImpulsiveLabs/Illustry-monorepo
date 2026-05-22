@@ -245,15 +245,30 @@ const renderSvg = (charts: Required<ExportChartPayload>[], title: string) => {
   ].join('');
 };
 
-const rasterizeSvg = async (svg: string, format: 'png' | 'jpg' | 'webp') => {
-  const image = sharp(Buffer.from(svg));
+const encodeRaster = async (image: sharp.Sharp, format: 'png' | 'jpg' | 'webp') => {
+  const flattened = image.flatten({ background: EXPORT_BACKGROUND });
   if (format === 'jpg') {
-    return image.flatten({ background: EXPORT_BACKGROUND }).jpeg({ quality: 95 }).toBuffer();
+    return flattened.jpeg({ quality: 95 }).toBuffer();
   }
   if (format === 'webp') {
-    return image.webp({ quality: 95 }).toBuffer();
+    return flattened.webp({ quality: 95 }).toBuffer();
   }
-  return image.png({ compressionLevel: 9 }).toBuffer();
+  return flattened.png({ compressionLevel: 9 }).toBuffer();
+};
+
+const rasterizeSvg = async (svg: string, format: 'png' | 'jpg' | 'webp') => {
+  return encodeRaster(sharp(Buffer.from(svg), { density: 144 }), format);
+};
+
+const rasterizePreview = async (
+  previewPng: Buffer | undefined,
+  svg: string,
+  format: 'png' | 'jpg' | 'webp'
+) => {
+  if (previewPng?.length) {
+    return encodeRaster(sharp(previewPng), format);
+  }
+  return rasterizeSvg(svg, format);
 };
 
 const buildWebComponentHtml = (
@@ -490,7 +505,7 @@ const createFiles = async ({
       });
     }
     return {
-      buffer: await rasterizeSvg(svg, format),
+      buffer: await rasterizePreview(previewPng, svg, format),
       filename: `${safeTitle}.${format}`,
       mimeType: mimeByFormat[format]
     };

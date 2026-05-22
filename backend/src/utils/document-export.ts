@@ -7,6 +7,7 @@ import {
   Paragraph
 } from 'docx';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import PptxGenJS from 'pptxgenjs';
 import JSZip from 'jszip';
 import { Builder, Parser } from 'xml2js';
 
@@ -215,6 +216,7 @@ typeof AlignmentType.LEFT | typeof AlignmentType.CENTER | typeof AlignmentType.R
 
 const pxToTwip = (value: number) => Math.round((value / 96) * 1440);
 const pxToEmu = (value: number) => Math.round((value / 96) * EMU_PER_INCH);
+const emuToInch = (value: number) => Number((value / EMU_PER_INCH).toFixed(4));
 
 const createNewWordExport = async (
   title: string,
@@ -461,43 +463,37 @@ const updatePptTemplate = async (
 };
 
 const createNewPptExport = async (title: string, image: Buffer, normalized: ReturnType<typeof normalizeOptions>) => {
-  const zip = new JSZip();
-  const slideCount = normalized.page;
+  const pptx = new PptxGenJS();
   const placement = getPptPlacement(normalized);
-  const slideOverrides = Array.from({ length: slideCount }, (_item, index) => (
-    `<Override PartName="/ppt/slides/slide${index + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>`
-  )).join('');
-  const slideIds = Array.from({ length: slideCount }, (_item, index) => (
-    `<p:sldId id="${256 + index}" r:id="rId${index + 1}"/>`
-  )).join('');
-  const presentationRelationships = Array.from({ length: slideCount }, (_item, index) => (
-    `<Relationship Id="rId${index + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${index + 1}.xml"/>`
-  )).join('');
+  pptx.layout = 'LAYOUT_WIDE';
+  pptx.author = 'Illustry';
+  pptx.company = 'Illustry';
+  pptx.subject = title;
+  pptx.title = title;
+  pptx.revision = '1';
 
-  zip.file('[Content_Types].xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>${slideOverrides}</Types>`);
-  zip.file('_rels/.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/></Relationships>`);
-  zip.file('ppt/presentation.xml', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:sldIdLst>${slideIds}</p:sldIdLst><p:sldSz cx="${PPT_SLIDE_WIDTH_EMU}" cy="${PPT_SLIDE_HEIGHT_EMU}" type="wide"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>`);
-  zip.file('ppt/_rels/presentation.xml.rels', `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${presentationRelationships}</Relationships>`);
-
-  for (let index = 1; index <= slideCount; index += 1) {
-    const pictureXml = index === normalized.page
-      ? createPptPictureXml('rId1', 2, placement.x, placement.y, placement.cx, placement.cy)
-      : '';
-    zip.file(`ppt/slides/slide${index}.xml`, `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${pictureXml}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`);
-    zip.file(`ppt/slides/_rels/slide${index}.xml.rels`, index === normalized.page
-      ? `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/></Relationships>`
-      : '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"/>');
+  for (let index = 1; index <= normalized.page; index += 1) {
+    const slide = pptx.addSlide();
+    slide.background = { color: 'FFFFFF' };
+    if (index === normalized.page) {
+      slide.addImage({
+        data: `data:image/png;base64,${image.toString('base64')}`,
+        x: emuToInch(placement.x),
+        y: emuToInch(placement.y),
+        w: emuToInch(placement.cx),
+        h: emuToInch(placement.cy),
+        altText: title
+      });
+    }
   }
-  zip.file('ppt/media/image1.png', image);
+
+  const output = await pptx.write({ outputType: 'nodebuffer', compression: true });
+  const buffer = Buffer.isBuffer(output)
+    ? output
+    : Buffer.from(output as Uint8Array);
 
   return {
-    buffer: await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } }),
+    buffer,
     filename: `${sanitizeFilename(title)}.pptx`,
     mimeType: PPT_MIME
   };

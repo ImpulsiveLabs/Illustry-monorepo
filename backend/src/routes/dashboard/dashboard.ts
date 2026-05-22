@@ -6,11 +6,13 @@ import {
   requireCsrf,
   requireVerifiedEmail
 } from '../../auth/middleware';
+import { UPLOAD_CONSTRAINTS, createMulterFileFilter } from '../../utils/upload-constraints';
 
 const router: ExpressRouter = Router();
 const exportUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 100 * 1024 * 1024 }
+  limits: { fileSize: UPLOAD_CONSTRAINTS['export-template'].maxBytes },
+  fileFilter: createMulterFileFilter('export-template')
 });
 const exportTemplateUpload = exportUpload.fields([
   { name: 'templateExcel', maxCount: 1 },

@@ -1,4 +1,6 @@
 import JSZip from 'jszip';
+import path from 'path';
+import sharp from 'sharp';
 import { VisualizationTypes } from '@illustry/types';
 import {
   createDashboardExportBundle,
@@ -37,6 +39,68 @@ const visualization = {
     }
   }
 } as VisualizationTypes.VisualizationType;
+
+const getRelationships = (xml: string) => Array.from(xml.matchAll(/<Relationship\s+([^>]+?)\/>/g))
+  .map((match) => {
+    const attrs = Object.fromEntries(Array.from(match[1].matchAll(/([A-Za-z:]+)="([^"]*)"/g))
+      .map((attr) => [attr[1], attr[2]]));
+    return attrs as { Id: string; Type: string; Target: string };
+  });
+
+const resolveRelationshipTarget = (relsPath: string, target: string) => {
+  const ownerPath = relsPath.replace('/_rels/', '/').replace(/\.rels$/, '');
+  const ownerDirectory = path.posix.dirname(ownerPath);
+  return path.posix.normalize(path.posix.join(ownerDirectory, target));
+};
+
+const expectValidPptxPackage = async (buffer: Buffer, expectedImageSlide: number) => {
+  const pptZip = await JSZip.loadAsync(buffer);
+  expect(pptZip.file('[Content_Types].xml')).toBeDefined();
+  expect(pptZip.file('_rels/.rels')).toBeDefined();
+  expect(pptZip.file('docProps/core.xml')).toBeDefined();
+  expect(pptZip.file('docProps/app.xml')).toBeDefined();
+  expect(pptZip.file('ppt/presentation.xml')).toBeDefined();
+  expect(pptZip.file('ppt/_rels/presentation.xml.rels')).toBeDefined();
+  expect(pptZip.file('ppt/slideMasters/slideMaster1.xml')).toBeDefined();
+  expect(pptZip.file('ppt/slideLayouts/slideLayout1.xml')).toBeDefined();
+  expect(pptZip.file('ppt/theme/theme1.xml')).toBeDefined();
+
+  const contentTypes = await pptZip.file('[Content_Types].xml')?.async('string');
+  expect(contentTypes).toContain('/ppt/slideMasters/slideMaster1.xml');
+  expect(contentTypes).toContain('/ppt/slideLayouts/slideLayout1.xml');
+  expect(contentTypes).toContain('/ppt/theme/theme1.xml');
+
+  const presentationRelsXml = await pptZip.file('ppt/_rels/presentation.xml.rels')?.async('string');
+  const presentationRelationships = getRelationships(presentationRelsXml || '');
+  const slideRelationships = presentationRelationships
+    .filter((relationship) => relationship.Type.endsWith('/slide'));
+  expect(slideRelationships.length).toBeGreaterThanOrEqual(expectedImageSlide);
+  slideRelationships.forEach((relationship) => {
+    expect(pptZip.file(resolveRelationshipTarget('ppt/_rels/presentation.xml.rels', relationship.Target))).toBeDefined();
+  });
+
+  await Promise.all(slideRelationships.map(async (relationship, index) => {
+    const slidePath = resolveRelationshipTarget('ppt/_rels/presentation.xml.rels', relationship.Target);
+    const relsPath = `ppt/slides/_rels/${path.posix.basename(slidePath)}.rels`;
+    const slideXml = await pptZip.file(slidePath)?.async('string');
+    const slideRelsXml = await pptZip.file(relsPath)?.async('string');
+    expect(slideXml).toContain('<p:sld');
+    expect(slideRelsXml).toBeDefined();
+    const relationships = getRelationships(slideRelsXml || '');
+    const ids = relationships.map((item) => item.Id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(relationships.some((item) => item.Type.endsWith('/slideLayout'))).toBe(true);
+    relationships.forEach((item) => {
+      expect(pptZip.file(resolveRelationshipTarget(relsPath, item.Target))).toBeDefined();
+    });
+    if (index + 1 === expectedImageSlide) {
+      expect(slideXml).toContain('<p:pic>');
+      expect(relationships.some((item) => item.Type.endsWith('/image'))).toBe(true);
+    } else {
+      expect(slideXml).not.toContain('<p:pic>');
+    }
+  }));
+};
 
 describe('export bundle utility', () => {
   it('rejects empty export selections', () => {
@@ -79,6 +143,32 @@ describe('export bundle utility', () => {
     expect(result.filename).toBe('Sales.png');
     expect(result.mimeType).toBe('image/png');
     expect(result.buffer.subarray(0, 8)).toEqual(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]));
+  });
+
+  it('uses the live preview image for raster exports to avoid backend SVG text artifacts', async () => {
+    const preview = await sharp({
+      create: {
+        width: 4,
+        height: 4,
+        channels: 4,
+        background: { r: 12, g: 34, b: 56, alpha: 1 }
+      }
+    }).png().toBuffer();
+    const result = await createVisualizationExportBundle({
+      title: 'Preview backed raster',
+      formats: ['png'],
+      charts: [{
+        title: 'Sales',
+        option: chart,
+        width: 640,
+        height: 360,
+        previewDataUrl: `data:image/png;base64,${preview.toString('base64')}`
+      }],
+      visualization
+    });
+
+    const pixels = await sharp(result.buffer).raw().toBuffer();
+    expect(Array.from(pixels.subarray(0, 3))).toEqual([12, 34, 56]);
   });
 
   it('packages multiple selected exports into a valid ZIP', async () => {
@@ -167,7 +257,31 @@ describe('export bundle utility', () => {
     expect(word).toBeDefined();
     expect(ppt).toBeDefined();
     await expect(JSZip.loadAsync(word as Buffer)).resolves.toBeDefined();
-    await expect(JSZip.loadAsync(ppt as Buffer)).resolves.toBeDefined();
+    await expectValidPptxPackage(ppt as Buffer, 2);
+  });
+
+  it('places PowerPoint exports on the requested slide instead of always using slide one', async () => {
+    const result = await createVisualizationExportBundle({
+      title: 'Sales slide target',
+      formats: ['ppt'],
+      charts: [{
+        title: 'Sales',
+        option: chart,
+        width: 640,
+        height: 360,
+        previewDataUrl: pngDataUrl
+      }],
+      documentOptions: {
+        page: 3,
+        width: 800,
+        height: 450,
+        placement: 'middle-center'
+      },
+      visualization
+    });
+
+    expect(result.filename).toBe('Sales-slide-target.pptx');
+    await expectValidPptxPackage(result.buffer, 3);
   });
 
   it('updates uploaded document templates in the backend', async () => {
@@ -237,7 +351,7 @@ describe('export bundle utility', () => {
     expect(word.filename).toBe('existing-report.docx');
     await expect(JSZip.loadAsync(word.buffer)).resolves.toBeDefined();
     expect(ppt.filename).toBe('existing-report.pptx');
-    await expect(JSZip.loadAsync(ppt.buffer)).resolves.toBeDefined();
+    await expectValidPptxPackage(ppt.buffer, 1);
   });
 
   it('allows one independent uploaded template per document format', async () => {

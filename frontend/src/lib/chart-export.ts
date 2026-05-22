@@ -2,6 +2,7 @@
 
 import * as echarts from 'echarts/core';
 import type { EChartsType } from 'echarts/core';
+import { validateBrowserFile } from './upload-constraints';
 
 const EXPORT_BACKGROUND = '#ffffff';
 const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min.js';
@@ -147,6 +148,10 @@ const buildExportRequestBody = (payload: unknown) => {
   const formData = new FormData();
   formData.append('payload', JSON.stringify(rest));
   files.forEach(([format, file]) => {
+    const validationError = validateBrowserFile(file, 'export-template');
+    if (validationError) {
+      throw new Error(validationError);
+    }
     const fieldName = `template${format.charAt(0).toUpperCase()}${format.slice(1)}`;
     formData.append(fieldName, file, file.name);
   });

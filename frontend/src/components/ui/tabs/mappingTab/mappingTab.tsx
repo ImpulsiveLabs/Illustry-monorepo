@@ -18,6 +18,7 @@ import XMLMappingTab from './xmlMappingTab';
 type MappingTabProps = {
   selectedFileType: string;
   isPending: boolean;
+  canSubmit?: boolean;
   form: UseFormReturn<Inputs>;
   router: any;
 }
@@ -25,6 +26,7 @@ type MappingTabProps = {
 const MappingTab = ({
   selectedFileType,
   isPending,
+  canSubmit = true,
   form,
   router
 }: MappingTabProps) => {
@@ -44,7 +46,7 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 router={router}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending}>
+              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
                 {isPending && (
                   <Icons.spinner
                     className="mr-2 h-4 w-4 animate-spin"
@@ -64,7 +66,7 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 router={router}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending}>
+              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
                 {isPending && (
                   <Icons.spinner
                     className="mr-2 h-4 w-4 animate-spin"
@@ -86,7 +88,7 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 selectedFileType={fType}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending}>
+              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
                 {isPending && (
                   <Icons.spinner
                     className="mr-2 h-4 w-4 animate-spin"

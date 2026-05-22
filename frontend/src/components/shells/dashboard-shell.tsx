@@ -437,11 +437,17 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       return;
     }
 
-    const wantsDocumentPreview = values.formats.some((format) => (
-      format === 'excel' || format === 'pdf' || format === 'word' || format === 'ppt'
+    const wantsLivePreview = values.formats.some((format) => (
+      format === 'png'
+      || format === 'jpg'
+      || format === 'webp'
+      || format === 'excel'
+      || format === 'pdf'
+      || format === 'word'
+      || format === 'ppt'
     ));
     const charts = getServerDashboardExportPayload(element, {
-      includePreview: false
+      includePreview: wantsLivePreview
     });
     if (!charts.length) {
       toast.error('No dashboard visualizations are ready to export yet.');
@@ -458,7 +464,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
           shareId: dashboard?.isExternal ? dashboard?.shareId : undefined,
           title: `dashboard-${dashboard?.name || 'export'}`,
           charts,
-          previewDataUrl: wantsDocumentPreview ? getServerDashboardPreviewDataUrl(element) : undefined,
+          previewDataUrl: wantsLivePreview ? getServerDashboardPreviewDataUrl(element) : undefined,
           ...values
         }
       });

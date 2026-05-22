@@ -184,8 +184,14 @@ const ReactEcharts = forwardRef(<T,>(
     const shareId = params.get('share') || undefined;
     const dashboardShareId = params.get('dashboardShare') || undefined;
     const wantsExcel = values.formats.includes('excel' as ServerChartExportFormat);
-    const wantsDocumentPreview = values.formats.some((format) => (
-      format === 'excel' || format === 'pdf' || format === 'word' || format === 'ppt'
+    const wantsLivePreview = values.formats.some((format) => (
+      format === 'png'
+      || format === 'jpg'
+      || format === 'webp'
+      || format === 'excel'
+      || format === 'pdf'
+      || format === 'word'
+      || format === 'ppt'
     ));
 
     if (wantsExcel && !shareId && !dashboardShareId && (!name || !type)) {
@@ -205,7 +211,7 @@ const ReactEcharts = forwardRef(<T,>(
           dashboardShareId,
           title: getVisualizationExportFilename(),
           charts: [getServerChartExportPayload(chart, getVisualizationExportFilename(), {
-            includePreview: wantsDocumentPreview
+            includePreview: wantsLivePreview
           })],
           ...values
         }
