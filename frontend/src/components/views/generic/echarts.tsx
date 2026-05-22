@@ -184,6 +184,9 @@ const ReactEcharts = forwardRef(<T,>(
     const shareId = params.get('share') || undefined;
     const dashboardShareId = params.get('dashboardShare') || undefined;
     const wantsExcel = values.formats.includes('excel' as ServerChartExportFormat);
+    const wantsDocumentPreview = values.formats.some((format) => (
+      format === 'excel' || format === 'pdf' || format === 'word' || format === 'ppt'
+    ));
 
     if (wantsExcel && !shareId && !dashboardShareId && (!name || !type)) {
       toast.error('Open a saved visualization before exporting it to Excel.');
@@ -202,7 +205,7 @@ const ReactEcharts = forwardRef(<T,>(
           dashboardShareId,
           title: getVisualizationExportFilename(),
           charts: [getServerChartExportPayload(chart, getVisualizationExportFilename(), {
-            includePreview: wantsExcel
+            includePreview: wantsDocumentPreview
           })],
           ...values
         }

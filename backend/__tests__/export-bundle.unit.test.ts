@@ -22,6 +22,7 @@ const chart = {
     data: [10, 20, 30]
   }]
 };
+const pngDataUrl = `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=`;
 
 const visualization = {
   _id: 'viz-1',
@@ -115,7 +116,7 @@ describe('export bundle utility', () => {
         option: chart,
         width: 640,
         height: 360,
-        previewDataUrl: `data:image/png;base64,${Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).toString('base64')}`
+        previewDataUrl: pngDataUrl
       }],
       excelOptions: {
         sheetName: 'Report',
@@ -135,6 +136,145 @@ describe('export bundle utility', () => {
     const workbook = await import('exceljs').then(({ default: ExcelJS }) => new ExcelJS.Workbook());
     await workbook.xlsx.load(result.buffer);
     expect(workbook.getWorksheet('Illustry Add-in')?.getCell('A1').value).toContain('"charts":[{"title":"Sales"');
+  });
+
+  it('packages PDF, Word, and PowerPoint exports with the requested document placement', async () => {
+    const result = await createVisualizationExportBundle({
+      title: 'Sales documents',
+      formats: ['pdf', 'word', 'ppt'],
+      charts: [{
+        title: 'Sales',
+        option: chart,
+        width: 640,
+        height: 360,
+        previewDataUrl: pngDataUrl
+      }],
+      documentOptions: {
+        page: 2,
+        width: 800,
+        height: 450,
+        placement: 'top-right'
+      },
+      visualization
+    });
+
+    expect(result.bundled).toBe(true);
+    const zip = await JSZip.loadAsync(result.buffer);
+    const pdf = await zip.file('Sales-documents.pdf')?.async('nodebuffer');
+    const word = await zip.file('Sales-documents.docx')?.async('nodebuffer');
+    const ppt = await zip.file('Sales-documents.pptx')?.async('nodebuffer');
+    expect(pdf?.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(word).toBeDefined();
+    expect(ppt).toBeDefined();
+    await expect(JSZip.loadAsync(word as Buffer)).resolves.toBeDefined();
+    await expect(JSZip.loadAsync(ppt as Buffer)).resolves.toBeDefined();
+  });
+
+  it('updates uploaded document templates in the backend', async () => {
+    const sharedInput = {
+      title: 'Sales document template',
+      charts: [{
+        title: 'Sales',
+        option: chart,
+        width: 640,
+        height: 360,
+        previewDataUrl: pngDataUrl
+      }],
+      visualization
+    };
+    const pdfTemplate = await createVisualizationExportBundle({
+      ...sharedInput,
+      formats: ['pdf']
+    });
+    const wordTemplate = await createVisualizationExportBundle({
+      ...sharedInput,
+      formats: ['word']
+    });
+    const pptTemplate = await createVisualizationExportBundle({
+      ...sharedInput,
+      formats: ['ppt']
+    });
+
+    const pdf = await createVisualizationExportBundle({
+      ...sharedInput,
+      title: 'Updated PDF',
+      formats: ['pdf'],
+      documentOptions: {
+        templateFile: {
+          buffer: pdfTemplate.buffer,
+          originalname: 'existing-report.pdf',
+          mimetype: 'application/pdf'
+        }
+      }
+    });
+    const word = await createVisualizationExportBundle({
+      ...sharedInput,
+      title: 'Updated Word',
+      formats: ['word'],
+      documentOptions: {
+        templateFile: {
+          buffer: wordTemplate.buffer,
+          originalname: 'existing-report.docx',
+          mimetype: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        }
+      }
+    });
+    const ppt = await createVisualizationExportBundle({
+      ...sharedInput,
+      title: 'Updated PPT',
+      formats: ['ppt'],
+      documentOptions: {
+        templateFile: {
+          buffer: pptTemplate.buffer,
+          originalname: 'existing-report.pptx',
+          mimetype: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+        }
+      }
+    });
+
+    expect(pdf.filename).toBe('existing-report.pdf');
+    expect(pdf.buffer.subarray(0, 5).toString()).toBe('%PDF-');
+    expect(word.filename).toBe('existing-report.docx');
+    await expect(JSZip.loadAsync(word.buffer)).resolves.toBeDefined();
+    expect(ppt.filename).toBe('existing-report.pptx');
+    await expect(JSZip.loadAsync(ppt.buffer)).resolves.toBeDefined();
+  });
+
+  it('allows one independent uploaded template per document format', async () => {
+    const sharedInput = {
+      title: 'Sales separate templates',
+      charts: [{
+        title: 'Sales',
+        option: chart,
+        width: 640,
+        height: 360,
+        previewDataUrl: pngDataUrl
+      }],
+      visualization
+    };
+    const excelTemplate = await createVisualizationExportBundle({ ...sharedInput, formats: ['excel'] });
+    const pdfTemplate = await createVisualizationExportBundle({ ...sharedInput, formats: ['pdf'] });
+    const wordTemplate = await createVisualizationExportBundle({ ...sharedInput, formats: ['word'] });
+    const pptTemplate = await createVisualizationExportBundle({ ...sharedInput, formats: ['ppt'] });
+
+    const result = await createVisualizationExportBundle({
+      ...sharedInput,
+      formats: ['excel', 'pdf', 'word', 'ppt'],
+      documentOptions: {
+        templateFiles: {
+          excel: { buffer: excelTemplate.buffer, originalname: 'workbook.xlsx' },
+          pdf: { buffer: pdfTemplate.buffer, originalname: 'deck-not-used.pdf' },
+          word: { buffer: wordTemplate.buffer, originalname: 'notes.docx' },
+          ppt: { buffer: pptTemplate.buffer, originalname: 'slides.pptx' }
+        }
+      }
+    });
+
+    const zip = await JSZip.loadAsync(result.buffer);
+    expect(zip.file('visualization-Sales.xlsx')).toBeDefined();
+    expect(zip.file('deck-not-used.pdf')).toBeDefined();
+    expect(zip.file('notes.docx')).toBeDefined();
+    expect(zip.file('slides.pptx')).toBeDefined();
   });
 
   it('keeps large SVG exports valid without ZIP corruption', async () => {

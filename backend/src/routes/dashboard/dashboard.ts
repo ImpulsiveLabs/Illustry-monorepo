@@ -1,4 +1,5 @@
 import { Router, type Router as ExpressRouter } from 'express';
+import multer from 'multer';
 import * as dashboardAPI from '../../api/dashboard/dashboard';
 import {
   requireAuthenticatedUser,
@@ -7,13 +8,24 @@ import {
 } from '../../auth/middleware';
 
 const router: ExpressRouter = Router();
+const exportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 }
+});
+const exportTemplateUpload = exportUpload.fields([
+  { name: 'templateExcel', maxCount: 1 },
+  { name: 'templatePdf', maxCount: 1 },
+  { name: 'templateWord', maxCount: 1 },
+  { name: 'templatePpt', maxCount: 1 },
+  { name: 'templateFile', maxCount: 1 }
+]);
 
 router.use(requireAuthenticatedUser, requireVerifiedEmail);
 
 router.post('/api/dashboard', requireCsrf, dashboardAPI.create);
 router.post('/api/dashboards', dashboardAPI.browse);
 router.post('/api/dashboard/export/excel', requireCsrf, dashboardAPI.exportExcel);
-router.post('/api/dashboard/export/bundle', requireCsrf, dashboardAPI.exportBundle);
+router.post('/api/dashboard/export/bundle', requireCsrf, exportTemplateUpload as any, dashboardAPI.exportBundle);
 router.get('/api/dashboard/shared/:shareId', dashboardAPI.findShared);
 router.put('/api/dashboard/share', requireCsrf, dashboardAPI.share);
 router.delete('/api/dashboard/share', requireCsrf, dashboardAPI.revokeShare);

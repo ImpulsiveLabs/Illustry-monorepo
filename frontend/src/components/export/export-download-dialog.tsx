@@ -1,8 +1,9 @@
 'use client';
 
 import {
-  ChangeEvent, useEffect, useMemo, useState
+  useEffect, useMemo, useState
 } from 'react';
+import { ExtFile } from '@files-ui/react';
 import { Button } from '@/components/ui/button';
 import Checkbox from '@/components/ui/checkbox';
 import {
@@ -15,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
 import Label from '@/components/ui/label';
+import FileUpload from '@/components/ui/file-upload';
 import Icons from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { ServerChartExportFormat } from '@/lib/chart-export';
@@ -23,9 +25,20 @@ type ExportDownloadValues = {
   formats: ServerChartExportFormat[];
   sheetName: string;
   cellRange: string;
-  templateWorkbookBase64?: string;
-  templateWorkbookFilename?: string;
+  documentOptions: {
+    page: number;
+    width: number;
+    height: number;
+    placement: DocumentPlacement;
+  };
+  templateFiles?: Partial<Record<DocumentTemplateFormat, File>>;
 };
+
+type DocumentTemplateFormat = 'excel' | 'pdf' | 'word' | 'ppt';
+
+type DocumentPlacement = 'top-left' | 'top-center' | 'top-right'
+| 'middle-left' | 'middle-center' | 'middle-right'
+| 'bottom-left' | 'bottom-center' | 'bottom-right';
 
 type ExportDownloadOption = {
   value: ServerChartExportFormat;
@@ -88,24 +101,76 @@ const exportOptions: ExportDownloadOption[] = [
     description: 'Workbook with data, formulas preserved, and the visualization embedded.',
     accent: 'bg-teal-600',
     icon: 'product'
+  },
+  {
+    value: 'pdf',
+    label: 'PDF',
+    description: 'Page-based document with precise size and placement.',
+    accent: 'bg-rose-500',
+    icon: 'product'
+  },
+  {
+    value: 'word',
+    label: 'Word',
+    description: 'DOCX document with the visualization placed on the requested page.',
+    accent: 'bg-blue-600',
+    icon: 'product'
+  },
+  {
+    value: 'ppt',
+    label: 'PowerPoint',
+    description: 'PPTX deck with the visualization placed on the requested slide.',
+    accent: 'bg-orange-600',
+    icon: 'product'
   }
 ];
 
 const DEFAULT_CELL_RANGE = 'B2:K19';
 const EXCEL_RANGE_PATTERN = /^[A-Za-z]{1,3}[1-9]\d*:[A-Za-z]{1,3}[1-9]\d*$/;
+const DOCUMENT_PLACEMENTS: Array<{ value: DocumentPlacement; label: string }> = [
+  { value: 'top-left', label: 'Up left' },
+  { value: 'top-center', label: 'Up middle' },
+  { value: 'top-right', label: 'Up right' },
+  { value: 'middle-left', label: 'Left' },
+  { value: 'middle-center', label: 'Middle' },
+  { value: 'middle-right', label: 'Right' },
+  { value: 'bottom-left', label: 'Down left' },
+  { value: 'bottom-center', label: 'Down middle' },
+  { value: 'bottom-right', label: 'Down right' }
+];
+const TEMPLATE_UPLOADS: Array<{
+  format: DocumentTemplateFormat;
+  label: string;
+  accept: string;
+  visibleWhen: (formats: ServerChartExportFormat[]) => boolean;
+}> = [
+  {
+    format: 'excel',
+    label: 'Excel workbook',
+    accept: '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    visibleWhen: (formats) => formats.includes('excel')
+  },
+  {
+    format: 'pdf',
+    label: 'PDF document',
+    accept: '.pdf,application/pdf',
+    visibleWhen: (formats) => formats.includes('pdf')
+  },
+  {
+    format: 'word',
+    label: 'Word document',
+    accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    visibleWhen: (formats) => formats.includes('word')
+  },
+  {
+    format: 'ppt',
+    label: 'PowerPoint deck',
+    accept: '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    visibleWhen: (formats) => formats.includes('ppt')
+  }
+];
 
-const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
-  const reader = new FileReader();
-  reader.onload = () => {
-    if (typeof reader.result === 'string') {
-      resolve(reader.result);
-      return;
-    }
-    reject(new Error('Unable to read this workbook.'));
-  };
-  reader.onerror = () => reject(new Error('Unable to read this workbook.'));
-  reader.readAsDataURL(file);
-});
+const getExtFile = (files: ExtFile[]) => files[0]?.file instanceof File ? files[0].file : undefined;
 
 const ExportDownloadDialog = ({
   open,
@@ -120,12 +185,23 @@ const ExportDownloadDialog = ({
   const [selectedFormats, setSelectedFormats] = useState<ServerChartExportFormat[]>(['png']);
   const [sheetName, setSheetName] = useState(defaultSheetName);
   const [cellRange, setCellRange] = useState(DEFAULT_CELL_RANGE);
-  const [templateWorkbook, setTemplateWorkbook] = useState<File | null>(null);
-  const [filePending, setFilePending] = useState(false);
+  const [documentPage, setDocumentPage] = useState('1');
+  const [documentWidth, setDocumentWidth] = useState('960');
+  const [documentHeight, setDocumentHeight] = useState('540');
+  const [documentPlacement, setDocumentPlacement] = useState<DocumentPlacement>('middle-center');
+  const [templateUploads, setTemplateUploads] = useState<Record<DocumentTemplateFormat, ExtFile[]>>({
+    excel: [],
+    pdf: [],
+    word: [],
+    ppt: []
+  });
   const [showSelectionError, setShowSelectionError] = useState(false);
   const [rangeError, setRangeError] = useState('');
   const selectedCount = selectedFormats.length;
   const excelSelected = selectedFormats.includes('excel');
+  const documentSelected = selectedFormats.includes('pdf') || selectedFormats.includes('word') || selectedFormats.includes('ppt');
+  const fileBackedExportSelected = excelSelected || documentSelected;
+  const allSelected = options.length > 0 && options.every((option) => selectedFormats.includes(option.value));
 
   const helperText = useMemo(() => {
     if (selectedCount === 0) {
@@ -144,7 +220,16 @@ const ExportDownloadDialog = ({
     setSelectedFormats(['png']);
     setSheetName(defaultSheetName);
     setCellRange(DEFAULT_CELL_RANGE);
-    setTemplateWorkbook(null);
+    setDocumentPage('1');
+    setDocumentWidth('960');
+    setDocumentHeight('540');
+    setDocumentPlacement('middle-center');
+    setTemplateUploads({
+      excel: [],
+      pdf: [],
+      word: [],
+      ppt: []
+    });
     setShowSelectionError(false);
     setRangeError('');
   }, [defaultSheetName, open]);
@@ -154,6 +239,25 @@ const ExportDownloadDialog = ({
     setSelectedFormats((current) => (current.includes(format)
       ? current.filter((item) => item !== format)
       : [...current, format]));
+  };
+
+  const toggleSelectAll = () => {
+    setShowSelectionError(false);
+    setSelectedFormats(allSelected ? [] : options.map((option) => option.value));
+  };
+
+  const updateTemplateUpload = (format: DocumentTemplateFormat, files: ExtFile[]) => {
+    setTemplateUploads((current) => ({
+      ...current,
+      [format]: files.slice(0, 1)
+    }));
+  };
+
+  const removeTemplateUpload = (format: DocumentTemplateFormat, id: string | number | undefined) => {
+    setTemplateUploads((current) => ({
+      ...current,
+      [format]: current[format].filter((file) => file.id !== id)
+    }));
   };
 
   const handleDownload = async () => {
@@ -167,26 +271,31 @@ const ExportDownloadDialog = ({
       setRangeError('Use a range like H3:Z10.');
       return;
     }
-
-    let workbookPayload: string | undefined;
-    try {
-      setFilePending(true);
-      workbookPayload = excelSelected && templateWorkbook
-        ? await readFileAsDataUrl(templateWorkbook)
-        : undefined;
-    } catch (error) {
-      setRangeError(error instanceof Error ? error.message : 'Unable to read this workbook.');
-      return;
-    } finally {
-      setFilePending(false);
-    }
+    const normalizedDocumentPage = Math.max(1, Math.min(200, Math.round(Number(documentPage) || 1)));
+    const normalizedDocumentWidth = Math.max(120, Math.min(2400, Math.round(Number(documentWidth) || 960)));
+    const normalizedDocumentHeight = Math.max(120, Math.min(2400, Math.round(Number(documentHeight) || 540)));
+    const templateFiles = TEMPLATE_UPLOADS.reduce<Partial<Record<DocumentTemplateFormat, File>>>((files, upload) => {
+      if (!upload.visibleWhen(selectedFormats)) {
+        return files;
+      }
+      const file = getExtFile(templateUploads[upload.format]);
+      if (file) {
+        files[upload.format] = file;
+      }
+      return files;
+    }, {});
 
     onSubmit({
       formats: selectedFormats,
       sheetName: sheetName.trim() || defaultSheetName,
       cellRange: normalizedRange,
-      templateWorkbookBase64: workbookPayload,
-      templateWorkbookFilename: templateWorkbook?.name
+      documentOptions: {
+        page: normalizedDocumentPage,
+        width: normalizedDocumentWidth,
+        height: normalizedDocumentHeight,
+        placement: documentPlacement
+      },
+      templateFiles
     });
   };
 
@@ -205,6 +314,28 @@ const ExportDownloadDialog = ({
           </DialogHeader>
 
           <div className="overflow-y-auto px-6 py-5">
+            <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-4 py-3">
+              <div>
+                <p className="text-sm font-semibold text-foreground">Formats</p>
+                <p className="text-xs text-muted-foreground">{helperText}</p>
+              </div>
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm font-medium shadow-sm transition hover:bg-muted"
+                onClick={toggleSelectAll}
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    'flex h-4 w-4 items-center justify-center rounded-sm border text-[10px] leading-none',
+                    allSelected ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-background'
+                  )}
+                >
+                  {allSelected ? <Icons.check className="h-3 w-3" /> : null}
+                </span>
+                Select all
+              </button>
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {options.map((option) => {
                 const checked = selectedFormats.includes(option.value);
@@ -249,67 +380,142 @@ const ExportDownloadDialog = ({
               })}
             </div>
 
-            <div className={cn(
-              'mt-5 rounded-lg border bg-muted/20 p-4 transition-all',
-              excelSelected ? 'opacity-100' : 'opacity-60'
-            )}
-            >
-              <div className="mb-3 flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-semibold text-foreground">Excel placement</p>
+            {fileBackedExportSelected && (
+              <div className="mt-5 rounded-lg border bg-muted/20 p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-foreground">Update existing files</p>
                   <p className="text-sm text-muted-foreground">
-                    Used only when Export as Excel is selected. The visualization is placed over this exact range.
+                    Optional. Each selected document format has its own upload. Drop one file, and the backend inserts the visualization into that file.
                   </p>
                 </div>
-                <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-muted-foreground shadow-sm">
-                  {helperText}
-                </span>
-              </div>
-              <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
-                <div className="space-y-2">
-                  <Label htmlFor="export-sheet-name">Sheet</Label>
-                  <Input
-                    id="export-sheet-name"
-                    name="sheetName"
-                    value={sheetName}
-                    maxLength={31}
-                    disabled={!excelSelected || pending}
-                    onChange={(event) => setSheetName(event.target.value)}
-                    placeholder="Sheet1"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="export-cell-range">Cell range</Label>
-                  <Input
-                    id="export-cell-range"
-                    name="cellRange"
-                    value={cellRange}
-                    disabled={!excelSelected || pending}
-                    onChange={(event) => {
-                      setRangeError('');
-                      setCellRange(event.target.value);
-                    }}
-                    placeholder="H3:Z10"
-                  />
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {TEMPLATE_UPLOADS
+                    .filter((upload) => upload.visibleWhen(selectedFormats))
+                    .map((upload) => (
+                      <div key={upload.format} className="space-y-2">
+                        <Label>{upload.label}</Label>
+                        <FileUpload
+                          acceptedFiles={templateUploads[upload.format]}
+                          updateFiles={(files) => updateTemplateUpload(upload.format, files)}
+                          removeFile={(id) => removeTemplateUpload(upload.format, id)}
+                          fileFormat={upload.accept}
+                          maxFiles={1}
+                          label={`Drag ${upload.label.toLowerCase()} here or click to browse`}
+                          className={pending ? 'pointer-events-none opacity-60' : ''}
+                        />
+                      </div>
+                    ))}
                 </div>
               </div>
-              <div className="mt-3 space-y-2">
-                <Label htmlFor="export-template-workbook">Existing workbook</Label>
-                <Input
-                  id="export-template-workbook"
-                  type="file"
-                  accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                  disabled={!excelSelected || pending}
-                  onChange={(event: ChangeEvent<HTMLInputElement>) => {
-                    setTemplateWorkbook(event.target.files?.[0] ?? null);
-                  }}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Optional. If provided, Illustry keeps the workbook sheets and formulas and inserts only the visualization.
-                </p>
+            )}
+
+            {excelSelected && (
+              <div className="mt-5 rounded-lg border bg-muted/20 p-4 transition-all">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-foreground">Excel placement</p>
+                  <p className="text-sm text-muted-foreground">
+                    The visualization is placed over this exact sheet range only when Excel is selected.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
+                  <div className="space-y-2">
+                    <Label htmlFor="export-sheet-name">Sheet</Label>
+                    <Input
+                      id="export-sheet-name"
+                      name="sheetName"
+                      value={sheetName}
+                      maxLength={31}
+                      disabled={pending}
+                      onChange={(event) => setSheetName(event.target.value)}
+                      placeholder="Sheet1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="export-cell-range">Cell range</Label>
+                    <Input
+                      id="export-cell-range"
+                      name="cellRange"
+                      value={cellRange}
+                      disabled={pending}
+                      onChange={(event) => {
+                        setRangeError('');
+                        setCellRange(event.target.value);
+                      }}
+                      placeholder="H3:Z10"
+                    />
+                  </div>
+                </div>
+                {rangeError && <p className="mt-2 text-sm font-medium text-destructive">{rangeError}</p>}
               </div>
-              {rangeError && <p className="mt-2 text-sm font-medium text-destructive">{rangeError}</p>}
-            </div>
+            )}
+
+            {documentSelected && (
+              <div className="mt-5 rounded-lg border bg-muted/20 p-4">
+                <div className="mb-3">
+                  <p className="text-sm font-semibold text-foreground">PDF / Word / PowerPoint placement</p>
+                  <p className="text-sm text-muted-foreground">
+                    Used only when PDF, Word, or PowerPoint is selected. Multiple selections are generated together after Download.
+                  </p>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="space-y-2">
+                    <Label htmlFor="export-document-page">Page / slide</Label>
+                    <Input
+                      id="export-document-page"
+                      type="number"
+                      min={1}
+                      max={200}
+                      value={documentPage}
+                      disabled={pending}
+                      onChange={(event) => setDocumentPage(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="export-document-width">Width</Label>
+                    <Input
+                      id="export-document-width"
+                      type="number"
+                      min={120}
+                      max={2400}
+                      value={documentWidth}
+                      disabled={pending}
+                      onChange={(event) => setDocumentWidth(event.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="export-document-height">Height</Label>
+                    <Input
+                      id="export-document-height"
+                      type="number"
+                      min={120}
+                      max={2400}
+                      value={documentHeight}
+                      disabled={pending}
+                      onChange={(event) => setDocumentHeight(event.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <Label>Position on page</Label>
+                  <div className="mt-2 grid grid-cols-3 gap-2">
+                    {DOCUMENT_PLACEMENTS.map((placement) => (
+                      <button
+                        key={placement.value}
+                        type="button"
+                        disabled={pending}
+                        className={cn(
+                          'rounded-md border bg-background px-2 py-2 text-xs font-medium shadow-sm transition hover:border-primary/50 hover:bg-primary/[0.04]',
+                          documentPlacement === placement.value && 'border-primary bg-primary/[0.08] text-primary'
+                        )}
+                        onClick={() => setDocumentPlacement(placement.value)}
+                      >
+                        {placement.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {showSelectionError && (
               <p className="mt-3 text-sm font-medium text-destructive" role="alert">
@@ -324,10 +530,10 @@ const ExportDownloadDialog = ({
             </Button>
             <Button
               type="button"
-              disabled={pending || filePending || selectedCount === 0}
+              disabled={pending || selectedCount === 0}
               onClick={() => void handleDownload()}
             >
-              {pending || filePending ? (
+              {pending ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
                   Preparing

@@ -15,6 +15,17 @@ const upload = multer({
   limits: { fileSize: 100 * 1024 * 1024 }
 });
 const finalupload = upload.fields([{ name: 'file', maxCount: 10 }]);
+const exportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 100 * 1024 * 1024 }
+});
+const exportTemplateUpload = exportUpload.fields([
+  { name: 'templateExcel', maxCount: 1 },
+  { name: 'templatePdf', maxCount: 1 },
+  { name: 'templateWord', maxCount: 1 },
+  { name: 'templatePpt', maxCount: 1 },
+  { name: 'templateFile', maxCount: 1 }
+]);
 
 router.post('/api/office/visualization/preview', VisualizationAPI.previewOfficeVisualization);
 
@@ -24,7 +35,7 @@ router.post('/api/visualization', requireCsrf, finalupload as any, Visualization
 router.put('/api/visualization', requireCsrf, VisualizationAPI.update);
 router.post('/api/visualizations', VisualizationAPI.browse);
 router.post('/api/visualization/export/excel', requireCsrf, VisualizationAPI.exportExcel);
-router.post('/api/visualization/export/bundle', requireCsrf, VisualizationAPI.exportBundle);
+router.post('/api/visualization/export/bundle', requireCsrf, exportTemplateUpload as any, VisualizationAPI.exportBundle);
 router.put('/api/visualizations/theme', requireCsrf, VisualizationAPI.syncTheme);
 router.get('/api/visualization/shared/:shareId', VisualizationAPI.findShared);
 router.get('/api/visualization/shared-dashboard/:dashboardShareId', VisualizationAPI.findSharedThroughDashboard);

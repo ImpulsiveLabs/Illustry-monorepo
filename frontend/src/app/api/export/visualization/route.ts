@@ -38,11 +38,14 @@ const POST = async (request: Request) => {
     return NextResponse.json({ error: 'Backend URL is not configured' }, { status: 500 });
   }
 
-  const payload = await request.json().catch(() => null);
+  const isMultipart = request.headers.get('content-type')?.includes('multipart/form-data') === true;
+  const body = isMultipart
+    ? await request.formData()
+    : JSON.stringify(await request.json().catch(() => null));
   const response = await fetch(`${BACKEND}/api/visualization/export/bundle`, {
     method: 'POST',
-    headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
-    body: JSON.stringify(payload),
+    headers: await buildBackendHeaders({ asJson: !isMultipart, withCsrf: true }),
+    body,
     cache: 'no-store'
   });
 

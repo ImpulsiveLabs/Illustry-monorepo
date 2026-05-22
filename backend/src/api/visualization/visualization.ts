@@ -20,6 +20,38 @@ const getAuthenticatedUserId = (request: Request): string => {
   return userId;
 };
 
+const getExportRequestBody = (request: Request) => {
+  if (typeof request.body?.payload === 'string') {
+    return JSON.parse(request.body.payload) as Record<string, unknown>;
+  }
+  return request.body as Record<string, unknown>;
+};
+
+const normalizeUploadedTemplateFile = (file?: Express.Multer.File) => {
+  if (!file?.buffer?.length) {
+    return undefined;
+  }
+  return {
+    buffer: file.buffer,
+    originalname: file.originalname,
+    mimetype: file.mimetype
+  };
+};
+
+const getUploadedTemplateFiles = (request: Request) => {
+  const filesByField = request.files && !Array.isArray(request.files)
+    ? request.files as Record<string, Express.Multer.File[]>
+    : {};
+  const file = request.file;
+  return {
+    excel: normalizeUploadedTemplateFile(filesByField.templateExcel?.[0]),
+    pdf: normalizeUploadedTemplateFile(filesByField.templatePdf?.[0]),
+    word: normalizeUploadedTemplateFile(filesByField.templateWord?.[0]),
+    ppt: normalizeUploadedTemplateFile(filesByField.templatePpt?.[0]),
+    fallback: normalizeUploadedTemplateFile(filesByField.templateFile?.[0] || file)
+  };
+};
+
 const createOrUpdate = async (
   request: Request,
   response: Response,
@@ -318,7 +350,7 @@ const exportExcel = async (
       cellRange,
       templateWorkbookBase64,
       templateWorkbookFilename
-    } = request.body as VisualizationTypes.VisualizationFilter & {
+    } = getExportRequestBody(request) as VisualizationTypes.VisualizationFilter & {
       dashboardShareId?: string;
       sheetName?: string;
       cellRange?: string;
@@ -386,8 +418,9 @@ const exportBundle = async (
       formats,
       charts,
       previewDataUrl,
+      documentOptions,
       title
-    } = request.body as VisualizationTypes.VisualizationFilter & {
+    } = getExportRequestBody(request) as VisualizationTypes.VisualizationFilter & {
       dashboardShareId?: string;
       sheetName?: string;
       cellRange?: string;
@@ -396,10 +429,17 @@ const exportBundle = async (
       formats?: ExportFormat[];
       charts?: ExportChartPayload[];
       previewDataUrl?: string;
+      documentOptions?: {
+        page?: number;
+        width?: number;
+        height?: number;
+        placement?: string;
+      };
       title?: string;
     };
 
     const wantsExcel = Array.isArray(formats) && formats.includes('excel');
+    const uploadedTemplateFiles = getUploadedTemplateFiles(request);
     let visualization: VisualizationTypes.VisualizationType | undefined;
 
     if (dashboardShareId && name && typeof type === 'string') {
@@ -443,6 +483,22 @@ const exportBundle = async (
         templateWorkbookBase64,
         templateWorkbookFilename
       },
+      documentOptions: uploadedTemplateFiles.fallback
+        || uploadedTemplateFiles.excel
+        || uploadedTemplateFiles.pdf
+        || uploadedTemplateFiles.word
+        || uploadedTemplateFiles.ppt
+        ? {
+          ...documentOptions,
+          templateFile: uploadedTemplateFiles.fallback,
+          templateFiles: {
+            excel: uploadedTemplateFiles.excel,
+            pdf: uploadedTemplateFiles.pdf,
+            word: uploadedTemplateFiles.word,
+            ppt: uploadedTemplateFiles.ppt
+          }
+        }
+        : documentOptions,
       visualization: visualization || ({
         _id: 'detached-export',
         userId,

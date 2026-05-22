@@ -2,9 +2,16 @@ import { DashboardTypes, VisualizationTypes } from '@illustry/types';
 import * as echarts from 'echarts';
 import JSZip from 'jszip';
 import sharp from 'sharp';
+import {
+  createPdfExport,
+  createPptExport,
+  createWordExport,
+  getTemplateFileKind,
+  type DocumentExportOptions
+} from './document-export';
 import { createDashboardExcelWorkbook, createVisualizationExcelWorkbook } from './excel-export';
 
-type ExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+type ExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt';
 
 type ExportChartPayload = {
   title?: string;
@@ -18,6 +25,7 @@ type BundleExcelOptions = {
   sheetName?: string;
   cellRange?: string;
   templateWorkbookBase64?: string;
+  templateWorkbookBuffer?: Buffer;
   templateWorkbookFilename?: string;
 };
 
@@ -27,6 +35,7 @@ type CreateVisualizationBundleInput = {
   charts: ExportChartPayload[];
   previewDataUrl?: string;
   excelOptions?: BundleExcelOptions;
+  documentOptions?: DocumentExportOptions;
   visualization: VisualizationTypes.VisualizationType;
 };
 
@@ -36,6 +45,7 @@ type CreateDashboardBundleInput = {
   charts: ExportChartPayload[];
   previewDataUrl?: string;
   excelOptions?: BundleExcelOptions;
+  documentOptions?: DocumentExportOptions;
   dashboard: DashboardTypes.DashboardType;
 };
 
@@ -50,14 +60,14 @@ type ExportBundleResult = ExportFile & {
 };
 
 const EXPORT_BACKGROUND = '#ffffff';
-const MAX_EXPORT_FORMATS = 6;
+const MAX_EXPORT_FORMATS = 9;
 const DEFAULT_CHART_WIDTH = 1280;
 const DEFAULT_CHART_HEIGHT = 720;
 const ZIP_MIME = 'application/zip';
 const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min.js';
 const ECHARTS_WORDCLOUD_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js';
 
-const mimeByFormat: Record<Exclude<ExportFormat, 'web-component' | 'excel'>, string> = {
+const mimeByFormat: Record<Exclude<ExportFormat, 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt'>, string> = {
   png: 'image/png',
   jpg: 'image/jpeg',
   webp: 'image/webp',
@@ -132,7 +142,7 @@ const normalizeFormats = (formats: unknown): ExportFormat[] => {
   if (!Array.isArray(formats)) {
     throw new Error('Select at least one export option.');
   }
-  const supported = new Set<ExportFormat>(['png', 'jpg', 'webp', 'svg', 'web-component', 'excel']);
+  const supported = new Set<ExportFormat>(['png', 'jpg', 'webp', 'svg', 'web-component', 'excel', 'pdf', 'word', 'ppt']);
   const normalized = Array.from(new Set(
     formats.filter((format): format is ExportFormat => typeof format === 'string' && supported.has(format as ExportFormat))
   ));
@@ -358,6 +368,15 @@ const verifyZipIntegrity = async (buffer: Buffer, files: ExportFile[]) => {
     if (file.filename.endsWith('.xlsx')) {
       await JSZip.loadAsync(content);
     }
+    if (file.filename.endsWith('.docx')) {
+      await JSZip.loadAsync(content);
+    }
+    if (file.filename.endsWith('.pptx')) {
+      await JSZip.loadAsync(content);
+    }
+    if (file.filename.endsWith('.pdf') && !content.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
+      throw new Error(`ZIP integrity check failed: ${file.filename} is not a valid PDF.`);
+    }
   }));
 };
 
@@ -400,6 +419,7 @@ const createFiles = async ({
   formats,
   charts,
   previewDataUrl,
+  documentOptions,
   createExcel
 }: {
   kind: 'visualization' | 'dashboard';
@@ -407,10 +427,16 @@ const createFiles = async ({
   formats: ExportFormat[];
   charts: Required<ExportChartPayload>[];
   previewDataUrl?: string;
+  documentOptions?: DocumentExportOptions;
   createExcel?: (previewPng: Buffer, charts: Required<ExportChartPayload>[]) => Promise<ExportFile>;
 }) => {
   const safeTitle = sanitizeFilename(title);
   const svg = renderSvg(charts, title);
+  const templateFileKind = getTemplateFileKind(documentOptions?.templateFile);
+  const getTemplateFileFor = (format: 'excel' | 'pdf' | 'word' | 'ppt') => (
+    documentOptions?.templateFiles?.[format]
+    || (templateFileKind === format ? documentOptions?.templateFile : undefined)
+  );
   let previewPng: Buffer | undefined = previewDataUrlToPng(previewDataUrl)
     ?? previewDataUrlToPng(charts[0]?.previewDataUrl);
   const getPreviewPng = async () => {
@@ -439,6 +465,30 @@ const createFiles = async ({
       }
       return createExcel(await getPreviewPng(), charts);
     }
+    if (format === 'pdf') {
+      const templateFile = getTemplateFileFor('pdf');
+      return createPdfExport({
+        title: safeTitle,
+        image: await getPreviewPng(),
+        options: { ...documentOptions, templateFile }
+      });
+    }
+    if (format === 'word') {
+      const templateFile = getTemplateFileFor('word');
+      return createWordExport({
+        title: safeTitle,
+        image: await getPreviewPng(),
+        options: { ...documentOptions, templateFile }
+      });
+    }
+    if (format === 'ppt') {
+      const templateFile = getTemplateFileFor('ppt');
+      return createPptExport({
+        title: safeTitle,
+        image: await getPreviewPng(),
+        options: { ...documentOptions, templateFile }
+      });
+    }
     return {
       buffer: await rasterizeSvg(svg, format),
       filename: `${safeTitle}.${format}`,
@@ -453,6 +503,7 @@ const createVisualizationExportBundle = async ({
   charts,
   previewDataUrl,
   excelOptions,
+  documentOptions,
   visualization
 }: CreateVisualizationBundleInput): Promise<ExportBundleResult> => {
   const normalizedFormats = normalizeFormats(formats);
@@ -463,9 +514,17 @@ const createVisualizationExportBundle = async ({
     formats: normalizedFormats,
     charts: normalizedCharts,
     previewDataUrl,
+    documentOptions,
     createExcel: async (previewPng, excelCharts) => {
+      const templateFileKind = getTemplateFileKind(documentOptions?.templateFile);
+      const excelTemplateFile = documentOptions?.templateFiles?.excel
+        || (templateFileKind === 'excel' ? documentOptions?.templateFile : undefined);
       const workbook = await createVisualizationExcelWorkbook(visualization, {
         ...excelOptions,
+        templateWorkbookBuffer: excelTemplateFile?.buffer,
+        templateWorkbookFilename: excelTemplateFile
+          ? excelTemplateFile.originalname
+          : excelOptions?.templateWorkbookFilename,
         embeddedCharts: excelCharts.map((chart) => ({
           title: chart.title,
           type: Array.isArray(visualization.type) ? visualization.type[0] : visualization.type,
@@ -492,6 +551,7 @@ const createDashboardExportBundle = async ({
   charts,
   previewDataUrl,
   excelOptions,
+  documentOptions,
   dashboard
 }: CreateDashboardBundleInput): Promise<ExportBundleResult> => {
   const normalizedFormats = normalizeFormats(formats);
@@ -505,9 +565,17 @@ const createDashboardExportBundle = async ({
     formats: normalizedFormats,
     charts: normalizedCharts,
     previewDataUrl,
+    documentOptions,
     createExcel: async (previewPng, excelCharts) => {
+      const templateFileKind = getTemplateFileKind(documentOptions?.templateFile);
+      const excelTemplateFile = documentOptions?.templateFiles?.excel
+        || (templateFileKind === 'excel' ? documentOptions?.templateFile : undefined);
       const workbook = await createDashboardExcelWorkbook(dashboard, {
         ...excelOptions,
+        templateWorkbookBuffer: excelTemplateFile?.buffer,
+        templateWorkbookFilename: excelTemplateFile
+          ? excelTemplateFile.originalname
+          : excelOptions?.templateWorkbookFilename,
         embeddedCharts: excelCharts.map((chart, index) => ({
           title: chart.title,
           type: Array.isArray(dashboardVisualizations[index]?.type)

@@ -18,6 +18,38 @@ const getAuthenticatedUserId = (request: Request): string => {
   return userId;
 };
 
+const getExportRequestBody = (request: Request) => {
+  if (typeof request.body?.payload === 'string') {
+    return JSON.parse(request.body.payload) as Record<string, unknown>;
+  }
+  return request.body as Record<string, unknown>;
+};
+
+const normalizeUploadedTemplateFile = (file?: Express.Multer.File) => {
+  if (!file?.buffer?.length) {
+    return undefined;
+  }
+  return {
+    buffer: file.buffer,
+    originalname: file.originalname,
+    mimetype: file.mimetype
+  };
+};
+
+const getUploadedTemplateFiles = (request: Request) => {
+  const filesByField = request.files && !Array.isArray(request.files)
+    ? request.files as Record<string, Express.Multer.File[]>
+    : {};
+  const file = request.file;
+  return {
+    excel: normalizeUploadedTemplateFile(filesByField.templateExcel?.[0]),
+    pdf: normalizeUploadedTemplateFile(filesByField.templatePdf?.[0]),
+    word: normalizeUploadedTemplateFile(filesByField.templateWord?.[0]),
+    ppt: normalizeUploadedTemplateFile(filesByField.templatePpt?.[0]),
+    fallback: normalizeUploadedTemplateFile(filesByField.templateFile?.[0] || file)
+  };
+};
+
 const create = async (
   request: Request,
   response: Response,
@@ -104,7 +136,7 @@ const exportExcel = async (
       cellRange,
       templateWorkbookBase64,
       templateWorkbookFilename
-    } = request.body as DashboardTypes.DashboardFilter & {
+    } = getExportRequestBody(request) as DashboardTypes.DashboardFilter & {
       sheetName?: string;
       cellRange?: string;
       templateWorkbookBase64?: string;
@@ -153,8 +185,9 @@ const exportBundle = async (
       formats,
       charts,
       previewDataUrl,
+      documentOptions,
       title
-    } = request.body as DashboardTypes.DashboardFilter & {
+    } = getExportRequestBody(request) as DashboardTypes.DashboardFilter & {
       sheetName?: string;
       cellRange?: string;
       templateWorkbookBase64?: string;
@@ -162,8 +195,15 @@ const exportBundle = async (
       formats?: ExportFormat[];
       charts?: ExportChartPayload[];
       previewDataUrl?: string;
+      documentOptions?: {
+        page?: number;
+        width?: number;
+        height?: number;
+        placement?: string;
+      };
       title?: string;
     };
+    const uploadedTemplateFiles = getUploadedTemplateFiles(request);
 
     const dashboard = shareId
       ? await Factory.getInstance()
@@ -186,6 +226,22 @@ const exportBundle = async (
         templateWorkbookBase64,
         templateWorkbookFilename
       },
+      documentOptions: uploadedTemplateFiles.fallback
+        || uploadedTemplateFiles.excel
+        || uploadedTemplateFiles.pdf
+        || uploadedTemplateFiles.word
+        || uploadedTemplateFiles.ppt
+        ? {
+          ...documentOptions,
+          templateFile: uploadedTemplateFiles.fallback,
+          templateFiles: {
+            excel: uploadedTemplateFiles.excel,
+            pdf: uploadedTemplateFiles.pdf,
+            word: uploadedTemplateFiles.word,
+            ppt: uploadedTemplateFiles.ppt
+          }
+        }
+        : documentOptions,
       dashboard
     });
 

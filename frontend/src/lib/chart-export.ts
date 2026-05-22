@@ -8,7 +8,7 @@ const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min
 const ECHARTS_WORDCLOUD_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js';
 
 export type ChartExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component';
-export type ServerChartExportFormat = ChartExportFormat | 'excel';
+export type ServerChartExportFormat = ChartExportFormat | 'excel' | 'pdf' | 'word' | 'ppt';
 
 export type ServerChartExportPayload = {
   title: string;
@@ -124,6 +124,38 @@ const getFilenameFromDisposition = (contentDisposition: string | null, fallback:
   return filename ? decodeURIComponent(filename) : fallback;
 };
 
+const buildExportRequestBody = (payload: unknown) => {
+  if (!payload || typeof payload !== 'object' || !('templateFiles' in payload)) {
+    return {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    };
+  }
+
+  const { templateFiles, ...rest } = payload as Record<string, unknown> & {
+    templateFiles?: Partial<Record<'excel' | 'pdf' | 'word' | 'ppt', File>>;
+  };
+  const files = Object.entries(templateFiles || {})
+    .filter((entry): entry is [string, File] => entry[1] instanceof File);
+  if (!files.length) {
+    return {
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(rest)
+    };
+  }
+
+  const formData = new FormData();
+  formData.append('payload', JSON.stringify(rest));
+  files.forEach(([format, file]) => {
+    const fieldName = `template${format.charAt(0).toUpperCase()}${format.slice(1)}`;
+    formData.append(fieldName, file, file.name);
+  });
+  return {
+    headers: undefined,
+    body: formData
+  };
+};
+
 export const downloadExportFromApi = async ({
   endpoint,
   payload,
@@ -133,12 +165,11 @@ export const downloadExportFromApi = async ({
   payload: unknown;
   fallbackFilename: string;
 }) => {
+  const requestBody = buildExportRequestBody(payload);
   const response = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload),
+    ...(requestBody.headers ? { headers: requestBody.headers } : {}),
+    body: requestBody.body,
     cache: 'no-store'
   });
 

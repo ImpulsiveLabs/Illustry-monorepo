@@ -7,6 +7,7 @@ type ExcelExportOptions = {
   sheetName?: string;
   cellRange?: string;
   templateWorkbookBase64?: string;
+  templateWorkbookBuffer?: Buffer;
   templateWorkbookFilename?: string;
   embeddedCharts?: Array<{
     title?: string;
@@ -98,7 +99,10 @@ const normalizeCellRange = (value: unknown) => {
   return `${getColumnName(topLeft.column)}${topLeft.row}:${getColumnName(bottomRight.column)}${bottomRight.row}`;
 };
 
-const decodeTemplateWorkbook = (value: unknown) => {
+const decodeTemplateWorkbook = (value: unknown, buffer?: Buffer) => {
+  if (buffer?.length) {
+    return buffer;
+  }
   if (typeof value !== 'string' || value.trim() === '') {
     return undefined;
   }
@@ -244,7 +248,7 @@ const createWorkbook = async (
   const cellRange = normalizeCellRange(options.cellRange);
   const workbook = new ExcelJS.Workbook();
 
-  const templateWorkbook = decodeTemplateWorkbook(options.templateWorkbookBase64);
+  const templateWorkbook = decodeTemplateWorkbook(options.templateWorkbookBase64, options.templateWorkbookBuffer);
   if (templateWorkbook) {
     await workbook.xlsx.load(templateWorkbook);
   } else {
