@@ -1,8 +1,10 @@
 import React from 'react';
+import { AppPage, PageSection } from '@/components/layouts/app-page';
 import { Metadata } from 'next';
 import { VisualizationTypes } from '@illustry/types';
 import { browseVisualizations } from '@/app/_actions/visualization';
 import VisualizationsTableShell from '@/components/shells/visualizations-table-shell';
+import AddVisualizationForm from '@/components/form/add-visualization-form';
 
 const metadata: Metadata = {
   title: 'Visualizations',
@@ -17,6 +19,7 @@ type VisualizationsProps = {
     per_page?: string;
     sort?: string;
     scope?: string;
+    modal?: string;
   }>;
 };
 
@@ -28,6 +31,7 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
   const perPage = typeof sp.per_page === 'string' ? sp.per_page : undefined;
   const sort = typeof sp.sort === 'string' ? sp.sort : undefined;
   const scope = sp.scope === 'external' ? 'external' : 'owned';
+  const showCreateModal = scope !== 'external' && sp.modal === 'new';
 
   const visualizations = await browseVisualizations({
     page: page ? Number(page) : 1,
@@ -52,15 +56,17 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
     : 1;
 
   return (
-    <div className="m-2 md:m-10 mt-24 p-2 md:p-10 bg-gray-50 rounded-3xl dark:bg-gray-800">
-      <div className="space-y-2.5">
+    <AppPage>
+      <PageSection className="p-4 md:p-6">
+      
         <VisualizationsTableShell
           data={visualizationRows}
           pageCount={visualizationsPageCount}
           external={scope === 'external'}
         ></VisualizationsTableShell>
-      </div>
-    </div>
+        {showCreateModal ? <AddVisualizationForm /> : null}
+      </PageSection>
+    </AppPage>
   );
 };
 

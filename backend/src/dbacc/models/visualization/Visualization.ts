@@ -22,6 +22,8 @@ class Visualization {
             name: { type: String, required: false },
             permission: { type: String, enum: ['viewer', 'editor'], required: true },
             status: { type: String, enum: ['pending', 'accepted', 'rejected'], required: false },
+            sharedViaResource: { type: String, enum: ['visualization', 'dashboard'], required: false },
+            sharedViaShareId: { type: String, required: false },
             inviteToken: { type: String, required: false },
             inviteExpiresAt: { type: Date, required: false },
             respondedAt: { type: Date, required: false },

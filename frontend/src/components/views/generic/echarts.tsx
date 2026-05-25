@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
 import React, {
-  forwardRef, useEffect, useImperativeHandle, useRef
+  forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState
 } from 'react';
 import ReactECharts from 'echarts-for-react';
 import 'echarts-wordcloud';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 import * as echarts from 'echarts/core';
 import {
   SankeyChart,
@@ -32,6 +32,16 @@ import {
 } from 'echarts/components';
 import { SVGRenderer } from 'echarts/renderers';
 import { useLocale } from '@/components/providers/locale-provider';
+import { Button } from '@/components/ui/button';
+import {
+  downloadExportFromApi,
+  getServerChartExportPayload,
+  type ServerChartExportFormat
+} from '@/lib/chart-export';
+import ExportDownloadDialog, {
+  exportOptions,
+  type ExportDownloadValues
+} from '@/components/export/export-download-dialog';
 import ViewTooltip from '@/components/views/shared/view-tooltip';
 
 // Initialize ECharts modules
@@ -60,14 +70,54 @@ echarts.use([
 type ReactEChartsProps<T> = {
   option: T;
   className?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   settings?: any;
   loading?: boolean;
   theme?: 'light' | 'dark';
   style?: React.CSSProperties;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onEvents?: Record<string, (...args: any[]) => void>;
   helperText?: string;
+};
+
+const getVisualizationExportFilename = () => {
+  if (window.location.pathname.includes('/playground')) {
+    return 'playground-visualization';
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  return `visualization-${params.get('name') || 'export'}`;
+};
+
+const withZoomSupport = <T,>(option: T): T => {
+  if (!option || typeof option !== 'object') {
+    return option;
+  }
+
+  const source = option as Record<string, any>;
+  const series = Array.isArray(source.series)
+    ? source.series.map((item: Record<string, any>) => {
+      if (!item || typeof item !== 'object') {
+        return item;
+      }
+
+      if (['graph', 'tree', 'treemap'].includes(String(item.type))) {
+        return { ...item, roam: item.roam ?? true };
+      }
+
+      return item;
+    })
+    : source.series;
+
+  return {
+    ...source,
+    series,
+    toolbox: {
+      ...source.toolbox,
+      feature: {
+        ...(source.toolbox?.feature ?? {}),
+        restore: source.toolbox?.feature?.restore ?? {}
+      }
+    }
+  } as T;
 };
 
 // Updated ReactEcharts Component with forwardRef
@@ -79,8 +129,26 @@ const ReactEcharts = forwardRef(<T,>(
 ) => {
   const chartRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const [exportPending, setExportPending] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
   const { t } = useLocale();
   const tooltipText = helperText || t('tooltip.generic');
+  const zoomableOption = useMemo(() => withZoomSupport(option), [option]);
+  const canExport = useMemo(() => (
+    typeof window !== 'undefined'
+    && (
+      window.location.pathname.includes('/visualizationhub')
+      || window.location.pathname.includes('/playground')
+    )
+  ), []);
+  const canExcelExport = useMemo(() => (
+    typeof window !== 'undefined'
+    && window.location.pathname.includes('/visualizationhub')
+  ), []);
+  const availableExportOptions = useMemo(
+    () => exportOptions.filter((option) => option.value !== 'excel' || canExcelExport),
+    [canExcelExport]
+  );
 
   useImperativeHandle(ref, () => ({
     getEchartsInstance: () => chartRef.current?.getEchartsInstance()
@@ -92,7 +160,7 @@ const ReactEcharts = forwardRef(<T,>(
     };
 
     window.addEventListener('resize', resizeChart);
-    const resizeObserver = new ResizeObserver((_entries, _observer) => {
+    const resizeObserver = new ResizeObserver(() => {
       resizeChart();
     });
     resizeObserver.observe(containerRef.current as HTMLDivElement);
@@ -103,14 +171,91 @@ const ReactEcharts = forwardRef(<T,>(
     };
   }, []);
 
+  const handleExport = async (values: ExportDownloadValues) => {
+    const chart = chartRef.current?.getEchartsInstance();
+    if (!chart) {
+      toast.error(t('export.visualization.notReady'));
+      return;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name') || undefined;
+    const type = params.get('type') || undefined;
+    const shareId = params.get('share') || undefined;
+    const dashboardShareId = params.get('dashboardShare') || undefined;
+    const wantsExcel = values.formats.includes('excel' as ServerChartExportFormat);
+    const wantsLivePreview = values.formats.some((format) => (
+      format === 'png'
+      || format === 'jpg'
+      || format === 'webp'
+      || format === 'excel'
+      || format === 'pdf'
+      || format === 'word'
+      || format === 'ppt'
+    ));
+
+    if (wantsExcel && !shareId && !dashboardShareId && (!name || !type)) {
+      toast.error(t('export.visualization.excelRequiresSaved'));
+      return;
+    }
+
+    setExportPending(true);
+    try {
+      const result = await downloadExportFromApi({
+        endpoint: '/api/export/visualization',
+        fallbackFilename: wantsExcel ? 'illustry-visualization.xlsx' : 'illustry-visualization-export',
+        payload: {
+          name,
+          type,
+          shareId,
+          dashboardShareId,
+          title: getVisualizationExportFilename(),
+          charts: [getServerChartExportPayload(chart, getVisualizationExportFilename(), {
+            includePreview: wantsLivePreview
+          })],
+          ...values
+        }
+      });
+      toast.success(result.bundled ? t('export.visualization.zipStarted') : t('export.visualization.started'));
+      setExportDialogOpen(false);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t('export.visualization.failed'));
+    } finally {
+      setExportPending(false);
+    }
+  };
+
   return (
     <div ref={containerRef} className="relative h-full w-full">
-      <div className="absolute right-2 top-2 z-20">
+      <ExportDownloadDialog
+        open={exportDialogOpen}
+        pending={exportPending}
+        title={t('export.visualization.title')}
+        description={t('export.visualization.description')}
+        defaultSheetName="Visualization"
+        options={availableExportOptions}
+        onOpenChange={setExportDialogOpen}
+        onSubmit={(values) => void handleExport(values)}
+      />
+      <div className="absolute right-2 top-2 z-20 flex items-center gap-1 rounded-full border border-border/70 bg-background/85 p-1 shadow-sm backdrop-blur">
+        {canExport && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            disabled={exportPending}
+            aria-label={t('export.visualization.title')}
+            onClick={() => setExportDialogOpen(true)}
+          >
+            <Download className="h-4 w-4" />
+          </Button>
+        )}
         <ViewTooltip text={tooltipText} />
       </div>
       <ReactECharts
-        ref={chartRef}
-        option={option}
+	        ref={chartRef}
+	        option={zoomableOption}
         className={className}
         theme={theme}
         showLoading={loading}

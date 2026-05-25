@@ -5,9 +5,15 @@ import React from 'react';
 
 vi.mock('@files-ui/react', () => {
   return {
-    Dropzone: ({ onChange, children }: any) => (
-      <div>
-        <p>Drag your files here or click in this area.</p>
+    Dropzone: ({ accept, disabled, label, maxFileSize, maxFiles, children }: any) => (
+      <div
+        aria-disabled={disabled}
+        data-accept={accept}
+        data-max-file-size={maxFileSize}
+        data-max-files={maxFiles}
+        data-testid="dropzone"
+      >
+        <p>{label}</p>
         {children}
       </div>
     ),
@@ -43,8 +49,9 @@ describe('FileUpload', () => {
       />
     );
 
-    expect(screen.getByText('Drag your files here or click in this area.')).toBeInTheDocument();
+    expect(screen.getByText('Drag files here or click to browse')).toBeInTheDocument();
     expect(screen.getByText('test.txt')).toBeInTheDocument();
+    expect(screen.getByText('Accepted: .txt')).toBeInTheDocument();
   });
 
   it('calls removeFile when delete is triggered on FileMosaic', () => {
@@ -61,5 +68,55 @@ describe('FileUpload', () => {
     fireEvent.click(deleteButton);
 
     expect(removeFile).toHaveBeenCalledWith('file-1');
+  });
+
+  it('renders empty-state helper text with limits and one-file messaging', () => {
+    render(
+      <FileUpload
+        acceptedFiles={[]}
+        updateFiles={updateFiles}
+        removeFile={removeFile}
+        fileFormat=".csv, text/csv"
+        maxFiles={1}
+        maxFileSize={1024 * 1024}
+      />
+    );
+
+    expect(screen.getByText('Drop files here')).toBeInTheDocument();
+    expect(screen.getByText('Accepted: .csv - Max 1 MB - One file only')).toBeInTheDocument();
+    expect(screen.getByTestId('dropzone')).toHaveAttribute('data-max-files', '1');
+  });
+
+  it('renders custom labels, error feedback, and disabled state', () => {
+    render(
+      <FileUpload
+        acceptedFiles={[]}
+        updateFiles={updateFiles}
+        removeFile={removeFile}
+        fileFormat=".xlsx"
+        label="Drop workbook"
+        helperText="Only one spreadsheet"
+        error="Workbook is too large"
+        disabled
+      />
+    );
+
+    expect(screen.getAllByText('Drop workbook')).toHaveLength(2);
+    expect(screen.getByText('Only one spreadsheet')).toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent('Workbook is too large');
+    expect(screen.getByTestId('dropzone')).toHaveAttribute('aria-disabled', 'true');
+  });
+
+  it('falls back to the raw accept string when no extension is present', () => {
+    render(
+      <FileUpload
+        acceptedFiles={[]}
+        updateFiles={updateFiles}
+        removeFile={removeFile}
+        fileFormat="application/json"
+      />
+    );
+
+    expect(screen.getByText('Accepted: application/json')).toBeInTheDocument();
   });
 });

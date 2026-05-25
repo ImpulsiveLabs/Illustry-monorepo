@@ -62,10 +62,10 @@ const LoginPage = () => {
   };
 
   return (
-    <main className="min-h-screen bg-slate-50/70 dark:bg-slate-950">
+    <main className="min-h-screen bg-[hsl(var(--illustry-page-background))]">
       <div className="container mx-auto flex min-h-screen items-center justify-center py-10">
         <div className="grid w-full max-w-5xl overflow-hidden rounded-xl border bg-background shadow-sm md:grid-cols-[1.1fr_1fr]">
-          <section className="hidden border-r bg-slate-100/70 p-8 dark:bg-slate-900/60 md:block">
+          <section className="hidden border-r bg-[hsl(var(--illustry-section-background))] p-8 md:block">
             <div className="space-y-6">
               <div className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
                 <ShieldCheck className="h-5 w-5" />

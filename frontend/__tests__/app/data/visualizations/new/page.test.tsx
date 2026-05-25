@@ -1,21 +1,23 @@
-import { render, screen } from '@testing-library/react';
 import NewVisualizationPage from '@/app/(data)/visualizations/new/page';
-import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ✅ Mock the AddVisualizationForm component
-vi.mock('@/components/form/add-visualization-form', () => ({
-  __esModule: true,
-  default: () => (
-    <div data-testid="add-Visualization-form">Mocked AddVisualizationForm</div>
-  ),
+const { redirectMock } = vi.hoisted(() => ({
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  })
+}));
+
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock
 }));
 
 describe('NewVisualizationPage', () => {
-  it('renders AddVisualizationForm inside the styled wrapper', () => {
-    render(<NewVisualizationPage />);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    expect(screen.getByTestId('add-Visualization-form')).toBeInTheDocument();
-    expect(screen.getByText('Mocked AddVisualizationForm')).toBeInTheDocument();
+  it('redirects to the visualizations create modal state', () => {
+    expect(() => NewVisualizationPage()).toThrow('NEXT_REDIRECT:/visualizations?modal=new');
+    expect(redirectMock).toHaveBeenCalledWith('/visualizations?modal=new');
   });
 });

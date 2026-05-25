@@ -10,7 +10,7 @@ describe('Skeleton', () => {
 
         expect(skeleton).toBeInTheDocument();
         expect(skeleton).toHaveClass('animate-pulse');
-        expect(skeleton).toHaveClass('rounded-md');
+        expect(skeleton).toHaveClass('rounded-[var(--illustry-button-radius)]');
     });
 
     it('applies custom className', () => {

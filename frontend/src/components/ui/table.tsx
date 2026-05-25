@@ -7,7 +7,7 @@ const Table = forwardRef<
   HTMLTableElement,
   HTMLAttributes<HTMLTableElement>
 >(({ className, ...props }, ref) => (
-  <div className="w-full overflow-auto">
+  <div data-illustry-component="table" className="w-full overflow-auto rounded-2xl border border-[hsl(var(--illustry-table-border)/0.72)] bg-[hsl(var(--illustry-table-background)/0.9)] text-[hsl(var(--illustry-table-cell-foreground))] shadow-sm backdrop-blur">
     <table
       ref={ref}
       className={cn('w-full caption-bottom text-sm', className)}
@@ -21,7 +21,14 @@ const TableHeader = forwardRef<
   HTMLTableSectionElement,
   HTMLAttributes<HTMLTableSectionElement>
 >(({ className, ...props }, ref) => (
-  <thead ref={ref} className={cn('[&_tr]:border-b ', className)} {...props} />
+  <thead
+    ref={ref}
+    className={cn(
+      'bg-[hsl(var(--illustry-table-header-background))] text-[hsl(var(--illustry-table-header-foreground))] [&_tr]:border-b [&_tr]:border-[hsl(var(--illustry-table-border)/0.72)]',
+      className
+    )}
+    {...props}
+  />
 ));
 TableHeader.displayName = 'TableHeader';
 
@@ -31,7 +38,10 @@ const TableBody = forwardRef<
 >(({ className, ...props }, ref) => (
   <tbody
     ref={ref}
-    className={cn('[&_tr:last-child]:border-0', className)}
+    className={cn(
+      '[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-[hsl(var(--illustry-table-alternating-row-background))]',
+      className
+    )}
     {...props}
   />
 ));
@@ -56,7 +66,7 @@ const TableRow = forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b   transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted dark:border-gray-300',
+      'border-b border-[hsl(var(--illustry-table-border)/0.68)] bg-[hsl(var(--illustry-table-row-background))] transition-colors hover:bg-[hsl(var(--illustry-table-row-hover-background))] data-[state=selected]:bg-[hsl(var(--illustry-table-selected-row-background))]',
       className
     )}
     {...props}
@@ -71,7 +81,7 @@ const TableHead = forwardRef<
   <th
     ref={ref}
     className={cn(
-      'h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0 dark:border-gray-300',
+      'h-12 px-4 text-left align-middle font-medium text-[hsl(var(--illustry-table-header-foreground))] [&:has([role=checkbox])]:pr-0',
       className
     )}
     {...props}
@@ -85,7 +95,7 @@ const TableCell = forwardRef<
 >(({ className, ...props }, ref) => (
   <td
     ref={ref}
-    className={cn('p-4 align-middle [&:has([role=checkbox])]:pr-0', className)}
+    className={cn('p-4 align-middle text-[hsl(var(--illustry-table-cell-foreground))] [&:has([role=checkbox])]:pr-0', className)}
     {...props}
   />
 ));
@@ -97,7 +107,7 @@ const TableCaption = forwardRef<
 >(({ className, ...props }, ref) => (
   <caption
     ref={ref}
-    className={cn('mt-4 text-sm text-muted-foreground', className)}
+    className={cn('mt-4 text-sm text-[hsl(var(--illustry-table-muted-cell-foreground))]', className)}
     {...props}
   />
 ));

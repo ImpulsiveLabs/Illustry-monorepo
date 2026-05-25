@@ -1,5 +1,3 @@
-/* eslint-disable no-return-assign */
-/* eslint-disable no-unused-vars */
 import { useRef, KeyboardEvent } from 'react';
 
 type DefaultThemesProps = {
@@ -28,34 +26,40 @@ const DefaultThemesAccordion = ({
   };
 
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
       {Object.keys(colorPalette).map((schemeName, index) => (
         <div
-          key={index}
+          key={schemeName}
           ref={(el) => {
             themeRefs.current[index] = el;
           }}
           role="button"
           tabIndex={0}
-          className={`relative flex flex-nowrap items-center gap-1 overflow-x-auto border m-1 rounded cursor-pointer p-2
+          className={`relative cursor-pointer rounded-lg border bg-card p-3 text-card-foreground transition
            focus:outline-none focus:ring-2 hover:ring-2 ${
             selectedSchemeName === schemeName
-              ? 'border-blue-500 ring-2 ring-blue-400'
-              : 'border-gray-300 focus:ring-blue-500 hover:ring-blue-300'
+              ? 'border-primary ring-2 ring-ring'
+              : 'border-border focus:ring-ring hover:ring-ring'
           }`}
           onClick={() => handleClick(schemeName, index)}
           onKeyDown={(e) => handleKeyDown(e, schemeName)}
         >
           {selectedSchemeName === schemeName && (
-            <span className="absolute -top-1.5 -right-1.5 h-3 w-3 rounded-full bg-blue-600 ring-2 ring-white dark:ring-gray-900" />
+            <span className="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-primary ring-2 ring-background" />
           )}
-          {colorPalette[schemeName]?.map((color, i) => (
-            <div
-              key={i}
-              style={{ backgroundColor: color }}
-              className="h-5 w-5 shrink-0 border border-gray-300 rounded"
-            />
-          ))}
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <span className="truncate text-sm font-medium">{schemeName}</span>
+            <span className="text-xs text-muted-foreground">{colorPalette[schemeName]?.length || 0}</span>
+          </div>
+          <div className="flex h-10 overflow-hidden rounded-md border border-border">
+            {colorPalette[schemeName]?.map((color, i) => (
+              <div
+                key={`${schemeName}-${color}-${i}`}
+                style={{ backgroundColor: color }}
+                className="min-w-5 flex-1"
+              />
+            ))}
+          </div>
         </div>
       ))}
     </div>

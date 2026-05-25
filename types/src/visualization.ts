@@ -150,6 +150,9 @@ type VisualizationData = {
   currentUserRole?: VisualizationSharePermission | 'owner';
   shareStatus?: VisualizationShareStatus;
   isExternal?: boolean;
+  accessType?: 'direct' | 'inherited';
+  sourceType?: 'dashboard' | 'visualization';
+  sourceDashboardId?: string;
   shareId?: string;
   sharedWith?: VisualizationSharedUser[];
   projectName: string;
@@ -173,6 +176,8 @@ type VisualizationSharedUser = {
   name?: string;
   permission: VisualizationSharePermission;
   status?: VisualizationShareStatus;
+  sharedViaResource?: 'visualization' | 'dashboard';
+  sharedViaShareId?: string;
   inviteToken?: string;
   inviteExpiresAt?: Date;
   respondedAt?: Date;
@@ -232,6 +237,13 @@ type VisualizationShareRequest = {
   }>;
 }
 
+type VisualizationShareRevokeRequest = {
+  name?: string;
+  type?: string;
+  shareId?: string;
+  userId: string;
+}
+
 type VisualizationShareInviteDecision = {
   token: string;
   decision: 'accept' | 'reject';
@@ -239,11 +251,13 @@ type VisualizationShareInviteDecision = {
 
 type VisualizationThemeSyncRequest = {
   theme: Record<string, unknown>;
+  realtimeClientId?: string;
 }
 
 type VisualizationThemeSyncResult = {
   updatedCount: number;
   shareIds: string[];
+  dashboardShareIds?: string[];
 }
 
 export {
@@ -278,6 +292,7 @@ export {
   VisualizationShareScope,
   VisualizationSharedUser,
   VisualizationShareRequest,
+  VisualizationShareRevokeRequest,
   VisualizationShareInviteDecision,
   VisualizationThemeSyncRequest,
   VisualizationThemeSyncResult

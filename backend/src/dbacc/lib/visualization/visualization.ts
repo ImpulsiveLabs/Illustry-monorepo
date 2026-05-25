@@ -38,17 +38,19 @@ class Visualization implements GenericTypes.BaseLib<
       });
     }
     if (filter.sharedWithUserId) {
+      const activeDirectShareMatch = {
+        userId: filter.sharedWithUserId,
+        $or: [
+          { status: 'accepted' },
+          { status: { $exists: false } }
+        ],
+        sharedViaResource: { $ne: 'dashboard' }
+      };
       if (filter.sharedScope === 'external') {
         (query.$and as Array<object>).push({
           userId: { $ne: filter.sharedWithUserId },
           sharedWith: {
-            $elemMatch: {
-              userId: filter.sharedWithUserId,
-              $or: [
-                { status: 'accepted' },
-                { status: { $exists: false } }
-              ]
-            }
+            $elemMatch: activeDirectShareMatch
           }
         });
       } else if (filter.sharedScope === 'all') {
@@ -57,13 +59,7 @@ class Visualization implements GenericTypes.BaseLib<
             { userId: filter.sharedWithUserId },
             {
               sharedWith: {
-                $elemMatch: {
-                  userId: filter.sharedWithUserId,
-                  $or: [
-                    { status: 'accepted' },
-                    { status: { $exists: false } }
-                  ]
-                }
+                $elemMatch: activeDirectShareMatch
               }
             }
           ]
@@ -163,22 +159,7 @@ class Visualization implements GenericTypes.BaseLib<
   findEditableSharedThemeTargets(userId: string): Promise<Array<Pick<VisualizationTypes.VisualizationType, 'shareId'>>> {
     return this.modelInstance.VisualizationModel.find(
       {
-        shareId: { $exists: true, $ne: null },
-        $or: [
-          { userId },
-          {
-            sharedWith: {
-              $elemMatch: {
-                userId,
-                permission: 'editor',
-                $or: [
-                  { status: 'accepted' },
-                  { status: { $exists: false } }
-                ]
-              }
-            }
-          }
-        ]
+        userId
       },
       { _id: 0, shareId: 1 }
     ).lean().exec() as unknown as Promise<Array<Pick<VisualizationTypes.VisualizationType, 'shareId'>>>;
@@ -276,6 +257,23 @@ class Visualization implements GenericTypes.BaseLib<
 
     const result = await this.modelInstance.VisualizationModel.updateMany(
       { shareId: { $in: shareIds } },
+      {
+        $set: {
+          theme,
+          updatedAt: new Date()
+        }
+      }
+    ).exec();
+
+    return Number(result.modifiedCount || 0);
+  }
+
+  async updateThemeForUser(
+    userId: string,
+    theme: Record<string, unknown>
+  ): Promise<number> {
+    const result = await this.modelInstance.VisualizationModel.updateMany(
+      { userId },
       {
         $set: {
           theme,

@@ -1,10 +1,15 @@
 const registerMock = jest.fn();
 const getSessionPrincipalFromTokenMock = jest.fn();
 const toPublicUserMock = jest.fn();
+const getThemeConfigMock = jest.fn();
+const updateThemeConfigMock = jest.fn();
+const resetThemeConfigMock = jest.fn();
 const connectMock = jest.fn();
 const cleanupMock = jest.fn();
 const loggerErrorMock = jest.fn();
 const loggerInfoMock = jest.fn();
+
+jest.setTimeout(15000);
 
 const waitForServer = async (server: any) => {
   if (server.listening) {
@@ -39,7 +44,10 @@ jest.mock('../../src/factory', () => ({
         AuthBZL: {
           register: registerMock,
           getSessionPrincipalFromToken: getSessionPrincipalFromTokenMock,
-          toPublicUser: toPublicUserMock
+          toPublicUser: toPublicUserMock,
+          getThemeConfig: getThemeConfigMock,
+          updateThemeConfig: updateThemeConfigMock,
+          resetThemeConfig: resetThemeConfigMock
         }
       })
     })
@@ -220,6 +228,58 @@ describe('auth register route', () => {
 
     expect(response.status).toBe(403);
     await expect(response.json()).resolves.toEqual({ error: 'Missing CSRF token' });
+
+    await app.stop();
+  });
+
+  it('serves, saves, and resets the authenticated user theme config', async () => {
+    process.env.NODE_ENV = 'test';
+    process.env.AUTH_TEST_BYPASS = '1';
+
+    const themeConfig = {
+      version: 1,
+      presetId: 'custom',
+      global: {
+        primary: '#123456'
+      }
+    };
+
+    getThemeConfigMock.mockResolvedValue(themeConfig);
+    updateThemeConfigMock.mockResolvedValue({ ...themeConfig, presetId: 'saved' });
+    resetThemeConfigMock.mockResolvedValue({ version: 1, presetId: 'default' });
+
+    const { default: Illustry } = await import('../../src/app');
+    const app = new Illustry() as any;
+    await app.start();
+    const server = app.httpServer;
+    await waitForServer(server);
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    const getResponse = await fetch(`http://127.0.0.1:${port}/api/auth/me/theme`);
+    expect(getResponse.status).toBe(200);
+    await expect(getResponse.json()).resolves.toEqual({ themeConfig });
+    expect(getThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__');
+
+    const putResponse = await fetch(`http://127.0.0.1:${port}/api/auth/me/theme`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ themeConfig })
+    });
+    expect(putResponse.status).toBe(200);
+    await expect(putResponse.json()).resolves.toEqual({
+      themeConfig: { ...themeConfig, presetId: 'saved' }
+    });
+    expect(updateThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__', themeConfig);
+
+    const deleteResponse = await fetch(`http://127.0.0.1:${port}/api/auth/me/theme`, {
+      method: 'DELETE'
+    });
+    expect(deleteResponse.status).toBe(200);
+    await expect(deleteResponse.json()).resolves.toEqual({
+      themeConfig: { version: 1, presetId: 'default' }
+    });
+    expect(resetThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__');
 
     await app.stop();
   });

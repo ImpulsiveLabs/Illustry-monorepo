@@ -12,6 +12,8 @@ import {
 } from '@/components/providers/theme-provider';
 import { ActiveProjectProvider } from '@/components/providers/active-project-provider';
 import { LocaleProvider } from '@/components/providers/locale-provider';
+import { getUserThemeConfig } from '@/app/_actions/theme';
+import ThemeRouteScope from '@/components/providers/theme-route-scope';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://illustry.app';
 const metadataBase = new URL(siteUrl);
@@ -96,32 +98,38 @@ interface RootLayoutProps {
   children: React.ReactNode;
 }
 
-const RootLayout = ({ children }: RootLayoutProps) => (
-  <>
-    <html lang="en" suppressHydrationWarning>
-      <head />
-      <body
-        className={cn(
-          'min-h-screen bg-background font-sans antialiased',
-          fontSans.variable,
-          fontMono.variable
-        )}
-      >
+const RootLayout = async ({ children }: RootLayoutProps) => {
+  const initialAppTheme = await getUserThemeConfig();
 
-        <LocaleProvider>
-          <ThemeColorsProvider>
-            <ActiveProjectProvider>
-              <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-                {children}
-              </ThemeProvider>
-            </ActiveProjectProvider>
-          </ThemeColorsProvider>
-        </LocaleProvider>
-        <Toaster />
-      </body>
-    </html>
-  </>
-);
+  return (
+    <>
+      <html lang="en" suppressHydrationWarning>
+        <head />
+        <body
+          className={cn(
+            'min-h-screen bg-background font-sans antialiased',
+            fontSans.variable,
+            fontMono.variable
+          )}
+        >
+
+          <LocaleProvider>
+            <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+              <ThemeColorsProvider initialAppTheme={initialAppTheme}>
+                <ActiveProjectProvider>
+                  <ThemeRouteScope>
+                    {children}
+                  </ThemeRouteScope>
+                </ActiveProjectProvider>
+              </ThemeColorsProvider>
+            </ThemeProvider>
+          </LocaleProvider>
+          <Toaster />
+        </body>
+      </html>
+    </>
+  );
+};
 
 export default RootLayout;
 export { metadata };

@@ -13,6 +13,7 @@ interface AuthUser {
   isEmailVerified: boolean;
   roles: string[];
   authVersion: number;
+  themeConfig?: Record<string, unknown>;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -86,6 +87,7 @@ type AuthPublicUser = {
   roles: string[];
   hasAvatar: boolean;
   avatarUpdatedAt?: string;
+  themeConfig?: Record<string, unknown>;
 };
 
 interface AuthContext {

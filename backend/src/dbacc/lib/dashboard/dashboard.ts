@@ -143,6 +143,16 @@ class Dashboard implements GenericTypes.BaseLib<
     ).lean().exec() as unknown as Promise<DashboardTypes.DashboardType | null>;
   }
 
+  findSharedThemeTargets(userId: string): Promise<Array<Pick<DashboardTypes.DashboardType, 'shareId'>>> {
+    return this.modelInstance.DashboardModel.find(
+      {
+        userId,
+        shareId: { $exists: true, $ne: null }
+      },
+      { _id: 0, shareId: 1 }
+    ).lean().exec() as unknown as Promise<Array<Pick<DashboardTypes.DashboardType, 'shareId'>>>;
+  }
+
   async browse(filter: UtilTypes.ExtendedMongoQuery, withVisualizations = false): Promise<DashboardTypes.ExtendedDashboardType> {
     const projection: Record<string, number> = {
       __v: 0,

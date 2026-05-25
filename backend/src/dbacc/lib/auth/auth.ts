@@ -45,6 +45,25 @@ class Auth {
     ).exec();
   }
 
+  updateUserThemeConfigById(
+    userId: string | Types.ObjectId,
+    themeConfig: Record<string, unknown> | undefined
+  ): Promise<AuthUser | null> {
+    if (typeof userId === 'string' && Types.ObjectId.isValid(userId) === false) {
+      return Promise.resolve(null);
+    }
+
+    const update = themeConfig
+      ? { $set: { themeConfig } }
+      : { $unset: { themeConfig: '' } };
+
+    return this.modelInstance.UserModel.findOneAndUpdate(
+      { _id: userId },
+      update,
+      { new: true }
+    ).exec();
+  }
+
   createSession(data: Partial<AuthSession>): Promise<AuthSession> {
     return this.modelInstance.SessionModel.create(data);
   }

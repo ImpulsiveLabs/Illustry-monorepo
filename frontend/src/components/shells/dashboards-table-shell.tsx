@@ -23,6 +23,7 @@ import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
 import ExternalInternalToggle from '../data-table/external-internal-toggle';
+import ConfirmActionDialog from '@/components/ui/confirm-action-dialog';
 
 type DashboardsTableShellProps = {
   data?: DashboardTypes.DashboardType[];
@@ -34,7 +35,50 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
   const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'single' | 'selected';
+    value?: string | DashboardTypes.DashboardFilter;
+  } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
+
+  const requestDelete = (target: {
+    type: 'single' | 'selected';
+    value?: string | DashboardTypes.DashboardFilter;
+  }) => {
+    setDeleteTarget(target);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    const target = deleteTarget;
+    if (!target) {
+      return;
+    }
+
+    startTransition(() => {
+      const promise = target.type === 'single' && target.value
+        ? deleteDashboard(target.value)
+        : Promise.all(selectedRowNames.map((name) => deleteDashboard(name)));
+
+      toast.promise(Promise.resolve(promise), {
+        loading: t('table.deleting'),
+        success: () => {
+          setSelectedRowNames([]);
+          setDeleteTarget(null);
+          setDeleteDialogOpen(false);
+          router.refresh();
+          return target.type === 'single' ? t('toast.dashboardDeleted') : t('toast.dashboardsDeleted');
+        },
+        error: (err: unknown) => {
+          setSelectedRowNames([]);
+          setDeleteTarget(null);
+          setDeleteDialogOpen(false);
+          return catchError(err);
+        }
+      });
+    });
+  };
   const columns = useMemo<ColumnDef<DashboardTypes.DashboardType, unknown>[]>(
     () => [
       {
@@ -45,7 +89,6 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
             onCheckedChange={(value) => {
               table.toggleAllPageRowsSelected(!!value);
               if (data) {
-                // eslint-disable-next-line max-len
                 setSelectedRowNames((prev) => (prev.length === data.length ? [] : data.map((row) => row.name)));
               }
             }}
@@ -85,13 +128,13 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
         {
           accessorKey: 'ownerEmail',
           header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="Owner" />
+            <DataTableColumnHeader column={column} title={t('table.owner')} />
           )
         } as ColumnDef<DashboardTypes.DashboardType, unknown>,
         {
           accessorKey: 'currentUserRole',
           header: ({ column }) => (
-            <DataTableColumnHeader column={column} title="My role" />
+            <DataTableColumnHeader column={column} title={t('table.myRole')} />
           )
         } as ColumnDef<DashboardTypes.DashboardType, unknown>
       ] : []),
@@ -138,12 +181,12 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
 	                <>
 	                  <DropdownMenuSeparator />
 	                  <DropdownMenuItem asChild>
-	                    <Link href={`/dashboards/${row.original.name}`}>{t('table.edit')}</Link>
+	                    <Link href={`/dashboards?edit=${encodeURIComponent(row.original.name)}`}>{t('table.edit')}</Link>
 	                  </DropdownMenuItem>
 	                  <DropdownMenuSeparator />
 		                  <DropdownMenuItem asChild>
 		                    <Link href={`/share/dashboard?name=${encodeURIComponent(row.original.name)}`}>
-		                      Share
+		                      {t('common.share')}
 		                    </Link>
 		                  </DropdownMenuItem>
 	                </>
@@ -151,15 +194,12 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
 	              <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  startTransition(() => {
-                    row.toggleSelected(false);
-	                    toast.promise(deleteDashboard(row.original.isExternal && row.original.shareId
-	                      ? { shareId: row.original.shareId }
-	                      : row.original.name), {
-                      loading: t('table.deleting'),
-                      success: () => { router.refresh(); return t('toast.dashboardDeleted');},
-                      error: (err: unknown) => catchError(err)
-                    });
+                  row.toggleSelected(false);
+                  requestDelete({
+                    type: 'single',
+                    value: row.original.isExternal && row.original.shareId
+                      ? { shareId: row.original.shareId }
+                      : row.original.name
                   });
                 }}
                 disabled={isPending}
@@ -176,21 +216,9 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
   );
 
   const deleteSelectedRows = () => {
-    toast.promise(
-      Promise.all(selectedRowNames.map((name) => deleteDashboard(name))),
-      {
-        loading: t('table.deleting'),
-        success: () => {
-          setSelectedRowNames([]);
-          router.refresh();
-          return t('toast.dashboardsDeleted');
-        },
-        error: (err: unknown) => {
-          setSelectedRowNames([]);
-          return catchError(err);
-        }
-      }
-    );
+    if (selectedRowNames.length) {
+      requestDelete({ type: 'selected' });
+    }
   };
 
   return (
@@ -200,9 +228,18 @@ const DashboardsTableShell = ({ data, pageCount, external = false }: DashboardsT
         data={data as DashboardTypes.DashboardType[]}
         pageCount={pageCount as number}
         filterableColumns={[]}
-        newRowLink={external ? undefined : '/dashboards/new'}
+        newRowLink={external ? undefined : '/dashboards?modal=new'}
         deleteRowsAction={external ? undefined : deleteSelectedRows}
         toolbarActions={<ExternalInternalToggle mode={external ? 'external' : 'owned'} />}
+      />
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        pending={isPending}
+        description={t(deleteTarget?.type === 'selected'
+          ? 'confirm.deleteDashboardsDescription'
+          : 'confirm.deleteDashboardDescription')}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
       />
     </div>
   );

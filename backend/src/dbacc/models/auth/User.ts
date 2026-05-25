@@ -23,7 +23,8 @@ class User {
           avatarUpdatedAt: { type: Date, required: false },
           isEmailVerified: { type: Boolean, required: true, default: false },
           roles: { type: [String], required: true, default: ['user'] },
-          authVersion: { type: Number, required: true, default: 0 }
+          authVersion: { type: Number, required: true, default: 0 },
+          themeConfig: { type: Schema.Types.Mixed, required: false }
         },
         { timestamps: true }
       );

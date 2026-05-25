@@ -9,6 +9,7 @@ import {
   UncontrolledFormMessage
 } from '@/components/ui/form';
 import { Inputs } from '@/components/form/types';
+import { UPLOAD_CONSTRAINTS } from '@/lib/upload-constraints';
 import FileUpload from '../../file-upload';
 
 type VisualizationFileUploadProps = {
@@ -34,7 +35,8 @@ const XMLFileFormatter = ({
           acceptedFiles={acceptedFiles}
           updateFiles={updateFiles}
           removeFile={removeFile}
-          fileFormat="text/xml"
+          fileFormat=".xml,text/xml,application/xml"
+          maxFileSize={UPLOAD_CONSTRAINTS['visualization-source'].maxBytes}
         />
       </FormControl>
       <UncontrolledFormMessage

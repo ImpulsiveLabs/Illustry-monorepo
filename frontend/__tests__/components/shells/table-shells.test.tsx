@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, act, waitFor } from '@testing-library/react';
+import { render, act, waitFor, screen } from '@testing-library/react';
 import DashboardsTableShell from '@/components/shells/dashboards-table-shell';
 import ProjectsTableShell from '@/components/shells/projects-table-shell';
 import VisualizationsTableShell from '@/components/shells/visualizations-table-shell';
@@ -54,6 +54,9 @@ vi.mock('@/components/data-table/data-table', () => ({
         return <button onClick={props.deleteRowsAction}>trigger-bulk-delete</button>;
     }
 }));
+vi.mock('@/components/ui/confirm-action-dialog', () => ({
+    default: ({ open, onConfirm }: any) => (open ? <button onClick={onConfirm}>confirm-delete</button> : null)
+}));
 
 describe('table shell wrappers', () => {
     beforeEach(() => {
@@ -70,7 +73,7 @@ describe('table shell wrappers', () => {
     it('passes expected props from dashboard shell to DataTable', async () => {
         render(<DashboardsTableShell data={[{ name: 'd1', description: 'x' } as any]} pageCount={3} />);
 
-        expect(latestDataTableProps.newRowLink).toBe('/dashboards/new');
+        expect(latestDataTableProps.newRowLink).toBe('/dashboards?modal=new');
         expect(latestDataTableProps.pageCount).toBe(3);
         expect(latestDataTableProps.columns.length).toBeGreaterThan(0);
 
@@ -87,6 +90,9 @@ describe('table shell wrappers', () => {
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
         });
+        await act(async () => {
+            screen.getByRole('button', { name: 'confirm-delete' }).click();
+        });
         expect(toastPromise).toHaveBeenCalled();
         await waitFor(() => {
             expect(deleteDashboard).toHaveBeenCalledWith('d1');
@@ -97,7 +103,7 @@ describe('table shell wrappers', () => {
         render(<ProjectsTableShell data={[{ name: 'p1', isActive: true } as any]} pageCount={2} />);
 
         expect(dispatch).toHaveBeenCalledWith({ type: 'SET_ACTIVE_PROJECT', payload: true });
-        expect(latestDataTableProps.newRowLink).toBe('/projects/new');
+        expect(latestDataTableProps.newRowLink).toBe('/projects?modal=new');
 
         const headerEl = latestDataTableProps.columns[0].header({
             table: {
@@ -111,6 +117,9 @@ describe('table shell wrappers', () => {
 
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
+        });
+        await act(async () => {
+            screen.getByRole('button', { name: 'confirm-delete' }).click();
         });
         await waitFor(() => {
             expect(deleteProject).toHaveBeenCalledWith('p1');
@@ -168,7 +177,7 @@ describe('table shell wrappers', () => {
             />
         );
 
-        expect(latestDataTableProps.newRowLink).toBe('/visualizations/new');
+        expect(latestDataTableProps.newRowLink).toBe('/visualizations?modal=new');
 
         const tagCell = latestDataTableProps.columns.find((c: any) => c.accessorKey === 'tags').cell({
             cell: { getValue: () => ['x', 'y'] }
@@ -187,6 +196,9 @@ describe('table shell wrappers', () => {
 
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
+        });
+        await act(async () => {
+            screen.getByRole('button', { name: 'confirm-delete' }).click();
         });
         await waitFor(() => {
             expect(deleteVisualization).toHaveBeenCalledWith({ name: 'v1', type: 'bar-chart' });

@@ -26,6 +26,8 @@ type DashboardSharedUser = {
     name?: string;
     permission: DashboardSharePermission;
     status?: DashboardShareStatus;
+    sharedViaResource?: 'dashboard';
+    sharedViaShareId?: string;
     inviteToken?: string;
     inviteExpiresAt?: Date;
     respondedAt?: Date;
@@ -40,6 +42,9 @@ type DashboardData = {
     currentUserRole?: DashboardSharePermission | 'owner';
     shareStatus?: DashboardShareStatus;
     isExternal?: boolean;
+    accessType?: 'direct' | 'inherited';
+    sourceType?: 'dashboard' | 'visualization';
+    sourceDashboardId?: string;
     shareId?: string;
     sharedWith?: DashboardSharedUser[];
     name: string;
@@ -101,6 +106,12 @@ type DashboardShareRequest = {
     }>;
 };
 
+type DashboardShareRevokeRequest = {
+    name?: string;
+    shareId?: string;
+    userId: string;
+};
+
 type DashboardShareInviteDecision = {
     token: string;
     decision: 'accept' | 'reject';
@@ -118,5 +129,6 @@ export {
     DashboardShareScope,
     DashboardSharedUser,
     DashboardShareRequest,
+    DashboardShareRevokeRequest,
     DashboardShareInviteDecision
 }

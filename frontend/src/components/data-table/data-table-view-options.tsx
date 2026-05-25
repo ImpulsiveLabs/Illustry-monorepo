@@ -33,7 +33,7 @@ const DataTableViewOptions = <TData, >({
               aria-label={t('tooltip.toggleColumns')}
               variant="outline"
               size="sm"
-              className="ml-auto hidden h-8 lg:flex"
+              className="ml-auto hidden h-9 border-border/80 bg-background/70 lg:flex"
             >
               <MixerHorizontalIcon className="mr-2 h-4 w-4" />
               {t('table.view')}
@@ -41,7 +41,7 @@ const DataTableViewOptions = <TData, >({
           </DropdownMenuTrigger>
         </div>
       </HintTooltip>
-      <DropdownMenuContent align="end" className="w-[150px]">
+      <DropdownMenuContent align="end" className="w-[170px]">
         <DropdownMenuLabel>{t('tooltip.toggleColumns')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table

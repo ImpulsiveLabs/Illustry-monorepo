@@ -9,6 +9,7 @@ import {
   UncontrolledFormMessage
 } from '@/components/ui/form';
 import { Inputs } from '@/components/form/types';
+import { UPLOAD_CONSTRAINTS } from '@/lib/upload-constraints';
 import FileUpload from '../../file-upload';
 
 type VisualizationFileUploadProps = {
@@ -34,7 +35,8 @@ const CSVFileFormatter = ({
             acceptedFiles={acceptedFiles}
             updateFiles={updateFiles}
             removeFile={removeFile}
-            fileFormat="text/csv"
+            fileFormat=".csv,text/csv,application/csv"
+            maxFileSize={UPLOAD_CONSTRAINTS['visualization-source'].maxBytes}
           />
         </FormControl>
         <UncontrolledFormMessage

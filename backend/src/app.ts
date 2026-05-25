@@ -70,8 +70,8 @@ class Illustry {
 
     this.expressApp.use(cookieParser());
     this.expressApp.use(enforceCsrfForProtectedMutationRoutes);
-    this.expressApp.use(express.json());
-    this.expressApp.use(express.urlencoded({ extended: false }));
+    this.expressApp.use(express.json({ limit: process.env.EXPORT_REQUEST_LIMIT || '50mb' }));
+    this.expressApp.use(express.urlencoded({ extended: false, limit: process.env.EXPORT_REQUEST_LIMIT || '50mb' }));
 
     this.expressApp.get('/api/health', (_request, response) => {
       const factory = Factory.getInstance();

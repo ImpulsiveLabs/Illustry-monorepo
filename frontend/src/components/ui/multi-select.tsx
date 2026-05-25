@@ -3,7 +3,6 @@ import React from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { cn } from '@/lib/utils';
 import { useLocale } from '@/components/providers/locale-provider';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Popover,
@@ -22,7 +21,7 @@ import {
 import Icons from '../icons';
 
 const multiSelectVariants = cva(
-  'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300',
+  'm-1 transition duration-200 hover:-translate-y-0.5',
   {
     variants: {
       variant: {
@@ -50,6 +49,7 @@ type MultiSelectProps = {
   placeholder?: string;
   animation?: number;
   maxCount?: number;
+  selectionLimit?: number;
   modalPopover?: boolean;
   asChild?: boolean;
   className?: string;
@@ -65,6 +65,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       placeholder,
       animation = 0,
       maxCount = 3,
+      selectionLimit,
       modalPopover = false,
       className,
       ...props
@@ -88,6 +89,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     };
 
     const toggleOption = (option: string) => {
+      if (!selectedValues.includes(option) && selectionLimit && selectedValues.length >= selectionLimit) {
+        return;
+      }
       const newSelectedValues = selectedValues.includes(option)
         ? selectedValues.filter((value) => value !== option)
         : [...selectedValues, option];
@@ -114,7 +118,9 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
       if (selectedValues.length === options.length) {
         handleClear();
       } else {
-        const allValues = options.map((option) => option.value);
+        const allValues = options
+          .map((option) => option.value)
+          .slice(0, selectionLimit ?? options.length);
         setSelectedValues(allValues);
         onValueChange(allValues);
       }
@@ -123,13 +129,15 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
     return (
       <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen} modal={modalPopover}>
         <PopoverTrigger asChild>
-          <Button
+          <button
+            type="button"
             ref={ref}
             {...props}
             onClick={handleTogglePopover}
             className={cn(
-              'flex w-full p-1 rounded-md border min-h-10 h-auto',
-              'items-center justify-between bg-inherit hover:bg-inherit',
+              'flex min-h-10 w-full items-center justify-between rounded-[var(--illustry-button-radius)] border border-[hsl(var(--illustry-input-border)/0.78)] bg-[hsl(var(--illustry-input-background)/0.78)] p-1 text-left text-sm text-[hsl(var(--illustry-input-foreground))] shadow-[0_1px_0_hsl(var(--border)/0.35)] backdrop-blur',
+              'transition-[border-color,box-shadow,background-color] duration-200 hover:bg-background/90 focus-visible:outline-none focus-visible:border-[hsl(var(--ring)/0.6)] focus-visible:ring-4 focus-visible:ring-ring/15',
+              'disabled:cursor-not-allowed disabled:bg-muted/55 disabled:text-muted-foreground disabled:opacity-100',
               className
             )}
           >
@@ -198,7 +206,7 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                 <Icons.chevronDown className="h-4 cursor-pointer text-muted-foreground mx-2" />
               </div>
             )}
-          </Button>
+          </button>
         </PopoverTrigger>
         <PopoverContent
           className={cn('w-[var(--radix-popover-trigger-width)] min-w-[200px] p-0')}
@@ -234,11 +242,14 @@ const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>(
                     const option = options[index - 1];
                     if (!option) return null;
                     const isSelected = selectedValues.includes(option.value);
+                    const isDisabled = !isSelected
+                      && Boolean(selectionLimit)
+                      && selectedValues.length >= (selectionLimit ?? options.length);
                     return (
                       <CommandItem
                         key={option.value}
                         onSelect={() => toggleOption(option.value)}
-                        className="cursor-pointer"
+                        className={cn('cursor-pointer', isDisabled && 'cursor-not-allowed opacity-50')}
                       >
                         <div
                           className={cn(

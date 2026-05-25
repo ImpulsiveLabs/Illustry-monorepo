@@ -14,6 +14,7 @@ import { scatterWords } from '@/lib/filter/scatter';
 import { timelineWords } from '@/lib/filter/timeline';
 import { hierarchyWords } from '@/lib/filter/hierarchy';
 import { useLocale } from '@/components/providers/locale-provider';
+import HintTooltip from '@/components/ui/hint-tooltip';
 import { Button } from './button';
 
 type CollapsableSearchBarProps<T> = {
@@ -33,7 +34,41 @@ const CollapsableSearchBar = <
   const [initialData] = React.useState(() => data);
   const [searchValue, setSearchValue] = React.useState('');
   const [isInputClicked, setIsInputClicked] = React.useState(false);
-  const [isFocused, setIsFocused] = React.useState(false);
+
+  const getAcceptedWords = () => {
+    switch (type) {
+      case VisualizationTypes.VisualizationTypesEnum.LINE_CHART:
+      case VisualizationTypes.VisualizationTypesEnum.BAR_CHART:
+        return ['headers', 'values'];
+      case VisualizationTypes.VisualizationTypesEnum.CALENDAR:
+        return ['categories', 'dates'];
+      case VisualizationTypes.VisualizationTypesEnum.FUNNEL:
+      case VisualizationTypes.VisualizationTypesEnum.PIE_CHART:
+        return ['values'];
+      case VisualizationTypes.VisualizationTypesEnum.TREEMAP:
+      case VisualizationTypes.VisualizationTypesEnum.SUNBURST:
+        return ['values', 'categories'];
+      case VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH:
+      case VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING:
+      case VisualizationTypes.VisualizationTypesEnum.SANKEY:
+        return ['values', 'categories', 'targets', 'names'];
+      case VisualizationTypes.VisualizationTypesEnum.SCATTER:
+        return ['categories', 'xCoord', 'yCoord'];
+      case VisualizationTypes.VisualizationTypesEnum.TIMELINE:
+        return ['types', 'dates', 'authors'];
+      case VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD:
+        return ['values'];
+      default:
+        return [];
+    }
+  };
+
+  const filterHelpText = [
+    'Constructions: >, <, =, >=, <=, !=',
+    'Combine expressions with &&',
+    `Accepted words: ${getAcceptedWords().join(', ') || '-'}`
+  ].join('\n');
+
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchValue(e.target.value);
     if (!isInputClicked) {
@@ -86,37 +121,36 @@ const CollapsableSearchBar = <
     }
   };
 
-  const handleFocus = () => {
-    setIsFocused(true);
-  };
-
-  const handleBlur = () => {
-    setIsFocused(false);
-  };
-
   const handleRefresh = () => {
+    setSearchValue('');
+    setIsInputClicked(false);
     setFilteredData(initialData);
   };
 
   return (
     <form
       action=""
-      className="relative mx-auto mt-[2%] w-max"
+      className="relative mx-auto mt-4 w-full max-w-3xl"
       onSubmit={handleSearch}
     >
-      <div className="flex items-center w-[75%] mx-auto">
+      <div className="relative mx-auto flex w-full items-center justify-center gap-2">
         <input
           type="search"
           value={searchValue}
           placeholder={t('table.filterPlaceholder')}
+          title={filterHelpText}
           onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
-          className={`peer relative z-10 h-12 w-12 cursor-pointer 
-          rounded-full border bg-transparent pl-12 outline-none transition-all duration-500 ${
-            isFocused || searchValue.trim() !== '' ? 'w-screen' : 'w-12'
-          } focus:border-lime-300 focus:pl-16 focus:pr-4`}
+          className="relative z-10 h-11 w-full rounded-full border border-[hsl(var(--illustry-input-border)/0.78)] bg-[hsl(var(--illustry-input-background)/0.78)] px-4 text-sm text-[hsl(var(--illustry-input-foreground))] shadow-sm outline-none backdrop-blur transition-all duration-300 placeholder:text-muted-foreground focus:border-[hsl(var(--ring)/0.6)] focus:ring-4 focus:ring-ring/15"
         />
+        <HintTooltip text={filterHelpText} side="bottom">
+          <button
+            type="button"
+            aria-label={filterHelpText}
+            className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-input bg-background/70 text-sm font-semibold text-muted-foreground shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-ring/15"
+          >
+            ?
+          </button>
+        </HintTooltip>
         {isInputClicked && searchValue.trim() !== '' && (
           <Button
             type="submit"
@@ -138,21 +172,6 @@ const CollapsableSearchBar = <
             {t('common.refresh')}
           </Button>
         )}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="absolute inset-y-0 my-auto h-8 w-12 cursor-pointer border-r border-transparent
-          stroke-gray-500 px-3.5 peer-focus:border-lime-300 peer-focus:stroke-lime-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth="2"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-          />
-        </svg>
       </div>
     </form>
   );

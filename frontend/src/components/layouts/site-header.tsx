@@ -9,15 +9,12 @@ type SiteHeaderProps = {
 };
 
 const SiteHeader = ({ user }: SiteHeaderProps) => (
-    <header className="sticky top-0 z-40 w-full border-b bg-background">
-      <div className="container flex h-16 items-center">
-        <MainNav items={siteConfig.mainNav} user={user} />
-        <MobileNav
-          items={siteConfig.mainNav}
-          user={user}
-        />
-      </div>
-    </header>
+  <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70">
+    <div className="container flex h-16 items-center">
+      <MainNav items={siteConfig.mainNav} user={user} />
+      <MobileNav items={siteConfig.mainNav} user={user} />
+    </div>
+  </header>
 );
 
 export default SiteHeader;

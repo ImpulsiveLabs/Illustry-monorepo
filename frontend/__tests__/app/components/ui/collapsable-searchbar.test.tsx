@@ -84,7 +84,7 @@ describe('CollapsableSearchBar', () => {
     ]);
   });
 
-  it('handles input width classes across focus/blur and empty value', () => {
+  it('keeps the filter input full width while focus and value change', () => {
     const setFilteredData = vi.fn();
     render(
       <CollapsableSearchBar
@@ -95,20 +95,20 @@ describe('CollapsableSearchBar', () => {
     );
 
     const input = screen.getByRole('searchbox');
-    expect(input.className).toContain('w-12');
+    expect(input.className).toContain('w-full');
 
     fireEvent.focus(input);
-    expect(input.className).toContain('w-screen');
+    expect(input.className).toContain('w-full');
 
     fireEvent.change(input, { target: { value: 'Sales' } });
     fireEvent.blur(input);
-    expect(input.className).toContain('w-screen');
+    expect(input.className).toContain('w-full');
 
     fireEvent.change(input, { target: { value: '   ' } });
-    expect(input.className).toContain('w-12');
+    expect(input.className).toContain('w-full');
   });
 
-  it('restores original data on refresh', () => {
+  it('restores original data and clears the filter input on refresh', () => {
     const setFilteredData = vi.fn();
     render(
       <CollapsableSearchBar
@@ -125,6 +125,24 @@ describe('CollapsableSearchBar', () => {
     fireEvent.click(refreshBtn);
 
     expect(setFilteredData).toHaveBeenCalledWith(sampleData);
+    expect(input).toHaveValue('');
+  });
+
+  it('shows filter syntax help for the active visualization type', () => {
+    const setFilteredData = vi.fn();
+    render(
+      <CollapsableSearchBar
+        data={sampleData}
+        setFilteredData={setFilteredData}
+        type={VisualizationTypes.VisualizationTypesEnum.SCATTER}
+      />
+    );
+
+    expect(screen.getByRole('searchbox')).toHaveAttribute(
+      'title',
+      expect.stringContaining('xCoord, yCoord')
+    );
+    expect(screen.getByRole('button', { name: /accepted words/i })).toBeInTheDocument();
   });
 
   it('maps every visualization type group to expected filter words', () => {

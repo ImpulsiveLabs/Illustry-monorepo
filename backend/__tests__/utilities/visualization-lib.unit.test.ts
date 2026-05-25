@@ -60,6 +60,22 @@ describe('dbacc visualization unit', () => {
 
     const empty = lib.createFilter({} as any);
     expect(empty.query).toEqual({});
+
+    const external = lib.createFilter({
+      sharedWithUserId: 'viewer-1',
+      sharedScope: 'external'
+    } as any);
+    expect(external.query).toEqual({
+      $and: [{
+        userId: { $ne: 'viewer-1' },
+        sharedWith: {
+          $elemMatch: expect.objectContaining({
+            userId: 'viewer-1',
+            sharedViaResource: { $ne: 'dashboard' }
+          })
+        }
+      }]
+    });
   });
 
   it('covers create/findOne/browse/update/delete/deleteMany', async () => {
@@ -86,6 +102,7 @@ describe('dbacc visualization unit', () => {
     await expect(lib.findEditableSharedThemeTargets('user-1')).resolves.toEqual([{ name: 'viz' }]);
     await expect(lib.updateThemeForShareIds(['viz-share'], { sankey: {} })).resolves.toBe(2);
     await expect(lib.updateThemeForShareIds([], { sankey: {} })).resolves.toBe(0);
+    await expect(lib.updateThemeForUser('user-1', { sankey: {} })).resolves.toBe(2);
 
     expect(model.deleteMany).toHaveBeenCalled();
     expect(updateManyExec).toHaveBeenCalled();

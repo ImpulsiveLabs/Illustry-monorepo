@@ -1,6 +1,7 @@
-import fs from 'fs';
+import { promises as fs } from 'fs';
 import path from 'path';
 import { APIRequestContext, APIResponse, expect, test } from '@playwright/test';
+import { validateUploadedFileMetadata } from '../src/utils/upload-constraints';
 
 const id = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
 const projectName = `pw-project-${id}`;
@@ -67,6 +68,7 @@ const uploadVisualization = async (
     visualizationDetails: Record<string, unknown>;
   }
 ) => {
+  const buffer = await fs.readFile(options.fixture);
   const response = await request.post('/api/visualization', {
     multipart: {
       fullDetails: String(options.fullDetails),
@@ -75,7 +77,7 @@ const uploadVisualization = async (
       file: {
         name: options.filename,
         mimeType: options.mimeType,
-        buffer: fs.readFileSync(options.fixture)
+        buffer
       }
     }
   });
@@ -85,6 +87,22 @@ const uploadVisualization = async (
 };
 
 test.describe.serial('API coverage - project/dashboard/visualization', () => {
+  test('synthetic 5GB visualization source is rejected before any request body is built', async () => {
+    const startedAt = performance.now();
+    const result = validateUploadedFileMetadata({
+      originalname: 'huge-source.xlsx',
+      mimetype: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      size: 5 * 1024 * 1024 * 1024
+    }, 'visualization-source');
+    const elapsed = performance.now() - startedAt;
+
+    expect(result.valid).toBe(false);
+    if (!result.valid) {
+      expect(result.message).toContain('too large');
+    }
+    expect(elapsed).toBeLessThan(300);
+  });
+
   test('project endpoints: validation, create, browse, find, update, duplicate, delete', async ({ request }) => {
     const invalidCreate = await request.post('/api/project', {
       data: { projectDescription: 'missing name' }
@@ -244,6 +262,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
     expect(csvUpload.response.ok()).toBeTruthy();
     expectNoApiError(csvUpload.body, 'upload csv visualization');
     expect(Array.isArray(csvUpload.body)).toBeTruthy();
+    expect((csvUpload.body as Array<{ name: string }>)[0]?.name).toBe(fullDetailsVisualizationName);
 
     const excelUpload = await uploadVisualization(request, {
       fixture: fixtures.excel,
@@ -263,6 +282,7 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
     expect(excelUpload.response.ok()).toBeTruthy();
     expectNoApiError(excelUpload.body, 'upload excel visualization');
     expect(Array.isArray(excelUpload.body)).toBeTruthy();
+    expect((excelUpload.body as Array<{ name: string }>)[0]?.name).toBe(fullDetailsVisualizationName);
 
     const browseJson = await request.post('/api/visualizations', { data: { text: jsonVisualizationName } });
     const browseJsonBody = await parseBody(browseJson) as {

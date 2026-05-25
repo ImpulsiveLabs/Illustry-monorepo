@@ -143,13 +143,12 @@ describe('tabs mapping/type components', () => {
         const jsonRender = renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.JSON}
-                isPending={true}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
         ), 'mapping');
 
-        expect(screen.getByRole('button', { name: /Add Visualizations/i })).toBeDisabled();
+        expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
         await user.click(screen.getByRole('checkbox'));
         expect(screen.getByText("JSON files don't need a special mapping")).toBeInTheDocument();
         jsonRender.unmount();
@@ -157,19 +156,17 @@ describe('tabs mapping/type components', () => {
         const xmlRender = renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.XML}
-                isPending={false}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
         ), 'mapping');
 
-        expect(screen.getByRole('button', { name: /Add Visualizations/i })).toBeEnabled();
+        expect(screen.getByText('Type')).toBeInTheDocument();
         xmlRender.unmount();
 
         renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.CSV}
-                isPending={false}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
@@ -180,7 +177,6 @@ describe('tabs mapping/type components', () => {
         const excelRender = renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.EXCEL}
-                isPending={false}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
@@ -193,7 +189,6 @@ describe('tabs mapping/type components', () => {
         const unknownRender = renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={'unsupported' as any}
-                isPending={false}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
@@ -205,7 +200,6 @@ describe('tabs mapping/type components', () => {
         renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={''}
-                isPending={false}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
@@ -213,28 +207,30 @@ describe('tabs mapping/type components', () => {
         expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
     });
 
-    it('renders pending spinner for xml and excel mapping submit buttons', () => {
+    it('keeps mapping tabs focused on field content without submit controls', () => {
         const xmlRender = renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.XML}
-                isPending={true}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
         ), 'mapping');
 
-        expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+        expect(screen.getByText('Type')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
+        expect(document.querySelector('.animate-spin')).not.toBeInTheDocument();
         xmlRender.unmount();
 
         renderInTabsWithForm((form) => (
             <MappingTab
                 selectedFileType={FileTypes.FileType.EXCEL}
-                isPending={true}
                 form={form}
                 router={{ refresh: vi.fn() }}
             />
         ), 'mapping');
-        expect(document.querySelector('.animate-spin')).toBeInTheDocument();
+        expect(screen.getByText('Sheets number')).toBeInTheDocument();
+        expect(screen.queryByRole('button', { name: /Add Visualizations/i })).not.toBeInTheDocument();
+        expect(document.querySelector('.animate-spin')).not.toBeInTheDocument();
     });
 
     it('renders excel/csv mapping tab branches for each visualization type', () => {

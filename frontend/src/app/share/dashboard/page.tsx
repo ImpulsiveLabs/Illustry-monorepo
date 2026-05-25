@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getCurrentUser } from '@/app/_actions/auth';
+import { findOneDashboard } from '@/app/_actions/dashboard';
 import { ShareFormClient } from '../share-form-client';
 
 type ShareDashboardPageProps = {
@@ -15,11 +16,18 @@ const ShareDashboardPage = async ({ searchParams }: ShareDashboardPageProps) => 
     redirect('/dashboards');
   }
 
+  const dashboard = await findOneDashboard(name);
+  const includedVisualizationCount = dashboard?.visualizations && !Array.isArray(dashboard.visualizations)
+    ? Object.keys(dashboard.visualizations).length
+    : 0;
+
   return (
     <ShareFormClient
       resource="dashboard"
       name={name}
       currentUserEmail={currentUser.email}
+      existingShares={dashboard?.sharedWith || []}
+      includedVisualizationCount={includedVisualizationCount}
     />
   );
 };

@@ -6,5 +6,6 @@ import * as VisualizationTypes from './visualization';
 import * as DashboardTypes from './dashboard';
 import * as ValidatorSchemas from './validator';
 import * as TransformerTypes from './transformers';
+import * as ThemeTypes from './theme';
 
-export { FileTypes, GenericTypes, ProjectTypes, UtilTypes, VisualizationTypes, DashboardTypes, ValidatorSchemas, TransformerTypes }
+export { FileTypes, GenericTypes, ProjectTypes, UtilTypes, VisualizationTypes, DashboardTypes, ValidatorSchemas, TransformerTypes, ThemeTypes }

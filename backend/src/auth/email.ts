@@ -57,6 +57,20 @@ class EmailService {
     });
   }
 
+  async sendShareRevocationEmail(payload: {
+    email: string;
+    ownerName: string;
+    resourceType: 'dashboard' | 'visualization';
+    resourceName: string;
+  }): Promise<void> {
+    await this.sendThroughEmailService('/api/email/send-share-revocation', {
+      to: payload.email,
+      ownerName: payload.ownerName,
+      resourceType: payload.resourceType,
+      resourceName: payload.resourceName
+    });
+  }
+
   private async sendThroughEmailService(path: string, payload: Record<string, unknown>): Promise<void> {
     if (emailServiceUrl.length === 0) {
       throw new Error('EMAIL_SERVICE_URL is not configured');

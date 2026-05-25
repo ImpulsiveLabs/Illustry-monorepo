@@ -214,6 +214,82 @@ const me = async (
   response.status(200).send(getCurrentUserResponse(request));
 };
 
+const getThemeConfig = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = request.auth?.userId;
+
+    if (!userId) {
+      response.status(401).send({ error: translateAuthText(resolveRequestAuthLocale(request), 'Authentication required') });
+      return;
+    }
+
+    const themeConfig = await Factory.getInstance().getBZL().AuthBZL.getThemeConfig(userId);
+    response.status(200).send({ themeConfig });
+  } catch (error) {
+    sendAuthError(response, next, error, resolveRequestAuthLocale(request));
+  }
+};
+
+const updateThemeConfig = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = request.auth?.userId;
+
+    if (!userId) {
+      response.status(401).send({ error: translateAuthText(resolveRequestAuthLocale(request), 'Authentication required') });
+      return;
+    }
+
+    const themePayload = request.body?.themeConfig;
+    const realtimeClientId = typeof request.body?.realtimeClientId === 'string'
+      ? request.body.realtimeClientId
+      : undefined;
+    if (!themePayload || typeof themePayload !== 'object' || Array.isArray(themePayload)) {
+      response.status(400).send({ error: 'A valid themeConfig payload is required' });
+      return;
+    }
+
+    const themeConfig = await Factory.getInstance().getBZL().AuthBZL.updateThemeConfig(
+      userId,
+      themePayload as Record<string, unknown>,
+      realtimeClientId
+    );
+    response.status(200).send({ themeConfig });
+  } catch (error) {
+    sendAuthError(response, next, error, resolveRequestAuthLocale(request));
+  }
+};
+
+const resetThemeConfig = async (
+  request: Request,
+  response: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const userId = request.auth?.userId;
+
+    if (!userId) {
+      response.status(401).send({ error: translateAuthText(resolveRequestAuthLocale(request), 'Authentication required') });
+      return;
+    }
+
+    const realtimeClientId = typeof request.body?.realtimeClientId === 'string'
+      ? request.body.realtimeClientId
+      : undefined;
+    const themeConfig = await Factory.getInstance().getBZL().AuthBZL.resetThemeConfig(userId, realtimeClientId);
+    response.status(200).send({ themeConfig });
+  } catch (error) {
+    sendAuthError(response, next, error, resolveRequestAuthLocale(request));
+  }
+};
+
 const meAvatar = async (
   request: Request,
   response: Response,
@@ -545,6 +621,9 @@ export {
   login,
   logout,
   me,
+  getThemeConfig,
+  updateThemeConfig,
+  resetThemeConfig,
   meAvatar,
   csrf,
   updateProfile,

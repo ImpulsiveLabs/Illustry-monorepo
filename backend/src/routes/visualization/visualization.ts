@@ -6,24 +6,44 @@ import {
   requireCsrf,
   requireVerifiedEmail
 } from '../../auth/middleware';
+import { UPLOAD_CONSTRAINTS, createMulterFileFilter } from '../../utils/upload-constraints';
 
 const router: ExpressRouter = Router();
 
 const storage = multer.diskStorage({ });
 const upload = multer({
   storage,
-  limits: { fileSize: 100 * 1024 * 1024 }
+  limits: { fileSize: UPLOAD_CONSTRAINTS['visualization-source'].maxBytes },
+  fileFilter: createMulterFileFilter('visualization-source')
 });
 const finalupload = upload.fields([{ name: 'file', maxCount: 10 }]);
+const exportUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: UPLOAD_CONSTRAINTS['export-template'].maxBytes },
+  fileFilter: createMulterFileFilter('export-template')
+});
+const exportTemplateUpload = exportUpload.fields([
+  { name: 'templateExcel', maxCount: 1 },
+  { name: 'templatePdf', maxCount: 1 },
+  { name: 'templateWord', maxCount: 1 },
+  { name: 'templatePpt', maxCount: 1 },
+  { name: 'templateFile', maxCount: 1 }
+]);
+
+router.post('/api/office/visualization/preview', VisualizationAPI.previewOfficeVisualization);
 
 router.use(requireAuthenticatedUser, requireVerifiedEmail);
 
 router.post('/api/visualization', requireCsrf, finalupload as any, VisualizationAPI.createOrUpdate);
 router.put('/api/visualization', requireCsrf, VisualizationAPI.update);
 router.post('/api/visualizations', VisualizationAPI.browse);
+router.post('/api/visualization/export/excel', requireCsrf, VisualizationAPI.exportExcel);
+router.post('/api/visualization/export/bundle', requireCsrf, exportTemplateUpload as any, VisualizationAPI.exportBundle);
 router.put('/api/visualizations/theme', requireCsrf, VisualizationAPI.syncTheme);
 router.get('/api/visualization/shared/:shareId', VisualizationAPI.findShared);
+router.get('/api/visualization/shared-dashboard/:dashboardShareId', VisualizationAPI.findSharedThroughDashboard);
 router.put('/api/visualization/share', requireCsrf, VisualizationAPI.share);
+router.delete('/api/visualization/share', requireCsrf, VisualizationAPI.revokeShare);
 router.post('/api/visualization/share/respond', requireCsrf, VisualizationAPI.respondToShareInvite);
 router.post('/api/visualization/:name', VisualizationAPI.findOne);
 router.delete('/api/visualization', requireCsrf, VisualizationAPI._delete);

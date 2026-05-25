@@ -54,7 +54,7 @@ const DataTableFacetedFilter = <TData, TValue>({
               aria-label={t('tooltip.filterRows')}
               variant="outline"
               size="sm"
-              className="h-8 border-dashed"
+              className="h-9 border-border/80 border-dashed bg-background/70"
             >
               <PlusCircledIcon className="mr-2 h-4 w-4" aria-hidden="true" />
               {title}
@@ -63,7 +63,7 @@ const DataTableFacetedFilter = <TData, TValue>({
                   <Separator orientation="vertical" className="mx-2 h-4" />
                   <Badge
                     variant="secondary"
-                    className="rounded-sm px-1 font-normal lg:hidden"
+                    className="rounded-full px-1.5 font-normal lg:hidden"
                   >
                     {selectedValues.size}
                   </Badge>
@@ -71,7 +71,7 @@ const DataTableFacetedFilter = <TData, TValue>({
                     {selectedValues.size > 2 ? (
                       <Badge
                         variant="secondary"
-                        className="rounded-sm px-1 font-normal ml-1"
+                        className="ml-1 rounded-full px-1.5 font-normal"
                       >
                         {selectedValues.size} {t('table.selected')}
                       </Badge>
@@ -82,7 +82,7 @@ const DataTableFacetedFilter = <TData, TValue>({
                           <Badge
                             variant="secondary"
                             key={option.value}
-                            className="rounded-sm px-1 font-normal ml-1"
+                            className="ml-1 rounded-full px-1.5 font-normal"
                           >
                             {option.label}
                           </Badge>
@@ -120,7 +120,7 @@ const DataTableFacetedFilter = <TData, TValue>({
                   >
                     <div
                       className={cn(
-                        'mr-2 flex h-4 w-4 items-center justify-center rounded-sm border border-primary',
+                        'mr-2 flex h-4 w-4 items-center justify-center rounded-[0.35rem] border border-primary',
                         isSelected
                           ? 'bg-primary text-primary-foreground'
                           : 'opacity-50 [&_svg]:invisible'

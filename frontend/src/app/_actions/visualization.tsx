@@ -120,6 +120,34 @@ const findSharedVisualization = async (shareId: string) => {
   }
 };
 
+const findDashboardSharedVisualization = async (
+  dashboardShareId: string,
+  visualizationFilter: Pick<VisualizationTypes.VisualizationFilter, 'name' | 'type'>
+) => {
+  const BACKEND = getBackendUrl() as string;
+  const params = new URLSearchParams();
+  if (visualizationFilter.name) {
+    params.set('name', visualizationFilter.name);
+  }
+  if (typeof visualizationFilter.type === 'string') {
+    params.set('type', visualizationFilter.type);
+  }
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/shared-dashboard/${dashboardShareId}?${params.toString()}`,
+    {
+      method: 'GET',
+      headers: await buildBackendHeaders({ asJson: false, withCsrf: false })
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
 const shareVisualization = async (
   shareRequest: VisualizationTypes.VisualizationShareRequest
 ) => {
@@ -131,6 +159,27 @@ const shareVisualization = async (
       method: 'PUT',
       headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
       body: JSON.stringify(shareRequest)
+    }
+  );
+  try {
+    return await makeRequest<VisualizationTypes.VisualizationType>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const revokeVisualizationShare = async (
+  revokeRequest: VisualizationTypes.VisualizationShareRevokeRequest
+) => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/share`,
+    {
+      method: 'DELETE',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(revokeRequest)
     }
   );
   try {
@@ -184,7 +233,8 @@ const respondToVisualizationShareInvite = async (
 };
 
 const syncVisualizationThemes = async (
-  theme: Record<string, unknown>
+  theme: Record<string, unknown>,
+  realtimeClientId?: string
 ) => {
   const BACKEND = getBackendUrl() as string;
   if (!BACKEND) {
@@ -196,11 +246,115 @@ const syncVisualizationThemes = async (
     {
       method: 'PUT',
       headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
-      body: JSON.stringify({ theme })
+      body: JSON.stringify({ theme, realtimeClientId })
     }
   );
   try {
     return await makeRequest<VisualizationTypes.VisualizationThemeSyncResult>(request, ['visualizations']);
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+type ExcelExportRequest = VisualizationTypes.VisualizationFilter & {
+  dashboardShareId?: string;
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+};
+
+type ExcelExportResponse = {
+  filename: string;
+  mimeType: string;
+  base64: string;
+};
+
+type VisualizationBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+
+type VisualizationBundleExportChart = {
+  title?: string;
+  option: unknown;
+  width?: number;
+  height?: number;
+};
+
+type VisualizationBundleExportRequest = VisualizationTypes.VisualizationFilter & {
+  dashboardShareId?: string;
+  sheetName?: string;
+  cellRange?: string;
+  templateWorkbookBase64?: string;
+  templateWorkbookFilename?: string;
+  formats: VisualizationBundleExportFormat[];
+  charts: VisualizationBundleExportChart[];
+  title?: string;
+};
+
+type VisualizationBundleExportResponse = ExcelExportResponse & {
+  bundled: boolean;
+};
+
+const getFilenameFromDisposition = (contentDisposition: string | null, fallback: string) => {
+  const matched = contentDisposition?.match(/filename="?([^"]+)"?/);
+  return matched?.[1] || fallback;
+};
+
+const exportVisualizationExcel = async (
+  exportRequest: ExcelExportRequest
+): Promise<ExcelExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/export/excel`,
+    {
+      method: 'POST',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(exportRequest)
+    }
+  );
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-visualization.xlsx'),
+      mimeType: response.headers.get('content-type') || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      base64: buffer.toString('base64')
+    };
+  } catch (err) {
+    console.debug(err);
+    return null;
+  }
+};
+
+const exportVisualizationBundle = async (
+  exportRequest: VisualizationBundleExportRequest
+): Promise<VisualizationBundleExportResponse | null> => {
+  const BACKEND = getBackendUrl() as string;
+
+  const request = new Request(
+    `${BACKEND as string}/api/visualization/export/bundle`,
+    {
+      method: 'POST',
+      headers: await buildBackendHeaders({ asJson: true, withCsrf: true }),
+      body: JSON.stringify(exportRequest)
+    }
+  );
+  try {
+    const response = await fetch(request, { cache: 'no-store' });
+    if (!response.ok) {
+      throw new Error(`Request failed with status ${response.status}`);
+    }
+    const buffer = Buffer.from(await response.arrayBuffer());
+    return {
+      filename: getFilenameFromDisposition(response.headers.get('content-disposition'), 'illustry-visualization-export'),
+      mimeType: response.headers.get('content-type') || 'application/octet-stream',
+      base64: buffer.toString('base64'),
+      bundled: response.headers.get('x-illustry-bundled') === 'true'
+    };
   } catch (err) {
     console.debug(err);
     return null;
@@ -213,8 +367,20 @@ export {
   createOrUpdateVisualization,
   findOneVisualization,
   findSharedVisualization,
+  findDashboardSharedVisualization,
   shareVisualization,
+  revokeVisualizationShare,
   updateVisualization,
   respondToVisualizationShareInvite,
-  syncVisualizationThemes
+  syncVisualizationThemes,
+  exportVisualizationExcel,
+  exportVisualizationBundle
+};
+export type {
+  ExcelExportRequest,
+  ExcelExportResponse,
+  VisualizationBundleExportChart,
+  VisualizationBundleExportFormat,
+  VisualizationBundleExportRequest,
+  VisualizationBundleExportResponse
 };

@@ -27,13 +27,6 @@ const siteConfig = {
       clickableNoActiveProject: false
     },
     {
-      title: 'Theme',
-      href: '/theme',
-      description: 'Set theme',
-      items: [],
-      clickableNoActiveProject: true
-    },
-    {
       title: 'Playground',
       href: '/playground',
       description: 'Playground ',

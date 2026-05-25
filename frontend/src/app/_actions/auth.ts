@@ -13,7 +13,8 @@ const getCurrentUser = async (): Promise<CurrentUser | null> => {
       name: 'Playwright User',
       isEmailVerified: true,
       roles: ['user'],
-      hasAvatar: false
+      hasAvatar: false,
+      themeConfig: undefined
     };
   }
 

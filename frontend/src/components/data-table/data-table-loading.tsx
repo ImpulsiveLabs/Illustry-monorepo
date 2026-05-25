@@ -35,17 +35,17 @@ const DataTableLoading = ({
 
   return (
     <div className="w-full space-y-3 overflow-auto">
-      <div className="flex w-full items-center justify-between space-x-2 overflow-auto p-1">
-        <div className="flex flex-1 items-center space-x-2">
-          <Skeleton className="h-7 w-[150px] lg:w-[250px]" />
-          <Skeleton className="h-7 w-[70px] border-dashed" />
+      <div className="flex w-full items-center justify-between gap-2 overflow-auto p-1">
+        <div className="flex flex-1 items-center gap-2">
+          <Skeleton className="h-9 w-[160px] rounded-[var(--illustry-button-radius)] lg:w-[260px]" />
+          <Skeleton className="h-9 w-9 rounded-[var(--illustry-button-radius)]" />
         </div>
         <div className="flex items-center space-x-2">
           {handleDeleteSkeleton(isNewRowCreatable, isRowsDeletable)}
           <Skeleton className="ml-auto hidden h-7 w-[70px] lg:flex" />
         </div>
       </div>
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-2xl">
         <Table className="min-w-[640px]">
           <TableHeader>
             {Array.from({ length: 1 }).map((_, i) => (
@@ -71,7 +71,7 @@ const DataTableLoading = ({
           </TableBody>
         </Table>
       </div>
-      <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto px-2 py-1 sm:flex-row sm:gap-8">
+      <div className="flex w-full flex-col items-center justify-between gap-4 overflow-auto rounded-2xl bg-[hsl(var(--illustry-table-pagination-background)/0.68)] px-3 py-2 sm:flex-row sm:gap-8">
         <div className="flex-1">
           <Skeleton className="h-8 w-40" />
         </div>
