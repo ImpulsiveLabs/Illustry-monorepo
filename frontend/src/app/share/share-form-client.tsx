@@ -115,10 +115,10 @@ const ShareFormClient = ({
             ? t('share.validation.invalidEmail')
             : self
               ? t('share.validation.self')
-              : duplicate
-                ? t('share.validation.duplicate')
+                : duplicate
+                  ? t('share.validation.duplicate')
                 : alreadyShared
-                  ? 'This user already has access.'
+                  ? t('share.validation.alreadyShared')
                   : t('share.validation.valid')
       };
     });
@@ -147,12 +147,12 @@ const ShareFormClient = ({
 
   const revokeShare = (share: ExistingShare) => {
     if (resource === 'visualization' && (share.accessType === 'inherited' || share.sharedViaResource === 'dashboard')) {
-      toast.error('Inherited dashboard access must be revoked from the dashboard share.');
+      toast.error(t('share.toast.revokeInheritedFromDashboard'));
       return;
     }
 
-    const label = share.email || share.name || 'this user';
-    if (!window.confirm(`Revoke access for ${label}?`)) {
+    const label = share.email || share.name || t('share.thisUser');
+    if (!window.confirm(t('share.confirmRevoke').replace('{user}', label))) {
       return;
     }
 
@@ -170,14 +170,14 @@ const ShareFormClient = ({
           });
 
         if (!result) {
-          throw new Error('Unable to revoke permission');
+          throw new Error(t('share.toast.unableToRevoke'));
         }
 
         router.refresh();
         return result;
       })(), {
-        loading: 'Revoking permission',
-        success: 'Permission revoked',
+        loading: t('share.toast.revoking'),
+        success: t('share.toast.revoked'),
         error: (err: unknown) => catchError(err)
       });
     });
@@ -226,21 +226,17 @@ const ShareFormClient = ({
         <p className="text-sm text-muted-foreground">{name}</p>
         {resource === 'dashboard' && (
           <p className="mt-2 rounded-md border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
-            Sharing this dashboard also gives view-only access to
-            {' '}
-            {includedVisualizationCount}
-            {' '}
-            dashboard visualization
-            {includedVisualizationCount === 1 ? '' : 's'}
-            .
+            {t('share.dashboardIncludesVisualizations')
+              .replace('{count}', String(includedVisualizationCount))
+              .replace('{plural}', includedVisualizationCount === 1 ? '' : 's')}
           </p>
         )}
       </div>
       <section className="rounded-md border bg-muted/20 p-4">
         <div className="mb-3 flex items-center justify-between gap-3">
           <div>
-            <h2 className="text-sm font-semibold">Current permissions</h2>
-            <p className="text-xs text-muted-foreground">People who currently have an invitation or active access.</p>
+            <h2 className="text-sm font-semibold">{t('share.currentPermissions')}</h2>
+            <p className="text-xs text-muted-foreground">{t('share.currentPermissionsDescription')}</p>
           </div>
         </div>
         {activeExistingShares.length > 0 ? (
@@ -250,17 +246,17 @@ const ShareFormClient = ({
               return (
                 <div key={share.userId} className="grid gap-3 p-3 md:grid-cols-[minmax(0,1fr)_110px_110px_110px_auto] md:items-center">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium">{share.name || share.email || 'Shared user'}</p>
+                  <p className="truncate text-sm font-medium">{share.name || share.email || t('share.sharedUser')}</p>
                   {share.email && <p className="truncate text-xs text-muted-foreground">{share.email}</p>}
                 </div>
                 <span className="rounded-full bg-secondary px-2.5 py-1 text-center text-xs font-medium capitalize text-secondary-foreground">
-                  viewer
+                  {t('share.role.viewer')}
                 </span>
                 <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
-                  {inherited ? 'inherited' : 'direct'}
+                  {inherited ? t('share.access.inherited') : t('share.access.direct')}
                 </span>
                 <span className="rounded-full border px-2.5 py-1 text-center text-xs capitalize text-muted-foreground">
-                  {share.status || 'accepted'}
+                  {t(`share.status.${share.status || 'accepted'}`)}
                 </span>
                 <Button
                   type="button"
@@ -269,7 +265,7 @@ const ShareFormClient = ({
                   disabled={isPending || inherited}
                   onClick={() => revokeShare(share)}
                 >
-                  Revoke
+                  {t('share.revoke')}
                 </Button>
               </div>
               );
@@ -277,7 +273,7 @@ const ShareFormClient = ({
           </div>
         ) : (
           <p className="rounded-md border border-dashed bg-background p-4 text-sm text-muted-foreground">
-            No permissions have been granted yet.
+            {t('share.noPermissions')}
           </p>
         )}
       </section>

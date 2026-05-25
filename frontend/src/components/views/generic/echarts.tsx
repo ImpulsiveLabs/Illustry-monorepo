@@ -174,7 +174,7 @@ const ReactEcharts = forwardRef(<T,>(
   const handleExport = async (values: ExportDownloadValues) => {
     const chart = chartRef.current?.getEchartsInstance();
     if (!chart) {
-      toast.error('The visualization is not ready to export yet.');
+      toast.error(t('export.visualization.notReady'));
       return;
     }
 
@@ -195,7 +195,7 @@ const ReactEcharts = forwardRef(<T,>(
     ));
 
     if (wantsExcel && !shareId && !dashboardShareId && (!name || !type)) {
-      toast.error('Open a saved visualization before exporting it to Excel.');
+      toast.error(t('export.visualization.excelRequiresSaved'));
       return;
     }
 
@@ -216,10 +216,10 @@ const ReactEcharts = forwardRef(<T,>(
           ...values
         }
       });
-      toast.success(result.bundled ? 'Export ZIP started' : 'Export started');
+      toast.success(result.bundled ? t('export.visualization.zipStarted') : t('export.visualization.started'));
       setExportDialogOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to export this visualization.');
+      toast.error(error instanceof Error ? error.message : t('export.visualization.failed'));
     } finally {
       setExportPending(false);
     }
@@ -230,8 +230,8 @@ const ReactEcharts = forwardRef(<T,>(
       <ExportDownloadDialog
         open={exportDialogOpen}
         pending={exportPending}
-        title="Export visualization"
-        description="Choose one or more formats. A single selection downloads directly; multiple selections are prepared as a backend ZIP."
+        title={t('export.visualization.title')}
+        description={t('export.visualization.description')}
         defaultSheetName="Visualization"
         options={availableExportOptions}
         onOpenChange={setExportDialogOpen}
@@ -245,7 +245,7 @@ const ReactEcharts = forwardRef(<T,>(
             size="icon"
             className="h-8 w-8 rounded-full"
             disabled={exportPending}
-            aria-label="Export visualization"
+            aria-label={t('export.visualization.title')}
             onClick={() => setExportDialogOpen(true)}
           >
             <Download className="h-4 w-4" />

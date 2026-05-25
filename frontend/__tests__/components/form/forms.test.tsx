@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FileTypes } from '@illustry/types';
 import AddProjectForm from '@/components/form/add-project-form';
@@ -19,7 +19,8 @@ const {
     updateDashboard,
     createOrUpdateVisualization,
     catchError,
-    typeTabState
+    typeTabState,
+    navigationState
 } = vi.hoisted(() => ({
     push: vi.fn(),
     toastSuccess: vi.fn(),
@@ -33,11 +34,16 @@ const {
     typeTabState: {
         filesCount: 1,
         fileType: 'CSV' as string
+    },
+    navigationState: {
+        pathname: '/projects'
     }
 }));
 
 vi.mock('next/navigation', () => ({
-    useRouter: () => ({ push })
+    usePathname: () => navigationState.pathname,
+    useRouter: () => ({ push }),
+    useSearchParams: () => new URLSearchParams()
 }));
 
 vi.mock('sonner', () => ({
@@ -83,7 +89,7 @@ vi.mock('@/components/ui/multi-select', () => ({
 }));
 
 vi.mock('@/components/ui/tabs/mappingTab/mappingTab', () => ({
-    default: () => <button type="submit">Add Visualizations</button>
+    default: () => <div data-testid="mapping-tab" />
 }));
 
 vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
@@ -122,10 +128,12 @@ describe('form components', () => {
         vi.clearAllMocks();
         typeTabState.filesCount = 1;
         typeTabState.fileType = FileTypes.FileType.CSV;
+        navigationState.pathname = '/projects';
     });
 
     it('submits add project form and redirects', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/projects';
         render(<AddProjectForm />);
 
         await user.type(screen.getByPlaceholderText('Type project name here.'), 'My Project');
@@ -146,6 +154,7 @@ describe('form components', () => {
 
     it('submits update project form when project exists', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/projects';
         render(<UpdateProjectForm project={{ name: 'p1', description: 'old', isActive: false } as any} />);
 
         await user.clear(screen.getByPlaceholderText('Type project description here.'));
@@ -165,6 +174,7 @@ describe('form components', () => {
 
     it('submits add dashboard form with formatted visualizations', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/dashboards';
         render(<AddDashboardForm visualizations={{ v1: 'Revenue (bar-chart)' }} />);
 
         await user.type(screen.getByPlaceholderText('Type dashboard name here.'), 'Dash 1');
@@ -187,6 +197,7 @@ describe('form components', () => {
 
     it('submits update dashboard form with defaults and selection', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/dashboards';
         render(
             <UpdateDashboardForm
                 dashboard={{
@@ -214,6 +225,7 @@ describe('form components', () => {
 
     it('handles missing visualization maps and malformed selected labels', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/dashboards';
 
         render(<AddDashboardForm visualizations={undefined as any} />);
         await user.type(screen.getByPlaceholderText('Type dashboard name here.'), 'Dash Missing');
@@ -248,14 +260,17 @@ describe('form components', () => {
 
     it('submits add visualization form with file payload and handles no files path', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/visualizations';
         render(<AddVisualizationForm />);
 
-        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
-        expect(toastError).toHaveBeenCalledWith('No files selected.');
+        expect(screen.getByRole('button', { name: /Create visualization/i })).toBeDisabled();
 
         await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
         await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
-        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
+        await waitFor(() => {
+            expect(screen.getByRole('button', { name: /Create visualization/i })).toBeEnabled();
+        });
+        await user.click(screen.getByRole('button', { name: /Create visualization/i }));
 
         await waitFor(() => {
             expect(createOrUpdateVisualization).toHaveBeenCalledTimes(1);
@@ -269,11 +284,12 @@ describe('form components', () => {
 
     it('handles no-op file type changes while still submitting payload', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/visualizations';
         typeTabState.fileType = FileTypes.FileType.JSON;
 
         render(<AddVisualizationForm />);
         await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
-        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
+        await user.click(screen.getByRole('button', { name: /Create visualization/i }));
 
         await waitFor(() => {
             expect(createOrUpdateVisualization).toHaveBeenCalledTimes(1);
@@ -282,12 +298,13 @@ describe('form components', () => {
 
     it('routes file-count validation errors through catchError', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/visualizations';
         typeTabState.filesCount = 11;
 
         render(<AddVisualizationForm />);
 
         await user.click(screen.getByRole('button', { name: 'setup-visualization' }));
-        await user.click(screen.getByRole('button', { name: /Add Visualizations/i }));
+        await user.click(screen.getByRole('button', { name: /Create visualization/i }));
 
         await waitFor(() => {
             expect(catchError).toHaveBeenCalled();
@@ -297,6 +314,7 @@ describe('form components', () => {
 
     it('routes thrown action errors through catchError', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/projects';
         createProject.mockRejectedValueOnce(new Error('boom'));
 
         render(<AddProjectForm />);
@@ -311,6 +329,7 @@ describe('form components', () => {
 
     it('routes dashboard create/update errors through catchError', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/dashboards';
         createDashboard.mockRejectedValueOnce(new Error('dash-create'));
         updateDashboard.mockRejectedValueOnce(new Error('dash-update'));
 
@@ -338,6 +357,7 @@ describe('form components', () => {
 
     it('covers update-project guard and error paths', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/projects';
         updateProject.mockRejectedValueOnce(new Error('project-update'));
 
         render(<UpdateProjectForm project={{ name: 'p2', description: 'old', isActive: false } as any} />);
@@ -346,13 +366,15 @@ describe('form components', () => {
             expect(catchError).toHaveBeenCalled();
         });
 
+        cleanup();
         render(<UpdateProjectForm project={{ description: '', isActive: false } as any} />);
-        await user.click(screen.getAllByRole('button', { name: /Update project/i })[1] as HTMLElement);
+        await user.click(screen.getByRole('button', { name: /Update project/i }));
         expect(updateProject).toHaveBeenCalledTimes(1);
     });
 
     it('uses truthy project defaults and skips predefined visualization push when key is absent', async () => {
         const user = userEvent.setup();
+        navigationState.pathname = '/projects';
 
         render(
             <UpdateProjectForm project={{ name: 'p3', description: 'has-desc', isActive: true } as any} />

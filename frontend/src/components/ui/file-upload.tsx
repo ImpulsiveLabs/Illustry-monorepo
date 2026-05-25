@@ -1,9 +1,9 @@
-/* eslint-disable no-unused-vars */
 import { Dropzone, FileMosaic, ExtFile } from '@files-ui/react';
 import React from 'react';
 import Icons from '@/components/icons';
 import { cn } from '@/lib/utils';
 import { formatUploadBytes } from '@/lib/upload-constraints';
+import { useLocale } from '@/components/providers/locale-provider';
 
 type FileUploadProps = {
   acceptedFiles: ExtFile[];
@@ -32,11 +32,16 @@ const FileUpload = ({
   disabled,
   className
 }: FileUploadProps) => {
+  const { t } = useLocale();
   const computedHelper = helperText || [
-    `Accepted: ${fileFormat.split(',').filter((item) => item.trim().startsWith('.')).join(', ') || fileFormat}`,
-    maxFileSize ? `Max ${formatUploadBytes(maxFileSize)}` : undefined,
-    maxFiles === 1 ? 'One file only' : undefined
+    t('upload.accepted').replace(
+      '{types}',
+      fileFormat.split(',').filter((item) => item.trim().startsWith('.')).join(', ') || fileFormat
+    ),
+    maxFileSize ? t('upload.maxSize').replace('{size}', formatUploadBytes(maxFileSize)) : undefined,
+    maxFiles === 1 ? t('upload.oneFileOnly') : undefined
   ].filter(Boolean).join(' - ');
+  const dropLabel = label || t('upload.dropLabel');
 
   return (
     <div
@@ -54,7 +59,7 @@ const FileUpload = ({
         accept={fileFormat}
         maxFiles={maxFiles}
         maxFileSize={maxFileSize}
-        label={label || 'Drag files here or click to browse'}
+        label={dropLabel}
         disabled={disabled}
         footer={false}
         header={false}
@@ -71,7 +76,7 @@ const FileUpload = ({
               <Icons.upload className="h-5 w-5" aria-hidden="true" />
             </span>
             <div>
-              <p className="text-sm font-semibold text-foreground">{label || 'Drop files here'}</p>
+              <p className="text-sm font-semibold text-foreground">{label || t('upload.dropShortLabel')}</p>
               <p className="mt-1 text-xs leading-5 text-muted-foreground">{computedHelper}</p>
             </div>
           </div>

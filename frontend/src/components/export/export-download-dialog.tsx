@@ -21,6 +21,7 @@ import Icons from '@/components/icons';
 import { cn } from '@/lib/utils';
 import type { ServerChartExportFormat } from '@/lib/chart-export';
 import { UPLOAD_CONSTRAINTS } from '@/lib/upload-constraints';
+import { useLocale } from '@/components/providers/locale-provider';
 
 type ExportDownloadValues = {
   formats: ServerChartExportFormat[];
@@ -43,8 +44,8 @@ type DocumentPlacement = 'top-left' | 'top-center' | 'top-right'
 
 type ExportDownloadOption = {
   value: ServerChartExportFormat;
-  label: string;
-  description: string;
+  labelKey: string;
+  descriptionKey: string;
   accent: string;
   icon: keyof Pick<typeof Icons, 'placeholder' | 'terminal' | 'product' | 'chart'>;
 };
@@ -63,64 +64,64 @@ type ExportDownloadDialogProps = {
 const exportOptions: ExportDownloadOption[] = [
   {
     value: 'png',
-    label: 'PNG',
-    description: 'Sharp image for slides and documents.',
+    labelKey: 'export.option.png',
+    descriptionKey: 'export.option.pngDescription',
     accent: 'bg-emerald-500',
     icon: 'placeholder'
   },
   {
     value: 'jpg',
-    label: 'JPG',
-    description: 'Compact image with a clean white background.',
+    labelKey: 'export.option.jpg',
+    descriptionKey: 'export.option.jpgDescription',
     accent: 'bg-amber-500',
     icon: 'placeholder'
   },
   {
     value: 'webp',
-    label: 'WebP',
-    description: 'Modern compressed image for web usage.',
+    labelKey: 'export.option.webp',
+    descriptionKey: 'export.option.webpDescription',
     accent: 'bg-sky-500',
     icon: 'placeholder'
   },
   {
     value: 'svg',
-    label: 'SVG',
-    description: 'Scalable vector export when the chart supports it.',
+    labelKey: 'export.option.svg',
+    descriptionKey: 'export.option.svgDescription',
     accent: 'bg-violet-500',
     icon: 'chart'
   },
   {
     value: 'web-component',
-    label: 'Web Component',
-    description: 'Portable HTML component with interactive ECharts.',
+    labelKey: 'export.option.webComponent',
+    descriptionKey: 'export.option.webComponentDescription',
     accent: 'bg-slate-700',
     icon: 'terminal'
   },
   {
     value: 'excel',
-    label: 'Export as Excel',
-    description: 'Workbook with data, formulas preserved, and the visualization embedded.',
+    labelKey: 'export.option.excel',
+    descriptionKey: 'export.option.excelDescription',
     accent: 'bg-teal-600',
     icon: 'product'
   },
   {
     value: 'pdf',
-    label: 'PDF',
-    description: 'Page-based document with precise size and placement.',
+    labelKey: 'export.option.pdf',
+    descriptionKey: 'export.option.pdfDescription',
     accent: 'bg-rose-500',
     icon: 'product'
   },
   {
     value: 'word',
-    label: 'Word',
-    description: 'DOCX document with the visualization placed on the requested page.',
+    labelKey: 'export.option.word',
+    descriptionKey: 'export.option.wordDescription',
     accent: 'bg-blue-600',
     icon: 'product'
   },
   {
     value: 'ppt',
-    label: 'PowerPoint',
-    description: 'PPTX deck with the visualization placed on the requested slide.',
+    labelKey: 'export.option.ppt',
+    descriptionKey: 'export.option.pptDescription',
     accent: 'bg-orange-600',
     icon: 'product'
   }
@@ -128,44 +129,44 @@ const exportOptions: ExportDownloadOption[] = [
 
 const DEFAULT_CELL_RANGE = 'B2:K19';
 const EXCEL_RANGE_PATTERN = /^[A-Za-z]{1,3}[1-9]\d*:[A-Za-z]{1,3}[1-9]\d*$/;
-const DOCUMENT_PLACEMENTS: Array<{ value: DocumentPlacement; label: string }> = [
-  { value: 'top-left', label: 'Up left' },
-  { value: 'top-center', label: 'Up middle' },
-  { value: 'top-right', label: 'Up right' },
-  { value: 'middle-left', label: 'Left' },
-  { value: 'middle-center', label: 'Middle' },
-  { value: 'middle-right', label: 'Right' },
-  { value: 'bottom-left', label: 'Down left' },
-  { value: 'bottom-center', label: 'Down middle' },
-  { value: 'bottom-right', label: 'Down right' }
+const DOCUMENT_PLACEMENTS: Array<{ value: DocumentPlacement; labelKey: string }> = [
+  { value: 'top-left', labelKey: 'export.position.topLeft' },
+  { value: 'top-center', labelKey: 'export.position.topCenter' },
+  { value: 'top-right', labelKey: 'export.position.topRight' },
+  { value: 'middle-left', labelKey: 'export.position.middleLeft' },
+  { value: 'middle-center', labelKey: 'export.position.middleCenter' },
+  { value: 'middle-right', labelKey: 'export.position.middleRight' },
+  { value: 'bottom-left', labelKey: 'export.position.bottomLeft' },
+  { value: 'bottom-center', labelKey: 'export.position.bottomCenter' },
+  { value: 'bottom-right', labelKey: 'export.position.bottomRight' }
 ];
 const TEMPLATE_UPLOADS: Array<{
   format: DocumentTemplateFormat;
-  label: string;
+  labelKey: string;
   accept: string;
   visibleWhen: (formats: ServerChartExportFormat[]) => boolean;
 }> = [
   {
     format: 'excel',
-    label: 'Excel workbook',
+    labelKey: 'export.template.excel',
     accept: '.xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
     visibleWhen: (formats) => formats.includes('excel')
   },
   {
     format: 'pdf',
-    label: 'PDF document',
+    labelKey: 'export.template.pdf',
     accept: '.pdf,application/pdf',
     visibleWhen: (formats) => formats.includes('pdf')
   },
   {
     format: 'word',
-    label: 'Word document',
+    labelKey: 'export.template.word',
     accept: '.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document',
     visibleWhen: (formats) => formats.includes('word')
   },
   {
     format: 'ppt',
-    label: 'PowerPoint deck',
+    labelKey: 'export.template.ppt',
     accept: '.pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation',
     visibleWhen: (formats) => formats.includes('ppt')
   }
@@ -183,6 +184,7 @@ const ExportDownloadDialog = ({
   onOpenChange,
   onSubmit
 }: ExportDownloadDialogProps) => {
+  const { t } = useLocale();
   const [selectedFormats, setSelectedFormats] = useState<ServerChartExportFormat[]>(['png']);
   const [sheetName, setSheetName] = useState(defaultSheetName);
   const [cellRange, setCellRange] = useState(DEFAULT_CELL_RANGE);
@@ -206,12 +208,12 @@ const ExportDownloadDialog = ({
 
   const helperText = useMemo(() => {
     if (selectedCount === 0) {
-      return 'Select at least one format.';
+      return t('export.helper.none');
     }
     return selectedCount === 1
-      ? 'One file will download directly.'
-      : `${selectedCount} files will be packed into one ZIP.`;
-  }, [selectedCount]);
+      ? t('export.helper.single')
+      : t('export.helper.multiple').replace('{count}', String(selectedCount));
+  }, [selectedCount, t]);
 
   useEffect(() => {
     if (!open) {
@@ -269,7 +271,7 @@ const ExportDownloadDialog = ({
 
     const normalizedRange = cellRange.trim().toUpperCase();
     if (excelSelected && !EXCEL_RANGE_PATTERN.test(normalizedRange)) {
-      setRangeError('Use a range like H3:Z10.');
+      setRangeError(t('export.excel.rangeError'));
       return;
     }
     const normalizedDocumentPage = Math.max(1, Math.min(200, Math.round(Number(documentPage) || 1)));
@@ -317,7 +319,7 @@ const ExportDownloadDialog = ({
           <div className="overflow-y-auto px-6 py-5">
             <div className="mb-3 flex items-center justify-between gap-3 rounded-lg border bg-muted/20 px-4 py-3">
               <div>
-                <p className="text-sm font-semibold text-foreground">Formats</p>
+                <p className="text-sm font-semibold text-foreground">{t('export.formats')}</p>
                 <p className="text-xs text-muted-foreground">{helperText}</p>
               </div>
               <button
@@ -334,13 +336,14 @@ const ExportDownloadDialog = ({
                 >
                   {allSelected ? <Icons.check className="h-3 w-3" /> : null}
                 </span>
-                Select all
+                {t('export.selectAll')}
               </button>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               {options.map((option) => {
                 const checked = selectedFormats.includes(option.value);
                 const Icon = Icons[option.icon];
+                const label = t(option.labelKey);
                 return (
                   <div
                     key={option.value}
@@ -365,14 +368,14 @@ const ExportDownloadDialog = ({
                     <span className="flex min-w-0 flex-1 flex-col gap-1">
                       <span className="flex items-center gap-2">
                         <Icon className="h-4 w-4 text-muted-foreground" />
-                        <span className="font-semibold text-foreground">{option.label}</span>
+                        <span className="font-semibold text-foreground">{label}</span>
                       </span>
-                      <span className="text-sm leading-5 text-muted-foreground">{option.description}</span>
+                      <span className="text-sm leading-5 text-muted-foreground">{t(option.descriptionKey)}</span>
                     </span>
                     <Checkbox
                       type="button"
                       checked={checked}
-                      aria-label={`Select ${option.label}`}
+                      aria-label={t('export.selectFormat').replace('{format}', label)}
                       onCheckedChange={() => toggleFormat(option.value)}
                       onClick={(event) => event.stopPropagation()}
                     />
@@ -384,9 +387,9 @@ const ExportDownloadDialog = ({
             {fileBackedExportSelected && (
               <div className="mt-5 rounded-lg border bg-muted/20 p-4">
                 <div className="mb-3">
-                  <p className="text-sm font-semibold text-foreground">Update existing files</p>
+                  <p className="text-sm font-semibold text-foreground">{t('export.templates.title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Optional. Each selected document format has its own upload. Drop one file, and the backend inserts the visualization into that file.
+                    {t('export.templates.description')}
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -394,7 +397,7 @@ const ExportDownloadDialog = ({
                     .filter((upload) => upload.visibleWhen(selectedFormats))
                     .map((upload) => (
                       <div key={upload.format} className="space-y-2">
-                        <Label>{upload.label}</Label>
+                        <Label>{t(upload.labelKey)}</Label>
                         <FileUpload
                           acceptedFiles={templateUploads[upload.format]}
                           updateFiles={(files) => updateTemplateUpload(upload.format, files)}
@@ -402,7 +405,7 @@ const ExportDownloadDialog = ({
                           fileFormat={upload.accept}
                           maxFiles={1}
                           maxFileSize={UPLOAD_CONSTRAINTS['export-template'].maxBytes}
-                          label={`Drag ${upload.label.toLowerCase()} here or click to browse`}
+                          label={t('export.templates.dropLabel').replace('{format}', t(upload.labelKey).toLowerCase())}
                           className={pending ? 'pointer-events-none opacity-60' : ''}
                         />
                       </div>
@@ -414,14 +417,14 @@ const ExportDownloadDialog = ({
             {excelSelected && (
               <div className="mt-5 rounded-lg border bg-muted/20 p-4 transition-all">
                 <div className="mb-3">
-                  <p className="text-sm font-semibold text-foreground">Excel placement</p>
+                  <p className="text-sm font-semibold text-foreground">{t('export.excel.title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    The visualization is placed over this exact sheet range only when Excel is selected.
+                    {t('export.excel.description')}
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-[1fr_1fr]">
                   <div className="space-y-2">
-                    <Label htmlFor="export-sheet-name">Sheet</Label>
+                    <Label htmlFor="export-sheet-name">{t('export.excel.sheet')}</Label>
                     <Input
                       id="export-sheet-name"
                       name="sheetName"
@@ -433,7 +436,7 @@ const ExportDownloadDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="export-cell-range">Cell range</Label>
+                    <Label htmlFor="export-cell-range">{t('export.excel.cellRange')}</Label>
                     <Input
                       id="export-cell-range"
                       name="cellRange"
@@ -454,14 +457,14 @@ const ExportDownloadDialog = ({
             {documentSelected && (
               <div className="mt-5 rounded-lg border bg-muted/20 p-4">
                 <div className="mb-3">
-                  <p className="text-sm font-semibold text-foreground">PDF / Word / PowerPoint placement</p>
+                  <p className="text-sm font-semibold text-foreground">{t('export.document.title')}</p>
                   <p className="text-sm text-muted-foreground">
-                    Used only when PDF, Word, or PowerPoint is selected. Multiple selections are generated together after Download.
+                    {t('export.document.description')}
                   </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <div className="space-y-2">
-                    <Label htmlFor="export-document-page">Page / slide</Label>
+                    <Label htmlFor="export-document-page">{t('export.document.page')}</Label>
                     <Input
                       id="export-document-page"
                       type="number"
@@ -473,7 +476,7 @@ const ExportDownloadDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="export-document-width">Width</Label>
+                    <Label htmlFor="export-document-width">{t('export.document.width')}</Label>
                     <Input
                       id="export-document-width"
                       type="number"
@@ -485,7 +488,7 @@ const ExportDownloadDialog = ({
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="export-document-height">Height</Label>
+                    <Label htmlFor="export-document-height">{t('export.document.height')}</Label>
                     <Input
                       id="export-document-height"
                       type="number"
@@ -498,7 +501,7 @@ const ExportDownloadDialog = ({
                   </div>
                 </div>
                 <div className="mt-4">
-                  <Label>Position on page</Label>
+                  <Label>{t('export.document.position')}</Label>
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {DOCUMENT_PLACEMENTS.map((placement) => (
                       <button
@@ -511,7 +514,7 @@ const ExportDownloadDialog = ({
                         )}
                         onClick={() => setDocumentPlacement(placement.value)}
                       >
-                        {placement.label}
+                        {t(placement.labelKey)}
                       </button>
                     ))}
                   </div>
@@ -521,14 +524,14 @@ const ExportDownloadDialog = ({
 
             {showSelectionError && (
               <p className="mt-3 text-sm font-medium text-destructive" role="alert">
-                Select at least one export option before downloading.
+                {t('export.error.noSelection')}
               </p>
             )}
           </div>
 
           <DialogFooter className="border-t bg-background px-6 py-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button
               type="button"
@@ -538,12 +541,12 @@ const ExportDownloadDialog = ({
               {pending ? (
                 <>
                   <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
-                  Preparing
+                  {t('export.preparing')}
                 </>
               ) : (
                 <>
                   <Icons.download className="mr-2 h-4 w-4" />
-                  Download
+                  {t('export.download')}
                 </>
               )}
             </Button>

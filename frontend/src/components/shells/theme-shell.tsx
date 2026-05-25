@@ -621,13 +621,13 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
       <div className="grid gap-5">
         <SectionHeader
           title={selectedVisualizationLabel}
-          description="Override this visualization's colors only when it needs to differ from the general theme."
+          description={t('theme.visualizationOverrides.description')}
         />
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Color overrides</CardTitle>
+            <CardTitle className="text-sm">{t('theme.visualizationOverrides.title')}</CardTitle>
             <CardDescription>
-              These values affect only this visualization type. Leave them aligned with the general theme when no special treatment is needed.
+              {t('theme.visualizationOverrides.cardDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -674,7 +674,9 @@ const ThemeShell = ({ embedded = false }: ThemeShellProps) => {
               ))}
               {filteredVisualizationSections.length > 0 && (
                 <div className="mt-2 border-t pt-2">
-                  <p className="px-3 pb-1 text-xs font-medium uppercase text-muted-foreground">Visualization overrides</p>
+                  <p className="px-3 pb-1 text-xs font-medium uppercase text-muted-foreground">
+                    {t('theme.visualizationOverrides.navTitle')}
+                  </p>
                   {filteredVisualizationSections.map((section) => (
                     <button
                       key={section.id}

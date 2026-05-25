@@ -1,11 +1,8 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { UseFormReturn } from 'react-hook-form';
 import { useState } from 'react';
 import { FileTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
 import { useLocale } from '@/components/providers/locale-provider';
-import Icons from '@/components/icons';
-import { Button } from '../../button';
 import { TabsContent } from '../../tabs';
 import JSONMappingTab from './jsonMappingTab';
 import ExcelOrCsvMappingTab from './excelOrCsvMappingTab';
@@ -17,16 +14,12 @@ import XMLMappingTab from './xmlMappingTab';
 
 type MappingTabProps = {
   selectedFileType: string;
-  isPending: boolean;
-  canSubmit?: boolean;
   form: UseFormReturn<Inputs>;
   router: any;
 }
 
 const MappingTab = ({
   selectedFileType,
-  isPending,
-  canSubmit = true,
   form,
   router
 }: MappingTabProps) => {
@@ -46,16 +39,6 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 router={router}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
-                {isPending && (
-                  <Icons.spinner
-                    className="mr-2 h-4 w-4 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                {t('mapping.addVisualizations')}
-                <span className="sr-only">{t('mapping.addVisualizations')}</span>
-              </Button>
             </>
           );
         case FileTypes.FileType.XML:
@@ -66,16 +49,6 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 router={router}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
-                {isPending && (
-                  <Icons.spinner
-                    className="mr-2 h-4 w-4 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                {t('mapping.addVisualizations')}
-                <span className="sr-only">{t('mapping.addVisualizations')}</span>
-              </Button>
             </>
           );
         case FileTypes.FileType.EXCEL:
@@ -88,16 +61,6 @@ const MappingTab = ({
                 fileDetails={fDetails}
                 selectedFileType={fType}
               />
-              <Button className="w-fit mt-[2%]" disabled={isPending || !canSubmit}>
-                {isPending && (
-                  <Icons.spinner
-                    className="mr-2 h-4 w-4 animate-spin"
-                    aria-hidden="true"
-                  />
-                )}
-                {t('mapping.addVisualizations')}
-                <span className="sr-only">{t('mapping.addVisualizations')}</span>
-              </Button>
             </>
           );
         default:

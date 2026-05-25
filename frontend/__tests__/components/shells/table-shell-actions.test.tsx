@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { act, render, waitFor } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import DashboardsTableShell from '@/components/shells/dashboards-table-shell';
 import ProjectsTableShell from '@/components/shells/projects-table-shell';
 import VisualizationsTableShell from '@/components/shells/visualizations-table-shell';
@@ -39,6 +39,9 @@ vi.mock('@/components/data-table/data-table', () => ({
         latestDataTableProps = props;
         return <div>table</div>;
     }
+}));
+vi.mock('@/components/ui/confirm-action-dialog', () => ({
+    default: ({ open, onConfirm }: any) => (open ? <button onClick={onConfirm}>confirm-delete</button> : null)
 }));
 vi.mock('@/lib/utils', async () => {
     const actual = await vi.importActual<any>('@/lib/utils');
@@ -105,7 +108,7 @@ describe('table shell action branches', () => {
         const cellEl = actionsCol.cell({ row });
 
         const viewLink = walk(cellEl, (el) => el?.props?.href === '/dashboardhub?name=d1');
-        const editLink = walk(cellEl, (el) => el?.props?.href === '/dashboards/d1');
+        const editLink = walk(cellEl, (el) => el?.props?.href === '/dashboards?edit=d1');
         const deleteItem = walk(cellEl, (el) => typeof el?.props?.onClick === 'function' && String(el?.props?.children).includes('Delete'));
 
         expect(viewLink).toBeTruthy();
@@ -113,22 +116,13 @@ describe('table shell action branches', () => {
         await act(async () => {
             deleteItem.props.onClick();
         });
-
-        await waitFor(() => {
-            expect(row.toggleSelected).toHaveBeenCalledWith(false);
-            expect(deleteDashboard).toHaveBeenCalledWith('d1');
-        });
-        const rowDeleteCfg = toastPromise.mock.calls.at(-1)?.[1];
-        rowDeleteCfg.error(new Error('row-delete-failed'));
-        expect(catchError).toHaveBeenCalled();
+        expect(row.toggleSelected).toHaveBeenCalledWith(false);
+        expect(deleteDashboard).not.toHaveBeenCalled();
 
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
         });
-
-        const cfg = toastPromise.mock.calls.at(-1)?.[1];
-        cfg.error(new Error('boom'));
-        expect(catchError).toHaveBeenCalled();
+        expect(toastPromise).not.toHaveBeenCalled();
     });
 
     it('covers project action delete and bulk error callback', async () => {
@@ -175,29 +169,20 @@ describe('table shell action branches', () => {
         const row = { original: { name: 'p1' }, toggleSelected: vi.fn() };
         const cellEl = actionsCol.cell({ row });
 
-        const editLink = walk(cellEl, (el) => el?.props?.href === '/projects/p1');
+        const editLink = walk(cellEl, (el) => el?.props?.href === '/projects?edit=p1');
         const deleteItem = walk(cellEl, (el) => typeof el?.props?.onClick === 'function' && String(el?.props?.children).includes('Delete'));
 
         expect(editLink).toBeTruthy();
         await act(async () => {
             deleteItem.props.onClick();
         });
-
-        await waitFor(() => {
-            expect(row.toggleSelected).toHaveBeenCalledWith(false);
-            expect(deleteProject).toHaveBeenCalledWith('p1');
-        });
-        const rowDeleteCfg = toastPromise.mock.calls.at(-1)?.[1];
-        rowDeleteCfg.error(new Error('row-delete-failed'));
-        expect(catchError).toHaveBeenCalled();
+        expect(row.toggleSelected).toHaveBeenCalledWith(false);
+        expect(deleteProject).not.toHaveBeenCalled();
 
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
         });
-
-        const cfg = toastPromise.mock.calls.at(-1)?.[1];
-        cfg.error(new Error('boom'));
-        expect(catchError).toHaveBeenCalled();
+        expect(toastPromise).not.toHaveBeenCalled();
     });
 
     it('covers projects dispatch fallback when data is undefined', () => {
@@ -266,21 +251,12 @@ describe('table shell action branches', () => {
         await act(async () => {
             deleteItem.props.onClick();
         });
-
-        await waitFor(() => {
-            expect(row.toggleSelected).toHaveBeenCalledWith(false);
-            expect(deleteVisualization).toHaveBeenCalledWith({ name: 'v1', type: 'bar-chart' });
-        });
-        const rowDeleteCfg = toastPromise.mock.calls.at(-1)?.[1];
-        rowDeleteCfg.error(new Error('row-delete-failed'));
-        expect(catchError).toHaveBeenCalled();
+        expect(row.toggleSelected).toHaveBeenCalledWith(false);
+        expect(deleteVisualization).not.toHaveBeenCalled();
 
         await act(async () => {
             latestDataTableProps.deleteRowsAction();
         });
-
-        const cfg = toastPromise.mock.calls.at(-1)?.[1];
-        cfg.error(new Error('boom'));
-        expect(catchError).toHaveBeenCalled();
+        expect(toastPromise).not.toHaveBeenCalled();
     });
 });

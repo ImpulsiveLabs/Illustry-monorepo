@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -33,6 +31,8 @@ import { CSVType, ExcelType, Inputs } from './types';
 const AddVisualizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [files, setFiles] = useState<ExtFile[]>([]);
   const [isPending, startTransition] = useTransition();
   const [selectedFileType, setSelectedFileType] = useState<string>(
@@ -58,16 +58,25 @@ const AddVisualizationForm = () => {
   const watchedMapping = form.watch('mapping') as Record<string, unknown> | undefined;
   const watchedName = form.watch('name');
   const watchedType = form.watch('type');
+  const watchedFileType = form.watch('fileType');
   const hasSelectedFile = files.some((file) => file.file instanceof File);
   const hasMappingValue = watchedMapping
     ? Object.values(watchedMapping).some((value) => String(value ?? '').trim().length > 0)
     : false;
+  const mappingRequired = watchedFileType === FileTypes.FileType.CSV
+    || watchedFileType === FileTypes.FileType.EXCEL;
   const canCreate = hasSelectedFile
     && (
       Boolean(watchedFullDetails)
-      || (Boolean(watchedName) && Boolean(watchedType))
-      || hasMappingValue
+      || (Boolean(watchedName) && Boolean(watchedType) && (!mappingRequired || hasMappingValue))
     );
+
+  const closeModal = () => {
+    const params = new URLSearchParams(searchParams?.toString());
+    params.delete('modal');
+    const nextQuery = params.toString();
+    router.push(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  };
 
   const onSubmit = async (data: Inputs) => {
     startTransition(async () => {
@@ -109,7 +118,7 @@ const AddVisualizationForm = () => {
           form.reset();
           setFiles([]);
           toast.success(t('toast.visualizationAdded'));
-          router.push('/visualizations');
+          closeModal();
         } else {
           toast.error(t('form.visualization.noFilesSelected'));
         }
@@ -138,7 +147,7 @@ const AddVisualizationForm = () => {
   return (
     <Dialog open onOpenChange={(open) => {
       if (!open) {
-        router.push('/visualizations');
+        closeModal();
       }
     }}>
       <Form {...form}>
@@ -158,7 +167,7 @@ const AddVisualizationForm = () => {
                   {t('form.visualization.addTitle')}
                 </DialogTitle>
                 <DialogDescription>
-                  Upload source data, map fields, and create the visualization from the same flow.
+                  {t('form.visualization.modalDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="overflow-y-auto px-6 py-5">
@@ -169,8 +178,6 @@ const AddVisualizationForm = () => {
                   </TabsList>
                   <MappingTab
                     selectedFileType={selectedFileType}
-                    isPending={isPending}
-                    canSubmit={canCreate}
                     form={form}
                     router={router}
                   />
@@ -185,12 +192,12 @@ const AddVisualizationForm = () => {
                 </Tabs>
               </div>
               <DialogFooter className="border-t bg-background px-6 py-4">
-                <Button type="button" variant="outline" disabled={isPending} onClick={() => router.push('/visualizations')}>
-                  Cancel
+                <Button type="button" variant="outline" disabled={isPending} onClick={closeModal}>
+                  {t('common.cancel')}
                 </Button>
                 <Button type="submit" form="visualization-create-form" disabled={isPending || !canCreate}>
                   {isPending && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" aria-hidden="true" />}
-                  Create visualization
+                  {t('form.visualization.addAction')}
                 </Button>
               </DialogFooter>
             </div>

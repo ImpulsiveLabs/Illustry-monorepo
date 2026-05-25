@@ -1,6 +1,6 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
@@ -40,6 +40,8 @@ type AddDashboardFormProps = {
 const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
   const { t } = useLocale();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const form = useForm<DashboardTypes.DashboardCreate>({
     resolver: zodResolver(ValidatorSchemas.dashboardUpdateSchema),
@@ -56,17 +58,24 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
       value: safeVisualizations[key] as string
     }));
 
+  const closeModal = () => {
+    const params = new URLSearchParams(searchParams?.toString());
+    params.delete('modal');
+    const nextQuery = params.toString();
+    router.push(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+  };
+
   const onSubmit = (data: DashboardTypes.DashboardCreate) => {
     const finalData = { ...data, visualizations: form.getValues('visualizations') };
     startTransition(async () => {
       try {
         const created = await createDashboard({ ...finalData });
         if (!created) {
-          throw new Error('Unable to create the dashboard.');
+          throw new Error(t('form.dashboard.createError'));
         }
         form.reset();
         toast.success(t('toast.dashboardAdded'));
-        router.push('/dashboards');
+        closeModal();
       } catch (err) {
         catchError(err);
       }
@@ -76,7 +85,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
   return (
     <Dialog open onOpenChange={(open) => {
       if (!open) {
-        router.push('/dashboards');
+        closeModal();
       }
     }}>
       <Form {...form}>
@@ -94,7 +103,7 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
                   {t('form.dashboard.addTitle')}
                 </DialogTitle>
                 <DialogDescription>
-                  Build a dashboard from the visualizations already in this project.
+                  {t('form.dashboard.modalDescription')}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid w-full gap-5 overflow-y-auto px-6 py-5">
@@ -164,8 +173,8 @@ const AddDashboardForm = ({ visualizations }: AddDashboardFormProps) => {
                 />
               </div>
               <DialogFooter className="border-t bg-background px-6 py-4">
-                <Button type="button" variant="outline" disabled={isPending} onClick={() => router.push('/dashboards')}>
-                  Cancel
+                <Button type="button" variant="outline" disabled={isPending} onClick={closeModal}>
+                  {t('common.cancel')}
                 </Button>
                 <Button disabled={isPending} type="submit" form="dashboard-create-form">
                   {isPending && (

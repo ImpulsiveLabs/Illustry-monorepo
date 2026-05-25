@@ -10,6 +10,7 @@ import {
   type ThemeColors
 } from '@/components/providers/theme-provider';
 import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
+import { useLocale } from '@/components/providers/locale-provider';
 
 type VisualizationHubClientProps = {
   visualization: VisualizationTypes.VisualizationType | null;
@@ -19,6 +20,7 @@ const VisualizationHubClient = ({
   visualization
 }: VisualizationHubClientProps) => {
   const router = useRouter();
+  const { t } = useLocale();
   const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
   const realtimeSubscription = useMemo(() => {
     if (visualization?.shareId) {
@@ -60,8 +62,8 @@ const VisualizationHubClient = ({
           if (payload.action === 'deleted') {
             toast.error(
               realtimeSubscription.resource === 'dashboard'
-                ? 'This dashboard was deleted by its owner.'
-                : 'This visualization was deleted by its owner.'
+                ? t('dashboard.deletedByOwner')
+                : t('visualization.deletedByOwner')
             );
             closedByComponent = true;
             socket?.close();
@@ -91,7 +93,7 @@ const VisualizationHubClient = ({
       }
       socket?.close();
     };
-  }, [realtimeClientId, realtimeSubscription, router]);
+  }, [realtimeClientId, realtimeSubscription, router, t]);
 
   const content = (
     <HubShell

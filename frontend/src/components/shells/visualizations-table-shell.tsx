@@ -24,6 +24,7 @@ import { Badge } from '../ui/badge';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
 import ExternalInternalToggle from '../data-table/external-internal-toggle';
+import ConfirmActionDialog from '@/components/ui/confirm-action-dialog';
 
 type VisualizationsTableShellProps = {
   data?: VisualizationTypes.VisualizationType[];
@@ -41,7 +42,55 @@ const VisualizationsTableShell = ({
   const [selectedRowProperties, setSelectedRowProperties] = useState<
     { name: string; type: VisualizationTypes.VisualizationTypesEnum }[]
   >([]);
+  const [deleteTarget, setDeleteTarget] = useState<{
+    type: 'single' | 'selected';
+    value?: Parameters<typeof deleteVisualization>[0];
+  } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
+
+  const requestDelete = (target: {
+    type: 'single' | 'selected';
+    value?: Parameters<typeof deleteVisualization>[0];
+  }) => {
+    setDeleteTarget(target);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    const target = deleteTarget;
+    if (!target) {
+      return;
+    }
+
+    startTransition(() => {
+      const promise = target.type === 'single' && target.value
+        ? deleteVisualization(target.value)
+        : Promise.all(
+          selectedRowProperties.map(({ name, type }) => deleteVisualization({
+            name,
+            type
+          }))
+        );
+
+      toast.promise(Promise.resolve(promise), {
+        loading: t('table.deleting'),
+        success: () => {
+          setSelectedRowProperties([]);
+          setDeleteTarget(null);
+          setDeleteDialogOpen(false);
+          router.refresh();
+          return target.type === 'single' ? t('toast.visualizationDeleted') : t('toast.visualizationsDeleted');
+        },
+        error: (err: unknown) => {
+          setSelectedRowProperties([]);
+          setDeleteTarget(null);
+          setDeleteDialogOpen(false);
+          return catchError(err);
+        }
+      });
+    });
+  };
   const columns = useMemo<ColumnDef<VisualizationTypes.VisualizationType, unknown>[]>(
     () => [
       {
@@ -206,7 +255,7 @@ const VisualizationsTableShell = ({
 		                    <Link
 		                      href={`/share/visualization?name=${encodeURIComponent(row.original.name)}&type=${encodeURIComponent(String(row.original.type))}`}
 		                    >
-		                      Share
+		                      {t('common.share')}
 		                    </Link>
 		                  </DropdownMenuItem>
 	                </>
@@ -216,21 +265,14 @@ const VisualizationsTableShell = ({
 
               <DropdownMenuItem
                 onClick={() => {
-                  startTransition(() => {
-                    row.toggleSelected(false);
-
-                    toast.promise(
-	                      deleteVisualization({
-	                        name: row.original.isExternal ? undefined : row.original.name,
-	                        type: row.original.isExternal ? undefined : row.original.type,
-	                        shareId: row.original.isExternal ? row.original.shareId : undefined
-	                      }),
-                      {
-                        loading: t('table.deleting'),
-                        success: () => { router.refresh(); return t('toast.visualizationDeleted'); },
-                        error: (err: unknown) => catchError(err)
-                      }
-                    );
+                  row.toggleSelected(false);
+                  requestDelete({
+                    type: 'single',
+                    value: {
+                      name: row.original.isExternal ? undefined : row.original.name,
+                      type: row.original.isExternal ? undefined : row.original.type,
+                      shareId: row.original.isExternal ? row.original.shareId : undefined
+                    }
                   });
                 }}
                 disabled={isPending}
@@ -247,26 +289,9 @@ const VisualizationsTableShell = ({
   );
 
   const deleteSelectedRows = () => {
-    toast.promise(
-      Promise.all(
-        selectedRowProperties.map(({ name, type }) => deleteVisualization({
-          name,
-          type
-        }))
-      ),
-      {
-        loading: t('table.deleting'),
-        success: () => {
-          setSelectedRowProperties([]);
-          router.refresh();
-          return t('toast.visualizationsDeleted');
-        },
-        error: (err: unknown) => {
-          setSelectedRowProperties([]);
-          return catchError(err);
-        }
-      }
-    );
+    if (selectedRowProperties.length) {
+      requestDelete({ type: 'selected' });
+    }
   };
 
   return (
@@ -276,9 +301,18 @@ const VisualizationsTableShell = ({
         data={data as VisualizationTypes.VisualizationType[]}
         pageCount={pageCount as number}
         filterableColumns={[]}
-        newRowLink={external ? undefined : '/visualizations/new'}
+        newRowLink={external ? undefined : '/visualizations?modal=new'}
         deleteRowsAction={external ? undefined : deleteSelectedRows}
         toolbarActions={<ExternalInternalToggle mode={external ? 'external' : 'owned'} />}
+      />
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        pending={isPending}
+        description={t(deleteTarget?.type === 'selected'
+          ? 'confirm.deleteVisualizationsDescription'
+          : 'confirm.deleteVisualizationDescription')}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
       />
     </div>
   );

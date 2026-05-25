@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/dialog';
 import Input from '@/components/ui/input';
 import Label from '@/components/ui/label';
+import { useLocale } from '@/components/providers/locale-provider';
 
 type ExcelExportValues = {
   sheetName: string;
@@ -31,7 +32,7 @@ type ExcelExportDialogProps = {
 
 const normalizeNumber = (value: FormDataEntryValue | null, fallback: number) => {
   const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
 };
 
 const ExcelExportDialog = ({
@@ -43,6 +44,7 @@ const ExcelExportDialog = ({
   onOpenChange,
   onSubmit
 }: ExcelExportDialogProps) => {
+  const { t } = useLocale();
   const [sheetName, setSheetName] = useState(defaultSheetName);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
@@ -65,7 +67,7 @@ const ExcelExportDialog = ({
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="excel-sheet-name">Sheet name</Label>
+              <Label htmlFor="excel-sheet-name">{t('export.excel.sheet')}</Label>
               <Input
                 id="excel-sheet-name"
                 name="sheetName"
@@ -77,7 +79,7 @@ const ExcelExportDialog = ({
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
-                <Label htmlFor="excel-width-columns">Width columns</Label>
+                <Label htmlFor="excel-width-columns">{t('export.excel.widthColumns')}</Label>
                 <Input
                   id="excel-width-columns"
                   name="widthColumns"
@@ -88,7 +90,7 @@ const ExcelExportDialog = ({
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="excel-height-rows">Height rows</Label>
+                <Label htmlFor="excel-height-rows">{t('export.excel.heightRows')}</Label>
                 <Input
                   id="excel-height-rows"
                   name="heightRows"
@@ -102,10 +104,10 @@ const ExcelExportDialog = ({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button type="submit" disabled={pending}>
-              {pending ? 'Exporting' : 'Export workbook'}
+              {pending ? t('export.exporting') : t('export.excel.exportWorkbook')}
             </Button>
           </DialogFooter>
         </form>

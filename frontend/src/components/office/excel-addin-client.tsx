@@ -5,6 +5,7 @@ import Script from 'next/script';
 import * as echarts from 'echarts';
 import 'echarts-wordcloud';
 import { VisualizationTypes } from '@illustry/types';
+import { useLocale } from '@/components/providers/locale-provider';
 
 type ExcelRange = {
   address?: string;
@@ -101,16 +102,16 @@ declare global {
 }
 
 const visualizationOptions = [
-  { label: 'Bar chart', value: VisualizationTypes.VisualizationTypesEnum.BAR_CHART },
-  { label: 'Line chart', value: VisualizationTypes.VisualizationTypesEnum.LINE_CHART },
-  { label: 'Pie chart', value: VisualizationTypes.VisualizationTypesEnum.PIE_CHART },
-  { label: 'Funnel', value: VisualizationTypes.VisualizationTypesEnum.FUNNEL },
-  { label: 'Scatter', value: VisualizationTypes.VisualizationTypesEnum.SCATTER },
-  { label: 'Word cloud', value: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD },
-  { label: 'Forced graph', value: VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH },
-  { label: 'Sankey', value: VisualizationTypes.VisualizationTypesEnum.SANKEY },
-  { label: 'Calendar', value: VisualizationTypes.VisualizationTypesEnum.CALENDAR },
-  { label: 'Matrix', value: VisualizationTypes.VisualizationTypesEnum.MATRIX }
+  { translationKey: 'viz.barChart', value: VisualizationTypes.VisualizationTypesEnum.BAR_CHART },
+  { translationKey: 'viz.lineChart', value: VisualizationTypes.VisualizationTypesEnum.LINE_CHART },
+  { translationKey: 'viz.pieChart', value: VisualizationTypes.VisualizationTypesEnum.PIE_CHART },
+  { translationKey: 'viz.funnel', value: VisualizationTypes.VisualizationTypesEnum.FUNNEL },
+  { translationKey: 'viz.scatter', value: VisualizationTypes.VisualizationTypesEnum.SCATTER },
+  { translationKey: 'viz.wordCloud', value: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD },
+  { translationKey: 'viz.forcedLayoutGraph', value: VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH },
+  { translationKey: 'viz.sankey', value: VisualizationTypes.VisualizationTypesEnum.SANKEY },
+  { translationKey: 'viz.calendar', value: VisualizationTypes.VisualizationTypesEnum.CALENDAR },
+  { translationKey: 'viz.matrix', value: VisualizationTypes.VisualizationTypesEnum.MATRIX }
 ];
 const WORKSHEET_SHAPE_NAME = 'Illustry Live Visualization';
 
@@ -141,6 +142,7 @@ const getOfficeExcel = () => {
 };
 
 const ExcelAddinClient = () => {
+  const { t } = useLocale();
   const chartElementRef = useRef<HTMLDivElement | null>(null);
   const chartInstanceRef = useRef<echarts.ECharts | null>(null);
   const refreshTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -148,13 +150,13 @@ const ExcelAddinClient = () => {
   const [boundRange, setBoundRange] = useState<BoundRange | null>(null);
   const [placementRange, setPlacementRange] = useState<BoundRange | null>(null);
   const [chartType, setChartType] = useState(VisualizationTypes.VisualizationTypesEnum.BAR_CHART);
-  const [title, setTitle] = useState('Illustry Excel visualization');
-  const [status, setStatus] = useState('Open this add-in in Excel, select a data range, then bind it.');
+  const [title, setTitle] = useState(t('office.excel.defaultVisualizationTitle'));
+  const [status, setStatus] = useState(t('office.excel.status.openInExcel'));
   const [isBusy, setIsBusy] = useState(false);
 
   const selectedTypeLabel = useMemo(
-    () => visualizationOptions.find((option) => option.value === chartType)?.label || 'Visualization',
-    [chartType]
+    () => t(visualizationOptions.find((option) => option.value === chartType)?.translationKey || 'form.dashboard.visualizations'),
+    [chartType, t]
   );
 
   useEffect(() => {
@@ -301,13 +303,13 @@ const ExcelAddinClient = () => {
           setChartType(initialChart.type as VisualizationTypes.VisualizationTypesEnum);
         }
         applyInitialOption(initialChart?.option);
-        setStatus(`Visualization placed at ${nextPlacementRange.displayAddress}. Bind a data range to make it live.`);
+        setStatus(t('office.excel.status.visualizationPlaced').replace('{range}', nextPlacementRange.displayAddress));
       });
       if (nextPlacementRange) {
         await updateWorksheetImage(nextPlacementRange);
       }
     } catch {
-      setStatus('Select a cell range in Excel, then bind it here.');
+      setStatus(t('office.excel.status.selectRange'));
     }
   };
 
@@ -329,9 +331,9 @@ const ExcelAddinClient = () => {
         await renderRange(range);
       });
       await updateWorksheetImage(placementRange || nextRange);
-      setStatus(`Live from ${nextRange.displayAddress}. Edit the cells and the visualization will refresh.`);
+      setStatus(t('office.excel.status.liveFrom').replace('{range}', nextRange.displayAddress));
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unable to refresh the bound range.');
+      setStatus(error instanceof Error ? error.message : t('office.excel.status.refreshFailed'));
     } finally {
       setIsBusy(false);
     }
@@ -361,13 +363,13 @@ const ExcelAddinClient = () => {
         imageRangeToUpdate = placementRange || nextRange;
         range.worksheet?.onChanged?.add(() => scheduleRefresh(nextRange));
         await context.sync();
-        setStatus(`Bound to ${nextRange.displayAddress}. Changes in that worksheet update the chart automatically.`);
+        setStatus(t('office.excel.status.boundTo').replace('{range}', nextRange.displayAddress));
       });
       if (imageRangeToUpdate) {
         await updateWorksheetImage(imageRangeToUpdate);
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Unable to bind the selected range.');
+      setStatus(error instanceof Error ? error.message : t('office.excel.status.bindFailed'));
     } finally {
       setIsBusy(false);
     }
@@ -379,8 +381,8 @@ const ExcelAddinClient = () => {
       const ready = info.host === excelHost || info.host === 'Excel';
       setOfficeReady(ready);
       setStatus(ready
-        ? 'Select a cell range in Excel, then bind it here.'
-        : 'This add-in is designed for Excel workbooks.');
+        ? t('office.excel.status.selectRange')
+        : t('office.excel.status.excelOnly'));
       if (ready) {
         void readEmbeddedBinding();
       }
@@ -407,7 +409,7 @@ const ExcelAddinClient = () => {
       />
       <section className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-semibold">Illustry Excel Visualization</p>
+          <p className="text-sm font-semibold">{t('office.excel.title')}</p>
           <p className="truncate text-xs text-slate-500">{status}</p>
         </div>
         <button
@@ -416,14 +418,14 @@ const ExcelAddinClient = () => {
           disabled={!officeReady || isBusy}
           onClick={() => void bindSelectedRange()}
         >
-          {isBusy ? 'Syncing...' : 'Bind selected range'}
+          {isBusy ? t('office.excel.syncing') : t('office.excel.bindSelectedRange')}
         </button>
       </section>
 
       <section className="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-0">
         <aside className="border-r border-slate-200 bg-white p-4">
           <label className="block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="office-chart-title">
-            Title
+            {t('office.excel.field.title')}
           </label>
           <input
             id="office-chart-title"
@@ -433,7 +435,7 @@ const ExcelAddinClient = () => {
           />
 
           <label className="mt-5 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="office-chart-type">
-            Visualization
+            {t('office.excel.field.visualization')}
           </label>
           <select
             id="office-chart-type"
@@ -442,16 +444,16 @@ const ExcelAddinClient = () => {
             onChange={(event) => setChartType(event.target.value as VisualizationTypes.VisualizationTypesEnum)}
           >
             {visualizationOptions.map((option) => (
-              <option key={option.value} value={option.value}>{option.label}</option>
+              <option key={option.value} value={option.value}>{t(option.translationKey)}</option>
             ))}
           </select>
 
           <div className="mt-5 rounded-md border border-slate-200 bg-slate-50 p-3 text-xs leading-5 text-slate-600">
-            <p className="font-semibold text-slate-800">Expected range shapes</p>
-            <p>Bar/line: label column, then one column per series.</p>
-            <p>Pie/funnel/word cloud: label, value.</p>
-            <p>Graph/sankey/matrix: source, target, value.</p>
-            <p>Scatter: x, y, optional category.</p>
+            <p className="font-semibold text-slate-800">{t('office.excel.expectedRangeShapes')}</p>
+            <p>{t('office.excel.shape.axis')}</p>
+            <p>{t('office.excel.shape.value')}</p>
+            <p>{t('office.excel.shape.network')}</p>
+            <p>{t('office.excel.shape.scatter')}</p>
           </div>
         </aside>
 

@@ -1,9 +1,11 @@
 import React from 'react';
 import type { Metadata } from 'next';
 import type { ProjectTypes } from '@illustry/types';
-import { browseProjects } from '@/app/_actions/project';
+import { browseProjects, findOneProject } from '@/app/_actions/project';
 import ProjectsTableShell from '@/components/shells/projects-table-shell';
 import { AppPage, PageSection } from '@/components/layouts/app-page';
+import AddProjectForm from '@/components/form/add-project-form';
+import UpdateProjectForm from '@/components/form/update-project-form';
 
 export const metadata: Metadata = {
   title: 'Projects',
@@ -17,6 +19,8 @@ type ProjectsProps = {
     text?: string;
     per_page?: string;
     sort?: string;
+    modal?: string;
+    edit?: string;
   }>;
 };
 
@@ -27,6 +31,8 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
   const text = typeof sp.text === 'string' ? sp.text : undefined;
   const perPage = typeof sp.per_page === 'string' ? sp.per_page : undefined;
   const sort = typeof sp.sort === 'string' ? sp.sort : undefined;
+  const showCreateModal = sp.modal === 'new';
+  const editProjectName = typeof sp.edit === 'string' ? sp.edit : undefined;
 
   const projects = await browseProjects({
     page: page ? Number(page) : 1,
@@ -48,6 +54,7 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
     && typeof projects.pagination.pageCount === 'number'
     ? Math.ceil(projects.pagination.pageCount)
     : 1;
+  const projectToEdit = editProjectName ? await findOneProject(editProjectName) : null;
 
   return (
     <AppPage>
@@ -56,6 +63,8 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
           data={projectRows}
           pageCount={projectsPageCount}
         />
+        {showCreateModal ? <AddProjectForm /> : null}
+        {projectToEdit ? <UpdateProjectForm project={projectToEdit} /> : null}
       </PageSection>
     </AppPage>
   );

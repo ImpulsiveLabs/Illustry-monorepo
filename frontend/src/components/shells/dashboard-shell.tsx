@@ -318,7 +318,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
             return;
           }
           if (payload.action === 'deleted') {
-            toast.error('This dashboard was deleted by its owner.');
+            toast.error(t('dashboard.deletedByOwner'));
             closedByComponent = true;
             socket?.close();
             router.replace('/');
@@ -351,7 +351,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         // The browser may already have torn the socket down during navigation.
       }
     };
-  }, [currentShareId, realtimeClientId, router]);
+  }, [currentShareId, realtimeClientId, router, t]);
 
   useEffect(() => {
     if (
@@ -418,7 +418,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
         router.push(`/visualizationhub?share=${encodeURIComponent(viz.shareId)}`);
         return;
       }
-      toast.error('This visualization is only available inside the shared dashboard.');
+      toast.error(t('visualization.dashboardOnlyAccess'));
       return;
     }
 
@@ -429,11 +429,11 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
   const handleDashboardExport = async (values: ExportDownloadValues) => {
     const element = dashboardExportRef.current;
     if (!element) {
-      toast.error('The dashboard is not ready to export yet.');
+      toast.error(t('export.dashboard.notReady'));
       return;
     }
     if (!dashboard?.name && !dashboard?.shareId) {
-      toast.error('The dashboard is not ready to export yet.');
+      toast.error(t('export.dashboard.notReady'));
       return;
     }
 
@@ -450,7 +450,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       includePreview: wantsLivePreview
     });
     if (!charts.length) {
-      toast.error('No dashboard visualizations are ready to export yet.');
+      toast.error(t('export.dashboard.noCharts'));
       return;
     }
 
@@ -468,10 +468,10 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
           ...values
         }
       });
-      toast.success(result.bundled ? 'Dashboard ZIP export started' : 'Dashboard export started');
+      toast.success(result.bundled ? t('export.dashboard.zipStarted') : t('export.dashboard.started'));
       setExportDialogOpen(false);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unable to export this dashboard.');
+      toast.error(error instanceof Error ? error.message : t('export.dashboard.failed'));
     } finally {
       setExportPending(false);
     }
@@ -521,8 +521,8 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       <ExportDownloadDialog
         open={exportDialogOpen}
         pending={exportPending}
-        title="Export dashboard"
-        description="Choose one or more formats. The backend prepares one file directly or packages multiple exports into a ZIP."
+        title={t('export.dashboard.title')}
+        description={t('export.dashboard.description')}
         defaultSheetName="Dashboard"
         onOpenChange={setExportDialogOpen}
         onSubmit={(values) => void handleDashboardExport(values)}
@@ -533,11 +533,11 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
           variant="outline"
           className="shadow-sm"
           disabled={!visualizationsList.length || exportPending}
-          aria-label="Export dashboard"
+          aria-label={t('export.dashboard.title')}
           onClick={() => setExportDialogOpen(true)}
         >
           <Download className="mr-2 h-4 w-4" />
-          {exportPending ? 'Exporting' : 'Export'}
+          {exportPending ? t('export.exporting') : t('export.export')}
         </Button>
         {canEditDashboard ? (
           <Button
@@ -547,7 +547,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
             disabled={!visibleVisualizations.length || layoutPending}
           >
             <Save className="mr-2 h-4 w-4" />
-            {layoutPending ? 'Saving' : 'Save layout'}
+            {layoutPending ? t('dashboard.savingLayout') : t('dashboard.saveLayout')}
           </Button>
         ) : null}
       </div>

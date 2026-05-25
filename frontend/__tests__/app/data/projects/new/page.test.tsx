@@ -1,21 +1,23 @@
-import { render, screen } from '@testing-library/react';
 import NewProjectPage from '@/app/(data)/projects/new/page';
-import { describe, it, expect, vi } from 'vitest';
-import React from 'react';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// ✅ Mock the AddProjectForm component
-vi.mock('@/components/form/add-project-form', () => ({
-  __esModule: true,
-  default: () => (
-    <div data-testid="add-project-form">Mocked AddProjectForm</div>
-  ),
+const { redirectMock } = vi.hoisted(() => ({
+  redirectMock: vi.fn((url: string) => {
+    throw new Error(`NEXT_REDIRECT:${url}`);
+  })
+}));
+
+vi.mock('next/navigation', () => ({
+  redirect: redirectMock
 }));
 
 describe('NewProjectPage', () => {
-  it('renders AddProjectForm inside the styled wrapper', () => {
-    render(<NewProjectPage />);
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
-    expect(screen.getByTestId('add-project-form')).toBeInTheDocument();
-    expect(screen.getByText('Mocked AddProjectForm')).toBeInTheDocument();
+  it('redirects to the projects create modal state', () => {
+    expect(() => NewProjectPage()).toThrow('NEXT_REDIRECT:/projects?modal=new');
+    expect(redirectMock).toHaveBeenCalledWith('/projects?modal=new');
   });
 });

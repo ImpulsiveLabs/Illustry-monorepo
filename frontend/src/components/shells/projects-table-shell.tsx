@@ -25,6 +25,7 @@ import DataTableColumnHeader from '../data-table/data-table-column-header';
 import { useActiveProjectDispatch } from '../providers/active-project-provider';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
+import ConfirmActionDialog from '@/components/ui/confirm-action-dialog';
 
 type ProjectsTableShellProps = {
   data?: ProjectTypes.ProjectType[];
@@ -35,8 +36,45 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
   const { t } = useLocale();
   const [isPending, startTransition] = useTransition();
   const [selectedRowNames, setSelectedRowNames] = useState<string[]>([]);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'single' | 'selected'; name?: string } | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useActiveProjectDispatch();
   const router = useRouter();
+
+  const requestDelete = (target: { type: 'single' | 'selected'; name?: string }) => {
+    setDeleteTarget(target);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    const target = deleteTarget;
+    if (!target) {
+      return;
+    }
+
+    startTransition(() => {
+      const names = target.type === 'single' && target.name ? [target.name] : selectedRowNames;
+      toast.promise(
+        Promise.all(names.map((name) => deleteProject(name))),
+        {
+          loading: t('table.deleting'),
+          success: () => {
+            setSelectedRowNames([]);
+            setDeleteTarget(null);
+            setDeleteDialogOpen(false);
+            router.refresh();
+            return target.type === 'single' ? t('toast.projectDeleted') : t('toast.projectsDeleted');
+          },
+          error: (err: unknown) => {
+            setSelectedRowNames([]);
+            setDeleteTarget(null);
+            setDeleteDialogOpen(false);
+            return catchError(err);
+          }
+        }
+      );
+    });
+  };
 
   useEffect(() => {
     if (dispatch) {
@@ -55,7 +93,6 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
             onCheckedChange={(value) => {
               table.toggleAllPageRowsSelected(!!value);
               if (data) {
-                // eslint-disable-next-line max-len
                 setSelectedRowNames((prev) => (prev.length === data.length ? [] : data.map((row) => row.name)));
               }
             }}
@@ -130,20 +167,13 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-[160px]">
               <DropdownMenuItem asChild>
-                <Link href={`/projects/${row.original.name}`}>{t('table.edit')}</Link>
+                <Link href={`/projects?edit=${encodeURIComponent(row.original.name)}`}>{t('table.edit')}</Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  startTransition(() => {
-                    row.toggleSelected(false);
-
-                    toast.promise(deleteProject(row.original.name), {
-                      loading: t('table.deleting'),
-                      success: () => { router.refresh(); return t('toast.projectDeleted'); },
-                      error: (err: unknown) => catchError(err)
-                    });
-                  });
+                  row.toggleSelected(false);
+                  requestDelete({ type: 'single', name: row.original.name });
                 }}
                 disabled={isPending}
               >
@@ -159,32 +189,31 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
   );
 
   const deleteSelectedRows = () => {
-    toast.promise(
-      Promise.all(selectedRowNames.map((name) => deleteProject(name))),
-      {
-        loading: t('table.deleting'),
-        success: () => {
-          setSelectedRowNames([]);
-          router.refresh();
-          return t('toast.projectsDeleted');
-        },
-        error: (err: unknown) => {
-          setSelectedRowNames([]);
-          return catchError(err);
-        }
-      }
-    );
+    if (selectedRowNames.length) {
+      requestDelete({ type: 'selected' });
+    }
   };
 
   return (
-    <DataTable
-      columns={columns}
-      data={data as ProjectTypes.ProjectType[]}
-      pageCount={pageCount as number}
-      filterableColumns={[]}
-      newRowLink="/projects/new"
-      deleteRowsAction={deleteSelectedRows}
-    />
+    <>
+      <DataTable
+        columns={columns}
+        data={data as ProjectTypes.ProjectType[]}
+        pageCount={pageCount as number}
+        filterableColumns={[]}
+        newRowLink="/projects?modal=new"
+        deleteRowsAction={deleteSelectedRows}
+      />
+      <ConfirmActionDialog
+        open={deleteDialogOpen}
+        pending={isPending}
+        description={t(deleteTarget?.type === 'selected'
+          ? 'confirm.deleteProjectsDescription'
+          : 'confirm.deleteProjectDescription')}
+        onOpenChange={setDeleteDialogOpen}
+        onConfirm={confirmDelete}
+      />
+    </>
   );
 };
 

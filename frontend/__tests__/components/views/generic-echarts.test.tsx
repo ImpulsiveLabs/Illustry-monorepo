@@ -160,7 +160,7 @@ describe('ReactEcharts wrapper', () => {
 
         fireEvent.click(screen.getByRole('button', { name: 'Export visualization' }));
         expect(screen.getByRole('dialog')).toBeInTheDocument();
-        expect(screen.getByText('Export as Excel')).toBeInTheDocument();
+        expect(screen.getByText('Excel')).toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', { name: 'Download' }));
 
