@@ -9,7 +9,8 @@
   ],
   "scripts": {
     "build:ts": "tsc -p tsconfig.json",
-    "test": "../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage"
+    "test": "../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage",
+    "test:shard": "../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "repository": {
     "type": "git",

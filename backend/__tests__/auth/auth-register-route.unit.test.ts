@@ -270,7 +270,7 @@ describe('auth register route', () => {
     await expect(putResponse.json()).resolves.toEqual({
       themeConfig: { ...themeConfig, presetId: 'saved' }
     });
-    expect(updateThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__', themeConfig);
+    expect(updateThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__', themeConfig, undefined);
 
     const deleteResponse = await fetch(`http://127.0.0.1:${port}/api/auth/me/theme`, {
       method: 'DELETE'
@@ -279,7 +279,7 @@ describe('auth register route', () => {
     await expect(deleteResponse.json()).resolves.toEqual({
       themeConfig: { version: 1, presetId: 'default' }
     });
-    expect(resetThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__');
+    expect(resetThemeConfigMock).toHaveBeenCalledWith('__illustry_e2e_user__', undefined);
 
     await app.stop();
   });

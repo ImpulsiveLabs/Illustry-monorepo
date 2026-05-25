@@ -12,7 +12,8 @@
     "lint": "echo 'No lint configured for email service'",
     "lint:fix": "echo 'No lint configured for email service'",
     "depcheck": "echo 'No depcheck configured for email service'",
-    "test": "../../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage"
+    "test": "../../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage",
+    "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "dependencies": {
     "dotenv": "16.3.1",

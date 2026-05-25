@@ -224,7 +224,10 @@ describe("dashboard CRUD", () => {
                 )
         )[0];
         expect(visualization).toMatchObject(expectedVisualization);
-        await Factory.getInstance().getBZL().DashboardBZL.update({ name: 'Test_dashboard2' }, { visualizations: { 'Funnel_FullDetails': VisualizationTypes.VisualizationTypesEnum.FUNNEL } })
+        await Factory.getInstance().getBZL().DashboardBZL.update(
+            { name: 'Test_dashboard2' },
+            { visualizations: { [`Funnel_FullDetails_${VisualizationTypes.VisualizationTypesEnum.FUNNEL}`]: VisualizationTypes.VisualizationTypesEnum.FUNNEL } }
+        )
 
         const foundDash = await Factory.getInstance().getBZL().DashboardBZL.findOne({ name: 'Test_dashboard2', projectName: 'Test_Project_Dashboard', }, true)
 

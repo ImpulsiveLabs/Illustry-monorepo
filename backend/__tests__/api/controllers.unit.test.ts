@@ -31,19 +31,25 @@ const authResendVerificationMock = jest.fn();
 const authForgotPasswordMock = jest.fn();
 const authResetPasswordMock = jest.fn();
 
-jest.mock('@illustry/types', () => ({
-  ValidatorSchemas: {
-    dashboardUpdateSchema: {},
-    dashboardFilterSchema: {},
-    projectCreateSchema: {},
-    projectUpdateSchema: {},
-    projectFilterSchema: {},
-    visualizationDataSchema: {},
-    visualizationFilterSchema: {},
-    visualizationTypeSchema: {},
-    validateWithSchema: (...args: unknown[]) => validateWithSchemaMock(...args)
-  }
-}));
+jest.mock('@illustry/types', () => {
+  const actualTypes = jest.requireActual('@illustry/types');
+
+  return {
+    ...actualTypes,
+    ValidatorSchemas: {
+      ...actualTypes.ValidatorSchemas,
+      dashboardUpdateSchema: {},
+      dashboardFilterSchema: {},
+      projectCreateSchema: {},
+      projectUpdateSchema: {},
+      projectFilterSchema: {},
+      visualizationDataSchema: {},
+      visualizationFilterSchema: {},
+      visualizationTypeSchema: {},
+      validateWithSchema: (...args: unknown[]) => validateWithSchemaMock(...args)
+    }
+  };
+});
 
 jest.mock('../../src/factory', () => ({
   __esModule: true,
