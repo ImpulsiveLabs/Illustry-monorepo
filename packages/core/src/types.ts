@@ -1,12 +1,15 @@
 import type { VisualizationTypes } from '@illustry/types';
+import type { EChartsOption } from 'echarts';
 
 type IllustryAssetKind = 'visualization' | 'dashboard';
 
 type IllustrySourceFormat = 'json' | 'xml' | 'csv' | 'xlsx';
 
+type IllustryChartOption = EChartsOption;
+
 type IllustryChartPayload = {
   title?: string;
-  option: Record<string, unknown>;
+  option: IllustryChartOption;
   width?: number;
   height?: number;
 };
@@ -57,6 +60,7 @@ type IllustryProfile = {
 
 export type {
   IllustryAssetKind,
+  IllustryChartOption,
   IllustryChartPayload,
   IllustryExportBundle,
   IllustryExportFile,

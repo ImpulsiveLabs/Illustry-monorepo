@@ -126,7 +126,7 @@ const renderChartSvg = (chart: Required<IllustryChartPayload>) => {
     height: chart.height
   });
   try {
-    instance.setOption(chart.option as echarts.EChartsOption, true);
+    instance.setOption(chart.option, true);
     return instance.renderToSVGString();
   } finally {
     instance.dispose();
@@ -339,13 +339,32 @@ const createPptExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<
     h: 7.5,
     altText: asset.name
   });
-  const output = await pptx.write({ outputType: 'nodebuffer', compression: true });
-  const buffer = Buffer.isBuffer(output) ? output : Buffer.from(output as Uint8Array);
+  const output: unknown = await pptx.write({ outputType: 'nodebuffer', compression: true });
+  const buffer = normalizePptxOutput(output);
   return {
     buffer,
     filename: `${sanitizeFilename(asset.name)}.pptx`,
     mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   };
+};
+
+const normalizePptxOutput = (output: unknown): Buffer => {
+  if (Buffer.isBuffer(output)) {
+    return output;
+  }
+  if (output instanceof Uint8Array) {
+    return Buffer.from(output);
+  }
+  if (output instanceof ArrayBuffer) {
+    return Buffer.from(output);
+  }
+  if (typeof output === 'string') {
+    return Buffer.from(output, 'binary');
+  }
+  throw new IllustryError('PowerPoint export returned an unsupported output type.', {
+    code: 'ILLUSTRY_PPT_EXPORT_INVALID_OUTPUT',
+    status: 500
+  });
 };
 
 const createJsonExport = (asset: IllustryLocalAsset): IllustryExportFile => ({

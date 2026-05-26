@@ -5,7 +5,7 @@ import ExcelJS from 'exceljs';
 import { parseStringPromise } from 'xml2js';
 import { IllustryError } from './errors';
 import { assertUploadedFileMetadata, getFileExtension } from './upload-constraints';
-import type { IllustryLocalAsset, IllustrySourceFormat } from './types';
+import type { IllustryChartOption, IllustryLocalAsset, IllustrySourceFormat } from './types';
 
 type ImportVisualizationInput = {
   filePath: string;
@@ -26,6 +26,8 @@ const isRows = (value: unknown): value is unknown[][] => (
   Array.isArray(value) && value.every((item) => Array.isArray(item))
 );
 
+const isChartOption = (value: unknown): value is IllustryChartOption => isRecord(value);
+
 const detectSourceFormat = (filePath: string): IllustrySourceFormat => {
   const extension = getFileExtension(filePath);
   if (extension === '.json') return 'json';
@@ -40,7 +42,7 @@ const detectSourceFormat = (filePath: string): IllustrySourceFormat => {
 
 const basenameWithoutExtension = (filePath: string) => path.basename(filePath).replace(/\.[^.]+$/, '');
 
-const rowsToBarOption = (title: string, rows: unknown[][]): JsonRecord => {
+const rowsToBarOption = (title: string, rows: unknown[][]): IllustryChartOption => {
   const body = rows.slice(1);
   const labels = body.map((row, index) => String(row[0] ?? `Row ${index + 1}`));
   const values = body.map((row) => {
@@ -115,17 +117,17 @@ const parseXlsx = async (filePath: string, maxRows: number) => {
   return rows;
 };
 
-const extractOption = (data: unknown): JsonRecord | undefined => {
+const extractOption = (data: unknown): IllustryChartOption | undefined => {
   if (isRecord(data)) {
-    if (isRecord(data.option)) {
+    if (isChartOption(data.option)) {
       return data.option;
     }
-    if (isRecord(data.chartOption)) {
+    if (isChartOption(data.chartOption)) {
       return data.chartOption;
     }
     if (Array.isArray(data.charts)) {
       const [first] = data.charts;
-      if (isRecord(first) && isRecord(first.option)) {
+      if (isRecord(first) && isChartOption(first.option)) {
         return first.option;
       }
     }

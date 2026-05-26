@@ -3,10 +3,13 @@ import os from 'os';
 import path from 'path';
 import JSZip from 'jszip';
 import {
+  IllustryApiClient,
+  type IllustryApiClientOptions,
   LocalIllustryStore,
   UPLOAD_CONSTRAINTS,
   createLocalExportBundle,
   importVisualizationSource,
+  parseExportFormats,
   validateUploadedFileMetadata
 } from '../src';
 
@@ -64,6 +67,64 @@ describe('@illustry/core local workflows', () => {
     const zip = await JSZip.loadAsync(bundle.buffer);
     expect(zip.file('Offline-chart.json')).toBeTruthy();
     expect(zip.file('Offline-chart.webcomponent.html')).toBeTruthy();
+  });
+
+  it('creates a valid local Excel export from chart data', async () => {
+    const store = new LocalIllustryStore({ rootDir: tempDir });
+    const asset = await store.saveAsset({
+      kind: 'visualization',
+      name: 'Office chart',
+      type: 'bar-chart',
+      charts: [{
+        title: 'Office chart',
+        option: {
+          xAxis: { type: 'category', data: ['A', 'B'] },
+          yAxis: { type: 'value' },
+          series: [{ type: 'bar', data: [3, 7] }]
+        }
+      }]
+    });
+
+    const bundle = await createLocalExportBundle({
+      asset,
+      formats: ['excel']
+    });
+    expect(bundle.bundled).toBe(false);
+    expect(bundle.filename).toBe('Office-chart.xlsx');
+
+    const workbookZip = await JSZip.loadAsync(bundle.buffer);
+    expect(workbookZip.file('[Content_Types].xml')).toBeTruthy();
+    expect(workbookZip.file('xl/workbook.xml')).toBeTruthy();
+  });
+
+  it('keeps local import/export format parsing deterministic', () => {
+    expect(parseExportFormats()).toEqual(['json']);
+    expect(parseExportFormats('svg,unknown,png,svg')).toEqual(['svg', 'png', 'svg']);
+  });
+
+  it('uploads raw files through the optional API adapter without buffering into JSON', async () => {
+    const source = path.join(tempDir, 'payload.csv');
+    await fs.writeFile(source, 'label,value\nA,1\n', 'utf8');
+
+    let capturedInit: Parameters<NonNullable<IllustryApiClientOptions['fetchImpl']>>[1];
+    const fetchImpl: NonNullable<IllustryApiClientOptions['fetchImpl']> = async (_input, init) => {
+      capturedInit = init;
+      return new Response(JSON.stringify({ uploaded: true }), {
+        headers: { 'content-type': 'application/json' }
+      });
+    };
+    const client = new IllustryApiClient({
+      baseUrl: 'http://localhost:7001',
+      token: 'token',
+      fetchImpl
+    });
+
+    await expect(client.uploadRawFile('/upload', source, 'text/csv')).resolves.toEqual({ uploaded: true });
+    expect(capturedInit?.method).toBe('POST');
+    expect(capturedInit?.body).toBeInstanceOf(Blob);
+    const headers = new Headers(capturedInit?.headers);
+    expect(headers.get('content-type')).toBe('text/csv');
+    expect(headers.get('x-illustry-file-size')).toBe('16');
   });
 
   it('rejects huge files from metadata before processing content', () => {

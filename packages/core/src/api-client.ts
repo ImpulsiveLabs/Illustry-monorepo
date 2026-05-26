@@ -1,20 +1,21 @@
-import { createReadStream, promises as fs } from 'fs';
+import { openAsBlob, promises as fs } from 'fs';
 import path from 'path';
-import { Readable } from 'stream';
 import { IllustryError } from './errors';
 
 type IllustryApiClientOptions = {
   baseUrl: string;
   token?: string;
-  fetchImpl?: typeof fetch;
+  fetchImpl?: IllustryFetch;
 };
 
 type RequestOptions = {
   method?: string;
-  headers?: Record<string, string>;
+  headers?: HeadersInit;
   body?: BodyInit;
   duplex?: 'half';
 };
+
+type IllustryFetch = (input: string | URL, init?: RequestOptions) => Promise<Response>;
 
 type ExportRequest = {
   resource: 'visualization' | 'dashboard';
@@ -25,7 +26,7 @@ type ExportRequest = {
 
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 
-const getFetch = (fetchImpl?: typeof fetch) => {
+const getFetch = (fetchImpl?: IllustryFetch): IllustryFetch => {
   if (fetchImpl) return fetchImpl;
   if (typeof fetch !== 'undefined') return fetch;
   throw new IllustryError('Fetch is not available in this runtime.', {
@@ -36,7 +37,7 @@ const getFetch = (fetchImpl?: typeof fetch) => {
 class IllustryApiClient {
   readonly baseUrl: string;
   private readonly token?: string;
-  private readonly fetchImpl: typeof fetch;
+  private readonly fetchImpl: IllustryFetch;
 
   constructor(options: IllustryApiClientOptions) {
     if (!options.baseUrl) {
@@ -59,7 +60,7 @@ class IllustryApiClient {
     return url;
   }
 
-  private async request<T>(route: string, options: RequestOptions = {}): Promise<T> {
+  private async request(route: string, options: RequestOptions = {}): Promise<unknown> {
     const headers = new Headers(options.headers);
     if (this.token) {
       headers.set('Authorization', `Bearer ${this.token}`);
@@ -77,25 +78,25 @@ class IllustryApiClient {
     }
     const contentType = response.headers.get('content-type') || '';
     if (contentType.includes('application/json')) {
-      return await response.json() as T;
+      return response.json();
     }
-    return await response.text() as T;
+    return response.text();
   }
 
   async health() {
-    return this.request<unknown>('/health').catch(() => this.request<unknown>('/'));
+    return this.request('/health').catch(() => this.request('/'));
   }
 
   async listProjects() {
-    return this.request<unknown>('/api/project');
+    return this.request('/api/project');
   }
 
   async listVisualizations() {
-    return this.request<unknown>('/api/visualization');
+    return this.request('/api/visualization');
   }
 
   async listDashboards() {
-    return this.request<unknown>('/api/dashboard');
+    return this.request('/api/dashboard');
   }
 
   async downloadExport({ resource, name, query, body }: ExportRequest) {
@@ -126,9 +127,8 @@ class IllustryApiClient {
 
   async uploadRawFile(route: string, filePath: string, contentType = 'application/octet-stream') {
     const stat = await fs.stat(filePath);
-    const stream = createReadStream(filePath);
-    const body = Readable.toWeb(stream) as ReadableStream<Uint8Array>;
-    return this.request<unknown>(route, {
+    const body = await openAsBlob(filePath, { type: contentType });
+    return this.request(route, {
       method: 'POST',
       headers: {
         'content-disposition': `attachment; filename="${path.basename(filePath)}"`,
@@ -146,5 +146,7 @@ export {
 };
 export type {
   ExportRequest,
-  IllustryApiClientOptions
+  IllustryApiClientOptions,
+  IllustryFetch,
+  RequestOptions
 };
