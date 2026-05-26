@@ -27,3 +27,22 @@ await store.writeExportFile(bundle, 'exports');
 ```
 
 Use `IllustryApiClient` only when a running Illustry server should be the transport.
+
+Server-backed example:
+
+```ts
+import { IllustryApiClient } from '@illustry/core';
+
+const client = new IllustryApiClient({
+  baseUrl: 'http://localhost:7001',
+  cookie: 'illustry_session=...; illustry_csrf=...',
+  csrfToken: '...'
+});
+
+await client.browse({ resource: 'visualizations' });
+await client.uploadVisualizationSource({
+  filePath: 'data.csv',
+  contentType: 'text/csv',
+  visualizationDetails: { name: 'Sales', type: 'bar-chart', projectName: 'Default' }
+});
+```

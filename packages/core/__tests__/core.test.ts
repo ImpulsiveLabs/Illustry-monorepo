@@ -127,6 +127,75 @@ describe('@illustry/core local workflows', () => {
     expect(headers.get('x-illustry-file-size')).toBe('16');
   });
 
+  it('uses real server routes for browse, bundle export, and visualization upload', async () => {
+    const source = path.join(tempDir, 'server.csv');
+    await fs.writeFile(source, 'label,value\nA,1\n', 'utf8');
+
+    const calls: Array<{ url: string; init?: Parameters<NonNullable<IllustryApiClientOptions['fetchImpl']>>[1] }> = [];
+    const fetchImpl: NonNullable<IllustryApiClientOptions['fetchImpl']> = async (input, init) => {
+      const url = input.toString();
+      const pathname = new URL(url).pathname;
+      calls.push({ url, init });
+      if (pathname === '/api/visualizations') {
+        return new Response(JSON.stringify({ items: [{ name: 'Server Chart' }] }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      if (pathname === '/api/visualization/export/bundle') {
+        return new Response(Buffer.from('server-export'), {
+          headers: {
+            'content-type': 'image/svg+xml;charset=utf-8',
+            'content-disposition': 'attachment; filename="Server-Chart.svg"'
+          }
+        });
+      }
+      if (pathname === '/api/visualization') {
+        return new Response(JSON.stringify({ name: 'Uploaded Chart' }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    };
+    const client = new IllustryApiClient({
+      baseUrl: 'http://illustry.local',
+      cookie: 'illustry_session=session; illustry_csrf=csrf-token',
+      csrfToken: 'csrf-token',
+      fetchImpl
+    });
+
+    await expect(client.browse({ resource: 'visualizations', query: { text: 'Server' } }))
+      .resolves.toEqual({ items: [{ name: 'Server Chart' }] });
+    await expect(client.downloadExport({
+      resource: 'visualization',
+      name: 'Server Chart',
+      body: {
+        name: 'Server Chart',
+        formats: ['svg'],
+        charts: [{ option: { series: [] } }]
+      }
+    })).resolves.toMatchObject({
+      filename: 'Server-Chart.svg',
+      mimeType: 'image/svg+xml;charset=utf-8'
+    });
+    await expect(client.uploadVisualizationSource({
+      filePath: source,
+      contentType: 'text/csv',
+      visualizationDetails: { name: 'Uploaded Chart', type: 'bar-chart' }
+    })).resolves.toEqual({ name: 'Uploaded Chart' });
+
+    expect(calls.map((call) => new URL(call.url).pathname)).toEqual([
+      '/api/visualizations',
+      '/api/visualization/export/bundle',
+      '/api/visualization'
+    ]);
+    calls.forEach((call) => {
+      const headers = new Headers(call.init?.headers);
+      expect(headers.get('cookie')).toContain('illustry_session=session');
+      expect(headers.get('x-csrf-token')).toBe('csrf-token');
+    });
+    expect(calls[2].init?.body).toBeInstanceOf(FormData);
+  });
+
   it('rejects huge files from metadata before processing content', () => {
     const result = validateUploadedFileMetadata({
       originalname: 'too-large.csv',

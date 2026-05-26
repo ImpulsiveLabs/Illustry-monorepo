@@ -18,3 +18,14 @@ illustry-mcp
 ```
 
 The implementation uses standard JSON-RPC messages with MCP `Content-Length` stdio framing.
+
+Each tool works locally by default. Add `server`, `cookie`, and `csrfToken`
+arguments to route the same operation through a running Illustry backend:
+
+- `illustry_list_assets` can browse `visualizations`, `dashboards`, or `projects`
+- `illustry_import_visualization` uploads a source file to `/api/visualization`
+- `illustry_export_asset` downloads a backend export bundle
+
+Server exports need chart render payloads. Provide `chartFile`, or keep a local
+workspace asset with the same name so the MCP server can send the chart data to
+the backend export endpoint.

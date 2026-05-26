@@ -5,6 +5,8 @@ import { IllustryError } from './errors';
 type IllustryApiClientOptions = {
   baseUrl: string;
   token?: string;
+  cookie?: string;
+  csrfToken?: string;
   fetchImpl?: IllustryFetch;
 };
 
@@ -24,6 +26,21 @@ type ExportRequest = {
   body: Record<string, unknown>;
 };
 
+type ServerResource = 'projects' | 'visualizations' | 'dashboards';
+
+type BrowseRequest = {
+  resource: ServerResource;
+  query?: Record<string, unknown>;
+};
+
+type UploadVisualizationSourceRequest = {
+  filePath: string;
+  contentType?: string;
+  visualizationDetails?: Record<string, unknown>;
+  fileDetails?: Record<string, unknown>;
+  fullDetails?: boolean;
+};
+
 const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
 
 const getFetch = (fetchImpl?: IllustryFetch): IllustryFetch => {
@@ -37,6 +54,8 @@ const getFetch = (fetchImpl?: IllustryFetch): IllustryFetch => {
 class IllustryApiClient {
   readonly baseUrl: string;
   private readonly token?: string;
+  private readonly cookie?: string;
+  private readonly csrfToken?: string;
   private readonly fetchImpl: IllustryFetch;
 
   constructor(options: IllustryApiClientOptions) {
@@ -47,7 +66,23 @@ class IllustryApiClient {
     }
     this.baseUrl = trimTrailingSlash(options.baseUrl);
     this.token = options.token;
+    this.cookie = options.cookie;
+    this.csrfToken = options.csrfToken;
     this.fetchImpl = getFetch(options.fetchImpl);
+  }
+
+  private buildHeaders(headers?: HeadersInit) {
+    const next = new Headers(headers);
+    if (this.token) {
+      next.set('Authorization', `Bearer ${this.token}`);
+    }
+    if (this.cookie) {
+      next.set('Cookie', this.cookie);
+    }
+    if (this.csrfToken) {
+      next.set('X-CSRF-Token', this.csrfToken);
+    }
+    return next;
   }
 
   private buildUrl(route: string, query?: Record<string, string | number | boolean | undefined>) {
@@ -61,10 +96,7 @@ class IllustryApiClient {
   }
 
   private async request(route: string, options: RequestOptions = {}): Promise<unknown> {
-    const headers = new Headers(options.headers);
-    if (this.token) {
-      headers.set('Authorization', `Bearer ${this.token}`);
-    }
+    const headers = this.buildHeaders(options.headers);
     const response = await this.fetchImpl(this.buildUrl(route), {
       ...options,
       headers
@@ -88,25 +120,46 @@ class IllustryApiClient {
   }
 
   async listProjects() {
-    return this.request('/api/project');
+    return this.browse({ resource: 'projects' });
   }
 
   async listVisualizations() {
-    return this.request('/api/visualization');
+    return this.browse({ resource: 'visualizations' });
   }
 
   async listDashboards() {
-    return this.request('/api/dashboard');
+    return this.browse({ resource: 'dashboards' });
+  }
+
+  async browse({ resource, query = {} }: BrowseRequest) {
+    return this.request(`/api/${resource}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(query)
+    });
+  }
+
+  async findVisualization(name: string, type?: string) {
+    return this.request(`/api/visualization/${encodeURIComponent(name)}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ type })
+    });
+  }
+
+  async findDashboard(name: string, fullVisualizations = true) {
+    return this.request(`/api/dashboard/${encodeURIComponent(name)}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ fullVisualizations })
+    });
   }
 
   async downloadExport({ resource, name, query, body }: ExportRequest) {
-    const route = resource === 'dashboard' ? '/api/dashboard/export' : '/api/visualization/export';
+    const route = resource === 'dashboard' ? '/api/dashboard/export/bundle' : '/api/visualization/export/bundle';
     const response = await this.fetchImpl(this.buildUrl(route, { name, ...query }), {
       method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(this.token ? { authorization: `Bearer ${this.token}` } : {})
-      },
+      headers: this.buildHeaders({ 'content-type': 'application/json' }),
       body: JSON.stringify(body)
     });
     if (!response.ok) {
@@ -139,6 +192,31 @@ class IllustryApiClient {
       duplex: 'half'
     });
   }
+
+  async uploadVisualizationSource({
+    filePath,
+    contentType = 'application/octet-stream',
+    visualizationDetails,
+    fileDetails,
+    fullDetails = false
+  }: UploadVisualizationSourceRequest) {
+    const body = new FormData();
+    const file = await openAsBlob(filePath, { type: contentType });
+    body.append('file', file, path.basename(filePath));
+    if (visualizationDetails) {
+      body.append('visualizationDetails', JSON.stringify(visualizationDetails));
+    }
+    if (fileDetails) {
+      body.append('fileDetails', JSON.stringify(fileDetails));
+    }
+    body.append('fullDetails', String(fullDetails));
+
+    return this.request('/api/visualization', {
+      method: 'POST',
+      body,
+      duplex: 'half'
+    });
+  }
 }
 
 export {
@@ -146,7 +224,10 @@ export {
 };
 export type {
   ExportRequest,
+  BrowseRequest,
   IllustryApiClientOptions,
   IllustryFetch,
-  RequestOptions
+  RequestOptions,
+  ServerResource,
+  UploadVisualizationSourceRequest
 };
