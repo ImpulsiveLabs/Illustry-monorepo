@@ -11,6 +11,7 @@ services/**/node_modules/
 /coverage
 backend/coverage
 frontend/coverage
+packages/*/coverage
 
 # next.js
 /.next/
@@ -24,6 +25,7 @@ backend/dist
 backend/build-dist
 frontend/dist
 docs/dist
+packages/*/dist
 services/*/dist
 services/**/dist/
 
@@ -31,6 +33,8 @@ services/**/dist/
 .DS_Store
 *.pem
 .tmp-translate-venv/
+.illustry/
+packages/*/node_modules
 
 # debug
 npm-debug.log*

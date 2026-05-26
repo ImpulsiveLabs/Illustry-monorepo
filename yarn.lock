@@ -1740,7 +1740,59 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@illustry/types@npm:1.0.1, @illustry/types@workspace:types":
+"@illustry/cli@workspace:packages/cli":
+  version: 0.0.0-use.local
+  resolution: "@illustry/cli@workspace:packages/cli"
+  dependencies:
+    "@illustry/core": "workspace:*"
+    "@types/jest": "npm:29.5.12"
+    "@types/node": "npm:20.10.2"
+    jest: "npm:29.7.0"
+    ts-jest: "npm:29.1.1"
+    typescript: "npm:5.5.4"
+  bin:
+    illustry: dist/index.js
+  languageName: unknown
+  linkType: soft
+
+"@illustry/core@workspace:*, @illustry/core@workspace:packages/core":
+  version: 0.0.0-use.local
+  resolution: "@illustry/core@workspace:packages/core"
+  dependencies:
+    "@illustry/types": "workspace:*"
+    "@types/jest": "npm:29.5.12"
+    "@types/node": "npm:20.10.2"
+    "@types/xml2js": "npm:0.4.14"
+    docx: "npm:9.6.1"
+    echarts: "npm:6.0.0"
+    exceljs: "npm:4.4.0"
+    jest: "npm:29.7.0"
+    jszip: "npm:3.10.1"
+    pdf-lib: "npm:1.17.1"
+    pptxgenjs: "npm:4.0.1"
+    sharp: "npm:0.33.5"
+    ts-jest: "npm:29.1.1"
+    typescript: "npm:5.5.4"
+    xml2js: "npm:0.6.2"
+  languageName: unknown
+  linkType: soft
+
+"@illustry/mcp@workspace:packages/mcp":
+  version: 0.0.0-use.local
+  resolution: "@illustry/mcp@workspace:packages/mcp"
+  dependencies:
+    "@illustry/core": "workspace:*"
+    "@types/jest": "npm:29.5.12"
+    "@types/node": "npm:20.10.2"
+    jest: "npm:29.7.0"
+    ts-jest: "npm:29.1.1"
+    typescript: "npm:5.5.4"
+  bin:
+    illustry-mcp: dist/index.js
+  languageName: unknown
+  linkType: soft
+
+"@illustry/types@npm:1.0.1, @illustry/types@workspace:*, @illustry/types@workspace:types":
   version: 0.0.0-use.local
   resolution: "@illustry/types@workspace:types"
   dependencies:

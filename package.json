@@ -9,7 +9,8 @@
     "frontend",
     "docs",
     "types",
-    "services/*"
+    "services/*",
+    "packages/*"
   ],
   "type": "module",
   "scripts": {
@@ -22,6 +23,9 @@
     "test:frontend:shard": "yarn workspace @impulsivelabs/illustry-client test:shard",
     "test:types:shard": "yarn workspace @illustry/types test:shard",
     "test:email:shard": "yarn workspace @impulsivelabs/illustry-email-service test:shard",
+    "test:core:shard": "yarn workspace @illustry/core test:shard",
+    "test:cli:shard": "yarn workspace @illustry/cli test:shard",
+    "test:mcp:shard": "yarn workspace @illustry/mcp test:shard",
     "e2e": "yarn workspace @impulsivelabs/illustry-client e2e",
     "e2e:shard": "yarn workspace @impulsivelabs/illustry-client e2e:shard",
     "e2e:api": "yarn workspace @impulsivelabs/illustry-server e2e:api",
@@ -112,6 +116,7 @@
     "roots": [
       "backend/",
       "frontend/",
+      "packages/",
       "types/",
       "docs/"
     ],

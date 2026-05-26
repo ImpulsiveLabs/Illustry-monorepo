@@ -1,0 +1,40 @@
+{
+  "name": "@illustry/core",
+  "version": "0.1.0",
+  "description": "Reusable local-first Illustry SDK for API, file, import, export, and automation flows.",
+  "license": "Apache-2.0",
+  "author": "Vladimir Nitu",
+  "type": "commonjs",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "clean": "rm -rf ./dist",
+    "build:ts": "yarn clean && tsc -p tsconfig.json",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "lint:fix": "yarn lint",
+    "test": "../../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage",
+    "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
+  },
+  "dependencies": {
+    "@illustry/types": "workspace:*",
+    "docx": "9.6.1",
+    "echarts": "6.0.0",
+    "exceljs": "4.4.0",
+    "jszip": "3.10.1",
+    "pdf-lib": "1.17.1",
+    "pptxgenjs": "4.0.1",
+    "sharp": "0.33.5",
+    "xml2js": "0.6.2"
+  },
+  "devDependencies": {
+    "@types/jest": "29.5.12",
+    "@types/node": "20.10.2",
+    "@types/xml2js": "0.4.14",
+    "jest": "29.7.0",
+    "ts-jest": "29.1.1",
+    "typescript": "5.5.4"
+  }
+}

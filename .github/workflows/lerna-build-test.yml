@@ -138,6 +138,15 @@ jobs:
           - script: test:email:shard
             shard: 1
             total: 1
+          - script: test:core:shard
+            shard: 1
+            total: 1
+          - script: test:cli:shard
+            shard: 1
+            total: 1
+          - script: test:mcp:shard
+            shard: 1
+            total: 1
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

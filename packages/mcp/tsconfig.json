@@ -6,23 +6,20 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": ".",
     "declaration": true,
     "outDir": "./dist",
     "sourceMap": true,
+    "types": [
+      "jest",
+      "node"
+    ]
   },
   "include": [
-    "backend/**/src",
-    "docs/**/src",
-    "frontend/**/src",
-    "packages/**/src",
-    "types/**/src"
+    "src/**/*"
   ],
   "exclude": [
     "node_modules",
     "dist",
-    "**/__tests__",
-    "**/*.test.ts",
-    "**/*.spec.ts"
+    "__tests__/**/*"
   ]
 }

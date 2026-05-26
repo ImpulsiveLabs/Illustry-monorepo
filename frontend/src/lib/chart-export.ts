@@ -207,9 +207,7 @@ export const downloadOfficeAddinManifest = async () => {
 
 const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key, item) => {
   if (typeof item === 'function') {
-    return {
-      __illustryFunction: item.toString()
-    };
+    return undefined;
   }
 
   return item;
@@ -257,24 +255,13 @@ const buildWebComponentHtml = (payload: WebComponentPayload) => {
     script.onerror = () => reject(new Error('Unable to load ' + src));
     document.head.appendChild(script);
   });
-  const reviveFunction = (source) => {
-    try {
-      const trimmed = String(source || '').trim();
-      const normalized = /^[A-Za-z_$][\\w$]*\\s*\\(/.test(trimmed) && !trimmed.startsWith('function')
-        ? 'function ' + trimmed
-        : trimmed;
-      return Function('"use strict"; return (' + normalized + ');')();
-    } catch (_error) {
-      return undefined;
-    }
-  };
   const revive = (value) => {
     if (Array.isArray(value)) {
       return value.map(revive);
     }
     if (value && typeof value === 'object') {
       if (typeof value.__illustryFunction === 'string') {
-        return reviveFunction(value.__illustryFunction);
+        return undefined;
       }
       Object.keys(value).forEach((key) => {
         value[key] = revive(value[key]);

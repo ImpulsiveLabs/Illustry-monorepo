@@ -97,22 +97,10 @@ const escapeScriptJson = (value: string) => value
 
 const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key, item) => {
   if (typeof item === 'function') {
-    return { __illustryFunction: item.toString() };
+    return undefined;
   }
   return item;
 });
-
-const reviveFunction = (source: string) => {
-  try {
-    const trimmed = String(source || '').trim();
-    const normalized = /^[A-Za-z_$][\w$]*\s*\(/.test(trimmed) && !trimmed.startsWith('function')
-      ? `function ${trimmed}`
-      : trimmed;
-    return Function('"use strict"; return (' + normalized + ');')();
-  } catch {
-    return undefined;
-  }
-};
 
 const reviveExportOption = (value: unknown): unknown => {
   if (Array.isArray(value)) {
@@ -121,7 +109,7 @@ const reviveExportOption = (value: unknown): unknown => {
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>;
     if (typeof record.__illustryFunction === 'string') {
-      return reviveFunction(record.__illustryFunction);
+      return undefined;
     }
     return Object.fromEntries(
       Object.entries(record).map(([key, item]) => [key, reviveExportOption(item)])
@@ -314,21 +302,10 @@ const buildWebComponentHtml = (
   class IllustryElement extends HTMLElement {
     connectedCallback() { void this.render(); }
     disconnectedCallback() { this.resizeObserver?.disconnect(); this.charts?.forEach((chart) => chart.dispose()); }
-    reviveFunction(source) {
-      try {
-        const trimmed = String(source || '').trim();
-        const normalized = /^[A-Za-z_$][\\w$]*\\s*\\(/.test(trimmed) && !trimmed.startsWith('function')
-          ? 'function ' + trimmed
-          : trimmed;
-        return Function('"use strict"; return (' + normalized + ');')();
-      } catch (_error) {
-        return undefined;
-      }
-    }
     revive(value) {
       if (Array.isArray(value)) return value.map((item) => this.revive(item));
       if (value && typeof value === 'object') {
-        if (typeof value.__illustryFunction === 'string') return this.reviveFunction(value.__illustryFunction);
+        if (typeof value.__illustryFunction === 'string') return undefined;
         Object.keys(value).forEach((key) => { value[key] = this.revive(value[key]); });
       }
       return value;
