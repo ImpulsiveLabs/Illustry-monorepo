@@ -1,4 +1,10 @@
-import { APIRequestContext, APIResponse, expect, test } from './fixtures';
+import {
+  APIRequestContext,
+  APIResponse,
+  Page,
+  expect,
+  test
+} from './fixtures';
 
 const BACKEND_BASE_URL = process.env.BACKEND_E2E_URL || `http://127.0.0.1:${process.env.E2E_BACKEND_PORT || '7011'}`;
 
@@ -75,6 +81,13 @@ const deleteProjectSilently = async (api: APIRequestContext, projectName: string
   await withApiRetry(() => api.delete('/api/project', { data: { name: projectName } }));
 };
 
+const confirmDeleteDialog = async (page: Page) => {
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Delete' }).click();
+  await expect(dialog).toBeHidden();
+};
+
 test.describe('frontend additional main flows', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -113,6 +126,7 @@ test.describe('frontend additional main flows', () => {
       await expect(page.locator('tbody tr', { hasText: projectsToDelete[0] as string })).toBeVisible({ timeout: 10000 });
       await page.getByRole('checkbox', { name: 'Select all' }).click();
       await page.getByRole('button', { name: 'Delete selected rows' }).click();
+      await confirmDeleteDialog(page);
 
       for (const projectName of projectsToDelete) {
         await expect(page.locator('tbody tr', { hasText: projectName })).toHaveCount(0);
@@ -125,7 +139,7 @@ test.describe('frontend additional main flows', () => {
     }
   });
 
-  test('visualization upload flow shows validation toast when no file is selected', async ({ page, playwright }) => {
+  test('visualization upload flow disables create until a file is selected', async ({ page, playwright }) => {
     const suffix = `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
     const activeProjectName = `pw-ui-upload-validation-active-${suffix}`;
     const api = await playwright.request.newContext({ baseURL: BACKEND_BASE_URL });
@@ -136,10 +150,9 @@ test.describe('frontend additional main flows', () => {
       await page.goto('/projects');
       await page.goto('/visualizations/new');
       await page.getByRole('tab', { name: 'Mapping' }).click();
-      await page.getByRole('button', { name: 'Add Visualizations' }).click();
 
-      await expect(page.getByText('No files selected.')).toBeVisible({ timeout: 10000 });
-      await expect(page).toHaveURL(/\/visualizations\/new$/);
+      await expect(page.getByRole('button', { name: 'Create visualization' })).toBeDisabled();
+      await expect(page).toHaveURL(/\/visualizations\?modal=new(&page=1)?$/);
     } finally {
       await deleteProjectSilently(api, activeProjectName);
       await api.dispose();

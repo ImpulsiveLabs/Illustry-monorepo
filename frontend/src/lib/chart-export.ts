@@ -207,7 +207,7 @@ export const downloadOfficeAddinManifest = async () => {
 
 const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key, item) => {
   if (typeof item === 'function') {
-    return undefined;
+    return { __illustryFunction: item.toString() };
   }
 
   return item;

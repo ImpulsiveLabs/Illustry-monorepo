@@ -136,16 +136,16 @@ const openRowActions = async (row: Locator) => {
   await trigger.click();
 };
 
-const clickMenuLinkByHref = async (page: Page, href: string) => {
-  const menuLink = page.locator(`[role="menu"] a[href="${href}"]`).first();
-  await expect(menuLink).toBeVisible();
-  await menuLink.evaluate((element: HTMLAnchorElement) => element.click());
-};
-
 const clickMenuItem = async (page: Page, label: string) => {
   const menuItem = page.getByRole('menuitem', { name: label }).first();
   await expect(menuItem).toBeVisible();
   await menuItem.click({ force: true });
+};
+
+const clickMenuLink = async (page: Page, label: string) => {
+  const menuItem = page.getByRole('menuitem', { name: label }).first();
+  await expect(menuItem).toBeVisible();
+  await menuItem.evaluate((element: HTMLElement) => element.click());
 };
 
 test.describe('frontend page functionality e2e', () => {
@@ -177,21 +177,22 @@ test.describe('frontend page functionality e2e', () => {
       await expect(dashboardRow).toBeVisible({ timeout: 15000 });
 
       await openRowActions(dashboardRow);
-      await clickMenuLinkByHref(page, `/dashboardhub?name=${dashboardName}`);
+      await clickMenuLink(page, 'View');
       await expect(page).toHaveURL(new RegExp(`/dashboardhub\\?name=${dashboardName}$`));
 
       await page.goto(`/dashboards?text=${encodeURIComponent(dashboardName)}&page=1`);
       const dashboardRowToEdit = page.locator('tbody tr', { hasText: dashboardName }).first();
+      await expect(dashboardRowToEdit).toBeVisible({ timeout: 15000 });
       await openRowActions(dashboardRowToEdit);
-      await clickMenuLinkByHref(page, `/dashboards/${dashboardName}`);
-      await expect(page).toHaveURL(new RegExp(`/dashboards/${dashboardName}$`));
+      await clickMenuLink(page, 'Edit');
+      await expect(page).toHaveURL(new RegExp(`/dashboards\\?edit=${dashboardName}$`));
 
       await page.goto(`/visualizations?text=${encodeURIComponent(visualizationName)}&page=1`);
       const visualizationRow = page.locator('tbody tr', { hasText: visualizationName }).first();
       await expect(visualizationRow).toBeVisible();
 
       await openRowActions(visualizationRow);
-      await clickMenuLinkByHref(page, `/visualizationhub?name=${visualizationName}&type=sankey`);
+      await clickMenuLink(page, 'View');
       await expect(page).toHaveURL(new RegExp(`/visualizationhub\\?name=${visualizationName}&type=sankey$`));
 
       await page.goto(`/projects?text=${encodeURIComponent(projectName)}&page=1`);
@@ -199,8 +200,8 @@ test.describe('frontend page functionality e2e', () => {
       await expect(projectRow).toBeVisible({ timeout: 15000 });
 
       await openRowActions(projectRow);
-      await clickMenuLinkByHref(page, `/projects/${projectName}`);
-      await expect(page).toHaveURL(new RegExp(`/projects/${projectName}$`));
+      await clickMenuLink(page, 'Edit');
+      await expect(page).toHaveURL(new RegExp(`/projects\\?edit=${projectName}$`));
     } finally {
       await deleteDashboardSilently(api, dashboardName);
       await deleteVisualizationSilently(api, visualizationName);
