@@ -83,6 +83,12 @@ Package publishing is automated by `.github/workflows/publish-packages.yml`:
 - Automatic push releases use the `ILLUSTRY_AUTO_REGISTRY` repository variable when set, otherwise `npm`.
 - `scripts/release-packages.mjs` updates package versions, updates internal `@illustry/*` dependency ranges, and can commit those package/lockfile changes after validation.
 - Publish steps check each exact package version first and skip versions that already exist, which keeps first-time partial publishes from failing on already-published dependencies.
+- GitHub Packages publishes GitHub-owned package names under `@impulsivelabs/*`:
+  - `@impulsivelabs/illustry-types`
+  - `@impulsivelabs/illustry-core`
+  - `@impulsivelabs/illustry-cli`
+  - `@impulsivelabs/illustry-mcp`
+  Runtime imports still resolve through npm package aliases, so the source package names can remain `@illustry/*`.
 
 Required repository secrets:
 
@@ -105,6 +111,14 @@ NPM_TOKEN=npm_xxx scripts/configure-npm-publish-secret.sh --run-publish
 ```
 
 The helper validates the token with npm, writes it to the GitHub `NPM_TOKEN` secret, and can trigger the first publish workflow.
+
+To install from GitHub Packages:
+
+```bash
+printf "@impulsivelabs:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN\n" >> ~/.npmrc
+npm install -g @impulsivelabs/illustry-cli
+npm install -g @impulsivelabs/illustry-mcp
+```
 
 For Docker Compose, the CLI and MCP are available under the `tools` profile:
 
