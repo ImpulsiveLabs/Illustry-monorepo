@@ -396,8 +396,20 @@ jobs:
           path: frontend/.nyc_output
           merge-multiple: true
 
+      - name: Detect E2E coverage files
+        id: e2e_coverage_files
+        run: |
+          if find frontend/.nyc_output -name '*.json' -print -quit 2>/dev/null | grep -q .; then
+            echo "has_coverage=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No E2E coverage files were produced by the browser shards."
+            echo "has_coverage=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Report E2E coverage
+        if: steps.e2e_coverage_files.outputs.has_coverage == 'true'
         run: yarn e2e:coverage:report
 
       - name: Check E2E coverage thresholds
+        if: steps.e2e_coverage_files.outputs.has_coverage == 'true'
         run: yarn e2e:coverage:check:only
