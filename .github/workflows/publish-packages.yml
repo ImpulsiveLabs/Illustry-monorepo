@@ -104,6 +104,10 @@ jobs:
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
+      - name: Build shared types
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: yarn workspace @illustry/types build:ts
+
       - name: Lint publish packages
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: |
