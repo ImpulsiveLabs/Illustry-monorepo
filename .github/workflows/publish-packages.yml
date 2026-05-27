@@ -108,10 +108,17 @@ jobs:
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: yarn workspace @illustry/types build:ts
 
-      - name: Lint publish packages
+      - name: Lint core package
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: yarn workspace @illustry/core lint
+
+      - name: Build shared core
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: yarn workspace @illustry/core build:ts
+
+      - name: Lint frontend packages
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: |
-          yarn workspace @illustry/core lint
           yarn workspace @illustry/cli lint
           yarn workspace @illustry/mcp lint
 
