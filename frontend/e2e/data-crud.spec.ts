@@ -216,6 +216,7 @@ test.describe('frontend data CRUD e2e', () => {
       await row.getByRole('checkbox', { name: 'Select row' }).click();
 
       await page.getByRole('button', { name: 'Delete selected rows' }).click();
+      await confirmDeleteDialog(page);
       await expect(page.locator('tbody tr', { hasText: visualizationName })).toHaveCount(0);
     } finally {
       await deleteVisualizationSilently(api, visualizationName);
@@ -269,6 +270,7 @@ test.describe('frontend data CRUD e2e', () => {
       await expect(rowToDelete).toBeVisible();
       await rowToDelete.getByRole('checkbox', { name: 'Select row' }).click();
       await page.getByRole('button', { name: 'Delete selected rows' }).click();
+      await confirmDeleteDialog(page);
 
       await expect(page.locator('tbody tr', { hasText: dashboardName })).toHaveCount(0);
     } finally {
