@@ -93,6 +93,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable
 
+      - name: Build shared types
+        run: yarn workspace @illustry/types build:ts
+
       - name: Run backend unit shard
         run: yarn test:backend:shard
         env:
@@ -118,6 +121,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Build shared types
+        run: yarn workspace @illustry/types build:ts
 
       - name: Run frontend unit shard
         run: yarn test:frontend:shard
@@ -159,6 +165,11 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Build shared packages
+        run: |
+          yarn workspace @illustry/types build:ts
+          yarn workspace @illustry/core build:ts
 
       - name: Run support package tests
         run: yarn ${{ matrix.package.script }}
@@ -214,6 +225,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Build shared types
+        run: yarn workspace @illustry/types build:ts
 
       - name: Run API E2E
         run: yarn e2e:api:shard
@@ -273,6 +287,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Build shared types
+        run: yarn workspace @illustry/types build:ts
 
       - name: Install Playwright browsers
         run: yarn workspace @impulsivelabs/illustry-client playwright install --with-deps chromium
@@ -335,6 +352,9 @@ jobs:
 
       - name: Install dependencies
         run: yarn install --immutable
+
+      - name: Build shared types
+        run: yarn workspace @illustry/types build:ts
 
       - name: Install Playwright browsers
         run: yarn workspace @impulsivelabs/illustry-client playwright install --with-deps chromium
