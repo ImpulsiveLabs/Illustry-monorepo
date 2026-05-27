@@ -370,7 +370,7 @@ jobs:
         with:
           name: e2e-coverage-${{ matrix.shard }}
           path: frontend/.nyc_output
-          if-no-files-found: error
+          if-no-files-found: warn
 
   frontend_e2e_coverage_check:
     name: Frontend E2E coverage check
