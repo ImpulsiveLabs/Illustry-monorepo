@@ -443,6 +443,160 @@ describe('email service', () => {
     await close();
   });
 
+  it('sends share invitation and revocation emails with sanitized content', async () => {
+    const { baseUrl, close } = await startServer();
+
+    sendMailMock
+      .mockResolvedValueOnce({ accepted: ['collaborator@example.com'] })
+      .mockResolvedValueOnce({ accepted: ['viewer@example.com'] });
+
+    const invitationResponse = await fetch(`${baseUrl}/api/email/send-share-invitation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'collaborator@example.com',
+        ownerName: 'Ada <script>alert(1)</script>',
+        resourceType: 'dashboard',
+        resourceName: 'Quarterly <Board>',
+        permission: 'editor',
+        inviteUrl: 'https://custom.test/invite?token=%3Ctoken%3E',
+        expiresAt: '2026-06-01T12:00:00.000Z'
+      })
+    });
+
+    expect(invitationResponse.status).toBe(200);
+    expect(sendMailMock).toHaveBeenNthCalledWith(1, expect.objectContaining({
+      from: 'no-reply@test.local',
+      to: 'collaborator@example.com',
+      subject: 'Ada <script>alert(1)</script> invited you to Quarterly <Board>'
+    }));
+    expect(sendMailMock.mock.calls[0][0].text).toContain(
+      'Illustry dashboard "Quarterly <Board>" as editor'
+    );
+    expect(sendMailMock.mock.calls[0][0].html).toContain('Review invitation');
+    expect(sendMailMock.mock.calls[0][0].html).not.toContain('<script>');
+    expect(sendMailMock.mock.calls[0][0].html).toContain('Quarterly &lt;Board&gt;');
+
+    const revocationResponse = await fetch(`${baseUrl}/api/email/send-share-revocation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'viewer@example.com',
+        ownerName: 'Grace Hopper',
+        resourceType: 'visualization',
+        resourceName: 'Release Forecast'
+      })
+    });
+
+    expect(revocationResponse.status).toBe(200);
+    expect(sendMailMock).toHaveBeenNthCalledWith(2, expect.objectContaining({
+      to: 'viewer@example.com',
+      subject: 'Access removed for Release Forecast'
+    }));
+    expect(sendMailMock.mock.calls[1][0].text).toContain(
+      'removed your access to the Illustry visualization "Release Forecast"'
+    );
+    expect(sendMailMock.mock.calls[1][0].html).toContain(
+      'removed your access to the Illustry visualization'
+    );
+
+    await close();
+  });
+
+  it('validates and reports provider failures for share emails', async () => {
+    const { baseUrl, close } = await startServer();
+
+    sendMailMock
+      .mockRejectedValueOnce(new Error('smtp failed'))
+      .mockRejectedValueOnce(new Error('smtp failed'));
+
+    const invalidInvitation = await fetch(`${baseUrl}/api/email/send-share-invitation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'bad-email',
+        ownerName: '',
+        resourceType: 'dashboard',
+        resourceName: 'Quarterly Board',
+        permission: 'owner',
+        inviteUrl: 'not-a-url',
+        expiresAt: ''
+      })
+    });
+    expect(invalidInvitation.status).toBe(400);
+    await expect(invalidInvitation.json()).resolves.toEqual({
+      error: 'Invalid share invitation email payload'
+    });
+
+    const failedInvitation = await fetch(`${baseUrl}/api/email/send-share-invitation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'collaborator@example.com',
+        ownerName: 'Ada Lovelace',
+        resourceType: 'visualization',
+        resourceName: 'Quarterly Board',
+        permission: 'viewer',
+        inviteUrl: 'https://custom.test/invite',
+        expiresAt: '2026-06-01T12:00:00.000Z'
+      })
+    });
+    expect(failedInvitation.status).toBe(500);
+    await expect(failedInvitation.json()).resolves.toEqual({
+      error: 'Failed to send share invitation email'
+    });
+
+    const invalidRevocation = await fetch(`${baseUrl}/api/email/send-share-revocation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'bad-email',
+        ownerName: '',
+        resourceType: 'workspace',
+        resourceName: ''
+      })
+    });
+    expect(invalidRevocation.status).toBe(400);
+    await expect(invalidRevocation.json()).resolves.toEqual({
+      error: 'Invalid share revocation email payload'
+    });
+
+    const failedRevocation = await fetch(`${baseUrl}/api/email/send-share-revocation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'viewer@example.com',
+        ownerName: 'Grace Hopper',
+        resourceType: 'dashboard',
+        resourceName: 'Release Forecast'
+      })
+    });
+    expect(failedRevocation.status).toBe(500);
+    await expect(failedRevocation.json()).resolves.toEqual({
+      error: 'Failed to send share revocation email'
+    });
+
+    await close();
+  });
+
   it('uses fallback environment defaults and can boot explicitly', async () => {
     delete process.env.EMAIL_SERVICE_PORT;
     delete process.env.AUTH_APP_BASE_URL;
@@ -517,7 +671,76 @@ describe('email service', () => {
     await expect(resetResponse.json()).resolves.toEqual({
       error: expectedSmtpError
     });
+
+    const invitationResponse = await fetch(`${baseUrl}/api/email/send-share-invitation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'fallback@example.com',
+        ownerName: 'Ada Lovelace',
+        resourceType: 'dashboard',
+        resourceName: 'Quarterly Board',
+        permission: 'viewer',
+        inviteUrl: 'https://custom.test/invite',
+        expiresAt: '2026-06-01T12:00:00.000Z'
+      })
+    });
+    expect(invitationResponse.status).toBe(500);
+    await expect(invitationResponse.json()).resolves.toEqual({
+      error: expectedSmtpError
+    });
+
+    const revocationResponse = await fetch(`${baseUrl}/api/email/send-share-revocation`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'fallback@example.com',
+        ownerName: 'Ada Lovelace',
+        resourceType: 'visualization',
+        resourceName: 'Quarterly Board'
+      })
+    });
+    expect(revocationResponse.status).toBe(500);
+    await expect(revocationResponse.json()).resolves.toEqual({
+      error: expectedSmtpError
+    });
     expect(sendMailMock).not.toHaveBeenCalled();
+
+    await new Promise<void>((resolve) => server.close(() => resolve()));
+  });
+
+  it('reports an unavailable transporter when smtp creation fails unexpectedly', async () => {
+    jest.resetModules();
+    sendMailMock.mockReset();
+    createTransportMock.mockReset();
+    createTransportMock.mockReturnValueOnce(null);
+    const module = await import('../src/index');
+    const server = module.app.listen(0, '127.0.0.1') as unknown as Server;
+    await waitForListening(server);
+    const baseUrl = module.getServiceUrl(server);
+
+    const response = await fetch(`${baseUrl}/api/email/send-verification`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-email-service-key': 'service-key'
+      },
+      body: JSON.stringify({
+        to: 'user@example.com',
+        verificationCode: '123456'
+      })
+    });
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toEqual({
+      error: 'Failed to send verification email'
+    });
 
     await new Promise<void>((resolve) => server.close(() => resolve()));
   });

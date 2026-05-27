@@ -89,6 +89,47 @@ describe('types package runtime exports', () => {
     expect(Types.ThemeTypes.resolveThemeTableConfig(theme, 'projects').cellForeground).toBe('#f8f8f8');
     expect(Types.ThemeTypes.APP_THEME_PAGES.some((page) => page.id === 'themes')).toBe(true);
   });
+
+  it('normalizes documented theme edge cases without leaking malformed input', () => {
+    const defaultTheme = Types.ThemeTypes.normalizeAppThemeConfig();
+    expect(defaultTheme.presetId).toBe('default');
+
+    const theme = Types.ThemeTypes.normalizeAppThemeConfig({
+      presetId: '   ',
+      updatedAt: 'x'.repeat(300),
+      visualizations: {
+        sankey: {
+          light: { colors: 'not-array' },
+          dark: { colors: ['', '#222222'] }
+        }
+      },
+      modes: {
+        dark: {
+          global: {
+            background: '#010101'
+          }
+        }
+      },
+      extensions: {
+        customPanel: { enabled: true }
+      }
+    });
+
+    expect(theme.presetId).toBe('default');
+    expect(theme.updatedAt).toBe('1970-01-01T00:00:00.000Z');
+    expect(theme.visualizations.sankey.light.colors.length).toBeGreaterThan(0);
+    expect(theme.visualizations.sankey.dark.colors).toEqual(['#222222']);
+    expect(theme.extensions).toEqual({ customPanel: { enabled: true } });
+    expect(Types.ThemeTypes.resolveThemeVisualConfig(theme, 'light').global.background).toBe('#ffffff');
+    expect(Types.ThemeTypes.resolveThemeVisualConfig(theme, 'dark').global.background).toBe('#010101');
+
+    const noLegacy = Types.ThemeTypes.normalizeAppThemeConfig({ global: { foreground: '#222222' } });
+    expect(noLegacy.visualizations.sankey.light.colors.length).toBeGreaterThan(0);
+    expect(Types.ThemeTypes.resolveThemePageConfig(noLegacy, 'dashboards').background).toBe('#ffffff');
+    expect(Types.ThemeTypes.resolveThemePageConfig(noLegacy, 'missing' as Types.ThemeTypes.ThemePageId).background).toBe('#ffffff');
+    expect(Types.ThemeTypes.resolveThemePageConfig(noLegacy, 'dashboards', 'toolbar').foreground).toBe('#222222');
+    expect(Types.ThemeTypes.resolveThemeTableConfig(noLegacy).background).toBe('#ffffff');
+  });
 });
 
 describe('validator schemas', () => {

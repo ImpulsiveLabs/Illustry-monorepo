@@ -112,6 +112,23 @@ describe('@illustry/mcp', () => {
     expect(framer.push(encoded.subarray(0, 5))).toHaveLength(0);
     expect(framer.push(encoded.subarray(5))).toHaveLength(1);
     expect(() => framer.push(Buffer.from('Broken: 1\r\n\r\n{}'))).toThrow('Content-Length');
+
+    const optionalFieldsFramer = new McpStdioFramer();
+    expect(optionalFieldsFramer.push(Buffer.from('Content-Length: 100\r\n\r\n{"jsonrpc":"2.0"'))).toEqual([]);
+    expect(new McpStdioFramer().push(encodeMcpMessage({
+      jsonrpc: '2.0',
+      id: null,
+      method: 'tools/list',
+      params: undefined
+    }))).toHaveLength(1);
+    expect(new McpStdioFramer().push(encodeMcpMessage({
+      jsonrpc: '2.0',
+      method: 'tools/list',
+      params: 'ignored' as never
+    }))[0]).toMatchObject({
+      id: undefined,
+      params: undefined
+    });
   });
 
   it('covers local status, local list, local export, and direct text tool results', async () => {
@@ -787,6 +804,74 @@ describe('@illustry/mcp', () => {
     expect(malformedToolCall?.error?.data).toMatchObject({ code: 'ILLUSTRY_MCP_UNKNOWN_TOOL' });
   });
 
+  it('covers MCP normalization aliases and optional protocol fields', async () => {
+    await expect(callTool({ name: 'illustry_status' }))
+      .resolves.toMatchObject({ content: [{ type: 'text' }] });
+
+    global.fetch = async (input, init) => {
+      const url = new URL(input.toString());
+      return new Response(JSON.stringify({
+        ok: true,
+        route: url.pathname,
+        method: init?.method
+      }), { headers: { 'content-type': 'application/json' } });
+    };
+
+    await expect(callTool({
+      name: 'illustry_list_assets',
+      arguments: { server: 'http://illustry.local' }
+    })).resolves.toMatchObject({ content: [{ type: 'text' }] });
+
+    await expect(handleMcpRequest({
+      jsonrpc: '2.0',
+      method: 'tools/call',
+      params: {
+        name: 123,
+        arguments: []
+      } as never
+    })).resolves.toMatchObject({
+      id: undefined,
+      error: { code: -32602 }
+    });
+
+    const source = path.join(tempDir, 'aliases.csv');
+    await fs.writeFile(source, 'name,value\nA,1\n', 'utf8');
+    await handleMcpRequest({
+      jsonrpc: '2.0',
+      id: null,
+      method: 'tools/call',
+      params: {
+        name: 'illustry_import_visualization',
+        arguments: { workspace: tempDir, filePath: source, name: 'Alias Chart' }
+      }
+    });
+
+    for (const [resource, route] of [
+      ['project', '/api/project'],
+      ['dashboard', '/api/dashboard'],
+      ['visualization', '/api/visualization']
+    ]) {
+      const response = await callTool({
+        name: 'illustry_delete_resource',
+        arguments: {
+          server: 'http://illustry.local',
+          resource,
+          name: 'Alias Resource'
+        }
+      });
+      expect(JSON.stringify(response)).toContain(route);
+    }
+
+    const exported = await callTool({
+      name: 'illustry_export_asset',
+      arguments: {
+        workspace: tempDir,
+        asset: 'Alias Chart'
+      }
+    });
+    expect(JSON.stringify(exported)).toContain('Alias-Chart.json');
+  }, 30000);
+
   it('runs the stdio server with injectable streams and writes protocol and parse errors', async () => {
     const input = new EventEmitter() as NodeJS.ReadableStream;
     const outputChunks: Buffer[] = [];
@@ -817,6 +902,12 @@ describe('@illustry/mcp', () => {
     input.emit('data', Buffer.from('Content-Length: 2\r\n\r\n{}'));
     await new Promise((resolve) => setImmediate(resolve));
     expect(errorChunks.join('')).toContain('Invalid MCP JSON-RPC request');
+    stop();
+  });
+
+  it('can attach and detach the stdio server using default streams', () => {
+    const stop = startMcpStdioServer();
+    expect(typeof stop).toBe('function');
     stop();
   });
 });
