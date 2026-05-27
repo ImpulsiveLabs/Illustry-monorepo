@@ -1,0 +1,201 @@
+name: Publish Illustry Packages
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - types/**
+      - packages/core/**
+      - packages/cli/**
+      - packages/mcp/**
+      - package.json
+      - yarn.lock
+      - scripts/release-packages.mjs
+      - .github/workflows/publish-packages.yml
+  workflow_dispatch:
+    inputs:
+      registry:
+        description: Registry target
+        required: true
+        default: npm
+        type: choice
+        options:
+          - npm
+          - github
+          - both
+      package:
+        description: Package set to release
+        required: true
+        default: all
+        type: choice
+        options:
+          - types
+          - core
+          - cli
+          - mcp
+          - all
+      version_bump:
+        description: Version bump
+        required: true
+        default: minor
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+          - none
+      dry_run:
+        description: Run npm publish with --dry-run
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+  packages: write
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  publish:
+    name: Release Illustry packages
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js for install
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: yarn
+
+      - name: Prepare release
+        id: release
+        shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          MANUAL_PACKAGE: ${{ inputs.package }}
+          MANUAL_BUMP: ${{ inputs.version_bump }}
+          BEFORE_SHA: ${{ github.event.before }}
+          AFTER_SHA: ${{ github.sha }}
+        run: |
+          package_set="${MANUAL_PACKAGE:-auto}"
+          version_bump="${MANUAL_BUMP:-minor}"
+          node scripts/release-packages.mjs \
+            --event "${EVENT_NAME}" \
+            --package "${package_set}" \
+            --bump "${version_bump}" \
+            --before "${BEFORE_SHA}" \
+            --after "${AFTER_SHA}"
+
+      - name: Show release plan
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: |
+          echo "Packages: ${{ steps.release.outputs.package_names }}"
+          echo "Versions: ${{ steps.release.outputs.versions }}"
+
+      - name: Install dependencies
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+
+      - name: Lint publish packages
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: |
+          yarn workspace @illustry/core lint
+          yarn workspace @illustry/cli lint
+          yarn workspace @illustry/mcp lint
+
+      - name: Test publish packages
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: |
+          yarn workspace @illustry/core test --runInBand
+          yarn workspace @illustry/cli test --runInBand
+          yarn workspace @illustry/mcp test --runInBand
+
+      - name: Build publish packages
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: |
+          yarn workspace @illustry/types build:ts
+          yarn workspace @illustry/core build:ts
+          yarn workspace @illustry/cli build:ts
+          yarn workspace @illustry/mcp build:ts
+
+      - name: Commit version bump
+        if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
+        run: |
+          node scripts/release-packages.mjs \
+            --commit-only \
+            --push \
+            --commit-message "chore(release): bump Illustry packages [skip ci]"
+
+      - name: Resolve publish target
+        id: publish_target
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        shell: bash
+        env:
+          MANUAL_REGISTRY: ${{ inputs.registry }}
+          MANUAL_DRY_RUN: ${{ inputs.dry_run }}
+          AUTO_REGISTRY: ${{ vars.ILLUSTRY_AUTO_REGISTRY }}
+        run: |
+          registry="${MANUAL_REGISTRY:-${AUTO_REGISTRY:-npm}}"
+          dry_run="${MANUAL_DRY_RUN:-false}"
+          echo "registry=${registry}" >> "$GITHUB_OUTPUT"
+          echo "dry_run=${dry_run}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to npm
+        if: ${{ steps.release.outputs.has_changes == 'true' && (steps.publish_target.outputs.registry == 'npm' || steps.publish_target.outputs.registry == 'both') }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          DRY_RUN: ${{ steps.publish_target.outputs.dry_run }}
+          PACKAGES: ${{ steps.release.outputs.package_dirs }}
+        shell: bash
+        run: |
+          if [ -z "${NODE_AUTH_TOKEN}" ]; then
+            echo "NPM_TOKEN secret is required to publish to npm."
+            exit 1
+          fi
+          printf "//registry.npmjs.org/:_authToken=%s\n" "${NODE_AUTH_TOKEN}" > ~/.npmrc
+          for package_dir in ${PACKAGES}; do
+            package_name="$(node -p "require('./${package_dir}/package.json').name")"
+            package_version="$(node -p "require('./${package_dir}/package.json').version")"
+            if npm view "${package_name}@${package_version}" version >/dev/null 2>&1; then
+              echo "Skipping ${package_name}@${package_version}; it already exists on npm."
+              continue
+            fi
+            echo "Publishing ${package_name}@${package_version} to npm"
+            if [ "${DRY_RUN}" = "true" ]; then
+              npm publish "./${package_dir}" --access public --dry-run
+            else
+              npm publish "./${package_dir}" --access public
+            fi
+          done
+
+      - name: Publish to GitHub Packages
+        if: ${{ steps.release.outputs.has_changes == 'true' && (steps.publish_target.outputs.registry == 'github' || steps.publish_target.outputs.registry == 'both') }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ steps.publish_target.outputs.dry_run }}
+          PACKAGES: ${{ steps.release.outputs.package_dirs }}
+        shell: bash
+        run: |
+          printf "@illustry:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "${NODE_AUTH_TOKEN}" > ~/.npmrc
+          for package_dir in ${PACKAGES}; do
+            package_name="$(node -p "require('./${package_dir}/package.json').name")"
+            package_version="$(node -p "require('./${package_dir}/package.json').version")"
+            if npm view "${package_name}@${package_version}" version --registry https://npm.pkg.github.com >/dev/null 2>&1; then
+              echo "Skipping ${package_name}@${package_version}; it already exists on GitHub Packages."
+              continue
+            fi
+            echo "Publishing ${package_name}@${package_version} to GitHub Packages"
+            if [ "${DRY_RUN}" = "true" ]; then
+              npm publish "./${package_dir}" --registry https://npm.pkg.github.com --dry-run
+            else
+              npm publish "./${package_dir}" --registry https://npm.pkg.github.com
+            fi
+          done

@@ -1744,10 +1744,13 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@illustry/cli@workspace:packages/cli"
   dependencies:
-    "@illustry/core": "workspace:*"
+    "@illustry/core": "npm:^0.1.0"
     "@types/jest": "npm:29.5.12"
     "@types/node": "npm:20.10.2"
+    commander: "npm:11.1.0"
+    exceljs: "npm:4.4.0"
     jest: "npm:29.7.0"
+    jszip: "npm:3.10.1"
     ts-jest: "npm:29.1.1"
     typescript: "npm:5.5.4"
   bin:
@@ -1755,11 +1758,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@illustry/core@workspace:*, @illustry/core@workspace:packages/core":
+"@illustry/core@npm:^0.1.0, @illustry/core@workspace:packages/core":
   version: 0.0.0-use.local
   resolution: "@illustry/core@workspace:packages/core"
   dependencies:
-    "@illustry/types": "workspace:*"
+    "@illustry/types": "npm:^1.0.1"
     "@types/jest": "npm:29.5.12"
     "@types/node": "npm:20.10.2"
     "@types/xml2js": "npm:0.4.14"
@@ -1781,7 +1784,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@illustry/mcp@workspace:packages/mcp"
   dependencies:
-    "@illustry/core": "workspace:*"
+    "@illustry/core": "npm:^0.1.0"
     "@types/jest": "npm:29.5.12"
     "@types/node": "npm:20.10.2"
     jest: "npm:29.7.0"
@@ -1792,7 +1795,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@illustry/types@npm:1.0.1, @illustry/types@workspace:*, @illustry/types@workspace:types":
+"@illustry/types@npm:1.0.1, @illustry/types@npm:^1.0.1, @illustry/types@workspace:types":
   version: 0.0.0-use.local
   resolution: "@illustry/types@workspace:types"
   dependencies:
@@ -7616,17 +7619,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"commander@npm:11.1.0, commander@npm:^11.1.0":
+  version: 11.1.0
+  resolution: "commander@npm:11.1.0"
+  checksum: 10/66bd2d8a0547f6cb1d34022efb25f348e433b0e04ad76a65279b1b09da108f59a4d3001ca539c60a7a46ea38bcf399fc17d91adad76a8cf43845d8dcbaf5cda1
+  languageName: node
+  linkType: hard
+
 "commander@npm:^10.0.1":
   version: 10.0.1
   resolution: "commander@npm:10.0.1"
   checksum: 10/8799faa84a30da985802e661cc9856adfaee324d4b138413013ef7f087e8d7924b144c30a1f1405475f0909f467665cd9e1ce13270a2f41b141dab0b7a58f3fb
-  languageName: node
-  linkType: hard
-
-"commander@npm:^11.1.0":
-  version: 11.1.0
-  resolution: "commander@npm:11.1.0"
-  checksum: 10/66bd2d8a0547f6cb1d34022efb25f348e433b0e04ad76a65279b1b09da108f59a4d3001ca539c60a7a46ea38bcf399fc17d91adad76a8cf43845d8dcbaf5cda1
   languageName: node
   linkType: hard
 

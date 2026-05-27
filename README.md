@@ -26,6 +26,113 @@ Docker Compose also starts Redis for WebSocket pub/sub:
 docker compose up --build
 ```
 
+To use a local MongoDB container instead of Atlas for development:
+
+```bash
+docker compose --profile local-mongo up --build
+```
+
+## CLI And MCP Automation
+
+Illustry ships two automation frontends:
+
+- `@illustry/cli`: a terminal frontend with offline/local mode, live/server mode, auth/session persistence, keyboard-driven interactive menus, imports, exports, listing, deletes, and JSON output for CI.
+- `@illustry/mcp`: a Model Context Protocol stdio server exposing the same local/live workflows to agents.
+
+Both packages use shared import/export/API logic from `@illustry/core`.
+
+Full docs:
+
+- [`packages/cli/README.md`](packages/cli/README.md)
+- [`packages/mcp/README.md`](packages/mcp/README.md)
+
+CLI examples:
+
+```bash
+yarn workspace @illustry/cli build:ts
+node packages/cli/dist/index.js shell
+node packages/cli/dist/index.js status
+node packages/cli/dist/index.js import ./examples/data.csv --name Sales --workspace .illustry
+node packages/cli/dist/index.js export --asset Sales --format svg,png,excel --out exports --workspace .illustry
+node packages/cli/dist/index.js connect --server http://localhost:7001
+node packages/cli/dist/index.js login --email you@example.com --password secret
+node packages/cli/dist/index.js list visualizations --json
+```
+
+MCP example:
+
+```bash
+yarn workspace @illustry/mcp build:ts
+node packages/mcp/dist/index.js
+```
+
+For npm publishing, publish the shared packages first:
+
+1. `@illustry/types`
+2. `@illustry/core`
+3. `@illustry/cli` and/or `@illustry/mcp`
+
+The publish-facing package metadata uses normal semver dependencies instead of `workspace:*`, so consumers can install the CLI/MCP from npm after those packages are published.
+
+Package publishing is automated by `.github/workflows/publish-packages.yml`:
+
+- Pushes to `main` that touch `types`, `packages/core`, `packages/cli`, or `packages/mcp` automatically create a `minor` release for the changed package set and publish it.
+- If `@illustry/types` changes, the workflow also releases `@illustry/core`, `@illustry/cli`, and `@illustry/mcp` so semver dependencies stay aligned.
+- If `@illustry/core` changes, the workflow also releases `@illustry/cli` and `@illustry/mcp`.
+- Manual runs let you choose the package set, registry (`npm`, GitHub Packages, or both), version bump (`patch`, `minor`, `major`, or `none`), and dry-run mode.
+- Automatic push releases use the `ILLUSTRY_AUTO_REGISTRY` repository variable when set, otherwise `npm`.
+- `scripts/release-packages.mjs` updates package versions, updates internal `@illustry/*` dependency ranges, and can commit those package/lockfile changes after validation.
+- Publish steps check each exact package version first and skip versions that already exist, which keeps first-time partial publishes from failing on already-published dependencies.
+
+Required repository secrets:
+
+- `NPM_TOKEN` for npm publishes.
+- `GITHUB_TOKEN` is provided by GitHub Actions for GitHub Packages.
+
+For Docker Compose, the CLI and MCP are available under the `tools` profile:
+
+```bash
+docker compose --profile tools build illustrycli illustrymcp
+docker compose --profile tools run --rm illustrycli --help
+docker compose --profile tools run --rm illustrycli status --workspace /workspace/.illustry --json
+```
+
+The tools containers mount:
+
+- `/workspace/.illustry`: a named Docker volume for local automation state.
+- `/workspace/exports`: the host `./exports` folder for generated files.
+- `/workspace/repo`: the current repository mounted read-only, useful for source files.
+
+Example Docker CLI import/export:
+
+```bash
+docker compose --profile tools run --rm illustrycli import visualization \
+  --workspace /workspace/.illustry \
+  --file /workspace/repo/path/to/data.csv \
+  --name Sales \
+  --json
+
+docker compose --profile tools run --rm illustrycli export \
+  --workspace /workspace/.illustry \
+  --asset Sales \
+  --format svg,png,excel \
+  --out /workspace/exports \
+  --json
+```
+
+For MCP clients that can launch Docker commands, use:
+
+```bash
+docker compose --profile tools run --rm -T illustrymcp
+```
+
+For MCP clients running directly on the host, use:
+
+```bash
+yarn workspace @illustry/mcp build:ts
+node packages/mcp/dist/index.js
+```
+
 ## Provisioning
 
 Provisioning is idempotent and upserts the test users plus an active `Test Project`.
@@ -44,12 +151,28 @@ The provisioning script loads `backend/.env` and then root `.env`, with root `.e
 ## Tests And Builds
 
 ```bash
+yarn install --immutable
+yarn build:ts
+yarn lint
 yarn workspace @illustry/types build:ts
 yarn workspace @impulsivelabs/illustry-server compile
 yarn workspace @impulsivelabs/illustry-client build:ts
 yarn workspace @impulsivelabs/illustry-client vitest run
 yarn workspace @impulsivelabs/illustry-server test --runInBand
 yarn workspace @impulsivelabs/illustry-email-service test --runInBand
+yarn workspace @illustry/core test:shard
+yarn workspace @illustry/cli test:shard
+yarn workspace @illustry/mcp test:shard
+```
+
+CI-style sharded examples:
+
+```bash
+SHARD_INDEX=1 SHARD_TOTAL=4 yarn test:backend:shard
+SHARD_INDEX=1 SHARD_TOTAL=4 yarn test:frontend:shard
+SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:core:shard
+SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:cli:shard
+SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:mcp:shard
 ```
 
 ## Realtime

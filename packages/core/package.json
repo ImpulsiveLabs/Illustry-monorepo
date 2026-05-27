@@ -10,6 +10,9 @@
   "files": [
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "rm -rf ./dist",
     "build:ts": "yarn clean && tsc -p tsconfig.json",
@@ -19,7 +22,7 @@
     "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "dependencies": {
-    "@illustry/types": "workspace:*",
+    "@illustry/types": "^1.0.1",
     "docx": "9.6.1",
     "echarts": "6.0.0",
     "exceljs": "4.4.0",

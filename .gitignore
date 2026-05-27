@@ -34,6 +34,7 @@ services/**/dist/
 *.pem
 .tmp-translate-venv/
 .illustry/
+exports/
 packages/*/node_modules
 
 # debug

@@ -13,6 +13,9 @@
   "files": [
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "clean": "rm -rf ./dist",
     "build:ts": "yarn clean && tsc -p tsconfig.json",
@@ -22,7 +25,7 @@
     "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "dependencies": {
-    "@illustry/core": "workspace:*"
+    "@illustry/core": "^0.1.0"
   },
   "devDependencies": {
     "@types/jest": "29.5.12",

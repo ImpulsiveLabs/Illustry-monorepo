@@ -1,326 +1,440 @@
 #!/usr/bin/env node
-import { promises as fs } from 'fs';
+import { Command } from 'commander';
+import { toIllustryError } from '@illustry/core';
+import { CliContext, type CommandFlags } from './context';
+import { normalizeMode } from './config';
+import { runInteractive } from './interactive';
 import {
-  IllustryApiClient,
-  IllustryError,
-  LocalIllustryStore,
-  createLocalExportBundle,
-  importVisualizationSource,
-  parseExportFormats,
-  toIllustryError,
-  type IllustryChartPayload,
-  type ServerResource,
-} from '@illustry/core';
+  forgotPassword,
+  login,
+  logout,
+  resendVerification,
+  resetPassword,
+  session,
+  signup,
+  verifyEmail
+} from './services/auth';
+import {
+  deleteResource,
+  exportAsset,
+  importVisualization,
+  listResources
+} from './services/resources';
+import { getStatus } from './services/status';
+import type { CliIo, CliRunOptions, OutputMode } from './types';
+import {
+  formatError,
+  formatInfo,
+  formatModeBadge,
+  formatSuccess,
+  printValue,
+  resourceTable,
+  write,
+  writeError
+} from './ui/output';
 
-type CliIo = {
-  stdout?: (message: string) => void;
-  stderr?: (message: string) => void;
-};
-
-type ParsedArgs = {
-  command?: string;
-  subject?: string;
-  flags: Record<string, string | boolean>;
+type ActionContext = {
+  io: CliIo;
+  runOptions: CliRunOptions;
+  flags: CommandFlags;
 };
 
 const helpText = `Illustry CLI
 
 Usage:
-  illustry status [--workspace .illustry] [--server http://localhost:7001] [--cookie "..."] [--csrf "..."] [--json]
-  illustry import visualization --file data.csv [--name Name] [--type bar-chart] [--workspace .illustry] [--json]
-  illustry import visualization --server http://localhost:7001 --file data.csv [--name Name] [--type bar-chart] [--project Project] [--cookie "..."] [--csrf "..."] [--json]
-  illustry list [--workspace .illustry] [--json]
-  illustry list --server http://localhost:7001 [--resource visualizations|dashboards|projects] [--cookie "..."] [--csrf "..."] [--json]
-  illustry export --asset AssetName --format svg,png,excel --out exports [--workspace .illustry] [--json]
-  illustry export --server http://localhost:7001 --resource visualization|dashboard --asset AssetName --format svg,png --out exports [--type bar-chart] [--chart-file chart.json] [--workspace .illustry] [--cookie "..."] [--csrf "..."] [--json]
+  illustry                         Open the interactive shell
+  illustry status                  Show mode, workspace, server, and session
+  illustry mode offline|live       Switch workspace mode
+  illustry connect --server URL    Configure live/server mode
+  illustry login --email E --password P
+  illustry signup --email E --password P --name N
+  illustry logout
+  illustry session
+  illustry import data.csv --name Sales --type bar-chart
+  illustry import visualization --file data.csv
+  illustry list assets|projects|visualizations|dashboards
+  illustry export --asset Sales --format svg,png,excel --out exports
+  illustry delete assets Sales
 
-Local commands do not require the Illustry server, UI, or database. Add --server when you want the API adapter. For authenticated backend mutations, pass an Illustry session cookie and CSRF token.`;
+Global:
+  --workspace DIR   Override local workspace
+  --server URL      Override configured server
+  --json            Machine-readable output`;
 
-const parseArgs = (argv: string[]): ParsedArgs => {
-  const positional: string[] = [];
-  const flags: Record<string, string | boolean> = {};
-  for (let index = 0; index < argv.length; index += 1) {
-    const item = argv[index];
-    if (!item.startsWith('--')) {
-      positional.push(item);
-      continue;
-    }
-    const key = item.slice(2);
-    const next = argv[index + 1];
-    if (next && !next.startsWith('--')) {
-      flags[key] = next;
-      index += 1;
-    } else {
-      flags[key] = true;
-    }
-  }
+const collectGlobalFlags = (program: Command): CommandFlags => {
+  const opts = program.opts();
   return {
-    command: positional[0],
-    subject: positional[1],
-    flags
+    workspace: opts.workspace,
+    server: opts.server,
+    token: opts.token,
+    cookie: opts.cookie,
+    csrf: opts.csrf,
+    csrfToken: opts.csrfToken,
+    json: opts.json
   };
 };
 
-const getStringFlag = (flags: ParsedArgs['flags'], name: string) => {
-  const value = flags[name];
-  return typeof value === 'string' ? value : undefined;
-};
-
-const getStore = (flags: ParsedArgs['flags']) => new LocalIllustryStore({
-  rootDir: getStringFlag(flags, 'workspace')
+const createContext = (action: ActionContext) => new CliContext({
+  ...action.runOptions,
+  io: action.io,
+  flags: action.flags
 });
 
-const getClient = (flags: ParsedArgs['flags']) => {
-  const server = getStringFlag(flags, 'server');
-  if (!server) {
-    throw new IllustryError('Missing --server for server-backed operation.', {
-      code: 'ILLUSTRY_CLI_MISSING_SERVER',
-      status: 400
-    });
+const outputResult = (result: unknown, mode: OutputMode, io: CliIo, tableOutput = false) => {
+  if (mode.json || !tableOutput) {
+    printValue(result, mode, io);
+    return;
   }
-  return new IllustryApiClient({
-    baseUrl: server,
-    token: getStringFlag(flags, 'token'),
-    cookie: getStringFlag(flags, 'cookie'),
-    csrfToken: getStringFlag(flags, 'csrf')
-  });
+  write(io, resourceTable(result));
 };
 
-const normalizeServerResource = (value: string | undefined): ServerResource => {
-  if (value === undefined || value === 'visualizations') return 'visualizations';
-  if (value === 'dashboards' || value === 'projects') return value;
-  throw new IllustryError(`Unsupported server resource: ${value}.`, {
-    code: 'ILLUSTRY_CLI_UNSUPPORTED_RESOURCE',
-    status: 400
-  });
+const asBoolean = (value: unknown) => value === true || value === 'true';
+
+const runAction = async (
+  action: ActionContext,
+  handler: (context: CliContext) => Promise<unknown>,
+  options: OutputMode & { table?: boolean } = {}
+) => {
+  const context = createContext(action);
+  const result = await handler(context);
+  if (!(action.flags.json || options.json) && !options.quiet) {
+    const profile = await context.profile();
+    write(action.io, `${formatModeBadge(profile.mode)} ${profile.mode === 'live' ? profile.serverUrl || 'no server configured' : profile.workspaceDir}`);
+  }
+  outputResult(result, { json: action.flags.json || options.json, quiet: options.quiet }, action.io, options.table);
+  return result;
 };
 
-const normalizeExportResource = (value: string | undefined): 'visualization' | 'dashboard' => {
-  if (value === undefined || value === 'visualization' || value === 'visualizations') return 'visualization';
-  if (value === 'dashboard' || value === 'dashboards') return 'dashboard';
-  throw new IllustryError(`Unsupported export resource: ${value}.`, {
-    code: 'ILLUSTRY_CLI_UNSUPPORTED_EXPORT_RESOURCE',
-    status: 400
-  });
-};
-
-const isRecord = (value: unknown): value is Record<string, unknown> => (
-  Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-);
-
-const normalizeChartPayloads = (value: unknown): IllustryChartPayload[] => {
-  if (Array.isArray(value)) {
-    return value.filter((item): item is IllustryChartPayload => isRecord(item) && isRecord(item.option));
-  }
-  if (isRecord(value)) {
-    if (Array.isArray(value.charts)) {
-      return normalizeChartPayloads(value.charts);
-    }
-    if (isRecord(value.option)) {
-      return [{
-        title: typeof value.title === 'string' ? value.title : undefined,
-        option: value.option
-      }];
-    }
-  }
-  return [];
-};
-
-const readChartFile = async (filePath: string): Promise<IllustryChartPayload[]> => {
-  const parsed: unknown = JSON.parse(await fs.readFile(filePath, 'utf8'));
-  const charts = normalizeChartPayloads(parsed);
-  if (charts.length === 0) {
-    throw new IllustryError('The chart file must contain a chart option or charts array.', {
-      code: 'ILLUSTRY_CLI_INVALID_CHART_FILE',
-      status: 400
-    });
-  }
-  return charts;
-};
-
-const loadServerExportCharts = async (flags: ParsedArgs['flags'], assetName: string) => {
-  const chartFile = getStringFlag(flags, 'chart-file');
-  if (chartFile) {
-    return readChartFile(chartFile);
-  }
-  const asset = await getStore(flags).getAsset(assetName);
-  if (asset?.charts?.length) {
-    return asset.charts;
-  }
-  throw new IllustryError('Server export needs chart data. Provide --chart-file or keep a matching local workspace asset.', {
-    code: 'ILLUSTRY_CLI_SERVER_EXPORT_MISSING_CHARTS',
-    status: 400
-  });
-};
-
-const print = (value: unknown, flags: ParsedArgs['flags'], io: CliIo) => {
-  const output = flags.json
-    ? JSON.stringify(value, null, 2)
-    : typeof value === 'string'
-      ? value
-      : JSON.stringify(value, null, 2);
-  (io.stdout || console.log)(output);
-};
-
-const runStatus = async (flags: ParsedArgs['flags']) => {
-  const server = getStringFlag(flags, 'server');
-  if (server) {
-    const client = getClient(flags);
-    return {
-      mode: 'server',
-      baseUrl: server,
-      health: await client.health()
-    };
-  }
-  const store = getStore(flags);
-  const assets = await store.readAssets();
-  return {
-    mode: 'local',
-    workspace: store.rootDir,
-    assets: assets.length
-  };
-};
-
-const runImportVisualization = async (flags: ParsedArgs['flags']) => {
-  const file = getStringFlag(flags, 'file');
-  if (!file) {
-    throw new IllustryError('Missing --file for visualization import.', {
-      code: 'ILLUSTRY_CLI_MISSING_FILE',
-      status: 400
-    });
-  }
-  const server = getStringFlag(flags, 'server');
-  if (server) {
-    return getClient(flags).uploadVisualizationSource({
-      filePath: file,
-      visualizationDetails: {
-        name: getStringFlag(flags, 'name'),
-        type: getStringFlag(flags, 'type'),
-        projectName: getStringFlag(flags, 'project')
-      },
-      fullDetails: flags.fullDetails === true || flags['full-details'] === true
-    });
-  }
-
-  const asset = await importVisualizationSource({
-    filePath: file,
-    name: getStringFlag(flags, 'name'),
-    type: getStringFlag(flags, 'type')
-  });
-  return getStore(flags).saveAsset(asset);
-};
-
-const runList = async (flags: ParsedArgs['flags']) => {
-  const server = getStringFlag(flags, 'server');
-  if (server) {
-    const resource = normalizeServerResource(getStringFlag(flags, 'resource'));
-    return {
-      mode: 'server',
-      baseUrl: server,
-      resource,
-      data: await getClient(flags).browse({
-        resource,
-        query: {
-          text: getStringFlag(flags, 'text'),
-          page: getStringFlag(flags, 'page'),
-          sort: getStringFlag(flags, 'sort'),
-          sharedScope: getStringFlag(flags, 'shared-scope')
+const configureProgram = (
+  program: Command,
+  action: ActionContext,
+  setResult: (value: unknown) => void
+) => {
+  program
+    .name('illustry')
+    .description('Terminal frontend for Illustry local and live workflows.')
+    .showHelpAfterError()
+    .exitOverride()
+    .configureOutput({
+      writeOut: (message) => {
+        if (action.io.stdout) {
+          action.io.stdout(message.trimEnd());
+        } else {
+          process.stdout.write(message);
         }
-      })
-    };
-  }
-  const store = getStore(flags);
-  return {
-    workspace: store.rootDir,
-    assets: await store.readAssets()
-  };
-};
-
-const runExport = async (flags: ParsedArgs['flags']) => {
-  const assetName = getStringFlag(flags, 'asset');
-  if (!assetName) {
-    throw new IllustryError('Missing --asset for export.', {
-      code: 'ILLUSTRY_CLI_MISSING_ASSET',
-      status: 400
-    });
-  }
-  const server = getStringFlag(flags, 'server');
-  const store = getStore(flags);
-  if (server) {
-    const resource = normalizeExportResource(getStringFlag(flags, 'resource'));
-    const formats = parseExportFormats(getStringFlag(flags, 'format'));
-    const charts = await loadServerExportCharts(flags, assetName);
-    const exported = await getClient(flags).downloadExport({
-      resource,
-      name: assetName,
-      body: {
-        name: assetName,
-        type: getStringFlag(flags, 'type'),
-        formats,
-        charts,
-        title: getStringFlag(flags, 'title') || assetName
+      },
+      writeErr: (message) => {
+        if (action.io.stderr) {
+          action.io.stderr(message.trimEnd());
+        } else {
+          process.stderr.write(message);
+        }
       }
-    });
-    const filePath = await store.writeExportFile(exported, getStringFlag(flags, 'out'));
-    return {
-      mode: 'server',
-      filePath,
-      filename: exported.filename,
-      mimeType: exported.mimeType,
-      bundled: exported.mimeType === 'application/zip'
+    })
+    .option('--workspace <dir>', 'override local workspace directory')
+    .option('--server <url>', 'override or use an Illustry backend URL')
+    .option('--token <token>', 'send a bearer token for custom deployments')
+    .option('--cookie <cookie>', 'use an explicit cookie header')
+    .option('--csrf <token>', 'use an explicit CSRF token')
+    .option('--csrf-token <token>', 'use an explicit CSRF token')
+    .option('--json', 'print machine-readable JSON')
+    .option('-q, --quiet', 'suppress normal command output');
+
+  const wrap = (
+    handler: (context: CliContext) => Promise<unknown>,
+    options: OutputMode & { table?: boolean } = {}
+  ) => async () => {
+    action.flags = {
+      ...collectGlobalFlags(program),
+      json: collectGlobalFlags(program).json
     };
-  }
-  const asset = await store.requireAsset(assetName);
-  const bundle = await createLocalExportBundle({
-    asset,
-    formats: parseExportFormats(getStringFlag(flags, 'format'))
-  });
-  const filePath = await store.writeExportFile(bundle, getStringFlag(flags, 'out'));
-  return {
-    filePath,
-    filename: bundle.filename,
-    mimeType: bundle.mimeType,
-    bundled: bundle.bundled
+    const result = await runAction(action, handler, {
+      ...options,
+      quiet: program.opts().quiet
+    });
+    setResult(result);
   };
+
+  program
+    .command('shell')
+    .alias('ui')
+    .alias('interactive')
+    .description('open the interactive terminal frontend')
+    .option('--once', 'process one shell command and return')
+    .option('--mode <mode>', 'choose startup mode without prompting')
+    .option('--server <url>', 'server URL when choosing live mode')
+    .option('--url <url>', 'server URL when choosing live mode')
+    .action(async (options) => {
+      action.flags = {
+        ...collectGlobalFlags(program),
+        server: options.server || options.url || collectGlobalFlags(program).server,
+        startupMode: options.mode ? normalizeMode(options.mode) : undefined
+      };
+      const result = await runInteractive(createContext(action), { once: asBoolean(options.once) });
+      setResult(result);
+    });
+
+  program
+    .command('status')
+    .description('show current mode, workspace, server, and session')
+    .action(wrap(getStatus));
+
+  program
+    .command('mode <mode>')
+    .description('switch between offline and live mode')
+    .action(async (mode: string) => {
+      action.flags = collectGlobalFlags(program);
+      const context = createContext(action);
+      const profile = await context.config.setMode(normalizeMode(mode));
+      const result = { mode: profile.mode, workspace: profile.workspaceDir, server: profile.serverUrl };
+      printValue(result, { json: action.flags.json, quiet: program.opts().quiet }, action.io);
+      setResult(result);
+    });
+
+  program
+    .command('connect')
+    .description('configure live/server mode')
+    .argument('[server]', 'Illustry backend URL')
+    .option('--url <url>', 'Illustry backend URL')
+    .action(async (serverArg: string | undefined, options) => {
+      const server = serverArg || options.url || collectGlobalFlags(program).server;
+      action.flags = { ...collectGlobalFlags(program), server };
+      if (!server) {
+        throw new Error('Missing server URL. Use `illustry connect --server <url>`.');
+      }
+      const context = createContext(action);
+      const profile = await context.config.setServer(server);
+      const result = { mode: profile.mode, server: profile.serverUrl };
+      printValue(result, { json: action.flags.json, quiet: program.opts().quiet }, action.io);
+      setResult(result);
+    });
+
+  program
+    .command('disconnect')
+    .description('switch back to offline mode without deleting the local workspace')
+    .action(async () => {
+      action.flags = collectGlobalFlags(program);
+      const context = createContext(action);
+      const profile = await context.config.setMode('offline');
+      const result = { mode: profile.mode, server: profile.serverUrl };
+      printValue(result, { json: action.flags.json, quiet: program.opts().quiet }, action.io);
+      setResult(result);
+    });
+
+  program
+    .command('login')
+    .description('sign in with backend email/password auth')
+    .requiredOption('--email <email>', 'email address')
+    .requiredOption('--password <password>', 'password')
+    .action(async (options) => {
+      await wrap((context) => login(context, options))();
+    });
+
+  program
+    .command('signup')
+    .alias('register')
+    .description('create an account using backend auth')
+    .requiredOption('--email <email>', 'email address')
+    .requiredOption('--password <password>', 'password')
+    .requiredOption('--name <name>', 'display name')
+    .action(async (options) => {
+      await wrap((context) => signup(context, options))();
+    });
+
+  program
+    .command('logout')
+    .description('sign out and clear the persisted session')
+    .action(wrap(logout));
+
+  program
+    .command('session')
+    .description('show the current live session')
+    .action(wrap(session));
+
+  program
+    .command('verify-email')
+    .description('verify email by token or by email/code')
+    .option('--token <token>', 'verification token')
+    .option('--email <email>', 'email address')
+    .option('--code <code>', 'verification code')
+    .action(async (options) => {
+      const token = options.token || collectGlobalFlags(program).token;
+      await wrap((context) => verifyEmail(context, token, options.email, options.code))();
+    });
+
+  program
+    .command('resend-verification')
+    .description('request another verification email')
+    .option('--email <email>', 'email address')
+    .action(async (options) => {
+      await wrap((context) => resendVerification(context, options.email))();
+    });
+
+  program
+    .command('forgot-password')
+    .description('request a password reset email')
+    .requiredOption('--email <email>', 'email address')
+    .action(async (options) => {
+      await wrap((context) => forgotPassword(context, options.email))();
+    });
+
+  program
+    .command('reset-password')
+    .description('reset password with a backend reset token')
+    .option('--token <token>', 'reset token')
+    .requiredOption('--password <password>', 'new password')
+    .action(async (options) => {
+      const token = options.token || collectGlobalFlags(program).token;
+      await wrap((context) => resetPassword(context, token, options.password))();
+    });
+
+  program
+    .command('import [file]')
+    .description('import or upload a visualization source file')
+    .option('--file <file>', 'source file path')
+    .option('--name <name>', 'visualization name')
+    .option('--type <type>', 'visualization type')
+    .option('--project <project>', 'target project in live mode')
+    .option('--full-details', 'ask backend to read full file details')
+    .action(async (file: string | undefined, options) => {
+      const resolvedFile = file === 'visualization' ? options.file : file || options.file;
+      await wrap((context) => importVisualization(context, {
+        file: resolvedFile,
+        name: options.name,
+        type: options.type,
+        project: options.project,
+        fullDetails: options.fullDetails
+      }))();
+    });
+
+  program
+    .command('list [resource]')
+    .description('list assets, projects, visualizations, or dashboards')
+    .option('--resource <resource>', 'resource name for compatibility with older CLI usage')
+    .option('--text <text>', 'server-side text search')
+    .option('--page <page>', 'page number')
+    .option('--sort <sort>', 'sort expression')
+    .option('--shared-scope <scope>', 'server shared scope')
+    .action(async (resource: string | undefined, options) => {
+      await wrap((context) => listResources(context, {
+        resource: resource || options.resource,
+        text: options.text,
+        page: options.page,
+        sort: options.sort,
+        sharedScope: options.sharedScope
+      }), { table: true })();
+    });
+
+  program
+    .command('export')
+    .description('export a local or live visualization/dashboard')
+    .requiredOption('--asset <name>', 'asset/resource name')
+    .option('--resource <resource>', 'visualization or dashboard')
+    .option('--format <formats>', 'comma-separated formats: json,svg,png,jpg,webp,web-component,excel,pdf,word,ppt')
+    .option('--out <dir>', 'output directory')
+    .option('--type <type>', 'visualization type in live mode')
+    .option('--title <title>', 'export title')
+    .option('--chart-file <path>', 'JSON chart payload for live exports')
+    .action(async (options) => {
+      await wrap((context) => exportAsset(context, {
+        asset: options.asset,
+        resource: options.resource,
+        format: options.format,
+        out: options.out,
+        type: options.type,
+        title: options.title,
+        chartFile: options.chartFile
+      }))();
+    });
+
+  program
+    .command('delete <resource> <name>')
+    .description('delete a local asset or live resource')
+    .option('--type <type>', 'visualization type')
+    .option('--project <project>', 'project name for visualization delete')
+    .action(async (resource: string, name: string, options) => {
+      await wrap((context) => deleteResource(context, {
+        resource,
+        name,
+        type: options.type,
+        project: options.project
+      }))();
+    });
+
+  program
+    .command('doctor')
+    .description('check local workspace and live server reachability')
+    .action(async () => {
+      await wrap(async (context) => {
+        const status = await getStatus(context);
+        if (status.mode === 'live' && status.server) {
+          try {
+            const client = await context.client(false);
+            const health = await client.health();
+            write(action.io, formatSuccess('Illustry server is reachable.'));
+            return { ...status, reachable: true, health };
+          } catch (error) {
+            write(action.io, formatInfo('Server is not reachable. Check --server or run `illustry disconnect`.'));
+            return { ...status, reachable: false, healthError: error instanceof Error ? error.message : String(error) };
+          }
+        }
+        write(action.io, formatSuccess('Illustry CLI configuration looks usable.'));
+        return status;
+      })();
+    });
 };
 
-const runCli = async (argv: string[], io: CliIo = {}) => {
-  const parsed = parseArgs(argv);
-  if (!parsed.command || parsed.flags.help || parsed.flags.h) {
-    print(helpText, parsed.flags, io);
+const runCli = async (argv: string[], io: CliIo = {}, runOptions: CliRunOptions = {}) => {
+  let result: unknown;
+  const program = new Command();
+  const action: ActionContext = {
+    io,
+    runOptions,
+    flags: {}
+  };
+  configureProgram(program, action, (value) => {
+    result = value;
+  });
+
+  if (argv.length === 0) {
+    const input = io.stdin || process.stdin;
+    if ('isTTY' in input && input.isTTY) {
+      const context = new CliContext({ ...runOptions, io, flags: collectGlobalFlags(program) });
+      result = await runInteractive(context);
+      return result;
+    }
+    printValue(helpText, { json: false }, io);
     return { ok: true, help: true };
   }
 
-  let result: unknown;
-  if (parsed.command === 'status') {
-    result = await runStatus(parsed.flags);
-  } else if (parsed.command === 'import' && parsed.subject === 'visualization') {
-    result = await runImportVisualization(parsed.flags);
-  } else if (parsed.command === 'list') {
-    result = await runList(parsed.flags);
-  } else if (parsed.command === 'export') {
-    result = await runExport(parsed.flags);
-  } else {
-    throw new IllustryError(`Unknown command: ${[parsed.command, parsed.subject].filter(Boolean).join(' ')}`, {
-      code: 'ILLUSTRY_CLI_UNKNOWN_COMMAND',
-      status: 400
-    });
+  if (argv.includes('--help') || argv.includes('-h')) {
+    await program.parseAsync(argv, { from: 'user' });
+    return { ok: true, help: true };
   }
 
-  print(result, parsed.flags, io);
-  return result;
+  try {
+    await program.parseAsync(argv, { from: 'user' });
+    return result;
+  } catch (error) {
+    const normalized = toIllustryError(error);
+    if (normalized.code === 'commander.helpDisplayed') {
+      return { ok: true, help: true };
+    }
+    throw error;
+  }
 };
 
 if (require.main === module) {
   runCli(process.argv.slice(2)).catch((error) => {
     const normalized = toIllustryError(error);
-    console.error(normalized.message);
+    const json = process.argv.includes('--json');
+    writeError({}, formatError(normalized, json));
     process.exitCode = normalized.status && normalized.status >= 500 ? 2 : 1;
   });
 }
 
 export {
+  configureProgram,
   helpText,
-  parseArgs,
   runCli
 };

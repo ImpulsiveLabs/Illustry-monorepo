@@ -86,6 +86,116 @@ const tools = [
     }
   },
   {
+    name: 'illustry_auth_login',
+    description: 'Sign in to an Illustry backend and return the user plus persisted cookie/CSRF session snapshot for later MCP calls.',
+    inputSchema: {
+      type: 'object',
+      required: ['server', 'email', 'password'],
+      properties: {
+        server: { type: 'string' },
+        email: { type: 'string' },
+        password: { type: 'string' },
+        locale: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_signup',
+    description: 'Create an Illustry account and return the user plus cookie/CSRF session snapshot.',
+    inputSchema: {
+      type: 'object',
+      required: ['server', 'email', 'password', 'name'],
+      properties: {
+        server: { type: 'string' },
+        email: { type: 'string' },
+        password: { type: 'string' },
+        name: { type: 'string' },
+        locale: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_logout',
+    description: 'Log out of an Illustry backend session using cookie and CSRF token.',
+    inputSchema: {
+      type: 'object',
+      required: ['server'],
+      properties: {
+        server: { type: 'string' },
+        cookie: { type: 'string' },
+        csrfToken: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_session',
+    description: 'Inspect the current Illustry backend session.',
+    inputSchema: {
+      type: 'object',
+      required: ['server'],
+      properties: {
+        server: { type: 'string' },
+        cookie: { type: 'string' },
+        csrfToken: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_verify_email',
+    description: 'Verify email by token, or by email plus confirmation code.',
+    inputSchema: {
+      type: 'object',
+      required: ['server'],
+      properties: {
+        server: { type: 'string' },
+        token: { type: 'string' },
+        email: { type: 'string' },
+        code: { type: 'string' },
+        cookie: { type: 'string' },
+        csrfToken: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_resend_verification',
+    description: 'Request another verification email.',
+    inputSchema: {
+      type: 'object',
+      required: ['server'],
+      properties: {
+        server: { type: 'string' },
+        email: { type: 'string' },
+        cookie: { type: 'string' },
+        csrfToken: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_forgot_password',
+    description: 'Request a password reset email.',
+    inputSchema: {
+      type: 'object',
+      required: ['server', 'email'],
+      properties: {
+        server: { type: 'string' },
+        email: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_auth_reset_password',
+    description: 'Reset password using a backend reset token.',
+    inputSchema: {
+      type: 'object',
+      required: ['server', 'token', 'password'],
+      properties: {
+        server: { type: 'string' },
+        token: { type: 'string' },
+        password: { type: 'string' }
+      }
+    }
+  },
+  {
     name: 'illustry_import_visualization',
     description: 'Import a visualization source file into a local workspace, or upload it to an Illustry server when server is provided.',
     inputSchema: {
@@ -94,6 +204,25 @@ const tools = [
       properties: {
         filePath: { type: 'string' },
         name: { type: 'string' },
+        type: { type: 'string' },
+        project: { type: 'string' },
+        workspace: { type: 'string' },
+        server: { type: 'string' },
+        token: { type: 'string' },
+        cookie: { type: 'string' },
+        csrfToken: { type: 'string' }
+      }
+    }
+  },
+  {
+    name: 'illustry_delete_resource',
+    description: 'Delete a local asset, or delete a server project/dashboard/visualization when server is provided.',
+    inputSchema: {
+      type: 'object',
+      required: ['name'],
+      properties: {
+        name: { type: 'string' },
+        resource: { type: 'string', enum: ['assets', 'visualizations', 'dashboards', 'projects'] },
         type: { type: 'string' },
         project: { type: 'string' },
         workspace: { type: 'string' },
@@ -148,6 +277,16 @@ const tools = [
 ];
 
 const asString = (value: unknown) => typeof value === 'string' ? value : undefined;
+const requireString = (value: unknown, label: string) => {
+  const normalized = asString(value);
+  if (!normalized) {
+    throw new IllustryError(`Missing ${label}.`, {
+      code: 'ILLUSTRY_MCP_MISSING_ARGUMENT',
+      status: 400
+    });
+  }
+  return normalized;
+};
 
 const getStore = (args: JsonObject = {}) => new LocalIllustryStore({
   rootDir: asString(args.workspace)
@@ -165,14 +304,32 @@ const getClient = (args: JsonObject = {}) => {
     baseUrl: server,
     token: asString(args.token),
     cookie: asString(args.cookie),
-    csrfToken: asString(args.csrfToken)
+    csrfToken: asString(args.csrfToken),
+    locale: asString(args.locale)
   });
 };
+
+const withSession = (client: IllustryApiClient, result: unknown) => ({
+  result,
+  session: client.getSessionSnapshot()
+});
 
 const normalizeServerResource = (value: unknown): ServerResource => {
   if (value === undefined || value === 'visualizations') return 'visualizations';
   if (value === 'dashboards' || value === 'projects') return value;
   throw new IllustryError(`Unsupported server resource: ${String(value)}.`, {
+    code: 'ILLUSTRY_MCP_UNSUPPORTED_RESOURCE',
+    status: 400
+  });
+};
+
+const normalizeDeleteResource = (value: unknown): 'assets' | ServerResource => {
+  if (value === undefined || value === 'assets') return 'assets';
+  if (value === 'visualization') return 'visualizations';
+  if (value === 'dashboard') return 'dashboards';
+  if (value === 'project') return 'projects';
+  if (value === 'visualizations' || value === 'dashboards' || value === 'projects') return value;
+  throw new IllustryError(`Unsupported delete resource: ${String(value)}.`, {
     code: 'ILLUSTRY_MCP_UNSUPPORTED_RESOURCE',
     status: 400
   });
@@ -251,6 +408,59 @@ const callTool = async ({ name, arguments: args = {} }: McpToolCall) => {
     return textResult({ mode: 'local', workspace: store.rootDir, assets: assets.length });
   }
 
+  if (name === 'illustry_auth_login') {
+    const client = getClient(args);
+    return textResult(withSession(client, await client.login({
+      email: requireString(args.email, 'email'),
+      password: requireString(args.password, 'password')
+    })));
+  }
+
+  if (name === 'illustry_auth_signup') {
+    const client = getClient(args);
+    return textResult(withSession(client, await client.signup({
+      email: requireString(args.email, 'email'),
+      password: requireString(args.password, 'password'),
+      name: requireString(args.name, 'name')
+    })));
+  }
+
+  if (name === 'illustry_auth_logout') {
+    const client = getClient(args);
+    return textResult(withSession(client, await client.logout()));
+  }
+
+  if (name === 'illustry_auth_session') {
+    const client = getClient(args);
+    return textResult(withSession(client, await client.me()));
+  }
+
+  if (name === 'illustry_auth_verify_email') {
+    const client = getClient(args);
+    const result = asString(args.token)
+      ? await client.verifyEmail(requireString(args.token, 'token'))
+      : await client.verifyEmailCode(requireString(args.email, 'email'), requireString(args.code, 'code'));
+    return textResult(withSession(client, result));
+  }
+
+  if (name === 'illustry_auth_resend_verification') {
+    const client = getClient(args);
+    return textResult(withSession(client, await client.resendVerification(asString(args.email))));
+  }
+
+  if (name === 'illustry_auth_forgot_password') {
+    const client = getClient(args);
+    return textResult(await client.requestPasswordReset(requireString(args.email, 'email')));
+  }
+
+  if (name === 'illustry_auth_reset_password') {
+    const client = getClient(args);
+    return textResult(await client.resetPassword(
+      requireString(args.token, 'token'),
+      requireString(args.password, 'password')
+    ));
+  }
+
   if (name === 'illustry_import_visualization') {
     const filePath = asString(args.filePath);
     if (!filePath) {
@@ -273,6 +483,36 @@ const callTool = async ({ name, arguments: args = {} }: McpToolCall) => {
       type: asString(args.type)
     });
     return textResult(await getStore(args).saveAsset(asset));
+  }
+
+  if (name === 'illustry_delete_resource') {
+    const resourceName = requireString(args.name, 'name');
+    const resource = normalizeDeleteResource(args.resource);
+    const server = asString(args.server);
+    if (server && resource !== 'assets') {
+      const client = getClient(args);
+      let result: unknown;
+      if (resource === 'projects') {
+        result = await client.deleteProject(resourceName);
+      } else if (resource === 'dashboards') {
+        result = await client.deleteDashboard(resourceName);
+      } else {
+        result = await client.deleteVisualization({
+          name: resourceName,
+          type: asString(args.type),
+          projectName: asString(args.project)
+        });
+      }
+      return textResult(withSession(client, result));
+    }
+    const deleted = await getStore(args).deleteAsset(resourceName);
+    if (!deleted) {
+      throw new IllustryError(`Illustry asset "${resourceName}" was not found.`, {
+        code: 'ILLUSTRY_MCP_ASSET_NOT_FOUND',
+        status: 404
+      });
+    }
+    return textResult({ ok: true, deleted: resourceName });
   }
 
   if (name === 'illustry_list_assets') {
@@ -439,24 +679,31 @@ class McpStdioFramer {
   }
 }
 
-const startMcpStdioServer = () => {
+const startMcpStdioServer = (
+  input: NodeJS.ReadableStream = process.stdin,
+  output: NodeJS.WritableStream = process.stdout,
+  errorOutput: NodeJS.WritableStream = process.stderr
+) => {
   const framer = new McpStdioFramer();
-  process.stdin.on('data', (chunk: Buffer) => {
+  const onData = (chunk: Buffer) => {
     void (async () => {
       const messages = framer.push(chunk);
       for (const message of messages) {
         const response = await handleMcpRequest(message);
         if (response) {
-          process.stdout.write(encodeMcpMessage(response));
+          output.write(encodeMcpMessage(response));
         }
       }
     })().catch((error) => {
       const normalized = toIllustryError(error);
-      process.stderr.write(`${normalized.message}\n`);
+      errorOutput.write(`${normalized.message}\n`);
     });
-  });
+  };
+  input.on('data', onData);
+  return () => input.off('data', onData);
 };
 
+/* istanbul ignore next */
 if (require.main === module) {
   startMcpStdioServer();
 }

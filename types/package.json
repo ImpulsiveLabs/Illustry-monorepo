@@ -7,6 +7,9 @@
   "files": [
     "dist/**/*"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build:ts": "tsc -p tsconfig.json",
     "test": "../node_modules/.bin/jest --config jest.config.cjs --runInBand --coverage",

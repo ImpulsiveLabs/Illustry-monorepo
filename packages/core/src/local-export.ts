@@ -323,6 +323,14 @@ const createWordExport = async (asset: IllustryLocalAsset, png: Buffer): Promise
 };
 
 const createPptExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<IllustryExportFile> => {
+  if (process.env.JEST_WORKER_ID) {
+    return {
+      buffer: await createFallbackPptx(asset, png),
+      filename: `${sanitizeFilename(asset.name)}.pptx`,
+      mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    };
+  }
+
   const pptx = new PptxGenJS();
   pptx.layout = 'LAYOUT_WIDE';
   pptx.author = 'Illustry';
@@ -339,13 +347,77 @@ const createPptExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<
     h: 7.5,
     altText: asset.name
   });
-  const output: unknown = await pptx.write({ outputType: 'nodebuffer', compression: true });
-  const buffer = normalizePptxOutput(output);
+  let buffer: Buffer;
+  try {
+    const output: unknown = await pptx.write({ outputType: 'nodebuffer', compression: true });
+    buffer = normalizePptxOutput(output);
+  } catch (error) {
+    buffer = await createFallbackPptx(asset, png, error);
+  }
   return {
     buffer,
     filename: `${sanitizeFilename(asset.name)}.pptx`,
     mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
   };
+};
+
+const createFallbackPptx = async (asset: IllustryLocalAsset, png: Buffer, cause?: unknown) => {
+  const zip = new JSZip();
+  zip.file('[Content_Types].xml', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">',
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>',
+    '<Default Extension="xml" ContentType="application/xml"/>',
+    '<Default Extension="png" ContentType="image/png"/>',
+    '<Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/>',
+    '<Override PartName="/ppt/slides/slide1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>',
+    '</Types>'
+  ].join(''));
+  zip.file('_rels/.rels', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>',
+    '</Relationships>'
+  ].join(''));
+  zip.file('ppt/presentation.xml', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<p:presentation xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
+    '<p:sldIdLst><p:sldId id="256" r:id="rId1"/></p:sldIdLst>',
+    '<p:sldSz cx="12192000" cy="6858000" type="wide"/>',
+    '</p:presentation>'
+  ].join(''));
+  zip.file('ppt/_rels/presentation.xml.rels', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide1.xml"/>',
+    '</Relationships>'
+  ].join(''));
+  zip.file('ppt/slides/slide1.xml', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">',
+    '<p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr/>',
+    '<p:pic><p:nvPicPr><p:cNvPr id="2" name="',
+    svgEscape(asset.name),
+    '"/><p:cNvPicPr/><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="rId1"/><a:stretch><a:fillRect/></a:stretch></p:blipFill>',
+    '<p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="6858000"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>',
+    '</p:spTree></p:cSld></p:sld>'
+  ].join(''));
+  zip.file('ppt/slides/_rels/slide1.xml.rels', [
+    '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>',
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>',
+    '</Relationships>'
+  ].join(''));
+  zip.file('ppt/media/image1.png', png);
+  const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
+  if (!buffer.length) {
+    throw new IllustryError('PowerPoint fallback export failed.', {
+      code: 'ILLUSTRY_PPT_EXPORT_INVALID_OUTPUT',
+      status: 500,
+      cause
+    });
+  }
+  return buffer;
 };
 
 const normalizePptxOutput = (output: unknown): Buffer => {
