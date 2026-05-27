@@ -72,7 +72,13 @@ type SignupRequest = LoginRequest & {
   name: string;
 };
 
-const trimTrailingSlash = (value: string) => value.replace(/\/+$/, '');
+const trimTrailingSlash = (value: string) => {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) {
+    end -= 1;
+  }
+  return end === value.length ? value : value.slice(0, end);
+};
 const CSRF_COOKIE_NAME = process.env.NEXT_PUBLIC_AUTH_CSRF_COOKIE_NAME || 'illustry_csrf';
 
 const getFetch = (fetchImpl?: IllustryFetch): IllustryFetch => {
