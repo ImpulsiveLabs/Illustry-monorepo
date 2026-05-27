@@ -6,7 +6,9 @@ import {
   LocalIllustryStore,
   createLocalExportBundle,
   importVisualizationSource,
+  parseImportMapping,
   parseExportFormats,
+  type ImportColumnMapping,
   toIllustryError,
   type IllustryChartPayload,
   type ServerResource,
@@ -206,6 +208,9 @@ const tools = [
         name: { type: 'string' },
         type: { type: 'string' },
         project: { type: 'string' },
+        mapping: { type: 'string', description: 'Column mapping, for example label=Country,value=Revenue.' },
+        labelColumn: { type: 'string' },
+        valueColumn: { type: 'string' },
         workspace: { type: 'string' },
         server: { type: 'string' },
         token: { type: 'string' },
@@ -286,6 +291,16 @@ const requireString = (value: unknown, label: string) => {
     });
   }
   return normalized;
+};
+
+const normalizeImportMapping = (args: JsonObject): ImportColumnMapping | undefined => {
+  const parsed = asString(args.mapping) ? parseImportMapping(asString(args.mapping)) : {};
+  const mapping = {
+    ...parsed,
+    label: asString(args.labelColumn) || parsed.label,
+    value: asString(args.valueColumn) || parsed.value
+  };
+  return mapping.label || mapping.value ? mapping : undefined;
 };
 
 const getStore = (args: JsonObject = {}) => new LocalIllustryStore({
@@ -466,6 +481,7 @@ const callTool = async ({ name, arguments: args = {} }: McpToolCall) => {
     if (!filePath) {
       throw new IllustryError('Missing filePath.', { code: 'ILLUSTRY_MCP_MISSING_FILE', status: 400 });
     }
+    const mapping = normalizeImportMapping(args);
     if (asString(args.server)) {
       return textResult(await getClient(args).uploadVisualizationSource({
         filePath,
@@ -474,13 +490,15 @@ const callTool = async ({ name, arguments: args = {} }: McpToolCall) => {
           type: asString(args.type),
           projectName: asString(args.project)
         },
+        fileDetails: mapping ? { importMapping: mapping } : undefined,
         fullDetails: args.fullDetails === true
       }));
     }
     const asset = await importVisualizationSource({
       filePath,
       name: asString(args.name),
-      type: asString(args.type)
+      type: asString(args.type),
+      mapping
     });
     return textResult(await getStore(args).saveAsset(asset));
   }

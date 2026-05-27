@@ -12,13 +12,13 @@ import {
   color,
   formatError,
   formatInfo,
-  formatModeBadge,
   formatSuccess,
   paint,
   printValue,
   resourceTable,
   write
 } from './ui/output';
+import { formatStatusHeader, promptModeLabel } from './ui/status-line';
 
 type InteractiveOptions = {
   once?: boolean;
@@ -50,22 +50,13 @@ const isInteractiveTty = (context: CliContext) => (
 );
 
 const promptLabel = async (context: CliContext) => {
-  const profile = await context.profile();
-  const mode = profile.mode === 'live'
-    ? paint(color.green, 'live')
-    : paint(color.yellow, 'offline');
-  return `illustry:${mode}> `;
+  const status = await getStatus(context);
+  return `illustry:${promptModeLabel(status)}> `;
 };
 
 const showStatus = async (context: CliContext) => {
   const status = await getStatus(context);
-  write(context.io, [
-    `${paint(color.bold, 'Illustry CLI')} ${formatModeBadge(status.mode)}`,
-    `Workspace: ${status.workspace}`,
-    `Server: ${status.server || '(none)'}`,
-    `Session: ${status.authenticated ? status.user?.email || 'authenticated' : 'not signed in'}`,
-    `Local assets: ${status.assets}`
-  ].join('\n'));
+  write(context.io, formatStatusHeader(status));
 };
 
 const chooseStartupMode = async (context: CliContext, rl: PromptInterface) => {
@@ -85,14 +76,16 @@ const chooseStartupMode = async (context: CliContext, rl: PromptInterface) => {
     write(context.io, formatSuccess('Live mode selected.'));
     return;
   }
-  if (profile.mode === 'live' || profile.session?.cookie) {
+  write(context.io, formatInfo(`Current mode: ${profile.mode}. Choose how to start this session:`));
+  write(context.io, '1. Keep current mode');
+  write(context.io, '2. Offline/local');
+  write(context.io, '3. Live/server');
+  const answer = (await ask(rl, 'Mode [1]: ')).trim();
+  if (answer === '' || answer === '1' || answer.toLowerCase() === 'keep') {
+    write(context.io, formatSuccess(`${profile.mode === 'live' ? 'Live' : 'Offline'} mode selected.`));
     return;
   }
-  write(context.io, formatInfo('Choose a workspace mode:'));
-  write(context.io, '1. Offline/local');
-  write(context.io, '2. Live/server');
-  const answer = (await ask(rl, 'Mode [1]: ')).trim();
-  if (answer === '2' || answer.toLowerCase() === 'live') {
+  if (answer === '3' || answer.toLowerCase() === 'live') {
     const server = (await ask(rl, 'Server URL: ')).trim();
     if (server) {
       await context.config.setServer(server);
@@ -111,6 +104,8 @@ const promptImport = async (context: CliContext, rl: PromptInterface) => {
   const file = (await ask(rl, 'File path: ')).trim();
   const name = (await ask(rl, 'Name [from file]: ')).trim();
   const type = (await ask(rl, 'Visualization type [bar-chart]: ')).trim();
+  const labelColumn = (await ask(rl, 'Label column [first column]: ')).trim();
+  const valueColumn = (await ask(rl, 'Value column [second column]: ')).trim();
   const project = profile.mode === 'live'
     ? (await ask(rl, 'Project [active project]: ')).trim()
     : undefined;
@@ -118,7 +113,9 @@ const promptImport = async (context: CliContext, rl: PromptInterface) => {
     file,
     name: name || undefined,
     type: type || undefined,
-    project: project || undefined
+    project: project || undefined,
+    labelColumn: labelColumn || undefined,
+    valueColumn: valueColumn || undefined
   });
   printValue(result, { json: false }, context.io);
 };
@@ -306,10 +303,21 @@ const buildMenu = async (context: CliContext): Promise<MenuItem[]> => {
   ];
 
   if (profile.mode === 'live') {
+    if (!profile.session?.cookie) {
+      return [
+        { label: 'Show status', description: 'Mode, workspace, server, session', action: 'status' },
+        { label: 'Login', description: 'Sign in before using server resources', action: 'login' },
+        { label: 'Connect/change server', description: 'Set the Illustry backend URL', action: 'connect' },
+        { label: 'Switch to offline', description: 'Use local workspace only', action: 'mode offline' },
+        { label: 'Command prompt', description: 'Type an Illustry shell command', action: 'prompt' },
+        { label: 'Exit', action: 'exit' }
+      ];
+    }
     return [
       ...common,
       { label: 'Session', description: 'Check signed-in user', action: 'session' },
-      { label: profile.session?.cookie ? 'Logout' : 'Login', description: 'Manage backend session', action: profile.session?.cookie ? 'logout' : 'login' },
+      { label: 'Logout', description: 'Clear backend session', action: 'logout' },
+      { label: 'Connect/change server', description: 'Set the Illustry backend URL', action: 'connect' },
       { label: 'Switch to offline', description: 'Use local workspace only', action: 'mode offline' },
       { label: 'Delete resource', description: 'Remove a server resource', action: 'delete' },
       { label: 'Command prompt', description: 'Type an Illustry shell command', action: 'prompt' },
@@ -330,8 +338,7 @@ const renderMenu = async (context: CliContext, items: MenuItem[], selected: numb
   const status = await getStatus(context);
   const lines = [
     '\x1b[2J\x1b[H',
-    `${paint(color.bold, 'Illustry CLI')} ${formatModeBadge(status.mode)} ${paint(color.gray, status.workspace)}`,
-    `Server: ${status.server || '(none)'}    Session: ${status.authenticated ? status.user?.email || 'authenticated' : 'not signed in'}`,
+    formatStatusHeader(status),
     '',
     paint(color.gray, 'Use up/down arrows, Enter to select, q to quit.'),
     ''

@@ -3,8 +3,10 @@ import {
   IllustryError,
   createLocalExportBundle,
   importVisualizationSource,
+  parseImportMapping,
   parseExportFormats,
   type IllustryChartPayload,
+  type ImportColumnMapping,
   type ServerResource
 } from '@illustry/core';
 import { CliContext } from '../context';
@@ -16,6 +18,9 @@ type ImportOptions = {
   type?: string;
   project?: string;
   fullDetails?: boolean;
+  mapping?: string | ImportColumnMapping;
+  labelColumn?: string;
+  valueColumn?: string;
 };
 
 type ListOptions = {
@@ -105,6 +110,18 @@ const readChartFile = async (filePath: string): Promise<IllustryChartPayload[]> 
   return charts;
 };
 
+const normalizeImportMapping = (options: ImportOptions): ImportColumnMapping | undefined => {
+  const parsed = typeof options.mapping === 'string'
+    ? parseImportMapping(options.mapping)
+    : options.mapping || {};
+  const mapping = {
+    ...parsed,
+    label: options.labelColumn || parsed.label,
+    value: options.valueColumn || parsed.value
+  };
+  return mapping.label || mapping.value ? mapping : undefined;
+};
+
 const loadExportCharts = async (context: CliContext, assetName: string, chartFile?: string) => {
   if (chartFile) {
     return readChartFile(chartFile);
@@ -129,6 +146,7 @@ const importVisualization = async (context: CliContext, options: ImportOptions) 
   }
 
   const profile = await context.profile();
+  const mapping = normalizeImportMapping(options);
   if (profile.mode === 'live') {
     const client = await context.client();
     const result = await client.uploadVisualizationSource({
@@ -138,6 +156,7 @@ const importVisualization = async (context: CliContext, options: ImportOptions) 
         type: options.type,
         projectName: options.project
       },
+      fileDetails: mapping ? { importMapping: mapping } : undefined,
       fullDetails: options.fullDetails === true
     });
     await context.saveClientSession(client.getSessionSnapshot());
@@ -147,7 +166,8 @@ const importVisualization = async (context: CliContext, options: ImportOptions) 
   const asset = await importVisualizationSource({
     filePath: options.file,
     name: options.name,
-    type: options.type
+    type: options.type,
+    mapping
   });
   const store = await context.store();
   return store.saveAsset(asset);
@@ -273,6 +293,7 @@ export {
   exportAsset,
   importVisualization,
   listResources,
+  normalizeImportMapping,
   normalizeExportResource,
   normalizeListResource
 };

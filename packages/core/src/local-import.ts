@@ -12,11 +12,16 @@ type ImportVisualizationInput = {
   name?: string;
   type?: string;
   maxRows?: number;
+  mapping?: ImportColumnMapping;
 };
 
 const DEFAULT_MAX_ROWS = 5000;
 
 type JsonRecord = Record<string, unknown>;
+type ImportColumnMapping = {
+  label?: string;
+  value?: string;
+};
 
 const isRecord = (value: unknown): value is JsonRecord => (
   Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -57,6 +62,74 @@ const rowsToBarOption = (title: string, rows: unknown[][]): IllustryChartOption 
     yAxis: { type: 'value' },
     series: [{ type: 'bar', data: values }]
   };
+};
+
+const normalizeMappingKey = (key: string) => key.trim().toLowerCase();
+
+const parseImportMapping = (value?: string): ImportColumnMapping => {
+  if (!value) {
+    return {};
+  }
+  return value.split(',').reduce<ImportColumnMapping>((mapping, pair) => {
+    const separator = pair.indexOf('=');
+    if (separator <= 0) {
+      throw new IllustryError(`Invalid import mapping "${pair}". Use label=Column,value=Column.`, {
+        code: 'ILLUSTRY_IMPORT_MAPPING_INVALID',
+        status: 400
+      });
+    }
+    const key = normalizeMappingKey(pair.slice(0, separator));
+    const column = pair.slice(separator + 1).trim();
+    if (!column) {
+      throw new IllustryError(`Missing column name in import mapping "${pair}".`, {
+        code: 'ILLUSTRY_IMPORT_MAPPING_INVALID',
+        status: 400
+      });
+    }
+    if (key === 'label' || key === 'x' || key === 'category' || key === 'name') {
+      return { ...mapping, label: column };
+    }
+    if (key === 'value' || key === 'y' || key === 'amount') {
+      return { ...mapping, value: column };
+    }
+    throw new IllustryError(`Unsupported import mapping key "${key}". Use label and value.`, {
+      code: 'ILLUSTRY_IMPORT_MAPPING_INVALID',
+      status: 400
+    });
+  }, {});
+};
+
+const resolveColumnIndex = (headers: unknown[], column: string, fallback: number) => {
+  const numeric = Number(column);
+  if (Number.isInteger(numeric) && numeric >= 0) {
+    return numeric;
+  }
+  const normalized = normalizeMappingKey(column);
+  const index = headers.findIndex((header) => normalizeMappingKey(String(header ?? '')) === normalized);
+  if (index >= 0) {
+    return index;
+  }
+  if (!column) {
+    return fallback;
+  }
+  throw new IllustryError(`Import mapping column "${column}" was not found.`, {
+    code: 'ILLUSTRY_IMPORT_MAPPING_COLUMN_NOT_FOUND',
+    status: 400,
+    details: { column, headers }
+  });
+};
+
+const applyImportMapping = (rows: unknown[][], mapping: ImportColumnMapping = {}) => {
+  if (!mapping.label && !mapping.value) {
+    return rows;
+  }
+  const [headers = [], ...body] = rows;
+  const labelIndex = mapping.label ? resolveColumnIndex(headers, mapping.label, 0) : 0;
+  const valueIndex = mapping.value ? resolveColumnIndex(headers, mapping.value, 1) : 1;
+  return [
+    ['label', 'value'],
+    ...body.map((row) => [row[labelIndex], row[valueIndex]])
+  ];
 };
 
 const objectToRows = (value: unknown): unknown[][] => {
@@ -139,7 +212,8 @@ const importVisualizationSource = async ({
   filePath,
   name,
   type,
-  maxRows = DEFAULT_MAX_ROWS
+  maxRows = DEFAULT_MAX_ROWS,
+  mapping
 }: ImportVisualizationInput): Promise<Omit<IllustryLocalAsset, 'id' | 'createdAt' | 'updatedAt'>> => {
   const absolutePath = path.resolve(filePath);
   const stat = await fs.stat(absolutePath);
@@ -167,6 +241,7 @@ const importVisualizationSource = async ({
     data = rows;
   }
 
+  rows = applyImportMapping(rows, mapping);
   const option = extractOption(data) || rowsToBarOption(title, rows);
   return {
     kind: 'visualization',
@@ -185,8 +260,11 @@ const importVisualizationSource = async ({
 
 export {
   DEFAULT_MAX_ROWS,
+  applyImportMapping,
+  parseImportMapping,
   importVisualizationSource
 };
 export type {
+  ImportColumnMapping,
   ImportVisualizationInput
 };

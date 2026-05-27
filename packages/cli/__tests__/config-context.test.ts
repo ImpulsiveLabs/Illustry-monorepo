@@ -18,6 +18,9 @@ describe('@illustry/cli config and context', () => {
   });
 
   it('creates defaults, resolves overrides, persists updates, and handles malformed config', async () => {
+    expect(defaultWorkspace()).toContain('.illustry');
+    expect(createDefaultConfig().profiles.default.workspaceDir).toContain('.illustry');
+    expect(resolveConfigDir()).toContain(path.join('.config', 'illustry'));
     expect(defaultWorkspace(tempDir)).toBe(path.join(tempDir, '.illustry'));
     expect(createDefaultConfig(tempDir).profiles.default.mode).toBe('offline');
     expect(resolveConfigDir({ env: { ILLUSTRY_CONFIG_DIR: path.join(tempDir, 'env-config') } as any }))
@@ -47,6 +50,13 @@ describe('@illustry/cli config and context', () => {
       .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_CONFIG_MALFORMED' });
 
     await fs.writeFile(path.join(malformedDir, 'config.json'), JSON.stringify({ activeProfile: 'missing', profiles: {} }), 'utf8');
+    await expect(new CliConfigStore({ configDir: malformedDir }).read())
+      .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_CONFIG_READ_FAILED' });
+
+    await fs.writeFile(path.join(malformedDir, 'config.json'), JSON.stringify({
+      activeProfile: 'default',
+      profiles: { default: null }
+    }), 'utf8');
     await expect(new CliConfigStore({ configDir: malformedDir }).read())
       .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_CONFIG_READ_FAILED' });
   });
@@ -80,5 +90,8 @@ describe('@illustry/cli config and context', () => {
     const missing = new CliContext({ configDir: path.join(tempDir, 'missing-server') });
     await expect(missing.client()).rejects.toMatchObject({ code: 'ILLUSTRY_CLI_MISSING_SERVER' });
     await expect(missing.client(false)).resolves.toMatchObject({ baseUrl: 'http://localhost:7001' });
+
+    const defaults = new CliContext();
+    expect(defaults.cwd).toBe(process.cwd());
   });
 });

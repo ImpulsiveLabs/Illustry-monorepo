@@ -78,6 +78,8 @@ describe('@illustry/cli', () => {
       source,
       '--name',
       'CLI Chart',
+      '--map',
+      'label=label,value=value',
       '--json'
     ], { stdout: (message) => output.push(message) });
 
@@ -171,6 +173,10 @@ describe('@illustry/cli', () => {
       'bar-chart',
       '--project',
       'Default',
+      '--label-column',
+      'label',
+      '--value-column',
+      'value',
       '--cookie',
       'illustry_session=session; illustry_csrf=csrf-token',
       '--csrf',
@@ -207,6 +213,9 @@ describe('@illustry/cli', () => {
       '/api/visualization/export/bundle'
     ]);
     expect(calls[1].body).toBeInstanceOf(FormData);
+    expect((calls[1].body as FormData).get('fileDetails')).toBe(JSON.stringify({
+      importMapping: { label: 'label', value: 'value' }
+    }));
   });
 
   it('persists login sessions, supports signup/logout, and reports expired sessions', async () => {
@@ -436,6 +445,9 @@ describe('@illustry/cli', () => {
     expect(help).toEqual({ ok: true, help: true });
     expect(output.join('\n')).toContain('Illustry CLI');
 
+    await expect(runCli(['--help'], { stdout: (message) => output.push(message) }, { configDir }))
+      .resolves.toEqual({ ok: true, help: true });
+
     output.length = 0;
     const status = await runCli(['status'], { stdout: (message) => output.push(message) }, { configDir });
     expect(JSON.stringify(status)).toContain('"mode":"offline"');
@@ -455,6 +467,12 @@ describe('@illustry/cli', () => {
       .rejects.toThrow('Unsupported mode');
     await expect(runCli(['connect'], { stdout: (message) => output.push(message) }, { configDir }))
       .rejects.toThrow('Missing server URL');
+    await expect(runCli(['connect', 'http://positional.local', '--json'], { stdout: (message) => output.push(message) }, { configDir }))
+      .resolves.toMatchObject({ mode: 'live', server: 'http://positional.local' });
+    await expect(runCli(['connect', '--url', 'http://option.local', '--json'], { stdout: (message) => output.push(message) }, { configDir }))
+      .resolves.toMatchObject({ mode: 'live', server: 'http://option.local' });
+    await expect(runCli(['shell', '--once', '--mode', 'live'], { stdout: (message) => output.push(message) }, { configDir }))
+      .resolves.toEqual({ ok: true });
     await expect(runCli(['import', '--json'], { stdout: (message) => output.push(message) }, { configDir }))
       .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_MISSING_FILE' });
     await expect(runCli(['list', 'widgets', '--json'], { stdout: (message) => output.push(message) }, { configDir }))
@@ -470,6 +488,12 @@ describe('@illustry/cli', () => {
       '--json'
     ], { stdout: (message) => output.push(message) }, { configDir }))
       .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_UNSUPPORTED_EXPORT_RESOURCE' });
+
+    global.fetch = async () => new Response('down', { status: 503 });
+    const doctor = await runCli(['doctor', '--server', 'http://down.local', '--json'], {
+      stdout: (message) => output.push(message)
+    }, { configDir });
+    expect(JSON.stringify(doctor)).toContain('"reachable":false');
   });
 
   it('covers auth utility commands: verification, reset, and backend errors', async () => {

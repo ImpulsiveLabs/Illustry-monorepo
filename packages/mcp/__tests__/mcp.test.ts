@@ -95,7 +95,8 @@ describe('@illustry/mcp', () => {
         arguments: {
           workspace: tempDir,
           filePath: source,
-          name: 'MCP Chart'
+          name: 'MCP Chart',
+          mapping: 'label=name,value=value'
         }
       }
     });

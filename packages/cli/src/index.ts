@@ -295,6 +295,10 @@ const configureProgram = (
     .option('--name <name>', 'visualization name')
     .option('--type <type>', 'visualization type')
     .option('--project <project>', 'target project in live mode')
+    .option('--map <mapping>', 'column mapping, for example label=Country,value=Revenue')
+    .option('--mapping <mapping>', 'column mapping, for example label=Country,value=Revenue')
+    .option('--label-column <column>', 'column/header to use as labels')
+    .option('--value-column <column>', 'column/header to use as numeric values')
     .option('--full-details', 'ask backend to read full file details')
     .action(async (file: string | undefined, options) => {
       const resolvedFile = file === 'visualization' ? options.file : file || options.file;
@@ -303,6 +307,9 @@ const configureProgram = (
         name: options.name,
         type: options.type,
         project: options.project,
+        mapping: options.map || options.mapping,
+        labelColumn: options.labelColumn,
+        valueColumn: options.valueColumn,
         fullDetails: options.fullDetails
       }))();
     });
@@ -408,7 +415,16 @@ const runCli = async (argv: string[], io: CliIo = {}, runOptions: CliRunOptions 
   }
 
   if (argv.includes('--help') || argv.includes('-h')) {
-    await program.parseAsync(argv, { from: 'user' });
+    try {
+      await program.parseAsync(argv, { from: 'user' });
+    } catch (error) {
+      const code = typeof error === 'object' && error && 'code' in error
+        ? Reflect.get(error, 'code')
+        : undefined;
+      if (code !== 'commander.helpDisplayed') {
+        throw error;
+      }
+    }
     return { ok: true, help: true };
   }
 
@@ -416,14 +432,17 @@ const runCli = async (argv: string[], io: CliIo = {}, runOptions: CliRunOptions 
     await program.parseAsync(argv, { from: 'user' });
     return result;
   } catch (error) {
-    const normalized = toIllustryError(error);
-    if (normalized.code === 'commander.helpDisplayed') {
+    const code = typeof error === 'object' && error && 'code' in error
+      ? Reflect.get(error, 'code')
+      : undefined;
+    if (code === 'commander.helpDisplayed') {
       return { ok: true, help: true };
     }
     throw error;
   }
 };
 
+/* istanbul ignore next */
 if (require.main === module) {
   runCli(process.argv.slice(2)).catch((error) => {
     const normalized = toIllustryError(error);

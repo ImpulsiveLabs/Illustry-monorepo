@@ -13,6 +13,7 @@ import {
   write,
   writeError
 } from '../src/ui/output';
+import { formatStatusHeader, promptModeLabel, sessionLabel } from '../src/ui/status-line';
 
 describe('@illustry/cli output helpers', () => {
   const originalNoColor = process.env.NO_COLOR;
@@ -57,5 +58,50 @@ describe('@illustry/cli output helpers', () => {
     writeError({ errorStream: { write: (message: string) => { errorOutput += message; return true; } } as any }, 'estream');
     expect(output).toContain('stream');
     expect(errorOutput).toContain('estream');
+  });
+
+  it('uses color and console fallbacks when no IO callback is provided', () => {
+    delete process.env.NO_COLOR;
+    expect(paint(color.green, 'ok')).toContain('\u001b[32m');
+    expect(formatModeBadge('anything-else')).toContain('[offline]');
+
+    const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    write({}, 'console out');
+    writeError({}, 'console err');
+    printValue('plain', {}, {});
+    expect(logSpy).toHaveBeenCalledWith('console out');
+    expect(errorSpy).toHaveBeenCalledWith('console err');
+    logSpy.mockRestore();
+    errorSpy.mockRestore();
+  });
+
+  it('formats persistent status lines for offline, live guest, and live sessions', () => {
+    const offline = {
+      profile: 'default',
+      mode: 'offline' as const,
+      workspace: '/workspace',
+      server: undefined,
+      authenticated: false,
+      user: null,
+      assets: 2
+    };
+    const guest = {
+      ...offline,
+      mode: 'live' as const,
+      server: 'http://illustry.local'
+    };
+    const signedIn = {
+      ...guest,
+      authenticated: true,
+      user: { email: 'dev@illustry.local' } as any
+    };
+
+    expect(sessionLabel(offline)).toBe('local workspace');
+    expect(sessionLabel(guest)).toBe('not signed in');
+    expect(sessionLabel(signedIn)).toBe('dev@illustry.local');
+    expect(promptModeLabel(guest)).toContain('live:guest');
+    expect(promptModeLabel(signedIn)).toContain('dev@illustry.local');
+    expect(formatStatusHeader(signedIn)).toContain('Local assets: 2');
   });
 });

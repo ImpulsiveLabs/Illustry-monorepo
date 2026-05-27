@@ -9,12 +9,14 @@ import {
   type IllustryApiClientOptions,
   LocalIllustryStore,
   UPLOAD_CONSTRAINTS,
+  applyImportMapping,
   buildWebComponentHtml,
   createLocalExportBundle,
   formatUploadBytes,
   importVisualizationSource,
   isIllustryExportFormat,
   normalizeFormats,
+  parseImportMapping,
   parseExportFormats,
   renderSvg,
   sanitizeFilename,
@@ -317,6 +319,19 @@ describe('@illustry/core local workflows', () => {
     ]);
     expect((csvAsset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([0]);
 
+    const mappedCsv = path.join(tempDir, 'mapped.csv');
+    await fs.writeFile(mappedCsv, 'Country,Revenue,Notes\nRomania,10,a\nFrance,20,b\n', 'utf8');
+    const mappedAsset = await importVisualizationSource({
+      filePath: mappedCsv,
+      mapping: parseImportMapping('label=Country,value=Revenue')
+    });
+    expect(mappedAsset.source?.rows).toEqual([
+      ['label', 'value'],
+      ['Romania', '10'],
+      ['France', '20']
+    ]);
+    expect((mappedAsset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([10, 20]);
+
     const xml = path.join(tempDir, 'source.xml');
     await fs.writeFile(xml, '<root><label>A</label><value>5</value></root>', 'utf8');
     await expect(importVisualizationSource({ filePath: xml }))
@@ -365,6 +380,46 @@ describe('@illustry/core local workflows', () => {
     const asset = await importVisualizationSource({ filePath: emptyXlsx });
     expect(asset.source?.rows).toEqual([]);
     expect((asset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([]);
+
+    expect(() => parseImportMapping('bad')).toThrow('Invalid import mapping');
+    expect(() => parseImportMapping('color=Country')).toThrow('Unsupported import mapping key');
+
+    const mapped = path.join(tempDir, 'missing-column.csv');
+    await fs.writeFile(mapped, 'Country,Revenue\nRomania,10\n', 'utf8');
+    await expect(importVisualizationSource({
+      filePath: mapped,
+      mapping: { label: 'Missing', value: 'Revenue' }
+    })).rejects.toMatchObject({
+      code: 'ILLUSTRY_IMPORT_MAPPING_COLUMN_NOT_FOUND',
+      status: 400
+    });
+  });
+
+  it('parses import mapping aliases and supports numeric column indexes', () => {
+    expect(parseImportMapping()).toEqual({});
+    expect(parseImportMapping('x=0,y=2')).toEqual({ label: '0', value: '2' });
+    expect(parseImportMapping('category=Country,amount=Revenue')).toEqual({
+      label: 'Country',
+      value: 'Revenue'
+    });
+    expect(parseImportMapping('name=Country,value=Revenue')).toEqual({
+      label: 'Country',
+      value: 'Revenue'
+    });
+    expect(() => parseImportMapping('label=')).toThrow('Missing column name');
+
+    const rows = [
+      ['Country', 'Ignored', 'Revenue'],
+      ['Romania', 'x', '10']
+    ];
+    expect(applyImportMapping(rows, { label: '0', value: '2' })).toEqual([
+      ['label', 'value'],
+      ['Romania', '10']
+    ]);
+    expect(applyImportMapping(rows)).toBe(rows);
+    expect(applyImportMapping([], { value: '0' })).toEqual([
+      ['label', 'value']
+    ]);
   });
 
   it('manages local store reads, updates, deletes, and export writes', async () => {
