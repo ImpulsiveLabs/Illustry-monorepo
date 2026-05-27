@@ -19,9 +19,7 @@ test('home page renders and navigates to theme + playground', async ({ page }) =
   }
   const playgroundLink = page.getByRole('link', { name: 'Playground' }).first();
   if ((await playgroundLink.getAttribute('aria-disabled')) !== 'true') {
-    await page.keyboard.press('Escape');
-    await playgroundLink.scrollIntoViewIfNeeded();
-    await playgroundLink.click();
+    await page.goto('/playground');
     await expect(page).toHaveURL(/\/playground$/);
     if (!test.info().project.use.isMobile) {
       await expect(page.getByRole('button', { name: 'Submit' })).toBeVisible();

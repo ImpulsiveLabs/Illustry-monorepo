@@ -141,6 +141,13 @@ const clickLastMenuItem = async (page: Page) => {
   await page.keyboard.press('Enter');
 };
 
+const confirmDeleteDialog = async (page: Page) => {
+  const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Delete' }).click();
+  await expect(dialog).toBeHidden();
+};
+
 test.describe('frontend data CRUD e2e', () => {
   test.describe.configure({ mode: 'serial' });
 
@@ -184,6 +191,7 @@ test.describe('frontend data CRUD e2e', () => {
     await expect(updatedRow).toBeVisible();
     await openRowActions(updatedRow);
     await clickLastMenuItem(page);
+    await confirmDeleteDialog(page);
 
     await expect(page.locator('tbody tr', { hasText: projectName })).toHaveCount(0);
   });
