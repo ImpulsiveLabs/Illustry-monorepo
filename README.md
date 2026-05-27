@@ -89,6 +89,23 @@ Required repository secrets:
 - `NPM_TOKEN` for npm publishes.
 - `GITHUB_TOKEN` is provided by GitHub Actions for GitHub Packages.
 
+To install or replace the npm publish token:
+
+1. Create an npm automation token from the npm account that owns the `@illustry` scope.
+2. Run:
+
+```bash
+scripts/configure-npm-publish-secret.sh --run-publish
+```
+
+Or provide the token through the environment:
+
+```bash
+NPM_TOKEN=npm_xxx scripts/configure-npm-publish-secret.sh --run-publish
+```
+
+The helper validates the token with npm, writes it to the GitHub `NPM_TOKEN` secret, and can trigger the first publish workflow.
+
 For Docker Compose, the CLI and MCP are available under the `tools` profile:
 
 ```bash
