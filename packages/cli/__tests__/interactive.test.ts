@@ -15,6 +15,11 @@ import {
   promptLabel,
   promptList,
   promptLogin,
+  promptVisualizationCreateUpdate,
+  promptVisualizationDelete,
+  promptVisualizationDetails,
+  promptVisualizationExport,
+  promptVisualizationList,
   renderMenu,
   runInteractive
 } from '../src/interactive';
@@ -30,6 +35,31 @@ describe('@illustry/cli interactive internals', () => {
   let tempDir: string;
   let originalFetch: typeof fetch;
   const output: string[] = [];
+  const mockHealthyBackend = () => {
+    global.fetch = async (input) => {
+      const pathname = new URL(input.toString()).pathname;
+      if (pathname === '/api/health' || pathname === '/health') {
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      if (pathname === '/api/auth/me') {
+        return new Response(JSON.stringify({
+          id: '1',
+          email: 'dev@illustry.local',
+          name: 'Dev',
+          isEmailVerified: true,
+          roles: [],
+          hasAvatar: false
+        }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { 'content-type': 'application/json' }
+      });
+    };
+  };
 
   beforeEach(async () => {
     tempDir = await makeTempDir();
@@ -59,6 +89,7 @@ describe('@illustry/cli interactive internals', () => {
     await renderMenu(offline, await buildMenu(offline), 0);
     expect(output.join('\n')).toContain('Illustry CLI');
 
+    mockHealthyBackend();
     const live = context({ configDir: path.join(tempDir, 'live-config'), flags: { startupMode: 'live', server: 'http://illustry.local' } });
     await chooseStartupMode(live, makeRl([]));
     expect((await live.profile()).mode).toBe('live');
@@ -70,16 +101,16 @@ describe('@illustry/cli interactive internals', () => {
     expect((await buildMenu(live)).map((item) => item.action)).toContain('logout');
 
     const prompted = context({ configDir: path.join(tempDir, 'prompt-config') });
-    await chooseStartupMode(prompted, makeRl(['3', 'http://prompted.local']));
+    await chooseStartupMode(prompted, makeRl(['1', 'http://prompted.local']));
     expect((await prompted.profile()).serverUrl).toBe('http://prompted.local');
 
-    const keep = context({ configDir: path.join(tempDir, 'keep-config') });
-    await chooseStartupMode(keep, makeRl(['']));
-    expect((await keep.profile()).mode).toBe('offline');
+    const invalid = context({ configDir: path.join(tempDir, 'invalid-config') });
+    await expect(chooseStartupMode(invalid, makeRl(['', '', ''])))
+      .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_STARTUP_SELECTION_FAILED' });
 
     const liveNoServer = context({ configDir: path.join(tempDir, 'live-no-server-config') });
-    await chooseStartupMode(liveNoServer, makeRl(['3', '']));
-    expect((await liveNoServer.profile()).mode).toBe('live');
+    await chooseStartupMode(liveNoServer, makeRl(['', 'offline']));
+    expect((await liveNoServer.profile()).mode).toBe('offline');
   });
 
   it('handles shell commands and prompt-driven offline workflows', async () => {
@@ -102,7 +133,7 @@ describe('@illustry/cli interactive internals', () => {
     await expect(handleCommand(ctx, makeRl([]), 'export Missing json')).rejects.toMatchObject({ code: 'ILLUSTRY_ASSET_NOT_FOUND' });
     await expect(handleCommand(ctx, makeRl([]), 'delete assets Missing')).rejects.toMatchObject({ code: 'ILLUSTRY_ASSET_NOT_FOUND' });
 
-    await promptImport(ctx, makeRl([source, 'Prompt Chart', 'bar-chart', 'label', 'value']));
+    await promptImport(ctx, makeRl(['CSV', source, 'bar-chart', 'Prompt Chart', '', '', ',', 'y', 'value', 'label']));
     await promptList(ctx, makeRl(['assets']));
     await promptExport(ctx, makeRl(['Prompt Chart', 'json', path.join(tempDir, 'exports')]));
     await promptDelete(ctx, makeRl(['Prompt Chart', 'n']));
@@ -148,7 +179,22 @@ describe('@illustry/cli interactive internals', () => {
         return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname === '/api/visualizations') {
-        return new Response(JSON.stringify({ items: [{ name: 'Live Chart' }] }), { headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({
+          visualizations: [{
+            name: 'Live Chart',
+            type: 'bar-chart',
+            projectName: 'Default',
+            data: { headers: ['A'], values: { Value: [1] } }
+          }]
+        }), { headers: { 'content-type': 'application/json' } });
+      }
+      if (url.pathname === '/api/visualization/Live%20Chart') {
+        return new Response(JSON.stringify({
+          name: 'Live Chart',
+          type: 'bar-chart',
+          projectName: 'Default',
+          data: { headers: ['A'], values: { Value: [1] } }
+        }), { headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname === '/api/visualization') {
         return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
@@ -171,10 +217,16 @@ describe('@illustry/cli interactive internals', () => {
 
     await promptLogin(ctx, makeRl(['dev@illustry.local', 'secret']));
     await expect(handleCommand(ctx, makeRl([]), 'session')).resolves.toBe(true);
-    await promptImport(ctx, makeRl([source, 'Live Chart', 'bar-chart', '', '', 'Default']));
+    await promptImport(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', 'value', 'label']));
     await promptList(ctx, makeRl(['visualizations']));
     await promptExport(ctx, makeRl(['visualization', 'Live Chart', 'svg', path.join(tempDir, 'out'), 'bar-chart']))
       .catch(() => undefined);
+    await promptVisualizationCreateUpdate(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', 'value', 'label']));
+    await promptVisualizationCreateUpdate(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', 'value', 'label']));
+    await promptVisualizationList(ctx, makeRl(['']));
+    await promptVisualizationDetails(ctx, makeRl(['Live Chart', 'bar-chart']));
+    await promptVisualizationExport(ctx, makeRl(['Live Chart', 'bar-chart', path.join(tempDir, 'out')]));
+    await promptVisualizationDelete(ctx, makeRl(['Live Chart', 'bar-chart', 'no']));
     await expect(handleCommand(ctx, makeRl([]), 'logout')).resolves.toBe(true);
     await expect(executeMenuAction(ctx, makeRl(['status']), { label: 'Command prompt', action: 'prompt' })).resolves.toBe(true);
     await expect(executeMenuAction(ctx, makeRl([]), { label: 'Exit', action: 'exit' })).resolves.toBe(false);

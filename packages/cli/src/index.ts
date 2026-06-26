@@ -292,9 +292,9 @@ const configureProgram = (
     .command('import [file]')
     .description('import or upload a visualization source file')
     .option('--file <file>', 'source file path')
+    .option('--file-type <type>', 'source file type: JSON, CSV, EXCEL, or XML')
     .option('--name <name>', 'visualization name')
     .option('--type <type>', 'visualization type')
-    .option('--project <project>', 'target project in live mode')
     .option('--map <mapping>', 'column mapping, for example label=Country,value=Revenue')
     .option('--mapping <mapping>', 'column mapping, for example label=Country,value=Revenue')
     .option('--label-column <column>', 'column/header to use as labels')
@@ -304,9 +304,9 @@ const configureProgram = (
       const resolvedFile = file === 'visualization' ? options.file : file || options.file;
       await wrap((context) => importVisualization(context, {
         file: resolvedFile,
+        fileType: options.fileType,
         name: options.name,
         type: options.type,
-        project: options.project,
         mapping: options.map || options.mapping,
         labelColumn: options.labelColumn,
         valueColumn: options.valueColumn,
@@ -358,13 +358,11 @@ const configureProgram = (
     .command('delete <resource> <name>')
     .description('delete a local asset or live resource')
     .option('--type <type>', 'visualization type')
-    .option('--project <project>', 'project name for visualization delete')
     .action(async (resource: string, name: string, options) => {
       await wrap((context) => deleteResource(context, {
         resource,
         name,
-        type: options.type,
-        project: options.project
+        type: options.type
       }))();
     });
 

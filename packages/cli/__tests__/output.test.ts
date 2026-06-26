@@ -40,6 +40,38 @@ describe('@illustry/cli output helpers', () => {
     expect(resourceTable([{ id: '2', createdAt: 'today' }])).toContain('today');
   });
 
+  it('formats backend project browse responses with fixed project columns and truncation', () => {
+    process.env.NO_COLOR = '1';
+    const rendered = resourceTable({
+      data: {
+        projects: [
+          {
+            name: 'A very very very very long project name',
+            description: 'This description is intentionally long so it should be truncated cleanly.',
+            createdAt: '2026-06-07T07:05:24.176Z',
+            updatedAt: '2026-06-07T07:26:07.667Z',
+            isActive: false
+          },
+          {
+            name: 'Project',
+            description: 'da',
+            createdAt: '2026-05-28T12:44:28.631Z',
+            updatedAt: '2026-05-28T12:44:28.631Z',
+            isActive: true
+          }
+        ]
+      }
+    });
+
+    expect(rendered).toContain('name                      description');
+    expect(rendered).toContain('created           updated           active');
+    expect(rendered).toContain('A very very very very...');
+    expect(rendered).toContain('This description is intention...');
+    expect(rendered).toContain('2026-06-07 07:05  2026-06-07 07:26  false');
+    expect(rendered).not.toContain('type');
+    expect(rendered).not.toContain('project');
+  });
+
   it('writes through callbacks and streams and respects quiet/json output', () => {
     const stdout: string[] = [];
     const stderr: string[] = [];

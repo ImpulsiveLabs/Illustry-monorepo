@@ -35,7 +35,6 @@ const signup = async (context: CliContext, credentials: AuthCredentials) => {
     password: requireValue(credentials.password, '--password'),
     name: requireValue(credentials.name, '--name')
   });
-  await context.saveClientSession(client.getSessionSnapshot());
   await context.config.setMode('live');
   return result;
 };
@@ -78,14 +77,12 @@ const verifyEmail = async (context: CliContext, token?: string, email?: string, 
   const result = token
     ? await client.verifyEmail(token)
     : await client.verifyEmailCode(requireValue(email, '--email'), requireValue(code, '--code'));
-  await context.saveClientSession(client.getSessionSnapshot());
   return result;
 };
 
 const resendVerification = async (context: CliContext, email?: string) => {
   const client = await context.client();
   const result = await client.resendVerification(email);
-  await context.saveClientSession(client.getSessionSnapshot());
   return result;
 };
 
