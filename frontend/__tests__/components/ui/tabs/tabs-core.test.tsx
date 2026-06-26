@@ -65,7 +65,7 @@ afterEach(() => {
 });
 
 describe('tabs mapping/type components', () => {
-    it('renders JSON and XML mapping tabs in both details modes', () => {
+    it('renders JSON all-details and XML mapped detail mode', () => {
         const router = { refresh: vi.fn() };
 
         const jsonRender = renderWithForm((form) => (
@@ -82,11 +82,6 @@ describe('tabs mapping/type components', () => {
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Type visualization name here.')).toBeInTheDocument();
 
-        jsonRender.unmount();
-        renderWithForm((form) => (
-            <XMLMappingTab form={form} router={router} fileDetails={true} />
-        ));
-        expect(screen.getByText("XML files don't need a special mapping")).toBeInTheDocument();
     });
 
     it('updates visualization detail fields', () => {
@@ -162,6 +157,7 @@ describe('tabs mapping/type components', () => {
         ), 'mapping');
 
         expect(screen.getByText('Type')).toBeInTheDocument();
+        expect(screen.queryByText('Does your file include all the details?')).not.toBeInTheDocument();
         xmlRender.unmount();
 
         renderInTabsWithForm((form) => (
@@ -173,6 +169,7 @@ describe('tabs mapping/type components', () => {
         ), 'mapping');
 
         expect(screen.getByText('Separator')).toBeInTheDocument();
+        expect(screen.queryByText('Does your file include all the details?')).not.toBeInTheDocument();
 
         const excelRender = renderInTabsWithForm((form) => (
             <MappingTab

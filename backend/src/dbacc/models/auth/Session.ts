@@ -29,6 +29,7 @@ class Session {
 
       SessionSchema.index({ sessionTokenHash: 1 }, { unique: true, background: true });
       SessionSchema.index({ userId: 1, expiresAt: -1 }, { background: true });
+      SessionSchema.index({ userId: 1, revokedAt: 1, createdAt: -1 }, { background: true });
       SessionSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0, background: true });
 
       this.sessionModel = this.connection.model<AuthSession>('AuthSession', SessionSchema);

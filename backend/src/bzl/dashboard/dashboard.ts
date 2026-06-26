@@ -280,7 +280,14 @@ class DashboardBZL implements GenericTypes.BaseBZL<
     const projectName = projects[0].name;
 
     try {
-      return await this.dbaccInstance.Dashboard.create({ ...dashboard, userId, projectName });
+      const createdDashboard = await this.dbaccInstance.Dashboard.create({ ...dashboard, userId, projectName });
+      publish({
+        resource: 'user',
+        shareId: userId,
+        action: 'created',
+        updatedAt: new Date().toISOString()
+      });
+      return createdDashboard;
     } catch {
       throw new DuplicatedElementError(
         `There already is a Dashboard named ${dashboard.name}`
@@ -660,12 +667,19 @@ class DashboardBZL implements GenericTypes.BaseBZL<
           resource: 'dashboard',
           shareId: filter.shareId,
           action: 'shared',
-          updatedAt: new Date().toISOString(),
-          originClientId
-        });
-        await this.cleanupDashboardVisualizationShares(sharedDashboard, [userId]);
-        return true;
-      }
+        updatedAt: new Date().toISOString(),
+        originClientId
+      });
+      publish({
+        resource: 'user',
+        shareId: userId,
+        action: 'deleted',
+        updatedAt: new Date().toISOString(),
+        originClientId
+      });
+      await this.cleanupDashboardVisualizationShares(sharedDashboard, [userId]);
+      return true;
+    }
     }
 
     const { projects } = await projectBZL.browse({ userId, isActive: true } as ProjectTypes.ProjectFilter);
@@ -699,6 +713,13 @@ class DashboardBZL implements GenericTypes.BaseBZL<
         originClientId
       });
     }
+    publish({
+      resource: 'user',
+      shareId: userId,
+      action: 'deleted',
+      updatedAt: new Date().toISOString(),
+      originClientId
+    });
     return true;
   }
 }

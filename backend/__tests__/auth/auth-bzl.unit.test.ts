@@ -38,36 +38,24 @@ describe('AuthBZL', () => {
     jest.clearAllMocks();
   });
 
-  it('registers a user, stores the avatar, sends a 15 minute verification token, and creates a session', async () => {
+  it('creates a pending registration, stores pending avatar data, and sends a verification token/code', async () => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-01-01T00:00:00.000Z'));
 
-    const createdUser = buildUser();
-    const avatarUpdatedUser = buildUser({
-      avatarFileName: 'avatar.png',
-      avatarContentType: 'image/png',
-      avatarUpdatedAt: new Date('2025-01-02T00:00:00.000Z')
-    });
-    const createdSession = {
+    const pendingRegistration = {
       _id: '507f191e810c19729de860eb',
-      userId: createdUser._id,
-      sessionTokenHash: 'session-hash',
-      csrfTokenHash: 'csrf-hash',
-      expiresAt: new Date(Date.now() + 60_000),
-      authVersion: 0,
-      createdAt: new Date(),
-      updatedAt: new Date()
+      email: 'user@example.com',
+      emailNormalized: 'user@example.com',
+      name: 'Test User',
+      passwordHash: 'hashed-password',
+      expiresAt: new Date('2025-01-01T00:15:00.000Z')
     };
 
     const dbaccInstance = {
       Auth: {
         findUserByEmailNormalized: jest.fn(async () => null),
-        createUser: jest.fn(async () => createdUser),
-        saveUserAvatar: jest.fn(async () => ({ userId: createdUser._id })),
-        updateUserById: jest.fn(async () => avatarUpdatedUser),
-        invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined),
-        createEmailVerificationToken: jest.fn(async () => ({ _id: 'token-id' })),
-        createSession: jest.fn(async () => createdSession)
+        createPendingRegistration: jest.fn(async () => pendingRegistration),
+        deletePendingRegistrationById: jest.fn(async () => undefined)
       }
     } as any;
 
@@ -88,26 +76,19 @@ describe('AuthBZL', () => {
       'ro'
     );
 
-    expect(dbaccInstance.Auth.createUser).toHaveBeenCalledWith(expect.objectContaining({
+    expect(dbaccInstance.Auth.createPendingRegistration).toHaveBeenCalledWith(expect.objectContaining({
       email: 'user@example.com',
-      name: 'Test User'
-    }));
-    expect(dbaccInstance.Auth.saveUserAvatar).toHaveBeenCalledWith(expect.objectContaining({
-      fileName: 'avatar.png',
-      contentType: 'image/png'
-    }));
-    expect(dbaccInstance.Auth.createEmailVerificationToken).toHaveBeenCalledWith(expect.objectContaining({
-      userId: createdUser._id,
+      emailNormalized: 'user@example.com',
+      name: 'Test User',
+      passwordHash: 'hashed-password',
+      avatarFileName: 'avatar.png',
+      avatarContentType: 'image/png',
+      avatarSize: 128,
+      avatarData: Buffer.from('avatar'),
       expiresAt: new Date('2025-01-01T00:15:00.000Z')
     }));
-    expect(dbaccInstance.Auth.createSession).toHaveBeenCalledWith(expect.objectContaining({
-      userId: createdUser._id,
-      authVersion: 0
-    }));
     expect(sendVerificationEmail).toHaveBeenCalledWith('user@example.com', expect.any(String), expect.any(String), 'ro');
-    expect(result.session).toBe(createdSession);
-    expect(typeof result.sessionToken).toBe('string');
-    expect(typeof result.csrfToken).toBe('string');
+    expect(result).toEqual({ ok: true, email: 'user@example.com', verificationRequired: true });
 
     jest.useRealTimers();
   });
@@ -260,10 +241,8 @@ describe('AuthBZL', () => {
     const noAvatarDbacc = {
       Auth: {
         findUserByEmailNormalized: jest.fn(async () => null),
-        createUser: jest.fn(async () => createdUser),
-        invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined),
-        createEmailVerificationToken: jest.fn(async () => ({ _id: 'token-id' })),
-        createSession: jest.fn(async () => createdSession),
+        createPendingRegistration: jest.fn(async () => ({ _id: 'pending-id' })),
+        deletePendingRegistrationById: jest.fn(async () => undefined),
         saveUserAvatar: jest.fn(async () => undefined),
         updateUserById: jest.fn(async () => createdUser)
       }
@@ -283,15 +262,20 @@ describe('AuthBZL', () => {
     const unverifiedDbacc = {
       Auth: {
         findUserByEmailNormalized: jest.fn(async () => unverifiedUser),
-        invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined),
-        createEmailVerificationToken: jest.fn(async () => ({ _id: 'token-id' }))
+        deleteEmailVerificationTokensForUser: jest.fn(async () => undefined),
+        revokeActiveSessionsForUser: jest.fn(async () => undefined),
+        deleteUserAvatarByUserId: jest.fn(async () => undefined),
+        deleteUserById: jest.fn(async () => undefined),
+        createPendingRegistration: jest.fn(async () => ({ _id: 'pending-id' })),
+        deletePendingRegistrationById: jest.fn(async () => undefined)
       }
     } as any;
     const unverifiedAuth = new AuthBZL(unverifiedDbacc);
 
     await expect(
       unverifiedAuth.register('user@example.com', 'ValidPass1!', 'Test User', undefined, { ipAddress: '127.0.0.1' }, 'ro')
-    ).rejects.toThrow('Unable to register with provided credentials');
+    ).resolves.toEqual({ ok: true, email: 'user@example.com', verificationRequired: true });
+    expect(unverifiedDbacc.Auth.deleteUserById).toHaveBeenCalledWith(unverifiedUser._id);
     expect(sendVerificationEmail).toHaveBeenCalledWith('user@example.com', expect.any(String), expect.any(String), 'ro');
 
     sendVerificationEmail.mockClear();
@@ -309,7 +293,7 @@ describe('AuthBZL', () => {
   });
 
   it('creates sessions for valid login and google login variations', async () => {
-    const baseUser = buildUser();
+    const baseUser = buildUser({ isEmailVerified: true });
     const createdSession = {
       _id: 'session-id',
       userId: baseUser._id,
@@ -325,13 +309,15 @@ describe('AuthBZL', () => {
     const loginDbacc = {
       Auth: {
         findUserByEmailNormalized: jest.fn(async () => baseUser),
-        createSession: jest.fn(async () => createdSession)
+        createSession: jest.fn(async () => createdSession),
+        revokeOldestActiveSessionsForUser: jest.fn(async () => undefined)
       }
     } as any;
     const loginAuth = new AuthBZL(loginDbacc);
     await expect(loginAuth.login('user@example.com', 'ValidPass1!', { ipAddress: '127.0.0.1', userAgent: 'jest' })).resolves.toEqual(
       expect.objectContaining({ session: createdSession })
     );
+    expect(loginDbacc.Auth.revokeOldestActiveSessionsForUser).toHaveBeenCalledWith(baseUser._id, 5);
 
     const googleNewDbacc = {
       Auth: {
@@ -339,7 +325,8 @@ describe('AuthBZL', () => {
         createUser: jest.fn(async () => baseUser),
         invalidateEmailVerificationTokensForUser: jest.fn(async () => undefined),
         createEmailVerificationToken: jest.fn(async () => ({ _id: 'token-id' })),
-        createSession: jest.fn(async () => createdSession)
+        createSession: jest.fn(async () => createdSession),
+        revokeOldestActiveSessionsForUser: jest.fn(async () => undefined)
       }
     } as any;
     const googleNewAuth = new AuthBZL(googleNewDbacc);
@@ -360,7 +347,8 @@ describe('AuthBZL', () => {
       Auth: {
         findUserByEmailNormalized: jest.fn(async () => updatedUser),
         updateUserById: jest.fn(async () => savedUpdatedUser),
-        createSession: jest.fn(async () => createdSession)
+        createSession: jest.fn(async () => createdSession),
+        revokeOldestActiveSessionsForUser: jest.fn(async () => undefined)
       }
     } as any;
     const googleExistingAuth = new AuthBZL(googleExistingDbacc);
@@ -369,6 +357,46 @@ describe('AuthBZL', () => {
       $set: { isEmailVerified: true, name: 'Google User' }
     });
     expect(sendVerificationEmail).not.toHaveBeenCalled();
+  });
+
+  it('uses the configured active session cap when issuing new sessions', async () => {
+    const originalMaxSessions = process.env.AUTH_MAX_ACTIVE_SESSIONS_PER_USER;
+    process.env.AUTH_MAX_ACTIVE_SESSIONS_PER_USER = '2';
+    jest.resetModules();
+
+    try {
+      const user = buildUser({ isEmailVerified: true });
+      const createdSession = {
+        _id: 'session-id',
+        userId: user._id,
+        sessionTokenHash: 'session-hash',
+        csrfTokenHash: 'csrf-hash',
+        expiresAt: new Date(Date.now() + 60_000),
+        authVersion: 0,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+      const dbaccInstance = {
+        Auth: {
+          findUserByEmailNormalized: jest.fn(async () => user),
+          createSession: jest.fn(async () => createdSession),
+          revokeOldestActiveSessionsForUser: jest.fn(async () => undefined)
+        }
+      } as any;
+
+      const { default: AuthBZL } = await import('../../src/bzl/auth/auth');
+      const authBZL = new AuthBZL(dbaccInstance);
+      await authBZL.login('user@example.com', 'ValidPass1!', { ipAddress: '127.0.0.1' });
+
+      expect(dbaccInstance.Auth.revokeOldestActiveSessionsForUser).toHaveBeenCalledWith(user._id, 2);
+    } finally {
+      if (originalMaxSessions === undefined) {
+        delete process.env.AUTH_MAX_ACTIVE_SESSIONS_PER_USER;
+      } else {
+        process.env.AUTH_MAX_ACTIVE_SESSIONS_PER_USER = originalMaxSessions;
+      }
+      jest.resetModules();
+    }
   });
 
   it('resolves session principals and revokes invalid sessions when needed', async () => {
@@ -451,7 +479,8 @@ describe('AuthBZL', () => {
         findActiveSessionByHash: jest.fn(async () => currentSession),
         findUserById: jest.fn(async () => user),
         createSession: jest.fn(async () => rotatedSession),
-        updateSessionById: jest.fn(async () => undefined)
+        updateSessionById: jest.fn(async () => undefined),
+        revokeOldestActiveSessionsForUser: jest.fn(async () => undefined)
       }
     } as any;
     const validRotateAuth = new AuthBZL(validRotateDbacc);
@@ -463,6 +492,9 @@ describe('AuthBZL', () => {
         replacedBySessionTokenHash: rotatedSession.sessionTokenHash
       }
     });
+    expect(validRotateDbacc.Auth.revokeOldestActiveSessionsForUser).toHaveBeenCalledWith(user._id, 5);
+    expect(validRotateDbacc.Auth.updateSessionById.mock.invocationCallOrder[0])
+      .toBeLessThan(validRotateDbacc.Auth.revokeOldestActiveSessionsForUser.mock.invocationCallOrder[0]);
 
     const csrfResult = await validRotateAuth.rotateCsrfToken('raw');
     expect(typeof csrfResult.csrfToken).toBe('string');
@@ -488,12 +520,18 @@ describe('AuthBZL', () => {
     await expect(logoutAuth.logout('raw-session')).resolves.toBeUndefined();
     expect(logoutDbacc.Auth.revokeSessionByHash).toHaveBeenCalledWith(expect.any(String));
 
-    const invalidVerifyDbacc = { Auth: { findActiveEmailVerificationTokenByTokenHash: jest.fn(async () => null) } } as any;
+    const invalidVerifyDbacc = {
+      Auth: {
+        findActivePendingRegistrationByTokenHash: jest.fn(async () => null),
+        findActiveEmailVerificationTokenByTokenHash: jest.fn(async () => null)
+      }
+    } as any;
     const invalidVerifyAuth = new AuthBZL(invalidVerifyDbacc);
     await expect(invalidVerifyAuth.verifyEmail('bad-token')).rejects.toThrow('Verification token is invalid or expired');
 
     const verifyDbacc = {
       Auth: {
+        findActivePendingRegistrationByTokenHash: jest.fn(async () => null),
         findActiveEmailVerificationTokenByTokenHash: jest.fn(async () => tokenRecord),
         updateUserById: jest.fn(async () => user),
         deleteEmailVerificationTokensForUser: jest.fn(async () => undefined)
@@ -504,12 +542,18 @@ describe('AuthBZL', () => {
     expect(verifyDbacc.Auth.updateUserById).toHaveBeenCalledWith(user._id, { $set: { isEmailVerified: true } });
     expect(verifyDbacc.Auth.deleteEmailVerificationTokensForUser).toHaveBeenCalledWith(user._id);
 
-    const missingCodeUserDbacc = { Auth: { findUserByEmailNormalized: jest.fn(async () => null) } } as any;
+    const missingCodeUserDbacc = {
+      Auth: {
+        findActivePendingRegistrationByCodeHash: jest.fn(async () => null),
+        findUserByEmailNormalized: jest.fn(async () => null)
+      }
+    } as any;
     const missingCodeUserAuth = new AuthBZL(missingCodeUserDbacc);
     await expect(missingCodeUserAuth.verifyEmailCode('user@example.com', '123456')).rejects.toThrow('Verification code is invalid or expired');
 
     const missingCodeTokenDbacc = {
       Auth: {
+        findActivePendingRegistrationByCodeHash: jest.fn(async () => null),
         findUserByEmailNormalized: jest.fn(async () => user),
         findActiveEmailVerificationTokenByCodeHash: jest.fn(async () => null)
       }
@@ -519,6 +563,7 @@ describe('AuthBZL', () => {
 
     const validCodeDbacc = {
       Auth: {
+        findActivePendingRegistrationByCodeHash: jest.fn(async () => null),
         findUserByEmailNormalized: jest.fn(async () => user),
         findActiveEmailVerificationTokenByCodeHash: jest.fn(async () => tokenRecord),
         updateUserById: jest.fn(async () => user),

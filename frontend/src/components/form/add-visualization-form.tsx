@@ -34,6 +34,7 @@ const AddVisualizationForm = () => {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [files, setFiles] = useState<ExtFile[]>([]);
+  const [isOpen, setIsOpen] = useState(true);
   const [isPending, startTransition] = useTransition();
   const [selectedFileType, setSelectedFileType] = useState<string>(
     FileTypes.FileType.JSON
@@ -71,11 +72,17 @@ const AddVisualizationForm = () => {
       || (Boolean(watchedName) && Boolean(watchedType) && (!mappingRequired || hasMappingValue))
     );
 
-  const closeModal = () => {
+  const closeModal = (options: { refresh?: boolean } = {}) => {
+    setIsOpen(false);
     const params = new URLSearchParams(searchParams?.toString());
     params.delete('modal');
     const nextQuery = params.toString();
-    router.push(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+    startTransition(() => {
+      router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname);
+      if (options.refresh) {
+        router.refresh();
+      }
+    });
   };
 
   const onSubmit = async (data: Inputs) => {
@@ -118,7 +125,7 @@ const AddVisualizationForm = () => {
           form.reset();
           setFiles([]);
           toast.success(t('toast.visualizationAdded'));
-          closeModal();
+          closeModal({ refresh: true });
         } else {
           toast.error(t('form.visualization.noFilesSelected'));
         }
@@ -133,6 +140,7 @@ const AddVisualizationForm = () => {
       setSelectedFileType(value);
       form.reset({
         fileType: value as any,
+        fullDetails: false,
         type: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD,
         name: '',
         tags: '',
@@ -145,7 +153,7 @@ const AddVisualizationForm = () => {
   };
 
   return (
-    <Dialog open onOpenChange={(open) => {
+    <Dialog open={isOpen} onOpenChange={(open) => {
       if (!open) {
         closeModal();
       }
@@ -192,7 +200,7 @@ const AddVisualizationForm = () => {
                 </Tabs>
               </div>
               <DialogFooter className="border-t bg-background px-6 py-4">
-                <Button type="button" variant="outline" disabled={isPending} onClick={closeModal}>
+                <Button type="button" variant="outline" disabled={isPending} onClick={() => closeModal()}>
                   {t('common.cancel')}
                 </Button>
                 <Button type="submit" form="visualization-create-form" disabled={isPending || !canCreate}>

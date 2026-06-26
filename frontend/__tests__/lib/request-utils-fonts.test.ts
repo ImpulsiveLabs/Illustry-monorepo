@@ -13,7 +13,7 @@ vi.mock('next/font/google', () => ({
     JetBrains_Mono: vi.fn(() => ({ className: 'mono-class', variable: '--font-mono' }))
 }));
 
-import makeRequest from '@/lib/request';
+import makeRequest, { BackendRequestError } from '@/lib/request';
 import { catchError, cloneDeep, cn, formatDate } from '@/lib/utils';
 import { fontMono, fontSans } from '@/lib/fonts';
 import getBackendUrl from '@/lib/backend-url';
@@ -43,8 +43,42 @@ describe('lib request/utils/fonts', () => {
         vi.stubGlobal('fetch', fetchMock as any);
 
         await expect(makeRequest('/a', ['x'])).resolves.toEqual({ ok: 1 });
-        await expect(makeRequest('/b', ['y'])).rejects.toThrow('unauthorized');
+        const rejected = await makeRequest('/b', ['y']).catch((error) => error);
+        expect(rejected).toBeInstanceOf(BackendRequestError);
+        expect(rejected).toMatchObject({ status: 401 });
+        expect(rejected.message).toBe('unauthorized');
         expect(fetchMock).toHaveBeenCalledTimes(2);
+    });
+
+    it('times out slow backend requests instead of hanging server rendering', async () => {
+        const previousTimeout = process.env.FRONTEND_BACKEND_REQUEST_TIMEOUT_MS;
+        process.env.FRONTEND_BACKEND_REQUEST_TIMEOUT_MS = '10';
+        vi.useFakeTimers();
+
+        const fetchMock = vi.fn((_input, init: any) => new Promise((_resolve, reject) => {
+            init.signal.addEventListener('abort', () => {
+                const error = new Error('aborted');
+                error.name = 'AbortError';
+                reject(error);
+            });
+        }));
+        vi.stubGlobal('fetch', fetchMock as any);
+
+        const request = makeRequest('/slow', ['slow']).catch((error) => error);
+        await vi.advanceTimersByTimeAsync(11);
+        const rejected = await request;
+        expect(rejected).toMatchObject({
+            status: 504,
+            code: 'BACKEND_REQUEST_TIMEOUT'
+        });
+        expect(rejected).toBeInstanceOf(BackendRequestError);
+
+        vi.useRealTimers();
+        if (previousTimeout === undefined) {
+            delete process.env.FRONTEND_BACKEND_REQUEST_TIMEOUT_MS;
+        } else {
+            process.env.FRONTEND_BACKEND_REQUEST_TIMEOUT_MS = previousTimeout;
+        }
     });
 
     it('cn merges classes and formatDate formats utc date', () => {

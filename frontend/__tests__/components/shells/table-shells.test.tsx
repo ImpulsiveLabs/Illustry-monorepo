@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, act, waitFor, screen } from '@testing-library/react';
 import DashboardsTableShell from '@/components/shells/dashboards-table-shell';
 import ProjectsTableShell from '@/components/shells/projects-table-shell';
@@ -68,6 +68,11 @@ describe('table shell wrappers', () => {
         deleteVisualization.mockClear();
         dispatch.mockClear();
         dispatchEnabled = true;
+    });
+
+    afterEach(() => {
+        vi.useRealTimers();
+        vi.unstubAllGlobals();
     });
 
     it('passes expected props from dashboard shell to DataTable', async () => {
@@ -167,6 +172,138 @@ describe('table shell wrappers', () => {
         dispatchEnabled = false;
         render(<ProjectsTableShell data={[{ name: 'p1', isActive: true } as any]} pageCount={1} />);
         expect(dispatch).not.toHaveBeenCalled();
+    });
+
+    it('refreshes project tables from project realtime events, focus, and reconnect', () => {
+        vi.useFakeTimers();
+        process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL = 'http://backend.local';
+        Object.defineProperty(document, 'visibilityState', {
+            value: 'visible',
+            configurable: true
+        });
+
+        const sockets: Array<{
+            url: string;
+            onmessage?: (event: { data: string }) => void;
+            onclose?: () => void;
+            close: ReturnType<typeof vi.fn>;
+        }> = [];
+        class MockWebSocket {
+            static CONNECTING = 0;
+
+            static OPEN = 1;
+
+            url: string;
+
+            readyState = MockWebSocket.OPEN;
+
+            onmessage?: (event: { data: string }) => void;
+
+            onclose?: () => void;
+
+            close = vi.fn();
+
+            constructor(url: string) {
+                this.url = url;
+                sockets.push(this);
+            }
+        }
+        vi.stubGlobal('WebSocket', MockWebSocket);
+
+        const rendered = render(<ProjectsTableShell data={[{ name: 'p1', isActive: true } as any]} pageCount={1} />);
+
+        expect(sockets[0].url).toContain('/api/realtime?resource=project');
+        expect(sockets[0].url).toContain('shareId=projects');
+
+        act(() => {
+            sockets[0].onmessage?.({ data: JSON.stringify({ action: 'created' }) });
+        });
+        expect(refresh).toHaveBeenCalledTimes(1);
+
+        act(() => {
+            sockets[0].onmessage?.({ data: JSON.stringify({ type: 'connected' }) });
+            sockets[0].onmessage?.({ data: 'not-json' });
+        });
+        expect(refresh).toHaveBeenCalledTimes(1);
+
+        act(() => {
+            window.dispatchEvent(new Event('focus'));
+        });
+        expect(refresh).toHaveBeenCalledTimes(2);
+
+        act(() => {
+            sockets[0].onclose?.();
+            vi.advanceTimersByTime(2000);
+        });
+        expect(sockets).toHaveLength(2);
+
+        rendered.unmount();
+        expect(sockets[1].close).toHaveBeenCalled();
+    });
+
+    it('refreshes dashboard and visualization tables from user realtime events', () => {
+        vi.useFakeTimers();
+        process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL = 'http://backend.local';
+
+        const sockets: Array<{
+            url: string;
+            onmessage?: (event: { data: string }) => void;
+            close: ReturnType<typeof vi.fn>;
+        }> = [];
+        class MockWebSocket {
+            static CONNECTING = 0;
+
+            static OPEN = 1;
+
+            url: string;
+
+            readyState = MockWebSocket.OPEN;
+
+            onmessage?: (event: { data: string }) => void;
+
+            close = vi.fn();
+
+            constructor(url: string) {
+                this.url = url;
+                sockets.push(this);
+            }
+        }
+        vi.stubGlobal('WebSocket', MockWebSocket);
+
+        const dashboards = render(<DashboardsTableShell data={[{ name: 'd1', description: 'x' } as any]} pageCount={1} />);
+
+        expect(sockets[0].url).toContain('/api/realtime?resource=user');
+        expect(sockets[0].url).toContain('shareId=me');
+
+        act(() => {
+            sockets[0].onmessage?.({ data: JSON.stringify({ action: 'created' }) });
+            sockets[0].onmessage?.({ data: JSON.stringify({ type: 'connected' }) });
+            sockets[0].onmessage?.({ data: 'not-json' });
+        });
+        expect(refresh).toHaveBeenCalledTimes(1);
+
+        dashboards.unmount();
+        expect(sockets[0].close).toHaveBeenCalled();
+
+        const visualizations = render(
+            <VisualizationsTableShell
+                data={[{ name: 'v1', type: 'bar-chart', tags: [] } as any]}
+                pageCount={1}
+            />
+        );
+
+        expect(sockets[1].url).toContain('/api/realtime?resource=user');
+        expect(sockets[1].url).toContain('shareId=me');
+
+        act(() => {
+            sockets[1].onmessage?.({ data: JSON.stringify({ action: 'updated' }) });
+            sockets[1].onmessage?.({ data: JSON.stringify({ action: 'theme-updated' }) });
+            sockets[1].onmessage?.({ data: JSON.stringify({ action: 'deleted' }) });
+        });
+        expect(refresh).toHaveBeenCalledTimes(4);
+
+        visualizations.unmount();
+        expect(sockets[1].close).toHaveBeenCalled();
     });
 
     it('handles visualization tags cell and bulk delete', async () => {

@@ -159,7 +159,7 @@ describe('api controllers', () => {
       csrfToken: 'csrf-token',
       expiresAt: new Date('2030-01-01T00:00:00.000Z')
     };
-    authRegisterMock.mockResolvedValue(session);
+    authRegisterMock.mockResolvedValue({ ok: true, email: 'user@example.com', verificationRequired: true });
     authLoginMock.mockResolvedValue(session);
     authGetSessionPrincipalFromTokenMock.mockResolvedValue({ user: { id: 'user-1' } });
     authToPublicUserMock.mockReturnValue({ id: 'user-1', email: 'user@example.com' });
@@ -189,7 +189,12 @@ describe('api controllers', () => {
       headers: {},
       ip: '127.0.0.1'
     });
-    expect(registerResult.response.status).toHaveBeenCalledWith(201);
+    expect(registerResult.response.status).toHaveBeenCalledWith(202);
+    expect(registerResult.response.send).toHaveBeenCalledWith({
+      ok: true,
+      email: 'user@example.com',
+      verificationRequired: true
+    });
     expect(authRegisterMock).toHaveBeenCalledWith(
       'user@example.com',
       'Secret123!Secret',
@@ -198,6 +203,7 @@ describe('api controllers', () => {
       expect.any(Object),
       'en'
     );
+    expect(registerResult.response.clearCookie).not.toHaveBeenCalled();
 
     const loginResult = await callHandler(authApi.login, {
       body: { email: 'user@example.com', password: 'Secret123!Secret' },

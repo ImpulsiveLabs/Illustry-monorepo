@@ -131,23 +131,16 @@ class Project implements GenericTypes.BaseLib<
     filter: UtilTypes.ExtendedMongoQuery,
     data: ProjectTypes.ProjectUpdate
   ): Promise<ProjectTypes.ProjectType | null> {
-    const foundProject = await this.findOne(filter);
     const finalData: ProjectTypes.ProjectUpdate = { ...data };
-    if (foundProject) {
-      if (!finalData.createdAt) {
-        finalData.createdAt = new Date();
-      }
-    }
     finalData.updatedAt = new Date();
     if (data.isActive !== true) {
       return this.modelInstance.ProjectModel.findOneAndUpdate(
         filter.query,
-        data,
+        finalData,
         {
-          upsert: true,
           new: true
         }
-      );
+      ).lean().exec() as unknown as Promise<ProjectTypes.ProjectType | null>;
     }
     await this.modelInstance.ProjectModel.updateMany(
       { userId: finalData.userId },
@@ -155,17 +148,16 @@ class Project implements GenericTypes.BaseLib<
     ).exec();
     return this.modelInstance.ProjectModel.findOneAndUpdate(
       filter.query,
-      data,
+      finalData,
       {
-        upsert: true,
         new: true
       }
-    ).exec();
+    ).lean().exec() as unknown as Promise<ProjectTypes.ProjectType | null>;
   }
 
   async delete(filter: UtilTypes.ExtendedMongoQuery): Promise<boolean> {
-    await this.modelInstance.ProjectModel.deleteOne(filter.query).exec();
-    return true;
+    const result = await this.modelInstance.ProjectModel.deleteOne(filter.query).exec();
+    return result.deletedCount > 0;
   }
 }
 export default Project;

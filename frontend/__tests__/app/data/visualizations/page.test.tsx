@@ -21,6 +21,16 @@ vi.mock('@/components/shells/visualizations-table-shell', () => ({
   ),
 }));
 
+vi.mock('@/components/ui/error-card', () => ({
+  __esModule: true,
+  default: ({ title, description }: { title: string; description: string }) => (
+    <section data-testid="error-card">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </section>
+  ),
+}));
+
 describe('Visualizations Page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -120,5 +130,15 @@ describe('Visualizations Page', () => {
       per_page: 10,
       sharedScope: 'external',
     });
+  });
+
+  it('renders backend unavailable when visualizations cannot be loaded', async () => {
+    vi.mocked(browseVisualizations).mockResolvedValue(null);
+
+    render(await Visualizations({ searchParams: {} }));
+
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Backend unavailable');
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Your session was not cleared');
+    expect(screen.queryByTestId('visualizations-table-shell')).not.toBeInTheDocument();
   });
 });

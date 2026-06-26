@@ -7,6 +7,7 @@ import DashboardsTableShell from '@/components/shells/dashboards-table-shell';
 import { AppPage, PageSection } from '@/components/layouts/app-page';
 import AddDashboardForm from '@/components/form/add-dashboard-form';
 import UpdateDashboardForm from '@/components/form/update-dashboard-form';
+import ErrorCard from '@/components/ui/error-card';
 
 export const metadata: Metadata = {
   title: 'Dashboards',
@@ -50,6 +51,20 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
       : undefined,
   } as DashboardTypes.DashboardFilter);
 
+  if (!dashboards) {
+    return (
+      <AppPage className="flex min-h-[60vh] items-center justify-center">
+        <ErrorCard
+          title="Backend unavailable"
+          description="Dashboards could not be loaded because the backend or database is not responding right now. Your session was not cleared."
+          retryLink="/dashboards"
+          retryLinkText="Retry"
+          className="w-full max-w-xl"
+        />
+      </AppPage>
+    );
+  }
+
   const dashboardRows = dashboards && Array.isArray(dashboards.dashboards)
     ? dashboards.dashboards
     : [];
@@ -62,6 +77,21 @@ const Dashboards = async ({ searchParams }: DashboardsProps) => {
   const modalVisualizations = needsDashboardModalData
     ? await browseVisualizations({ per_page: 100 })
     : null;
+
+  if (needsDashboardModalData && !modalVisualizations) {
+    return (
+      <AppPage className="flex min-h-[60vh] items-center justify-center">
+        <ErrorCard
+          title="Backend unavailable"
+          description="The dashboard form could not load visualizations because the backend or database is not responding right now. Your session was not cleared."
+          retryLink="/dashboards"
+          retryLinkText="Retry"
+          className="w-full max-w-xl"
+        />
+      </AppPage>
+    );
+  }
+
   const visualizationRows = modalVisualizations && Array.isArray(modalVisualizations.visualizations)
     ? modalVisualizations.visualizations
     : [];

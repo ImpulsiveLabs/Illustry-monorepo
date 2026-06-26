@@ -200,6 +200,24 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           originClientId
         });
       }
+      if (updatedVisualization) {
+        publish({
+          resource: 'user',
+          shareId: userId,
+          action: 'updated',
+          updatedAt: new Date().toISOString(),
+          originClientId
+        });
+        if (updatedVisualization.userId && resolveUserId(updatedVisualization.userId) !== userId) {
+          publish({
+            resource: 'user',
+            shareId: resolveUserId(updatedVisualization.userId),
+            action: 'updated',
+            updatedAt: new Date().toISOString(),
+            originClientId
+          });
+        }
+      }
       return updatedVisualization;
     }
 
@@ -223,6 +241,15 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
       publish({
         resource: 'visualization',
         shareId: updatedVisualization.shareId,
+        action: 'updated',
+        updatedAt: new Date().toISOString(),
+        originClientId
+      });
+    }
+    if (updatedVisualization) {
+      publish({
+        resource: 'user',
+        shareId: userId,
         action: 'updated',
         updatedAt: new Date().toISOString(),
         originClientId
@@ -308,9 +335,17 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
           updatedAt: new Date().toISOString()
         });
       }
+      if (returnedVisualization) {
+        publish({
+          resource: 'user',
+          shareId: userId,
+          action: 'updated',
+          updatedAt: new Date().toISOString()
+        });
+      }
       return returnedVisualization;
     }
-    await Promise.all(
+    const updatedVisualizations = await Promise.all(
       type.map(async (singleType) => {
         const visualizationFilter = this.dbaccInstance.Visualization.createFilter({
           userId,
@@ -333,8 +368,17 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
             updatedAt: new Date().toISOString()
           });
         }
+        return updatedVisualization;
       })
     );
+    if (updatedVisualizations.some(Boolean)) {
+      publish({
+        resource: 'user',
+        shareId: userId,
+        action: 'updated',
+        updatedAt: new Date().toISOString()
+      });
+    }
 
     return visualization as VisualizationTypes.VisualizationType;
   }
@@ -831,6 +875,13 @@ class VisualizationBZL implements GenericTypes.BaseBZL<
         originClientId
       });
     }
+    publish({
+      resource: 'user',
+      shareId: userId,
+      action: 'deleted',
+      updatedAt: new Date().toISOString(),
+      originClientId
+    });
     return true;
   }
 

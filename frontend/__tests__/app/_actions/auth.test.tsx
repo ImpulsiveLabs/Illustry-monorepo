@@ -1,13 +1,31 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-const { makeRequestMock, getBackendUrlMock, buildBackendHeadersMock } = vi.hoisted(() => ({
-  makeRequestMock: vi.fn(),
-  getBackendUrlMock: vi.fn(),
-  buildBackendHeadersMock: vi.fn()
-}));
+const {
+  makeRequestMock,
+  getBackendUrlMock,
+  buildBackendHeadersMock,
+  BackendRequestErrorMock
+} = vi.hoisted(() => {
+  class BackendRequestErrorMock extends Error {
+    status?: number;
+
+    constructor(message: string, options: { status?: number } = {}) {
+      super(message);
+      this.status = options.status;
+    }
+  }
+
+  return {
+    makeRequestMock: vi.fn(),
+    getBackendUrlMock: vi.fn(),
+    buildBackendHeadersMock: vi.fn(),
+    BackendRequestErrorMock
+  };
+});
 
 vi.mock('@/lib/request', () => ({
-  default: makeRequestMock
+  default: makeRequestMock,
+  BackendRequestError: BackendRequestErrorMock
 }));
 
 vi.mock('@/lib/backend-url', () => ({
@@ -91,7 +109,7 @@ describe('app/_actions/auth', () => {
     });
   });
 
-  it('omits avatarUrl when no avatar or public backend exists and returns null on request failure', async () => {
+  it('omits avatarUrl when no avatar or public backend exists and handles auth failures only as signed out', async () => {
     makeRequestMock.mockResolvedValueOnce({
       id: 'user-2',
       email: 'plain@example.com',
@@ -131,7 +149,10 @@ describe('app/_actions/auth', () => {
       avatarUrl: undefined
     });
 
-    makeRequestMock.mockRejectedValueOnce(new Error('boom'));
+    makeRequestMock.mockRejectedValueOnce(new BackendRequestErrorMock('Authentication required', { status: 401 }));
     await expect(getCurrentUser()).resolves.toBeNull();
+
+    makeRequestMock.mockRejectedValueOnce(new BackendRequestErrorMock('Internal server error', { status: 500 }));
+    await expect(getCurrentUser()).rejects.toThrow('Internal server error');
   });
 });

@@ -6,12 +6,14 @@ import Dashboard from './dashboard/Dashboard';
 import User from './auth/User';
 import Session from './auth/Session';
 import EmailVerificationToken from './auth/EmailVerificationToken';
+import PendingRegistration from './auth/PendingRegistration';
 import PasswordResetToken from './auth/PasswordResetToken';
 import UserAvatar from './auth/UserAvatar';
 import {
   AuthSession,
   AuthUser,
   AuthUserAvatar,
+  PendingRegistration as PendingRegistrationType,
   VerificationToken
 } from '../../auth/types';
 
@@ -29,6 +31,8 @@ class ModelInstance {
   private emailVerificationTokenModel?: Model<VerificationToken>;
 
   private passwordResetTokenModel?: Model<VerificationToken>;
+
+  private pendingRegistrationModel?: Model<PendingRegistrationType>;
 
   private userAvatarModel?: Model<AuthUserAvatar>;
 
@@ -48,6 +52,8 @@ class ModelInstance {
 
   private readonly passwordResetToken: PasswordResetToken;
 
+  private readonly pendingRegistration: PendingRegistration;
+
   private readonly userAvatar: UserAvatar;
 
   constructor(connection: Connection) {
@@ -60,6 +66,7 @@ class ModelInstance {
     this.session = new Session(this.connection);
     this.emailVerificationToken = new EmailVerificationToken(this.connection);
     this.passwordResetToken = new PasswordResetToken(this.connection);
+    this.pendingRegistration = new PendingRegistration(this.connection);
     this.userAvatar = new UserAvatar(this.connection);
   }
 
@@ -110,6 +117,13 @@ class ModelInstance {
       this.passwordResetTokenModel = this.passwordResetToken.getModel();
     }
     return this.passwordResetTokenModel;
+  }
+
+  get PendingRegistrationModel(): Model<PendingRegistrationType> {
+    if (!this.pendingRegistrationModel) {
+      this.pendingRegistrationModel = this.pendingRegistration.getModel();
+    }
+    return this.pendingRegistrationModel;
   }
 
   get UserAvatarModel(): Model<AuthUserAvatar> {

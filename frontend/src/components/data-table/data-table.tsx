@@ -21,6 +21,7 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState
 } from 'react';
 import { useLocale } from '@/components/providers/locale-provider';
@@ -99,12 +100,26 @@ const DataTable = <TData, TValue>({
     [searchParams]
   );
 
+  const pushQuery = useCallback(
+    (params: Record<string, string | number | null>) => {
+      const query = createQueryString(params);
+      if (query === (searchParams?.toString() ?? '')) {
+        return;
+      }
+      router.push(query ? `${pathname}?${query}` : pathname, { scroll: false });
+    },
+    [createQueryString, pathname, router, searchParams]
+  );
+
   // Table states
   const [rowSelection, setRowSelection] = useState({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(
     []
   );
+  const didMountPagination = useRef(false);
+  const didMountSorting = useRef(false);
+  const didMountFiltering = useRef(false);
 
   // Handle server-side pagination
   const [{ pageIndex, pageSize }, setPagination] = useState<PaginationState>({
@@ -128,16 +143,15 @@ const DataTable = <TData, TValue>({
   }, [page, perPage]);
 
   useEffect(() => {
-    router.push(
-      `${pathname}?${createQueryString({
-        page: pageIndex + 1,
-        per_page: pageSize
-      })}`,
-      {
-        scroll: false
-      }
-    );
-  }, [pageIndex, pageSize]);
+    if (!didMountPagination.current) {
+      didMountPagination.current = true;
+      return;
+    }
+    pushQuery({
+      page: pageIndex + 1,
+      per_page: pageSize
+    });
+  }, [pageIndex, pageSize, pushQuery]);
 
   // Handle server-side sorting
   const [sorting, setSorting] = useState<SortingState>([
@@ -148,35 +162,36 @@ const DataTable = <TData, TValue>({
   ]);
 
   useEffect(() => {
-    router.push(
-      `${pathname}?${createQueryString({
-        page,
-        sort: sorting[0]?.id
-          ? `${sorting[0]?.id}.${sorting[0]?.desc ? 'desc' : 'asc'}`
-          : null
-      })}`,
-      {
-        scroll: false
-      }
-    );
-  }, [sorting]);
+    if (!didMountSorting.current) {
+      didMountSorting.current = true;
+      return;
+    }
+    pushQuery({
+      page,
+      sort: sorting[0]?.id
+        ? `${sorting[0]?.id}.${sorting[0]?.desc ? 'desc' : 'asc'}`
+        : null
+    });
+  }, [page, pushQuery, sorting]);
 
   // Handle server-side filtering
 
-  const filterableColumnFilters = columnFilters.filter((filter) => filterableColumns.find((c) => c.id === filter.id));
+  const filterableColumnFilters = useMemo(
+    () => columnFilters.filter((filter) => filterableColumns.find((c) => c.id === filter.id)),
+    [columnFilters, filterableColumns]
+  );
 
   useEffect(() => {
+    if (!didMountFiltering.current) {
+      didMountFiltering.current = true;
+      return;
+    }
     filterableColumnFilters.forEach((col) => {
       if (typeof col.value === 'object' && Array.isArray(col.value)) {
-        router.push(
-          `${pathname}?${createQueryString({
-            page: 1,
-            [col.id]: col.value.join('.')
-          })}`,
-          {
-            scroll: false
-          }
-        );
+        pushQuery({
+          page: 1,
+          [col.id]: col.value.join('.')
+        });
       }
     });
     searchParams.forEach((value, key) => {
@@ -187,12 +202,10 @@ const DataTable = <TData, TValue>({
           page: 1,
           [key]: null
         };
-        router.push(`${pathname}?${createQueryString(params)}`, {
-          scroll: false
-        });
+        pushQuery(params);
       }
     });
-  }, [filterableColumnFilters]);
+  }, [filterableColumnFilters, filterableColumns, pushQuery, searchParams]);
 
   const table = useReactTable({
     data: Array.isArray(data) ? data : [],

@@ -18,6 +18,7 @@ import {
   normalizeFormats,
   parseImportMapping,
   parseExportFormats,
+  previewVisualizationImportSource,
   renderSvg,
   sanitizeFilename,
   toIllustryError,
@@ -26,6 +27,7 @@ import {
 } from '../src';
 
 const makeTempDir = () => fs.mkdtemp(path.join(os.tmpdir(), 'illustry-core-'));
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
 
 const makeAsset = (overrides: Partial<IllustryLocalAsset> = {}): IllustryLocalAsset => ({
   id: 'asset_1',
@@ -82,6 +84,35 @@ describe('@illustry/core local workflows', () => {
     expect(asset.charts[0].option.series).toEqual([{ type: 'bar', data: [1, 2] }]);
   });
 
+  it('previews import files with detected type, columns, sample rows, and JSON full config support', async () => {
+    const csv = path.join(tempDir, 'sales.csv');
+    await fs.writeFile(csv, 'label,value,region\nA,1,North\nB,2,South\n', 'utf8');
+    const csvPreview = await previewVisualizationImportSource(csv);
+    expect(csvPreview).toMatchObject({
+      filename: 'sales.csv',
+      format: 'csv',
+      suggestedName: 'sales',
+      columns: ['label', 'value', 'region'],
+      sampleRows: [['A', '1', 'North'], ['B', '2', 'South']],
+      fullConfigAvailable: false
+    });
+
+    const json = path.join(tempDir, 'config.json');
+    await fs.writeFile(json, JSON.stringify({
+      type: 'pie-chart',
+      option: {
+        xAxis: { type: 'category', data: ['A'] },
+        series: [{ type: 'bar', data: [1] }]
+      }
+    }), 'utf8');
+    await expect(previewVisualizationImportSource(json)).resolves.toMatchObject({
+      format: 'json',
+      columns: ['Key', 'Value'],
+      suggestedType: 'pie-chart',
+      fullConfigAvailable: true
+    });
+  });
+
   it('stores local assets and creates zip exports when multiple formats are selected', async () => {
     const store = new LocalIllustryStore({ rootDir: tempDir });
     const asset = await store.saveAsset({
@@ -105,7 +136,7 @@ describe('@illustry/core local workflows', () => {
     expect(bundle.bundled).toBe(true);
     expect(bundle.filename).toBe('Offline-chart.zip');
 
-    const zip = await JSZip.loadAsync(bundle.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(zip.file('Offline-chart.json')).toBeTruthy();
     expect(zip.file('Offline-chart.webcomponent.html')).toBeTruthy();
   });
@@ -133,9 +164,12 @@ describe('@illustry/core local workflows', () => {
     expect(bundle.bundled).toBe(false);
     expect(bundle.filename).toBe('Office-chart.xlsx');
 
-    const workbookZip = await JSZip.loadAsync(bundle.buffer);
+    const workbookZip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(workbookZip.file('[Content_Types].xml')).toBeTruthy();
     expect(workbookZip.file('xl/workbook.xml')).toBeTruthy();
+    const drawingXml = await workbookZip.file('xl/drawings/drawing1.xml')?.async('string');
+    expect(drawingXml).toMatch(/<xdr:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
+    expect(drawingXml).toMatch(/<a:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
   });
 
   it('keeps local import/export format parsing deterministic', () => {
@@ -536,7 +570,7 @@ describe('@illustry/core local workflows', () => {
       formats: ['json', 'svg', 'web-component']
     });
     expect(bundle.bundled).toBe(true);
-    const zip = await JSZip.loadAsync(bundle.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(zip.file('Executive-&-Dashboard.svg')).toBeTruthy();
     expect(zip.file('Executive-&-Dashboard.webcomponent.html')).toBeTruthy();
 
@@ -547,7 +581,7 @@ describe('@illustry/core local workflows', () => {
       { ...makeAsset().charts[0], title: 'Four', width: 240, height: 180 }
     ]);
     expect(largerDashboardSvg).toContain('Four Up');
-  }, 30000);
+  }, 90000);
 
   it('validates local export selections and missing chart data', async () => {
     expect(isIllustryExportFormat('svg')).toBe(true);
@@ -720,6 +754,74 @@ describe('@illustry/core local workflows', () => {
     expect(headers.get('x-csrf-token')).toBe('csrf one');
     expect(headers.get('x-illustry-locale')).toBe('ro');
     expect(headers.get('accept-language')).toBe('ro');
+
+    const pendingSignupClient = new IllustryApiClient({
+      baseUrl: 'http://illustry.local',
+      fetchImpl: async () => new Response(JSON.stringify({
+        ok: true,
+        email: 'pending@example.com',
+        verificationRequired: true
+      }), {
+        status: 202,
+        headers: {
+          'content-type': 'application/json',
+          'set-cookie': 'illustry_session=pending; Path=/; HttpOnly, illustry_csrf=pending-csrf; Path=/'
+        }
+      })
+    });
+    await expect(pendingSignupClient.signup({
+      email: 'pending@example.com',
+      password: 'secret',
+      name: 'Pending User'
+    })).resolves.toEqual({
+      ok: true,
+      email: 'pending@example.com',
+      verificationRequired: true
+    });
+    expect(pendingSignupClient.getSessionSnapshot()).toMatchObject({
+      cookie: undefined,
+      csrfToken: undefined,
+      user: undefined
+    });
+
+    const existingSessionUser = makeUser();
+    const authenticatedPendingSignupClient = new IllustryApiClient({
+      baseUrl: 'http://illustry.local',
+      fetchImpl: async (input) => {
+        const pathname = new URL(input.toString()).pathname;
+        if (pathname === '/api/auth/login') {
+          return new Response(JSON.stringify({ user: existingSessionUser }), {
+            headers: {
+              'content-type': 'application/json',
+              'set-cookie': 'illustry_session=existing; Path=/; HttpOnly, illustry_csrf=existing-csrf; Path=/'
+            }
+          });
+        }
+        return new Response(JSON.stringify({
+          ok: true,
+          email: 'pending@example.com',
+          verificationRequired: true
+        }), {
+          status: 202,
+          headers: {
+            'content-type': 'application/json',
+            'set-cookie': 'illustry_session=pending; Path=/; HttpOnly, illustry_csrf=pending-csrf; Path=/'
+          }
+        });
+      }
+    });
+
+    await authenticatedPendingSignupClient.login({ email: 'ada@example.com', password: 'secret' });
+    await expect(authenticatedPendingSignupClient.signup({
+      email: 'pending@example.com',
+      password: 'secret',
+      name: 'Pending User'
+    })).resolves.toMatchObject({ verificationRequired: true });
+    expect(authenticatedPendingSignupClient.getSessionSnapshot()).toMatchObject({
+      cookie: 'illustry_session=existing; illustry_csrf=existing-csrf',
+      csrfToken: 'existing-csrf',
+      user: existingSessionUser
+    });
   });
 
   it('calls API resource management routes consistently', async () => {

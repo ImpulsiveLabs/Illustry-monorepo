@@ -138,7 +138,7 @@ const register = async (
 ): Promise<void> => {
   try {
     const dto = parseDto(registerSchema, request.body);
-    const session = await Factory.getInstance().getBZL().AuthBZL.register(
+    const result = await Factory.getInstance().getBZL().AuthBZL.register(
       dto.email,
       dto.password,
       dto.name,
@@ -147,15 +147,7 @@ const register = async (
       resolveRequestAuthLocale(request)
     );
 
-    applySessionCookies(session.sessionToken, session.csrfToken, session.expiresAt, response);
-
-    const principal = await Factory.getInstance().getBZL().AuthBZL.getSessionPrincipalFromToken(session.sessionToken);
-
-    response.status(201).send({
-      user: principal
-        ? Factory.getInstance().getBZL().AuthBZL.toPublicUser(principal.user)
-        : null
-    });
+    response.status(202).send(result);
   } catch (error) {
     sendAuthError(response, next, error, resolveRequestAuthLocale(request));
   }

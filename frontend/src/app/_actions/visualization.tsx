@@ -271,7 +271,7 @@ type ExcelExportResponse = {
   base64: string;
 };
 
-type VisualizationBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel';
+type VisualizationBundleExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt';
 
 type VisualizationBundleExportChart = {
   title?: string;

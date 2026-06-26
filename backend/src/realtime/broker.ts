@@ -3,12 +3,9 @@ import { Duplex } from 'stream';
 import { createClient } from 'redis';
 import { WebSocket, WebSocketServer } from 'ws';
 import logger from '../config/logger';
-import {
-  getRedisConnectTimeoutMs,
-  getRedisSocketTimeoutMs
-} from '../config/timeouts';
+import { getRedisConnectTimeoutMs } from '../config/timeouts';
 
-type RealtimeResource = 'dashboard' | 'visualization' | 'theme' | 'user';
+type RealtimeResource = 'dashboard' | 'visualization' | 'project' | 'theme' | 'user';
 
 type RealtimeEvent = {
   resource: RealtimeResource;
@@ -149,8 +146,7 @@ class RealtimeBroker {
           disableOfflineQueue: true,
           socket: {
             connectTimeout: getRedisConnectTimeoutMs(),
-            reconnectStrategy: false as const,
-            socketTimeout: getRedisSocketTimeoutMs()
+            reconnectStrategy: false as const
           }
         };
         const publisher = createClient(redisOptions);
@@ -211,6 +207,7 @@ class RealtimeBroker {
     if (!shareId || (
       resource !== 'dashboard'
       && resource !== 'visualization'
+      && resource !== 'project'
       && resource !== 'theme'
       && resource !== 'user'
     )) {
@@ -323,7 +320,7 @@ const authorizeRealtimeSubscription: RealtimeAuthorizer = async (
     return;
   }
 
-  if (resource === 'theme' || resource === 'user') {
+  if (resource === 'project' || resource === 'theme' || resource === 'user') {
     return principal.user._id.toString();
   }
 

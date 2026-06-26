@@ -46,7 +46,7 @@ const create = async (
 
     ValidatorSchemas.validateWithSchema<ProjectTypes.ProjectCreate>(ValidatorSchemas.projectCreateSchema, project);
 
-    await Factory.getInstance().getBZL().ProjectBZL.create(project);
+    const data = await Factory.getInstance().getBZL().ProjectBZL.create(project);
 
     if (
       visualization.name
@@ -59,7 +59,7 @@ const create = async (
       await Factory.getInstance().getBZL().VisualizationBZL.createOrUpdate(visualization);
     }
 
-    returnResponse(response, null, project, next);
+    returnResponse(response, null, data, next);
   } catch (err) {
     returnResponse(response, (err as Error), null, next);
   }

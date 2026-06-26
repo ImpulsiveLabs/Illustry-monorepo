@@ -35,7 +35,8 @@ RUN yarn workspace @illustry/types build:ts \
 
 FROM node:20-alpine3.20 AS runner
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat fontconfig ttf-dejavu ttf-liberation \
+  && fc-cache -f
 
 WORKDIR /workspace
 

@@ -8,6 +8,8 @@ import {
   normalizeFormats
 } from '../src/utils/export-bundle';
 
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
+
 const chart = {
   title: {
     text: 'Sales'
@@ -54,7 +56,7 @@ const resolveRelationshipTarget = (relsPath: string, target: string) => {
 };
 
 const expectValidPptxPackage = async (buffer: Buffer, expectedImageSlide: number) => {
-  const pptZip = await JSZip.loadAsync(buffer);
+  const pptZip = await JSZip.loadAsync(toZipBytes(buffer));
   expect(pptZip.file('[Content_Types].xml')).toBeDefined();
   expect(pptZip.file('_rels/.rels')).toBeDefined();
   expect(pptZip.file('docProps/core.xml')).toBeDefined();
@@ -192,9 +194,54 @@ describe('export bundle utility', () => {
 
     expect(result.bundled).toBe(true);
     expect(result.filename).toBe('Main-dashboard.zip');
-    const zip = await JSZip.loadAsync(result.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(result.buffer));
     await expect(zip.file('Main-dashboard.svg')?.async('string')).resolves.toContain('<svg');
     await expect(zip.file('Main-dashboard.webcomponent.html')?.async('string')).resolves.toContain('<illustry-dashboard>');
+  });
+
+  it('uses a connected chart-only dashboard preview fallback for CLI image exports', async () => {
+    const charts = [{
+      title: 'Revenue (Bar Chart)',
+      option: chart,
+      width: 557,
+      height: 320
+    }, {
+      title: 'Revenue 2 (Bar Chart)',
+      option: chart,
+      width: 557,
+      height: 320
+    }];
+    const png = await createDashboardExportBundle({
+      title: 'dashboard-Executive',
+      formats: ['png'],
+      charts,
+      dashboard: {
+        _id: 'dash-1',
+        userId: 'owner-1',
+        projectName: 'Project',
+        name: 'Executive',
+        visualizations: [visualization, visualization]
+      } as never
+    });
+    const svg = await createDashboardExportBundle({
+      title: 'dashboard-Executive',
+      formats: ['svg'],
+      charts,
+      dashboard: {
+        _id: 'dash-1',
+        userId: 'owner-1',
+        projectName: 'Project',
+        name: 'Executive',
+        visualizations: [visualization, visualization]
+      } as never
+    });
+
+    await expect(sharp(png.buffer).metadata()).resolves.toMatchObject({
+      width: 2286,
+      height: 348
+    });
+    expect(svg.buffer.toString()).toContain('width="1198" height="428"');
+    expect(svg.buffer.toString()).toContain('dashboard-Executive');
   });
 
   it('creates an Excel workbook with an embedded visualization preview', async () => {
@@ -217,7 +264,7 @@ describe('export bundle utility', () => {
 
     expect(result.bundled).toBe(false);
     expect(result.filename).toBe('visualization-Sales.xlsx');
-    const workbookZip = await JSZip.loadAsync(result.buffer);
+    const workbookZip = await JSZip.loadAsync(toZipBytes(result.buffer));
     const media = Object.keys(workbookZip.files).filter((file) => file.startsWith('xl/media/'));
     expect(media).toContain('xl/media/image1.png');
     await expect(workbookZip.file('xl/webextensions/webextension1.xml')?.async('string'))
@@ -249,14 +296,14 @@ describe('export bundle utility', () => {
     });
 
     expect(result.bundled).toBe(true);
-    const zip = await JSZip.loadAsync(result.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(result.buffer));
     const pdf = await zip.file('Sales-documents.pdf')?.async('nodebuffer');
     const word = await zip.file('Sales-documents.docx')?.async('nodebuffer');
     const ppt = await zip.file('Sales-documents.pptx')?.async('nodebuffer');
     expect(pdf?.subarray(0, 5).toString()).toBe('%PDF-');
     expect(word).toBeDefined();
     expect(ppt).toBeDefined();
-    await expect(JSZip.loadAsync(word as Buffer)).resolves.toBeDefined();
+    await expect(JSZip.loadAsync(toZipBytes(word as Buffer))).resolves.toBeDefined();
     await expectValidPptxPackage(ppt as Buffer, 2);
   });
 
@@ -349,7 +396,7 @@ describe('export bundle utility', () => {
     expect(pdf.filename).toBe('existing-report.pdf');
     expect(pdf.buffer.subarray(0, 5).toString()).toBe('%PDF-');
     expect(word.filename).toBe('existing-report.docx');
-    await expect(JSZip.loadAsync(word.buffer)).resolves.toBeDefined();
+    await expect(JSZip.loadAsync(toZipBytes(word.buffer))).resolves.toBeDefined();
     expect(ppt.filename).toBe('existing-report.pptx');
     await expectValidPptxPackage(ppt.buffer, 1);
   });
@@ -384,7 +431,7 @@ describe('export bundle utility', () => {
       }
     });
 
-    const zip = await JSZip.loadAsync(result.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(result.buffer));
     expect(zip.file('visualization-Sales.xlsx')).toBeDefined();
     expect(zip.file('deck-not-used.pdf')).toBeDefined();
     expect(zip.file('notes.docx')).toBeDefined();
@@ -416,7 +463,7 @@ describe('export bundle utility', () => {
       visualization
     });
 
-    const zip = await JSZip.loadAsync(result.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(result.buffer));
     const svg = await zip.file('Large-export.svg')?.async('string');
     expect(svg?.length).toBeGreaterThan(1000);
     expect(await zip.file('Large-export.webcomponent.html')?.async('string')).toContain('"type":"line"');

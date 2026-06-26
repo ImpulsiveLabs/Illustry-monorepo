@@ -42,6 +42,8 @@ type ExportedDocument = {
   mimeType: string;
 };
 
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
+
 const PDF_MIME = 'application/pdf';
 const WORD_MIME = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 const PPT_MIME = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
@@ -299,7 +301,7 @@ const updateWordTemplate = async (
   if (!normalized.templateFile?.buffer.length || !hasExtension(normalized.templateFile, '.docx')) {
     return createNewWordExport(title, image, normalized);
   }
-  const zip = await JSZip.loadAsync(normalized.templateFile.buffer);
+  const zip = await JSZip.loadAsync(toZipBytes(normalized.templateFile.buffer));
   const documentPath = 'word/document.xml';
   const relsPath = 'word/_rels/document.xml.rels';
   const contentTypesPath = '[Content_Types].xml';
@@ -345,7 +347,7 @@ const updateWordTemplate = async (
   zip.file(documentPath, updatedDocumentXml);
   zip.file(relsPath, builder.buildObject(rels));
   zip.file(contentTypesPath, builder.buildObject(contentTypes));
-  zip.file(`word/media/${mediaName}`, image);
+  zip.file(`word/media/${mediaName}`, toZipBytes(image));
 
   return {
     buffer: await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } }),
@@ -398,7 +400,7 @@ const updatePptTemplate = async (
     return undefined;
   }
 
-  const zip = await JSZip.loadAsync(normalized.templateFile.buffer);
+  const zip = await JSZip.loadAsync(toZipBytes(normalized.templateFile.buffer));
   const slidePaths = getPptSlidePaths(zip);
   const slidePath = slidePaths[Math.min(normalized.page - 1, slidePaths.length - 1)];
   if (!slidePath) {
@@ -453,7 +455,7 @@ const updatePptTemplate = async (
   zip.file(slidePath, updatedSlideXml);
   zip.file(relsPath, builder.buildObject(rels));
   zip.file(contentTypesPath, builder.buildObject(contentTypes));
-  zip.file(`ppt/media/${mediaName}`, image);
+  zip.file(`ppt/media/${mediaName}`, toZipBytes(image));
 
   return {
     buffer: await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE', compressionOptions: { level: 9 } }),

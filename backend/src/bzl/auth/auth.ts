@@ -4,6 +4,7 @@ import DbaccInstance from '../../dbacc/lib';
 import {
   argonOptions,
   emailVerificationTtlMinutes,
+  maxActiveSessionsPerUser,
   passwordResetTtlMinutes,
   sessionTtlMinutes
 } from '../../auth/constants';
@@ -13,6 +14,7 @@ import { AuthHttpError, INVALID_AUTH_MESSAGE } from '../../auth/errors';
 import { AuthLocale } from '../../auth/locale';
 import {
   AuthAvatarUpload,
+  PendingRegistration,
   AuthPublicUser,
   AuthUser,
   ClientMetadata,
@@ -40,17 +42,21 @@ class AuthBZL {
     password: string,
     name: string,
     avatar: AuthAvatarUpload | undefined,
-    metadata: ClientMetadata,
+    _metadata: ClientMetadata,
     locale: AuthLocale
-  ): Promise<SessionIssueResult> {
+  ): Promise<{ ok: true; email: string; verificationRequired: true }> {
     const emailNormalized = normalizeEmail(email);
     const existing = await this.dbaccInstance.Auth.findUserByEmailNormalized(emailNormalized);
 
     if (existing) {
       if (existing.isEmailVerified === false) {
-        await this.sendEmailVerification(existing, locale);
+        await this.dbaccInstance.Auth.deleteEmailVerificationTokensForUser(existing._id);
+        await this.dbaccInstance.Auth.revokeActiveSessionsForUser(existing._id);
+        await this.dbaccInstance.Auth.deleteUserAvatarByUserId(existing._id);
+        await this.dbaccInstance.Auth.deleteUserById(existing._id);
+      } else {
+        throw new AuthHttpError(400, 'Unable to register with provided credentials');
       }
-      throw new AuthHttpError(400, 'Unable to register with provided credentials');
     }
 
     const passwordHash = await argon2.hash(password, {
@@ -58,22 +64,33 @@ class AuthBZL {
       type: argon2.argon2id
     });
 
-    let user = await this.dbaccInstance.Auth.createUser({
+    const token = createOpaqueToken();
+    const verificationCode = createNumericCode(6);
+    const pendingRegistration = await this.dbaccInstance.Auth.createPendingRegistration({
       email,
       emailNormalized,
       name,
       passwordHash,
-      isEmailVerified: false,
-      roles: ['user'],
-      authVersion: 0
+      avatarFileName: avatar?.fileName,
+      avatarContentType: avatar?.contentType,
+      avatarSize: avatar?.size,
+      avatarData: avatar?.data,
+      tokenHash: hashOpaqueToken(token),
+      codeHash: hashOpaqueToken(verificationCode),
+      expiresAt: new Date(Date.now() + emailVerificationTtlMinutes * 60 * 1000)
     });
 
-    user = await this.upsertAvatarIfProvided(user, avatar);
-    await this.sendEmailVerification(user, locale);
+    try {
+      await this.emailService.sendVerificationEmail(email, token, verificationCode, locale);
+    } catch (error) {
+      await this.dbaccInstance.Auth.deletePendingRegistrationById(pendingRegistration._id);
+      logger.warn('Unable to send verification email', error);
+      throw new AuthHttpError(503, 'Unable to send verification email');
+    }
 
-    logger.info(`User registered: ${user.emailNormalized}`);
+    logger.info(`Pending user registration created: ${emailNormalized}`);
 
-    return this.createSession(user, metadata);
+    return { ok: true, email, verificationRequired: true };
   }
 
   async login(email: string, password: string, metadata: ClientMetadata): Promise<SessionIssueResult> {
@@ -88,6 +105,11 @@ class AuthBZL {
 
     if (valid === false) {
       throw new AuthHttpError(401, INVALID_AUTH_MESSAGE);
+    }
+
+    if (user.isEmailVerified === false) {
+      await this.sendEmailVerification(user, 'en');
+      throw new AuthHttpError(403, 'Email verification required');
     }
 
     logger.info(`User login success: ${user.emailNormalized}`);
@@ -181,7 +203,9 @@ class AuthBZL {
       throw new AuthHttpError(401, 'Session is invalid or expired');
     }
 
-    const rotated = await this.createSession(principal.user, metadata);
+    const rotated = await this.createSession(principal.user, metadata, {
+      enforceActiveSessionLimit: false
+    });
 
     await this.dbaccInstance.Auth.updateSessionById(principal.session._id, {
       $set: {
@@ -189,6 +213,7 @@ class AuthBZL {
         replacedBySessionTokenHash: rotated.session.sessionTokenHash
       }
     });
+    await this.enforceActiveSessionLimit(principal.user._id);
 
     return rotated;
   }
@@ -198,6 +223,17 @@ class AuthBZL {
   }
 
   async verifyEmail(token: string): Promise<void> {
+    const pendingRegistration = await this.dbaccInstance.Auth.findActivePendingRegistrationByTokenHash(
+      hashOpaqueToken(token),
+      new Date()
+    );
+
+    if (pendingRegistration) {
+      await this.completePendingRegistration(pendingRegistration);
+      logger.info(`Email verified for pending registration ${pendingRegistration.emailNormalized}`);
+      return;
+    }
+
     const storedToken = await this.dbaccInstance.Auth.findActiveEmailVerificationTokenByTokenHash(
       hashOpaqueToken(token),
       new Date()
@@ -216,7 +252,20 @@ class AuthBZL {
   }
 
   async verifyEmailCode(email: string, code: string): Promise<void> {
-    const user = await this.dbaccInstance.Auth.findUserByEmailNormalized(normalizeEmail(email));
+    const emailNormalized = normalizeEmail(email);
+    const pendingRegistration = await this.dbaccInstance.Auth.findActivePendingRegistrationByCodeHash(
+      emailNormalized,
+      hashOpaqueToken(code),
+      new Date()
+    );
+
+    if (pendingRegistration) {
+      await this.completePendingRegistration(pendingRegistration);
+      logger.info(`Email verified by code for pending registration ${pendingRegistration.emailNormalized}`);
+      return;
+    }
+
+    const user = await this.dbaccInstance.Auth.findUserByEmailNormalized(emailNormalized);
 
     if (user === null) {
       throw new AuthHttpError(400, 'Verification code is invalid or expired');
@@ -238,6 +287,37 @@ class AuthBZL {
     await this.dbaccInstance.Auth.deleteEmailVerificationTokensForUser(user._id);
 
     logger.info(`Email verified by code for userId=${storedToken.userId.toString()}`);
+  }
+
+  private async completePendingRegistration(registration: PendingRegistration): Promise<AuthUser> {
+    const existing = await this.dbaccInstance.Auth.findUserByEmailNormalized(registration.emailNormalized);
+    if (existing) {
+      await this.dbaccInstance.Auth.deletePendingRegistrationById(registration._id);
+      throw new AuthHttpError(400, 'Unable to register with provided credentials');
+    }
+
+    let user = await this.dbaccInstance.Auth.createUser({
+      email: registration.email,
+      emailNormalized: registration.emailNormalized,
+      name: registration.name,
+      passwordHash: registration.passwordHash,
+      isEmailVerified: true,
+      roles: ['user'],
+      authVersion: 0
+    });
+
+    if (registration.avatarData && registration.avatarFileName && registration.avatarContentType && registration.avatarSize) {
+      user = await this.upsertAvatarIfProvided(user, {
+        fileName: registration.avatarFileName,
+        contentType: registration.avatarContentType,
+        size: registration.avatarSize,
+        data: registration.avatarData
+      });
+    }
+
+    await this.dbaccInstance.Auth.deletePendingRegistrationById(registration._id);
+    logger.info(`User registered after email verification: ${user.emailNormalized}`);
+    return user;
   }
 
   async resendVerification(email?: string, userId?: string, locale: AuthLocale = 'en'): Promise<void> {
@@ -450,7 +530,11 @@ class AuthBZL {
     };
   }
 
-  private async createSession(user: AuthUser, metadata: ClientMetadata): Promise<SessionIssueResult> {
+  private async createSession(
+    user: AuthUser,
+    metadata: ClientMetadata,
+    options: { enforceActiveSessionLimit?: boolean } = {}
+  ): Promise<SessionIssueResult> {
     const sessionToken = createOpaqueToken();
     const csrfToken = createOpaqueToken();
     const sessionTokenHash = hashOpaqueToken(sessionToken);
@@ -467,12 +551,23 @@ class AuthBZL {
       ipAddress: metadata.ipAddress
     });
 
+    if (options.enforceActiveSessionLimit !== false) {
+      await this.enforceActiveSessionLimit(user._id);
+    }
+
     return {
       session,
       sessionToken,
       csrfToken,
       expiresAt
     };
+  }
+
+  private async enforceActiveSessionLimit(userId: AuthUser['_id']): Promise<void> {
+    await this.dbaccInstance.Auth.revokeOldestActiveSessionsForUser(
+      userId,
+      maxActiveSessionsPerUser
+    );
   }
 
   private async upsertAvatarIfProvided(user: AuthUser, avatar: AuthAvatarUpload | undefined): Promise<AuthUser> {

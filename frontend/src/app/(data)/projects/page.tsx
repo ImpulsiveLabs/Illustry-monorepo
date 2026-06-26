@@ -6,6 +6,7 @@ import ProjectsTableShell from '@/components/shells/projects-table-shell';
 import { AppPage, PageSection } from '@/components/layouts/app-page';
 import AddProjectForm from '@/components/form/add-project-form';
 import UpdateProjectForm from '@/components/form/update-project-form';
+import ErrorCard from '@/components/ui/error-card';
 
 export const metadata: Metadata = {
   title: 'Projects',
@@ -45,6 +46,20 @@ const ProjectsPage = async ({ searchParams }: ProjectsProps) => {
         }
       : undefined,
   } as ProjectTypes.ProjectFilter);
+
+  if (!projects) {
+    return (
+      <AppPage className="flex min-h-[60vh] items-center justify-center">
+        <ErrorCard
+          title="Backend unavailable"
+          description="Projects could not be loaded because the backend or database is not responding right now. Your session was not cleared."
+          retryLink="/projects"
+          retryLinkText="Retry"
+          className="w-full max-w-xl"
+        />
+      </AppPage>
+    );
+  }
 
   const projectRows = projects && Array.isArray(projects.projects)
     ? projects.projects

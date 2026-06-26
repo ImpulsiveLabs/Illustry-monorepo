@@ -16,11 +16,24 @@ type ImportVisualizationInput = {
 };
 
 const DEFAULT_MAX_ROWS = 5000;
+const DEFAULT_PREVIEW_ROWS = 6;
 
 type JsonRecord = Record<string, unknown>;
 type ImportColumnMapping = {
   label?: string;
   value?: string;
+};
+
+type ImportSourcePreview = {
+  filePath: string;
+  filename: string;
+  format: IllustrySourceFormat;
+  size: number;
+  suggestedName: string;
+  suggestedType?: string;
+  columns: string[];
+  sampleRows: unknown[][];
+  fullConfigAvailable: boolean;
 };
 
 const isRecord = (value: unknown): value is JsonRecord => (
@@ -190,6 +203,14 @@ const parseXlsx = async (filePath: string, maxRows: number) => {
   return rows;
 };
 
+const normalizePreviewColumns = (rows: unknown[][]) => {
+  const [headers = []] = rows;
+  return headers.map((header, index) => {
+    const value = String(header ?? '').trim();
+    return value || `Column ${index + 1}`;
+  });
+};
+
 const extractOption = (data: unknown): IllustryChartOption | undefined => {
   if (isRecord(data)) {
     if (isChartOption(data.option)) {
@@ -206,6 +227,65 @@ const extractOption = (data: unknown): IllustryChartOption | undefined => {
     }
   }
   return undefined;
+};
+
+const extractVisualizationType = (data: unknown): string | undefined => {
+  if (!isRecord(data)) return undefined;
+  const directType = data.type;
+  if (typeof directType === 'string') return directType;
+  if (Array.isArray(directType) && typeof directType[0] === 'string') return directType[0];
+  if (isRecord(data.visualizationDetails) && typeof data.visualizationDetails.type === 'string') {
+    return data.visualizationDetails.type;
+  }
+  if (Array.isArray(data.charts)) {
+    const [first] = data.charts;
+    if (isRecord(first) && typeof first.type === 'string') return first.type;
+  }
+  return undefined;
+};
+
+const previewVisualizationImportSource = async (
+  filePath: string,
+  maxRows = DEFAULT_PREVIEW_ROWS
+): Promise<ImportSourcePreview> => {
+  const absolutePath = path.resolve(filePath);
+  const stat = await fs.stat(absolutePath);
+  assertUploadedFileMetadata({
+    originalname: path.basename(absolutePath),
+    size: stat.size
+  }, 'visualization-source');
+
+  const format = detectSourceFormat(absolutePath);
+  let data: unknown;
+  let rows: unknown[][];
+
+  if (format === 'json') {
+    data = await parseJson(absolutePath);
+    rows = isRecord(data)
+      ? [['Key', 'Value'], ...Object.entries(data)].slice(0, maxRows)
+      : objectToRows(data).slice(0, maxRows);
+  } else if (format === 'xml') {
+    data = await parseXml(absolutePath);
+    rows = isRecord(data)
+      ? [['Key', 'Value'], ...Object.entries(data)].slice(0, maxRows)
+      : objectToRows(data).slice(0, maxRows);
+  } else if (format === 'csv') {
+    rows = await parseCsv(absolutePath, maxRows);
+  } else {
+    rows = await parseXlsx(absolutePath, maxRows);
+  }
+
+  return {
+    filePath: absolutePath,
+    filename: path.basename(absolutePath),
+    format,
+    size: stat.size,
+    suggestedName: basenameWithoutExtension(absolutePath),
+    suggestedType: extractVisualizationType(data),
+    columns: normalizePreviewColumns(rows),
+    sampleRows: rows.slice(1, maxRows),
+    fullConfigAvailable: format === 'json' && Boolean(extractOption(data))
+  };
 };
 
 const importVisualizationSource = async ({
@@ -261,10 +341,13 @@ const importVisualizationSource = async ({
 export {
   DEFAULT_MAX_ROWS,
   applyImportMapping,
+  detectSourceFormat,
+  previewVisualizationImportSource,
   parseImportMapping,
   importVisualizationSource
 };
 export type {
+  ImportSourcePreview,
   ImportColumnMapping,
   ImportVisualizationInput
 };

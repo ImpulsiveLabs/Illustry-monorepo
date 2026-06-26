@@ -104,8 +104,9 @@ describe('realtime broker', () => {
       disconnect: jest.fn(async () => undefined)
     };
 
+    const createClientMock = jest.fn<typeof publisher, [Record<string, unknown>]>(() => publisher);
     jest.doMock('redis', () => ({
-      createClient: jest.fn(() => publisher)
+      createClient: createClientMock
     }));
 
     const { RealtimeBroker } = await import('../../src/realtime/broker');
@@ -133,6 +134,45 @@ describe('realtime broker', () => {
       'illustry:realtime',
       expect.stringContaining('"shareId":"viz-shared"')
     );
+    expect(createClientMock).toHaveBeenCalledWith(expect.objectContaining({
+      socket: expect.objectContaining({
+        connectTimeout: expect.any(Number),
+        reconnectStrategy: false
+      })
+    }));
+    const redisOptions = createClientMock.mock.calls[0][0] as { socket: Record<string, unknown> };
+    expect(redisOptions.socket).not.toHaveProperty('socketTimeout');
+
+    socket.terminate();
+    await broker.close();
+    await closeServer(server);
+  });
+
+  it('authorizes project websocket subscriptions on the authenticated user channel', async () => {
+    const authorize = jest.fn(async () => 'user-123');
+    const { RealtimeBroker } = await import('../../src/realtime/broker');
+    const server = createServer();
+    const broker = new RealtimeBroker(authorize);
+
+    broker.attach(server);
+    const port = await listen(server);
+    const socket = await openSocket(`ws://127.0.0.1:${port}/api/realtime?resource=project&shareId=projects`);
+
+    await expect(socket.firstMessage).resolves.toEqual({ type: 'connected' });
+    expect(authorize).toHaveBeenCalledWith(expect.anything(), 'project', 'projects');
+
+    broker.publish({
+      resource: 'project',
+      shareId: 'user-123',
+      action: 'created',
+      updatedAt: '2026-06-07T00:00:00.000Z'
+    });
+
+    await expect(receiveMessage(socket)).resolves.toMatchObject({
+      resource: 'project',
+      shareId: 'user-123',
+      action: 'created'
+    });
 
     socket.terminate();
     await broker.close();
