@@ -24,7 +24,7 @@
   "dependencies": {
     "@illustry/types": "^1.0.1",
     "docx": "9.6.1",
-    "echarts": "6.0.0",
+    "echarts": "6.1.0",
     "exceljs": "4.4.0",
     "jszip": "3.10.1",
     "pdf-lib": "1.17.1",
