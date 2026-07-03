@@ -85,7 +85,7 @@ jobs:
           AFTER_SHA: ${{ github.sha }}
         run: |
           package_set="${MANUAL_PACKAGE:-auto}"
-          version_bump="${MANUAL_BUMP:-none}"
+          version_bump="${MANUAL_BUMP:-patch}"
           node scripts/release-packages.mjs \
             --event "${EVENT_NAME}" \
             --package "${package_set}" \
