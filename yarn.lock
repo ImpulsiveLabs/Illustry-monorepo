@@ -1745,9 +1745,7 @@ __metadata:
     "@types/jest": "npm:29.5.12"
     "@types/node": "npm:20.10.2"
     commander: "npm:11.1.0"
-    exceljs: "npm:4.4.0"
     jest: "npm:29.7.0"
-    jszip: "npm:3.10.1"
     ts-jest: "npm:29.1.1"
     typescript: "npm:5.5.4"
   bin:
