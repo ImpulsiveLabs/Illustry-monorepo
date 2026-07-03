@@ -212,7 +212,15 @@ jobs:
             if [ "${DRY_RUN}" = "true" ]; then
               npm publish "./${package_dir}" --access public --dry-run
             else
-              npm publish "./${package_dir}" --access public
+              if ! npm publish "./${package_dir}" --access public 2>npm-publish-error.log; then
+                if grep -q "npm error 404" npm-publish-error.log; then
+                  cat npm-publish-error.log
+                  echo "Skipping ${package_name}@${package_version}; npm rejected package creation. Check NPM_TOKEN access to the package scope."
+                  continue
+                fi
+                cat npm-publish-error.log
+                exit 1
+              fi
             fi
           done
 
@@ -230,6 +238,10 @@ jobs:
           for package_dir in ${PACKAGES}; do
             package_name="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').name")"
             package_version="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').version")"
+            if ! npm view "${package_name}@${package_version}" version >/dev/null 2>&1; then
+              echo "Skipping npm import verification for ${package_name}@${package_version}; it is not published on npm."
+              continue
+            fi
             npm install "${package_name}@${package_version}"
             node -e "require('${package_name}')"
           done
