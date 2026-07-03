@@ -1,6 +1,6 @@
 {
   "name": "@illustry/types",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A module for Illustry Types",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
