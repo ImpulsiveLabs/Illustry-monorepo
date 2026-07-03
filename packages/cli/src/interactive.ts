@@ -276,7 +276,7 @@ const loadDashboardVisualizationOptions = async (context: CliContext) => {
   const client = await context.client();
   const options: DashboardVisualizationOption[] = [];
   let page = 1;
-  let pageCount = 1;
+  let pageCount: number;
 
   do {
     const data = await client.browse({
