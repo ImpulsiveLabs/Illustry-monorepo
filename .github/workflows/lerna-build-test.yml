@@ -132,22 +132,26 @@ jobs:
           SHARD_TOTAL: 4
 
   support_unit:
-    name: Support package tests
+    name: ${{ matrix.package.label }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         package:
-          - script: test:types:shard
+          - label: test types shard
+            script: test:types:shard
             shard: 1
             total: 1
-          - script: test:email:shard
+          - label: test email shard
+            script: test:email:shard
             shard: 1
             total: 1
-          - script: test:core:shard
+          - label: test core shard
+            script: test:core:shard
             shard: 1
             total: 1
-          - script: test:cli:shard
+          - label: test cli shard
+            script: test:cli:shard
             shard: 1
             total: 1
     steps:
