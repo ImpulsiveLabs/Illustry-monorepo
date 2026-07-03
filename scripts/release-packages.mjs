@@ -70,7 +70,15 @@ function bumpVersion(version, bump) {
     throw new Error(`Cannot bump non-semver version "${version}".`);
   }
 
-  if (bump === 'major') {
+  if (!['major', 'minor', 'patch'].includes(bump)) {
+    throw new Error(`Unsupported version bump "${bump}". Use major, minor, patch, or none.`);
+  }
+
+  if (major === 0) {
+    major = 1;
+    minor = 0;
+    patch = 0;
+  } else if (bump === 'major') {
     major += 1;
     minor = 0;
     patch = 0;
@@ -79,8 +87,6 @@ function bumpVersion(version, bump) {
     patch = 0;
   } else if (bump === 'patch') {
     patch += 1;
-  } else {
-    throw new Error(`Unsupported version bump "${bump}". Use major, minor, patch, or none.`);
   }
 
   return `${major}.${minor}.${patch}`;
