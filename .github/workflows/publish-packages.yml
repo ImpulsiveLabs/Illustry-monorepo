@@ -146,30 +146,37 @@ jobs:
           done
 
       - name: Commit version bump
+        id: version_bump
         if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          branch="release/illustry-packages-${{ github.run_id }}"
-          git checkout -b "${branch}"
           node scripts/release-packages.mjs \
             --commit-only \
             --commit-message "chore(release): bump Illustry packages [skip ci]"
+          if git push origin HEAD:main; then
+            echo "opened_pr=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          branch="release/illustry-packages-${{ github.run_id }}"
+          git switch -c "${branch}"
           git push --set-upstream origin "${branch}"
           gh pr create \
             --base main \
             --head "${branch}" \
             --title "chore(release): bump Illustry packages" \
             --body "Automated package version bump from workflow run ${{ github.run_id }}."
+          echo "opened_pr=true" >> "$GITHUB_OUTPUT"
 
       - name: Stop after opening version bump PR
-        if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
+        if: ${{ steps.version_bump.outputs.opened_pr == 'true' }}
         run: |
           echo "Opened a version bump PR. Publish will run after the PR is merged to main."
 
       - name: Resolve publish target
         id: publish_target
-        if: ${{ steps.release.outputs.has_changes == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run == true || inputs.version_bump == 'none') }}
+        if: ${{ steps.release.outputs.has_changes == 'true' && steps.version_bump.outputs.opened_pr != 'true' }}
         shell: bash
         env:
           MANUAL_REGISTRY: ${{ inputs.registry }}
