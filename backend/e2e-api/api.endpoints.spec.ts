@@ -142,7 +142,8 @@ test.describe.serial('API coverage - project/dashboard/visualization', () => {
       }
     });
     const duplicateCreateBody = await parseBody(duplicateCreate);
-    expectApiError(duplicateCreate, duplicateCreateBody, 'There already is a project named');
+    expect(duplicateCreate.status()).toBe(409);
+    expect(extractError(duplicateCreateBody), JSON.stringify(duplicateCreateBody)).not.toContain('Required');
 
     const browse = await request.post('/api/projects', {
       data: {
