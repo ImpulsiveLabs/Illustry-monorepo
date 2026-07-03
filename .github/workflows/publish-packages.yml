@@ -52,6 +52,7 @@ on:
 permissions:
   contents: write
   packages: write
+  pull-requests: write
 
 env:
   NODE_VERSION: 22
@@ -84,7 +85,7 @@ jobs:
           AFTER_SHA: ${{ github.sha }}
         run: |
           package_set="${MANUAL_PACKAGE:-auto}"
-          version_bump="${MANUAL_BUMP:-minor}"
+          version_bump="${MANUAL_BUMP:-none}"
           node scripts/release-packages.mjs \
             --event "${EVENT_NAME}" \
             --package "${package_set}" \
@@ -146,15 +147,29 @@ jobs:
 
       - name: Commit version bump
         if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          branch="release/illustry-packages-${{ github.run_id }}"
+          git checkout -b "${branch}"
           node scripts/release-packages.mjs \
             --commit-only \
-            --push \
             --commit-message "chore(release): bump Illustry packages [skip ci]"
+          git push --set-upstream origin "${branch}"
+          gh pr create \
+            --base main \
+            --head "${branch}" \
+            --title "chore(release): bump Illustry packages" \
+            --body "Automated package version bump from workflow run ${{ github.run_id }}."
+
+      - name: Stop after opening version bump PR
+        if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
+        run: |
+          echo "Opened a version bump PR. Publish will run after the PR is merged to main."
 
       - name: Resolve publish target
         id: publish_target
-        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        if: ${{ steps.release.outputs.has_changes == 'true' && (github.event_name != 'workflow_dispatch' || inputs.dry_run == true || inputs.version_bump == 'none') }}
         shell: bash
         env:
           MANUAL_REGISTRY: ${{ inputs.registry }}
