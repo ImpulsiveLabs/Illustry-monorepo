@@ -24,7 +24,7 @@
     "webpack": "webpack --config webpack.config.js"
   },
   "dependencies": {
-    "@illustry/types": "1.0.1",
+    "@illustry/types": "^1.0.2",
     "argon2": "0.44.0",
     "cookie-parser": "1.4.7",
     "cors": "2.8.5",
