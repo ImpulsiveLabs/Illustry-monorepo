@@ -1775,14 +1775,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@illustry/types@npm:1.0.1":
-  version: 1.0.1
-  resolution: "@illustry/types@npm:1.0.1"
-  checksum: 10/fe5547bc7a2974ee8b17f9eb48d6a9a2e76bc41e81ef34b32af57a41e203d1b37c8781a67f2adf4e34272f90987075e47af794e1ce2ac96c9299210f979da6cc
-  languageName: node
-  linkType: hard
-
-"@illustry/types@npm:1.0.2, @illustry/types@workspace:types":
+"@illustry/types@npm:1.0.2, @illustry/types@npm:^1.0.2, @illustry/types@workspace:types":
   version: 0.0.0-use.local
   resolution: "@illustry/types@workspace:types"
   dependencies:
@@ -2202,7 +2195,7 @@ __metadata:
     "@babel/core": "npm:7.29.7"
     "@files-ui/react": "npm:1.0.8"
     "@hookform/resolvers": "npm:3.1.1"
-    "@illustry/types": "npm:1.0.1"
+    "@illustry/types": "npm:^1.0.2"
     "@monaco-editor/react": "npm:4.7.0"
     "@playwright/test": "npm:1.58.2"
     "@radix-ui/react-accordion": "npm:1.2.12"
@@ -2301,7 +2294,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@impulsivelabs/illustry-server@workspace:backend"
   dependencies:
-    "@illustry/types": "npm:1.0.1"
+    "@illustry/types": "npm:^1.0.2"
     "@playwright/test": "npm:1.58.2"
     "@types/cookie-parser": "npm:1.4.10"
     "@types/cors": "npm:2.8.17"
