@@ -63,6 +63,13 @@ type AuthResponse = {
   user: IllustryAuthUser | null;
 };
 
+type SignupResponse = AuthResponse | {
+  ok: boolean;
+  email: string;
+  verificationRequired: boolean;
+  message?: string;
+};
+
 type LoginRequest = {
   email: string;
   password: string;
@@ -273,15 +280,35 @@ class IllustryApiClient {
   }
 
   async signup(payload: SignupRequest) {
+    const previousSession = {
+      cookie: this.cookie,
+      csrfToken: this.csrfToken,
+      user: this.user
+    };
     const body = new FormData();
     body.set('email', payload.email);
     body.set('password', payload.password);
     body.set('name', payload.name);
-    const response = await this.request('/api/auth/register', {
-      method: 'POST',
-      body
-    }) as AuthResponse;
-    this.user = response.user;
+    let response: SignupResponse;
+    try {
+      response = await this.request('/api/auth/register', {
+        method: 'POST',
+        body
+      }) as SignupResponse;
+    } catch (error) {
+      this.cookie = previousSession.cookie;
+      this.csrfToken = previousSession.csrfToken;
+      this.user = previousSession.user;
+      throw error;
+    }
+
+    if ('user' in response) {
+      this.user = response.user;
+    } else {
+      this.cookie = previousSession.cookie;
+      this.csrfToken = previousSession.csrfToken;
+      this.user = previousSession.user;
+    }
     return response;
   }
 
@@ -409,7 +436,7 @@ class IllustryApiClient {
     });
   }
 
-  async createDashboard(payload: { name: string; description?: string; visualizations?: unknown[] }) {
+  async createDashboard(payload: { name: string; description?: string; visualizations?: Record<string, string> | unknown[] }) {
     return this.request('/api/dashboard', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
@@ -420,7 +447,7 @@ class IllustryApiClient {
   async updateDashboard(payload: {
     name: string;
     description?: string;
-    visualizations?: unknown[];
+    visualizations?: Record<string, string> | unknown[];
     layouts?: unknown;
   }) {
     return this.request('/api/dashboard', {
@@ -525,6 +552,7 @@ export {
 };
 export type {
   AuthResponse,
+  SignupResponse,
   ExportRequest,
   BrowseRequest,
   IllustryAuthUser,

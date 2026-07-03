@@ -11,6 +11,8 @@ import AddVisualizationForm from '@/components/form/add-visualization-form';
 
 const {
     push,
+    replace,
+    refresh,
     toastSuccess,
     toastError,
     createProject,
@@ -23,6 +25,8 @@ const {
     navigationState
 } = vi.hoisted(() => ({
     push: vi.fn(),
+    replace: vi.fn(),
+    refresh: vi.fn(),
     toastSuccess: vi.fn(),
     toastError: vi.fn(),
     createProject: vi.fn(() => Promise.resolve({})),
@@ -42,7 +46,7 @@ const {
 
 vi.mock('next/navigation', () => ({
     usePathname: () => navigationState.pathname,
-    useRouter: () => ({ push }),
+    useRouter: () => ({ push, replace, refresh }),
     useSearchParams: () => new URLSearchParams()
 }));
 
@@ -103,10 +107,10 @@ vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
                 form.setValue('separator', ',');
                 form.setValue('includeHeaders', true);
                 form.setValue('name', 'Visualization A');
-                form.setValue('type', 'word-cloud');
+                form.setValue('type', 'bar-chart');
                 form.setValue('description', 'Desc');
                 form.setValue('tags', 'a,b');
-                form.setValue('mapping', { names: '1', values: '2', properties: '3' });
+                form.setValue('mapping', { data: '2', headers: '1' });
                 const files = Array.from({ length: typeTabState.filesCount }, (_, index) => ({
                     id: String(index + 1),
                     file: new File(['a,b'], `demo-${index + 1}.csv`, { type: 'text/csv' })
@@ -279,7 +283,8 @@ describe('form components', () => {
         expect(formDataArg.get('fullDetails')).toBe('false');
         expect(String(formDataArg.get('fileDetails'))).toContain('CSV');
         expect(String(formDataArg.get('visualizationDetails'))).toContain('Visualization A');
-        expect(push).toHaveBeenCalledWith('/visualizations');
+        expect(replace).toHaveBeenCalledWith('/visualizations');
+        expect(refresh).toHaveBeenCalled();
     });
 
     it('handles no-op file type changes while still submitting payload', async () => {
@@ -294,6 +299,23 @@ describe('form components', () => {
         await waitFor(() => {
             expect(createOrUpdateVisualization).toHaveBeenCalledTimes(1);
         });
+    });
+
+    it('closes add visualization modal from cancel and close controls', async () => {
+        const user = userEvent.setup();
+        navigationState.pathname = '/visualizations';
+
+        const { unmount } = render(<AddVisualizationForm />);
+        await user.click(screen.getByRole('button', { name: /Cancel/i }));
+        expect(replace).toHaveBeenCalledWith('/visualizations');
+        expect(refresh).not.toHaveBeenCalled();
+
+        unmount();
+        vi.clearAllMocks();
+        render(<AddVisualizationForm />);
+        await user.click(screen.getByRole('button', { name: '×' }));
+        expect(replace).toHaveBeenCalledWith('/visualizations');
+        expect(refresh).not.toHaveBeenCalled();
     });
 
     it('routes file-count validation errors through catchError', async () => {

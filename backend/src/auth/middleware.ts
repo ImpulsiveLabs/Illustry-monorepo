@@ -1,7 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import Factory from '../factory';
 import { CSRF_COOKIE_NAME, SESSION_COOKIE_NAME } from './constants';
-import { clearAuthCookies } from './cookies';
 import { hashOpaqueToken, safeEqual } from './crypto';
 import { AuthenticatedRequest } from './types';
 
@@ -77,7 +76,6 @@ const requireAuthenticatedUser = async (
     const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
 
     if (principal === null) {
-      clearAuthCookies(response);
       unauthorized(response, 'Authentication required');
       return;
     }
@@ -122,7 +120,6 @@ const attachAuthenticatedUserIfPresent = async (
     const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
 
     if (principal === null) {
-      clearAuthCookies(response);
       next();
       return;
     }
@@ -226,7 +223,6 @@ const enforceCsrfForProtectedMutationRoutes = async (
     const principal = await getAuthBZL().getSessionPrincipalFromToken(sessionToken);
 
     if (principal === null) {
-      clearAuthCookies(response);
       unauthorized(response, 'Authentication required');
       return;
     }

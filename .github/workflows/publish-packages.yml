@@ -8,7 +8,6 @@ on:
       - types/**
       - packages/core/**
       - packages/cli/**
-      - packages/mcp/**
       - package.json
       - yarn.lock
       - scripts/release-packages.mjs
@@ -33,7 +32,6 @@ on:
           - types
           - core
           - cli
-          - mcp
           - all
       version_bump:
         description: Version bump
@@ -62,7 +60,7 @@ jobs:
   publish:
     name: Release Illustry packages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):') }}
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'push' || !startsWith(github.event.head_commit.message, 'chore(release):')) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -104,6 +102,10 @@ jobs:
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
 
+      - name: Audit every package
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        run: yarn audit
+
       - name: Build shared types
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: yarn workspace @illustry/types build:ts
@@ -116,18 +118,15 @@ jobs:
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: yarn workspace @illustry/core build:ts
 
-      - name: Lint frontend packages
+      - name: Lint CLI package
         if: ${{ steps.release.outputs.has_changes == 'true' }}
-        run: |
-          yarn workspace @illustry/cli lint
-          yarn workspace @illustry/mcp lint
+        run: yarn workspace @illustry/cli lint
 
       - name: Test publish packages
         if: ${{ steps.release.outputs.has_changes == 'true' }}
         run: |
           yarn workspace @illustry/core test --runInBand
           yarn workspace @illustry/cli test --runInBand
-          yarn workspace @illustry/mcp test --runInBand
 
       - name: Build publish packages
         if: ${{ steps.release.outputs.has_changes == 'true' }}
@@ -135,7 +134,15 @@ jobs:
           yarn workspace @illustry/types build:ts
           yarn workspace @illustry/core build:ts
           yarn workspace @illustry/cli build:ts
-          yarn workspace @illustry/mcp build:ts
+
+      - name: Verify package payloads
+        if: ${{ steps.release.outputs.has_changes == 'true' }}
+        env:
+          PACKAGES: ${{ steps.release.outputs.package_dirs }}
+        run: |
+          for package_dir in ${PACKAGES}; do
+            npm pack "./${package_dir}" --dry-run
+          done
 
       - name: Commit version bump
         if: ${{ steps.release.outputs.has_changes == 'true' && inputs.dry_run != true && inputs.version_bump != 'none' }}
@@ -187,6 +194,24 @@ jobs:
             fi
           done
 
+      - name: Verify npm package imports
+        if: ${{ steps.release.outputs.has_changes == 'true' && (steps.publish_target.outputs.registry == 'npm' || steps.publish_target.outputs.registry == 'both') && steps.publish_target.outputs.dry_run != 'true' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          PACKAGES: ${{ steps.release.outputs.package_dirs }}
+        shell: bash
+        run: |
+          tmp_dir="$(mktemp -d)"
+          cd "${tmp_dir}"
+          npm init -y >/dev/null
+          printf "//registry.npmjs.org/:_authToken=%s\n" "${NODE_AUTH_TOKEN}" > .npmrc
+          for package_dir in ${PACKAGES}; do
+            package_name="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').name")"
+            package_version="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').version")"
+            npm install "${package_name}@${package_version}"
+            node -e "require('${package_name}')"
+          done
+
       - name: Publish to GitHub Packages
         if: ${{ steps.release.outputs.has_changes == 'true' && (steps.publish_target.outputs.registry == 'github' || steps.publish_target.outputs.registry == 'both') }}
         env:
@@ -210,4 +235,22 @@ jobs:
             else
               npm publish "./${package_dir}" --registry https://npm.pkg.github.com
             fi
+          done
+
+      - name: Verify GitHub package imports
+        if: ${{ steps.release.outputs.has_changes == 'true' && (steps.publish_target.outputs.registry == 'github' || steps.publish_target.outputs.registry == 'both') && steps.publish_target.outputs.dry_run != 'true' }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PACKAGES: ${{ steps.release.outputs.package_dirs }}
+        shell: bash
+        run: |
+          tmp_dir="$(mktemp -d)"
+          cd "${tmp_dir}"
+          npm init -y >/dev/null
+          printf "@impulsivelabs:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=%s\n" "${NODE_AUTH_TOKEN}" > .npmrc
+          for package_dir in ${PACKAGES}; do
+            package_name="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').name")"
+            package_version="$(node -p "require('${GITHUB_WORKSPACE}/${package_dir}/package.json').version")"
+            npm install "${package_name}@${package_version}" --registry https://npm.pkg.github.com
+            node -e "require('${package_name}')"
           done

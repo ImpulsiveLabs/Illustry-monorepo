@@ -16,9 +16,6 @@ COPY packages/core/src ./packages/core/src
 COPY packages/cli/package.json packages/cli/tsconfig.json ./packages/cli/
 COPY packages/cli/src ./packages/cli/src
 
-COPY packages/mcp/package.json packages/mcp/tsconfig.json ./packages/mcp/
-COPY packages/mcp/src ./packages/mcp/src
-
 RUN printf '%s\n' \
   '{' \
   '  "private": true,' \
@@ -30,12 +27,12 @@ RUN printf '%s\n' \
 RUN yarn install
 RUN yarn workspace @illustry/types build:ts \
   && yarn workspace @illustry/core build:ts \
-  && yarn workspace @illustry/cli build:ts \
-  && yarn workspace @illustry/mcp build:ts
+  && yarn workspace @illustry/cli build:ts
 
 FROM node:20-alpine3.20 AS runner
 
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat fontconfig ttf-dejavu ttf-liberation \
+  && fc-cache -f
 
 WORKDIR /workspace
 
@@ -49,8 +46,6 @@ COPY --from=builder /illustry/packages/core/package.json /illustry/packages/core
 COPY --from=builder /illustry/packages/core/dist /illustry/packages/core/dist
 COPY --from=builder /illustry/packages/cli/package.json /illustry/packages/cli/package.json
 COPY --from=builder /illustry/packages/cli/dist /illustry/packages/cli/dist
-COPY --from=builder /illustry/packages/mcp/package.json /illustry/packages/mcp/package.json
-COPY --from=builder /illustry/packages/mcp/dist /illustry/packages/mcp/dist
 
 ENTRYPOINT ["node"]
 CMD ["/illustry/packages/cli/dist/index.js", "--help"]

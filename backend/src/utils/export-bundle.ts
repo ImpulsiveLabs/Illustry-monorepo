@@ -13,6 +13,8 @@ import { createDashboardExcelWorkbook, createVisualizationExcelWorkbook } from '
 
 type ExportFormat = 'png' | 'jpg' | 'webp' | 'svg' | 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt';
 
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
+
 type ExportChartPayload = {
   title?: string;
   option: unknown;
@@ -63,6 +65,8 @@ const EXPORT_BACKGROUND = '#ffffff';
 const MAX_EXPORT_FORMATS = 9;
 const DEFAULT_CHART_WIDTH = 1280;
 const DEFAULT_CHART_HEIGHT = 720;
+const DASHBOARD_CONNECTED_PREVIEW_GAP = 29;
+const DASHBOARD_CONNECTED_PREVIEW_HEIGHT_RATIO = 0.544;
 const ZIP_MIME = 'application/zip';
 const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min.js';
 const ECHARTS_WORDCLOUD_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js';
@@ -195,6 +199,30 @@ const stripSvgEnvelope = (svg: string) => svg
   .replace(/^\s*<svg\b[^>]*>/i, '')
   .replace(/<\/svg>\s*$/i, '');
 
+const getSvgDimensions = (svg: string) => {
+  const width = Number(svg.match(/\bwidth="([^"]+)"/)?.[1]);
+  const height = Number(svg.match(/\bheight="([^"]+)"/)?.[1]);
+  return Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+    ? { width, height }
+    : undefined;
+};
+
+const applyDefaultDocumentSize = (
+  svg: string,
+  options?: DocumentExportOptions
+): DocumentExportOptions | undefined => {
+  const dimensions = getSvgDimensions(svg);
+  if (!dimensions) return options;
+  if (options?.width && options?.height) return options;
+  const width = options?.width || 960;
+  const height = options?.height || Math.max(120, Math.round((width * dimensions.height) / dimensions.width));
+  return {
+    ...options,
+    width,
+    height
+  };
+};
+
 const renderSvg = (charts: Required<ExportChartPayload>[], title: string) => {
   if (charts.length === 1) {
     return renderChartSvg(charts[0]);
@@ -232,6 +260,53 @@ const renderSvg = (charts: Required<ExportChartPayload>[], title: string) => {
     '</svg>'
   ].join('');
 };
+
+const getDashboardConnectedPreviewChartHeight = (charts: Required<ExportChartPayload>[]) => {
+  const tallest = Math.max(...charts.map((chart) => chart.height));
+  return Math.max(120, Math.round(tallest * DASHBOARD_CONNECTED_PREVIEW_HEIGHT_RATIO));
+};
+
+const renderDashboardConnectedPreviewSvg = (charts: Required<ExportChartPayload>[]) => {
+  if (charts.length === 1) {
+    return renderChartSvg(charts[0]);
+  }
+
+  const columns = charts.length <= 2 ? charts.length : Math.min(3, Math.ceil(Math.sqrt(charts.length)));
+  const rows = Math.ceil(charts.length / columns);
+  const chartWidth = Math.max(...charts.map((chart) => chart.width));
+  const chartHeight = getDashboardConnectedPreviewChartHeight(charts);
+  const width = (columns * chartWidth) + ((columns - 1) * DASHBOARD_CONNECTED_PREVIEW_GAP);
+  const height = (rows * chartHeight) + ((rows - 1) * DASHBOARD_CONNECTED_PREVIEW_GAP);
+
+  const renderedCharts = charts.map((chart, index) => {
+    const column = index % columns;
+    const row = Math.floor(index / columns);
+    const x = column * (chartWidth + DASHBOARD_CONNECTED_PREVIEW_GAP);
+    const y = row * (chartHeight + DASHBOARD_CONNECTED_PREVIEW_GAP);
+    const svgBody = stripSvgEnvelope(renderChartSvg({ ...chart, width: chartWidth, height: chartHeight }));
+    return [
+      `<g transform="translate(${x} ${y})">`,
+      `<svg width="${chartWidth}" height="${chartHeight}" viewBox="0 0 ${chartWidth} ${chartHeight}">${svgBody}</svg>`,
+      '</g>'
+    ].join('');
+  }).join('');
+
+  return [
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" role="img">`,
+    '<title>Dashboard preview</title>',
+    `<rect width="100%" height="100%" fill="${EXPORT_BACKGROUND}"/>`,
+    renderedCharts,
+    '</svg>'
+  ].join('');
+};
+
+const getFallbackPreviewSvg = (
+  kind: 'visualization' | 'dashboard',
+  charts: Required<ExportChartPayload>[],
+  svg: string
+) => (kind === 'dashboard' && charts.length > 1
+  ? renderDashboardConnectedPreviewSvg(charts)
+  : svg);
 
 const encodeRaster = async (image: sharp.Sharp, format: 'png' | 'jpg' | 'webp') => {
   const flattened = image.flatten({ background: EXPORT_BACKGROUND });
@@ -279,6 +354,7 @@ const buildWebComponentHtml = (
   <title>${svgEscape(title)}</title>
 </head>
 <body>
+  <!-- Drop this element and the script below into any HTML page. -->
   <${elementName}></${elementName}>
   <script type="application/json" id="illustry-web-component-data">${payloadJson}</script>
   <script>
@@ -295,59 +371,90 @@ const buildWebComponentHtml = (
     script.onerror = () => reject(new Error('Unable to load ' + src));
     document.head.appendChild(script);
   });
-  const ensureECharts = async () => {
-    if (!window.echarts) await loadScript('${ECHARTS_CDN_URL}');
-    if (JSON.stringify(payload).includes('"wordCloud"')) await loadScript('${ECHARTS_WORDCLOUD_CDN_URL}').catch(() => undefined);
-  };
-  class IllustryElement extends HTMLElement {
-    connectedCallback() { void this.render(); }
-    disconnectedCallback() { this.resizeObserver?.disconnect(); this.charts?.forEach((chart) => chart.dispose()); }
-    revive(value) {
-      if (Array.isArray(value)) return value.map((item) => this.revive(item));
-      if (value && typeof value === 'object') {
-        if (typeof value.__illustryFunction === 'string') return undefined;
-        Object.keys(value).forEach((key) => { value[key] = this.revive(value[key]); });
-      }
-      return value;
+  const revive = (value) => {
+    if (Array.isArray(value)) {
+      return value.map(revive);
     }
+    if (value && typeof value === 'object') {
+      if (typeof value.__illustryFunction === 'string') {
+        return undefined;
+      }
+      Object.keys(value).forEach((key) => {
+        value[key] = revive(value[key]);
+      });
+    }
+    return value;
+  };
+  const ensureECharts = async () => {
+    if (!window.echarts) {
+      await loadScript('${ECHARTS_CDN_URL}');
+    }
+    const needsWordCloud = JSON.stringify(payload).includes('"wordCloud"');
+    if (needsWordCloud) {
+      await loadScript('${ECHARTS_WORDCLOUD_CDN_URL}').catch(() => undefined);
+    }
+  };
+  class IllustryVisualizationElement extends HTMLElement {
+    connectedCallback() {
+      void this.render();
+    }
+
+    disconnectedCallback() {
+      this.resizeObserver?.disconnect();
+      this.charts?.forEach((chart) => chart.dispose());
+    }
+
     async render() {
       await ensureECharts();
+      const charts = Array.isArray(payload.charts) ? payload.charts : [];
       const isDashboard = payload.kind === 'dashboard';
       const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
-      root.innerHTML = '<style>:host{display:block;width:100%;min-height:' + (isDashboard ? '640px' : '420px') + ';font-family:Inter,system-ui,sans-serif;color:#111827}.wrap{box-sizing:border-box;width:100%;min-height:inherit;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.card{height:320px;border:1px solid #e5e7eb;border-radius:8px;padding:8px}.chart{width:100%;height:' + (isDashboard ? '288px' : '420px') + '}.title{font-size:15px;font-weight:700;margin:0 0 10px}.chart-title{text-align:center;font-size:13px;font-weight:700;margin:0 0 6px}</style><section class="wrap"><h2 class="title"></h2><div class="mount"></div></section>';
+      root.innerHTML = '<style>' +
+        ':host{display:block;width:100%;min-height:' + (isDashboard ? '640px' : '420px') + ';font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1f2937}' +
+        '.wrap{box-sizing:border-box;width:100%;height:100%;min-height:inherit;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:12px;box-shadow:0 8px 24px rgba(15,23,42,.08)}' +
+        '.title{margin:0 0 10px;font-size:15px;font-weight:700;line-height:1.2}' +
+        '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;height:calc(100% - 28px);min-height:580px}' +
+        '.card{box-sizing:border-box;min-height:280px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;padding:10px}' +
+        '.chart-title{height:24px;margin:0;text-align:center;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+        '.chart{width:100%;height:' + (isDashboard ? 'calc(100% - 28px)' : '100%') + ';min-height:' + (isDashboard ? '240px' : '380px') + '}' +
+        '</style><section class="wrap"><h2 class="title"></h2><div class="mount"></div></section>';
       root.querySelector('.title').textContent = payload.title || 'Illustry export';
       const mount = root.querySelector('.mount');
       mount.className = isDashboard ? 'grid' : 'mount';
-      this.charts = (payload.charts || []).map((item, index) => {
+      mount.innerHTML = '';
+      this.charts = charts.map((chartConfig, index) => {
         const host = document.createElement(isDashboard ? 'article' : 'div');
         host.className = isDashboard ? 'card' : '';
         if (isDashboard) {
-          const label = document.createElement('h3');
-          label.className = 'chart-title';
-          label.textContent = item.title || 'Visualization ' + (index + 1);
-          host.appendChild(label);
+          const title = document.createElement('h3');
+          title.className = 'chart-title';
+          title.textContent = chartConfig.title || ('Visualization ' + (index + 1));
+          host.appendChild(title);
         }
-        const el = document.createElement('div');
-        el.className = 'chart';
-        host.appendChild(el);
+        const chartElement = document.createElement('div');
+        chartElement.className = 'chart';
+        host.appendChild(chartElement);
         mount.appendChild(host);
-        const chart = window.echarts.init(el, null, { renderer: 'svg' });
-        chart.setOption(this.revive(item.option || {}), true);
+        const chart = window.echarts.init(chartElement, null, { renderer: this.getAttribute('renderer') || 'svg' });
+        chart.setOption(revive(chartConfig.option || {}), true);
         return chart;
       });
+      this.resizeObserver?.disconnect();
       this.resizeObserver = new ResizeObserver(() => this.charts?.forEach((chart) => chart.resize()));
       this.resizeObserver.observe(this);
+      requestAnimationFrame(() => this.charts?.forEach((chart) => chart.resize()));
     }
   }
-  if (!customElements.get('${elementName}')) customElements.define('${elementName}', IllustryElement);
+  if (!customElements.get('${elementName}')) {
+    customElements.define('${elementName}', IllustryVisualizationElement);
+  }
 })();
   </script>
 </body>
 </html>`;
 };
-
 const verifyZipIntegrity = async (buffer: Buffer, files: ExportFile[]) => {
-  const zip = await JSZip.loadAsync(buffer);
+  const zip = await JSZip.loadAsync(toZipBytes(buffer));
   await Promise.all(files.map(async (file) => {
     const entry = zip.file(file.filename);
     if (!entry) {
@@ -358,13 +465,13 @@ const verifyZipIntegrity = async (buffer: Buffer, files: ExportFile[]) => {
       throw new Error(`ZIP integrity check failed: ${file.filename} is empty.`);
     }
     if (file.filename.endsWith('.xlsx')) {
-      await JSZip.loadAsync(content);
+      await JSZip.loadAsync(toZipBytes(content));
     }
     if (file.filename.endsWith('.docx')) {
-      await JSZip.loadAsync(content);
+      await JSZip.loadAsync(toZipBytes(content));
     }
     if (file.filename.endsWith('.pptx')) {
-      await JSZip.loadAsync(content);
+      await JSZip.loadAsync(toZipBytes(content));
     }
     if (file.filename.endsWith('.pdf') && !content.subarray(0, 5).equals(Buffer.from('%PDF-'))) {
       throw new Error(`ZIP integrity check failed: ${file.filename} is not a valid PDF.`);
@@ -375,7 +482,7 @@ const verifyZipIntegrity = async (buffer: Buffer, files: ExportFile[]) => {
 const zipFiles = async (files: ExportFile[], filename: string): Promise<ExportBundleResult> => {
   const zip = new JSZip();
   files.forEach((file) => {
-    zip.file(file.filename, file.buffer, {
+    zip.file(file.filename, toZipBytes(file.buffer), {
       compression: 'DEFLATE',
       compressionOptions: { level: 9 }
     });
@@ -424,6 +531,8 @@ const createFiles = async ({
 }) => {
   const safeTitle = sanitizeFilename(title);
   const svg = renderSvg(charts, title);
+  const fallbackPreviewSvg = getFallbackPreviewSvg(kind, charts, svg);
+  const sizedDocumentOptions = applyDefaultDocumentSize(fallbackPreviewSvg, documentOptions);
   const templateFileKind = getTemplateFileKind(documentOptions?.templateFile);
   const getTemplateFileFor = (format: 'excel' | 'pdf' | 'word' | 'ppt') => (
     documentOptions?.templateFiles?.[format]
@@ -432,7 +541,7 @@ const createFiles = async ({
   let previewPng: Buffer | undefined = previewDataUrlToPng(previewDataUrl)
     ?? previewDataUrlToPng(charts[0]?.previewDataUrl);
   const getPreviewPng = async () => {
-    previewPng ??= await rasterizeSvg(svg, 'png');
+    previewPng ??= await rasterizeSvg(fallbackPreviewSvg, 'png');
     return previewPng;
   };
 
@@ -462,7 +571,7 @@ const createFiles = async ({
       return createPdfExport({
         title: safeTitle,
         image: await getPreviewPng(),
-        options: { ...documentOptions, templateFile }
+        options: { ...sizedDocumentOptions, templateFile }
       });
     }
     if (format === 'word') {
@@ -470,7 +579,7 @@ const createFiles = async ({
       return createWordExport({
         title: safeTitle,
         image: await getPreviewPng(),
-        options: { ...documentOptions, templateFile }
+        options: { ...sizedDocumentOptions, templateFile }
       });
     }
     if (format === 'ppt') {
@@ -478,11 +587,11 @@ const createFiles = async ({
       return createPptExport({
         title: safeTitle,
         image: await getPreviewPng(),
-        options: { ...documentOptions, templateFile }
+        options: { ...sizedDocumentOptions, templateFile }
       });
     }
     return {
-      buffer: await rasterizePreview(previewPng, svg, format),
+      buffer: await rasterizePreview(previewPng, fallbackPreviewSvg, format),
       filename: `${safeTitle}.${format}`,
       mimeType: mimeByFormat[format]
     };

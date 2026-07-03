@@ -25,11 +25,26 @@ const getRealtimeClientId = (): string => {
   }
 };
 
+const closeRealtimeSocket = (socket: WebSocket | undefined): void => {
+  if (!socket) {
+    return;
+  }
+
+  if (socket.readyState === WebSocket.CONNECTING) {
+    socket.onopen = () => socket.close();
+    return;
+  }
+
+  if (socket.readyState === WebSocket.OPEN) {
+    socket.close();
+  }
+};
+
 type RealtimePayload = {
   type?: string;
   action?: 'created' | 'updated' | 'deleted' | 'shared' | 'theme-updated';
   originClientId?: string;
 }
 
-export { getRealtimeClientId, REALTIME_CLIENT_ID_KEY };
+export { getRealtimeClientId, closeRealtimeSocket, REALTIME_CLIENT_ID_KEY };
 export type { RealtimePayload };

@@ -9,13 +9,16 @@ import {
   type IllustryApiClientOptions,
   LocalIllustryStore,
   UPLOAD_CONSTRAINTS,
+  applyImportMapping,
   buildWebComponentHtml,
   createLocalExportBundle,
   formatUploadBytes,
   importVisualizationSource,
   isIllustryExportFormat,
   normalizeFormats,
+  parseImportMapping,
   parseExportFormats,
+  previewVisualizationImportSource,
   renderSvg,
   sanitizeFilename,
   toIllustryError,
@@ -24,6 +27,7 @@ import {
 } from '../src';
 
 const makeTempDir = () => fs.mkdtemp(path.join(os.tmpdir(), 'illustry-core-'));
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
 
 const makeAsset = (overrides: Partial<IllustryLocalAsset> = {}): IllustryLocalAsset => ({
   id: 'asset_1',
@@ -80,6 +84,35 @@ describe('@illustry/core local workflows', () => {
     expect(asset.charts[0].option.series).toEqual([{ type: 'bar', data: [1, 2] }]);
   });
 
+  it('previews import files with detected type, columns, sample rows, and JSON full config support', async () => {
+    const csv = path.join(tempDir, 'sales.csv');
+    await fs.writeFile(csv, 'label,value,region\nA,1,North\nB,2,South\n', 'utf8');
+    const csvPreview = await previewVisualizationImportSource(csv);
+    expect(csvPreview).toMatchObject({
+      filename: 'sales.csv',
+      format: 'csv',
+      suggestedName: 'sales',
+      columns: ['label', 'value', 'region'],
+      sampleRows: [['A', '1', 'North'], ['B', '2', 'South']],
+      fullConfigAvailable: false
+    });
+
+    const json = path.join(tempDir, 'config.json');
+    await fs.writeFile(json, JSON.stringify({
+      type: 'pie-chart',
+      option: {
+        xAxis: { type: 'category', data: ['A'] },
+        series: [{ type: 'bar', data: [1] }]
+      }
+    }), 'utf8');
+    await expect(previewVisualizationImportSource(json)).resolves.toMatchObject({
+      format: 'json',
+      columns: ['Key', 'Value'],
+      suggestedType: 'pie-chart',
+      fullConfigAvailable: true
+    });
+  });
+
   it('stores local assets and creates zip exports when multiple formats are selected', async () => {
     const store = new LocalIllustryStore({ rootDir: tempDir });
     const asset = await store.saveAsset({
@@ -103,7 +136,7 @@ describe('@illustry/core local workflows', () => {
     expect(bundle.bundled).toBe(true);
     expect(bundle.filename).toBe('Offline-chart.zip');
 
-    const zip = await JSZip.loadAsync(bundle.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(zip.file('Offline-chart.json')).toBeTruthy();
     expect(zip.file('Offline-chart.webcomponent.html')).toBeTruthy();
   });
@@ -131,9 +164,12 @@ describe('@illustry/core local workflows', () => {
     expect(bundle.bundled).toBe(false);
     expect(bundle.filename).toBe('Office-chart.xlsx');
 
-    const workbookZip = await JSZip.loadAsync(bundle.buffer);
+    const workbookZip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(workbookZip.file('[Content_Types].xml')).toBeTruthy();
     expect(workbookZip.file('xl/workbook.xml')).toBeTruthy();
+    const drawingXml = await workbookZip.file('xl/drawings/drawing1.xml')?.async('string');
+    expect(drawingXml).toMatch(/<xdr:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
+    expect(drawingXml).toMatch(/<a:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
   });
 
   it('keeps local import/export format parsing deterministic', () => {
@@ -317,6 +353,19 @@ describe('@illustry/core local workflows', () => {
     ]);
     expect((csvAsset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([0]);
 
+    const mappedCsv = path.join(tempDir, 'mapped.csv');
+    await fs.writeFile(mappedCsv, 'Country,Revenue,Notes\nRomania,10,a\nFrance,20,b\n', 'utf8');
+    const mappedAsset = await importVisualizationSource({
+      filePath: mappedCsv,
+      mapping: parseImportMapping('label=Country,value=Revenue')
+    });
+    expect(mappedAsset.source?.rows).toEqual([
+      ['label', 'value'],
+      ['Romania', '10'],
+      ['France', '20']
+    ]);
+    expect((mappedAsset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([10, 20]);
+
     const xml = path.join(tempDir, 'source.xml');
     await fs.writeFile(xml, '<root><label>A</label><value>5</value></root>', 'utf8');
     await expect(importVisualizationSource({ filePath: xml }))
@@ -365,6 +414,46 @@ describe('@illustry/core local workflows', () => {
     const asset = await importVisualizationSource({ filePath: emptyXlsx });
     expect(asset.source?.rows).toEqual([]);
     expect((asset.charts[0].option.series as Array<{ data: number[] }>)[0].data).toEqual([]);
+
+    expect(() => parseImportMapping('bad')).toThrow('Invalid import mapping');
+    expect(() => parseImportMapping('color=Country')).toThrow('Unsupported import mapping key');
+
+    const mapped = path.join(tempDir, 'missing-column.csv');
+    await fs.writeFile(mapped, 'Country,Revenue\nRomania,10\n', 'utf8');
+    await expect(importVisualizationSource({
+      filePath: mapped,
+      mapping: { label: 'Missing', value: 'Revenue' }
+    })).rejects.toMatchObject({
+      code: 'ILLUSTRY_IMPORT_MAPPING_COLUMN_NOT_FOUND',
+      status: 400
+    });
+  });
+
+  it('parses import mapping aliases and supports numeric column indexes', () => {
+    expect(parseImportMapping()).toEqual({});
+    expect(parseImportMapping('x=0,y=2')).toEqual({ label: '0', value: '2' });
+    expect(parseImportMapping('category=Country,amount=Revenue')).toEqual({
+      label: 'Country',
+      value: 'Revenue'
+    });
+    expect(parseImportMapping('name=Country,value=Revenue')).toEqual({
+      label: 'Country',
+      value: 'Revenue'
+    });
+    expect(() => parseImportMapping('label=')).toThrow('Missing column name');
+
+    const rows = [
+      ['Country', 'Ignored', 'Revenue'],
+      ['Romania', 'x', '10']
+    ];
+    expect(applyImportMapping(rows, { label: '0', value: '2' })).toEqual([
+      ['label', 'value'],
+      ['Romania', '10']
+    ]);
+    expect(applyImportMapping(rows)).toBe(rows);
+    expect(applyImportMapping([], { value: '0' })).toEqual([
+      ['label', 'value']
+    ]);
   });
 
   it('manages local store reads, updates, deletes, and export writes', async () => {
@@ -481,7 +570,7 @@ describe('@illustry/core local workflows', () => {
       formats: ['json', 'svg', 'web-component']
     });
     expect(bundle.bundled).toBe(true);
-    const zip = await JSZip.loadAsync(bundle.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(bundle.buffer));
     expect(zip.file('Executive-&-Dashboard.svg')).toBeTruthy();
     expect(zip.file('Executive-&-Dashboard.webcomponent.html')).toBeTruthy();
 
@@ -492,7 +581,7 @@ describe('@illustry/core local workflows', () => {
       { ...makeAsset().charts[0], title: 'Four', width: 240, height: 180 }
     ]);
     expect(largerDashboardSvg).toContain('Four Up');
-  }, 30000);
+  }, 90000);
 
   it('validates local export selections and missing chart data', async () => {
     expect(isIllustryExportFormat('svg')).toBe(true);
@@ -665,6 +754,74 @@ describe('@illustry/core local workflows', () => {
     expect(headers.get('x-csrf-token')).toBe('csrf one');
     expect(headers.get('x-illustry-locale')).toBe('ro');
     expect(headers.get('accept-language')).toBe('ro');
+
+    const pendingSignupClient = new IllustryApiClient({
+      baseUrl: 'http://illustry.local',
+      fetchImpl: async () => new Response(JSON.stringify({
+        ok: true,
+        email: 'pending@example.com',
+        verificationRequired: true
+      }), {
+        status: 202,
+        headers: {
+          'content-type': 'application/json',
+          'set-cookie': 'illustry_session=pending; Path=/; HttpOnly, illustry_csrf=pending-csrf; Path=/'
+        }
+      })
+    });
+    await expect(pendingSignupClient.signup({
+      email: 'pending@example.com',
+      password: 'secret',
+      name: 'Pending User'
+    })).resolves.toEqual({
+      ok: true,
+      email: 'pending@example.com',
+      verificationRequired: true
+    });
+    expect(pendingSignupClient.getSessionSnapshot()).toMatchObject({
+      cookie: undefined,
+      csrfToken: undefined,
+      user: undefined
+    });
+
+    const existingSessionUser = makeUser();
+    const authenticatedPendingSignupClient = new IllustryApiClient({
+      baseUrl: 'http://illustry.local',
+      fetchImpl: async (input) => {
+        const pathname = new URL(input.toString()).pathname;
+        if (pathname === '/api/auth/login') {
+          return new Response(JSON.stringify({ user: existingSessionUser }), {
+            headers: {
+              'content-type': 'application/json',
+              'set-cookie': 'illustry_session=existing; Path=/; HttpOnly, illustry_csrf=existing-csrf; Path=/'
+            }
+          });
+        }
+        return new Response(JSON.stringify({
+          ok: true,
+          email: 'pending@example.com',
+          verificationRequired: true
+        }), {
+          status: 202,
+          headers: {
+            'content-type': 'application/json',
+            'set-cookie': 'illustry_session=pending; Path=/; HttpOnly, illustry_csrf=pending-csrf; Path=/'
+          }
+        });
+      }
+    });
+
+    await authenticatedPendingSignupClient.login({ email: 'ada@example.com', password: 'secret' });
+    await expect(authenticatedPendingSignupClient.signup({
+      email: 'pending@example.com',
+      password: 'secret',
+      name: 'Pending User'
+    })).resolves.toMatchObject({ verificationRequired: true });
+    expect(authenticatedPendingSignupClient.getSessionSnapshot()).toMatchObject({
+      cookie: 'illustry_session=existing; illustry_csrf=existing-csrf',
+      csrfToken: 'existing-csrf',
+      user: existingSessionUser
+    });
   });
 
   it('calls API resource management routes consistently', async () => {

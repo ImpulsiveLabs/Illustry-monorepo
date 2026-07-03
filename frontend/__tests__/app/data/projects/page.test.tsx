@@ -6,6 +6,7 @@ import React from 'react';
 // Mock the data fetcher
 vi.mock('@/app/_actions/project', () => ({
   browseProjects: vi.fn(),
+  findOneProject: vi.fn(),
 }));
 
 // Mock the shell component
@@ -16,6 +17,16 @@ vi.mock('@/components/shells/projects-table-shell', () => ({
       <div data-testid="projects-count">{data.length}</div>
       <div data-testid="page-count">{pageCount}</div>
     </div>
+  ),
+}));
+
+vi.mock('@/components/ui/error-card', () => ({
+  __esModule: true,
+  default: ({ title, description }: { title: string; description: string }) => (
+    <section data-testid="error-card">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </section>
   ),
 }));
 
@@ -104,5 +115,15 @@ describe('Projects Page', () => {
       per_page: 20,
       sort: { sortOrder: -1, element: 'name' },
     });
+  });
+
+  it('renders backend unavailable when projects cannot be loaded', async () => {
+    vi.mocked(browseProjects).mockResolvedValue(null);
+
+    render(await Projects({ searchParams: {} }));
+
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Backend unavailable');
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Your session was not cleared');
+    expect(screen.queryByTestId('projects-table-shell')).not.toBeInTheDocument();
   });
 });

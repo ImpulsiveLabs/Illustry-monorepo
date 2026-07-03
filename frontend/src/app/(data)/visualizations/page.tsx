@@ -5,6 +5,7 @@ import { VisualizationTypes } from '@illustry/types';
 import { browseVisualizations } from '@/app/_actions/visualization';
 import VisualizationsTableShell from '@/components/shells/visualizations-table-shell';
 import AddVisualizationForm from '@/components/form/add-visualization-form';
+import ErrorCard from '@/components/ui/error-card';
 
 const metadata: Metadata = {
   title: 'Visualizations',
@@ -45,6 +46,20 @@ const VisualizationsPage = async ({ searchParams }: VisualizationsProps) => {
       }
       : undefined,
   } as VisualizationTypes.VisualizationFilter);
+
+  if (!visualizations) {
+    return (
+      <AppPage className="flex min-h-[60vh] items-center justify-center">
+        <ErrorCard
+          title="Backend unavailable"
+          description="Visualizations could not be loaded because the backend or database is not responding right now. Your session was not cleared."
+          retryLink="/visualizations"
+          retryLinkText="Retry"
+          className="w-full max-w-xl"
+        />
+      </AppPage>
+    );
+  }
 
   const visualizationRows = visualizations && Array.isArray(visualizations.visualizations)
     ? visualizations.visualizations

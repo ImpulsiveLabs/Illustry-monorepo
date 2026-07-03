@@ -1,4 +1,6 @@
-const DEFAULT_REQUEST_LATENCY_BUDGET_MS = 300;
+const DEFAULT_REQUEST_LATENCY_BUDGET_MS = 5000;
+const DEFAULT_EXTERNAL_HTTP_TIMEOUT_MS = 15000;
+const DEFAULT_REDIS_TIMEOUT_MS = 5000;
 
 const parsePositiveInteger = (value: string | undefined, fallback: number): number => {
   const parsed = Number(value);
@@ -32,22 +34,22 @@ const getMongoSocketTimeoutMs = (): number => parsePositiveInteger(
 
 const getMongoQueryTimeoutMs = (): number => parsePositiveInteger(
   process.env.MONGO_QUERY_TIMEOUT_MS,
-  Math.max(1, getRequestLatencyBudgetMs() - 50)
+  Math.max(1000, getRequestLatencyBudgetMs() - 1000)
 );
 
 const getExternalHttpTimeoutMs = (): number => parsePositiveInteger(
   process.env.EXTERNAL_HTTP_TIMEOUT_MS,
-  getRequestLatencyBudgetMs()
+  DEFAULT_EXTERNAL_HTTP_TIMEOUT_MS
 );
 
 const getRedisConnectTimeoutMs = (): number => parsePositiveInteger(
   process.env.REDIS_CONNECT_TIMEOUT_MS,
-  getRequestLatencyBudgetMs()
+  DEFAULT_REDIS_TIMEOUT_MS
 );
 
 const getRedisSocketTimeoutMs = (): number => parsePositiveInteger(
   process.env.REDIS_SOCKET_TIMEOUT_MS,
-  getRequestLatencyBudgetMs()
+  DEFAULT_REDIS_TIMEOUT_MS
 );
 
 export {

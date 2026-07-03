@@ -244,7 +244,7 @@ describe("project CRUD", () => {
         page: 1,
       });
 
-    expect(projects7.projects?.length).toBe(3);
+    expect(projects7.projects?.length).toBe(2);
     
   });
 

@@ -9,6 +9,12 @@ describe('dbacc auth lib', () => {
     const userFindExec = { lean: () => buildExec([{ id: 'user-by-id' }]) };
     const userFindOneAndUpdateExec = buildExec({ id: 'updated-user' });
     const sessionFindOneExec = buildExec({ id: 'active-session' });
+    const sessionFindExec = {
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      select: jest.fn().mockReturnThis(),
+      lean: jest.fn(() => buildExec([{ _id: 'old-session-1' }, { _id: 'old-session-2' }]))
+    };
     const sessionUpdateOneExec = buildExec({});
     const sessionUpdateManyExec = buildExec({});
     const emailUpdateManyExec = buildExec({});
@@ -33,6 +39,7 @@ describe('dbacc auth lib', () => {
       SessionModel: {
         create: jest.fn(async (data) => ({ created: true, ...data })),
         findOne: jest.fn(() => sessionFindOneExec),
+        find: jest.fn(() => sessionFindExec),
         updateOne: jest.fn(() => sessionUpdateOneExec),
         updateMany: jest.fn(() => sessionUpdateManyExec)
       },
@@ -116,6 +123,25 @@ describe('dbacc auth lib', () => {
     await expect(auth.revokeActiveSessionsForUser('user-id')).resolves.toBeUndefined();
     expect(modelInstance.SessionModel.updateMany).toHaveBeenCalledWith(
       { userId: 'user-id', revokedAt: { $exists: false } },
+      { $set: { revokedAt: expect.any(Date) } }
+    );
+
+    await expect(auth.revokeOldestActiveSessionsForUser('user-id', 2)).resolves.toBeUndefined();
+    expect(modelInstance.SessionModel.find).toHaveBeenCalledWith({
+      userId: 'user-id',
+      revokedAt: { $exists: false },
+      expiresAt: { $gt: expect.any(Date) }
+    });
+    const pruneQuery = modelInstance.SessionModel.find.mock.results[0].value;
+    expect(pruneQuery.sort).toHaveBeenCalledWith({ createdAt: -1, _id: -1 });
+    expect(pruneQuery.skip).toHaveBeenCalledWith(2);
+    expect(pruneQuery.select).toHaveBeenCalledWith('_id');
+    expect(modelInstance.SessionModel.updateMany).toHaveBeenLastCalledWith(
+      {
+        _id: { $in: ['old-session-1', 'old-session-2'] },
+        userId: 'user-id',
+        revokedAt: { $exists: false }
+      },
       { $set: { revokedAt: expect.any(Date) } }
     );
   });

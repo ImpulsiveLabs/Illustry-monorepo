@@ -15,6 +15,11 @@ const getStatus = async (context: CliContext) => {
   };
 };
 
+type CliStatus = Awaited<ReturnType<typeof getStatus>>;
+
 export {
   getStatus
+};
+export type {
+  CliStatus
 };

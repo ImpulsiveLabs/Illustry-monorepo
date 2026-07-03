@@ -7,7 +7,7 @@ describe('dbacc dashboard/project unit branches', () => {
     const findExec = jest.fn().mockResolvedValue([{ name: 'dashboard' }]);
     const countExec = jest.fn().mockResolvedValue(3);
     const updateExec = jest.fn().mockResolvedValue({ name: 'updated' });
-    const deleteExec = jest.fn().mockResolvedValue({});
+    const deleteExec = jest.fn().mockResolvedValue({ deletedCount: 1 });
     const query = (exec: jest.Mock) => ({
       lean: () => ({ exec }),
       exec
@@ -31,9 +31,10 @@ describe('dbacc dashboard/project unit branches', () => {
     const findExec = jest.fn().mockResolvedValue([{ name: 'project' }]);
     const countExec = jest.fn().mockResolvedValue(5);
     const updateManyExec = jest.fn().mockResolvedValue({ modifiedCount: 1 });
-    const deleteExec = jest.fn().mockResolvedValue({});
+    const deleteExec = jest.fn().mockResolvedValue({ deletedCount: 1 });
     const findOneAndUpdateExec = jest.fn().mockResolvedValue({ name: 'updated-project' });
     const findOneAndUpdate = jest.fn(() => ({
+      lean: () => ({ exec: findOneAndUpdateExec }),
       exec: findOneAndUpdateExec,
       then: (resolve: (value: unknown) => unknown) => Promise.resolve(findOneAndUpdateExec()).then(resolve),
       catch: (reject: (reason?: unknown) => unknown) => Promise.resolve(findOneAndUpdateExec()).catch(reject)

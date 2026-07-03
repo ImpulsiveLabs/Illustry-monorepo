@@ -26,8 +26,7 @@ type VisualizationTypeProp = {
 
 const VisualizationType = ({
   form,
-  router,
-  exclude
+  router
 }: VisualizationTypeProp) => {
   const { t } = useLocale();
   return (
@@ -51,9 +50,6 @@ const VisualizationType = ({
                     <SelectValue placeholder={t('common.type')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD}>
-                      {t('viz.wordCloud')}
-                    </SelectItem>
                     <SelectItem
                       value={VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH}
                     >
@@ -70,11 +66,6 @@ const VisualizationType = ({
                     >
                       {t('viz.hierarchicalEdgeBundling')}
                     </SelectItem>
-                    {!exclude && (
-                      <SelectItem value={VisualizationTypes.VisualizationTypesEnum.MATRIX}>
-                        {t('viz.matrix')}
-                      </SelectItem>
-                    )}
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.LINE_CHART}>
                       {t('viz.lineChart')}
                     </SelectItem>
@@ -96,11 +87,6 @@ const VisualizationType = ({
                     <SelectItem value={VisualizationTypes.VisualizationTypesEnum.FUNNEL}>
                       {t('viz.funnel')}
                     </SelectItem>
-                    {!exclude && (
-                      <SelectItem value={VisualizationTypes.VisualizationTypesEnum.TIMELINE}>
-                        {t('viz.timeline')}
-                      </SelectItem>
-                    )}
                   </SelectContent>
                 </Select>
               </FormControl>

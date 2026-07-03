@@ -4,11 +4,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import React from 'react';
 
 // 👇 Import the function so we can mock its implementation
-import { browseDashboards } from '@/app/_actions/dashboard';
+import { browseDashboards, findOneDashboard } from '@/app/_actions/dashboard';
+import { browseVisualizations } from '@/app/_actions/visualization';
 
 // 👇 Mock browseDashboards
 vi.mock('@/app/_actions/dashboard', () => ({
   browseDashboards: vi.fn(),
+  findOneDashboard: vi.fn(),
+}));
+
+vi.mock('@/app/_actions/visualization', () => ({
+  browseVisualizations: vi.fn(),
 }));
 
 // 👇 Mock DashboardsTableShell component
@@ -25,9 +31,21 @@ vi.mock('@/components/shells/dashboards-table-shell', () => ({
   },
 }));
 
+vi.mock('@/components/ui/error-card', () => ({
+  __esModule: true,
+  default: ({ title, description }: { title: string; description: string }) => (
+    <section data-testid="error-card">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </section>
+  ),
+}));
+
 describe('Dashboards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(browseVisualizations).mockResolvedValue({ visualizations: [], pagination: { pageCount: 1 } });
+    vi.mocked(findOneDashboard).mockResolvedValue(null);
   });
 
   it('renders DashboardsTableShell with fetched data and pagination', async () => {
@@ -124,5 +142,28 @@ describe('Dashboards', () => {
       sharedScope: 'external',
       sort: undefined,
     });
+  });
+
+  it('renders backend unavailable when dashboards cannot be loaded', async () => {
+    vi.mocked(browseDashboards).mockResolvedValue(null);
+
+    render(await Dashboards({ searchParams: {} }));
+
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Backend unavailable');
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Your session was not cleared');
+    expect(screen.queryByTestId('dashboards-table-shell')).not.toBeInTheDocument();
+  });
+
+  it('renders backend unavailable when dashboard form visualizations cannot be loaded', async () => {
+    vi.mocked(browseDashboards).mockResolvedValue({
+      dashboards: [],
+      pagination: { pageCount: 1 },
+    });
+    vi.mocked(browseVisualizations).mockResolvedValue(null);
+
+    render(await Dashboards({ searchParams: { modal: 'new' } }));
+
+    expect(screen.getByTestId('error-card')).toHaveTextContent('Backend unavailable');
+    expect(screen.getByTestId('error-card')).toHaveTextContent('dashboard form could not load visualizations');
   });
 });

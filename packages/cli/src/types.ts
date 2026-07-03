@@ -1,7 +1,7 @@
 import type { Readable, Writable } from 'stream';
 import type { IllustryAuthUser } from '@illustry/core';
 
-type CliMode = 'offline' | 'live';
+type CliMode = 'live' | 'not-connected';
 
 type CliIo = {
   stdin?: Readable;

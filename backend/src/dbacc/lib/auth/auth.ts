@@ -2,6 +2,7 @@ import { Types } from 'mongoose';
 import ModelInstance from '../../models/modelInstance';
 import {
   AuthSession,
+  PendingRegistration,
   AuthUser,
   AuthUserAvatar,
   VerificationToken
@@ -32,6 +33,10 @@ class Auth {
 
   createUser(data: Partial<AuthUser>): Promise<AuthUser> {
     return this.modelInstance.UserModel.create(data);
+  }
+
+  deleteUserById(userId: string | Types.ObjectId): Promise<void> {
+    return this.modelInstance.UserModel.deleteOne({ _id: userId }).exec().then(() => undefined);
   }
 
   updateUserById(
@@ -94,6 +99,38 @@ class Auth {
     ).exec().then(() => undefined);
   }
 
+  async revokeOldestActiveSessionsForUser(
+    userId: string | Types.ObjectId,
+    keepCount: number
+  ): Promise<void> {
+    const normalizedKeepCount = Math.max(1, Math.floor(keepCount));
+    const sessionsToRevoke = await this.modelInstance.SessionModel.find({
+      userId,
+      revokedAt: { $exists: false },
+      expiresAt: { $gt: new Date() }
+    })
+      .sort({ createdAt: -1, _id: -1 })
+      .skip(normalizedKeepCount)
+      .select('_id')
+      .lean()
+      .exec() as Array<{ _id: Types.ObjectId }>;
+
+    const sessionIds = sessionsToRevoke.map((session) => session._id);
+
+    if (sessionIds.length === 0) {
+      return;
+    }
+
+    await this.modelInstance.SessionModel.updateMany(
+      {
+        _id: { $in: sessionIds },
+        userId,
+        revokedAt: { $exists: false }
+      },
+      { $set: { revokedAt: new Date() } }
+    ).exec();
+  }
+
   invalidateEmailVerificationTokensForUser(userId: string | Types.ObjectId): Promise<void> {
     return this.modelInstance.EmailVerificationTokenModel.updateMany(
       { userId, usedAt: { $exists: false } },
@@ -107,6 +144,45 @@ class Auth {
 
   createEmailVerificationToken(data: Partial<VerificationToken>): Promise<VerificationToken> {
     return this.modelInstance.EmailVerificationTokenModel.create(data);
+  }
+
+  findPendingRegistrationByEmailNormalized(emailNormalized: string): Promise<PendingRegistration | null> {
+    return this.modelInstance.PendingRegistrationModel.findOne({ emailNormalized }).exec();
+  }
+
+  createPendingRegistration(data: Partial<PendingRegistration>): Promise<PendingRegistration> {
+    return this.modelInstance.PendingRegistrationModel.findOneAndUpdate(
+      { emailNormalized: data.emailNormalized },
+      data,
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    ).exec() as Promise<PendingRegistration>;
+  }
+
+  findActivePendingRegistrationByTokenHash(tokenHash: string, now: Date): Promise<PendingRegistration | null> {
+    return this.modelInstance.PendingRegistrationModel.findOne({
+      tokenHash,
+      expiresAt: { $gt: now }
+    }).exec();
+  }
+
+  findActivePendingRegistrationByCodeHash(
+    emailNormalized: string,
+    codeHash: string,
+    now: Date
+  ): Promise<PendingRegistration | null> {
+    return this.modelInstance.PendingRegistrationModel.findOne({
+      emailNormalized,
+      codeHash,
+      expiresAt: { $gt: now }
+    }).exec();
+  }
+
+  deletePendingRegistrationById(registrationId: string | Types.ObjectId): Promise<void> {
+    return this.modelInstance.PendingRegistrationModel.deleteOne({ _id: registrationId }).exec().then(() => undefined);
+  }
+
+  deletePendingRegistrationByEmailNormalized(emailNormalized: string): Promise<void> {
+    return this.modelInstance.PendingRegistrationModel.deleteOne({ emailNormalized }).exec().then(() => undefined);
   }
 
   findActiveEmailVerificationTokenByTokenHash(tokenHash: string, now: Date): Promise<VerificationToken | null> {

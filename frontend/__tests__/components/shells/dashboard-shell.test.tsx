@@ -360,7 +360,13 @@ describe('ResizableDashboard', () => {
         }> = [];
 
         class MockWebSocket {
+            static CONNECTING = 0;
+
+            static OPEN = 1;
+
             url: string;
+
+            readyState = MockWebSocket.OPEN;
 
             close = vi.fn();
 
@@ -418,7 +424,13 @@ describe('ResizableDashboard', () => {
         }> = [];
 
         class MockWebSocket {
+            static CONNECTING = 0;
+
+            static OPEN = 1;
+
             url: string;
+
+            readyState = MockWebSocket.OPEN;
 
             close = vi.fn();
 

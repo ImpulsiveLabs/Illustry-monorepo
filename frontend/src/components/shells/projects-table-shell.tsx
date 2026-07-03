@@ -26,6 +26,7 @@ import { useActiveProjectDispatch } from '../providers/active-project-provider';
 import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
 import ConfirmActionDialog from '@/components/ui/confirm-action-dialog';
+import { closeRealtimeSocket, getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 
 type ProjectsTableShellProps = {
   data?: ProjectTypes.ProjectType[];
@@ -40,6 +41,7 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const dispatch = useActiveProjectDispatch();
   const router = useRouter();
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
 
   const requestDelete = (target: { type: 'single' | 'selected'; name?: string }) => {
     setDeleteTarget(target);
@@ -82,6 +84,70 @@ const ProjectsTableShell = ({ data, pageCount }: ProjectsTableShellProps) => {
       dispatch({ type: 'SET_ACTIVE_PROJECT', payload: hasActiveProject });
     }
   }, [dispatch, data]);
+
+  useEffect(() => {
+    if (
+      !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
+      || typeof WebSocket === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.searchParams.set('resource', 'project');
+    url.searchParams.set('shareId', 'projects');
+    url.searchParams.set('clientId', realtimeClientId);
+
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket | undefined;
+    let closedByComponent = false;
+
+    const connect = () => {
+      socket = new WebSocket(url.toString());
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
+            return;
+          }
+          if (payload.action === 'created' || payload.action === 'updated' || payload.action === 'deleted') {
+            router.refresh();
+          }
+        } catch {
+          // Ignore malformed realtime messages instead of disturbing the projects table.
+        }
+      };
+      socket.onclose = () => {
+        if (!closedByComponent) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByComponent = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      closeRealtimeSocket(socket);
+    };
+  }, [realtimeClientId, router]);
+
+  useEffect(() => {
+    const refreshVisibleProjects = () => {
+      if (document.visibilityState === 'visible') {
+        router.refresh();
+      }
+    };
+    window.addEventListener('focus', refreshVisibleProjects);
+
+    return () => {
+      window.removeEventListener('focus', refreshVisibleProjects);
+    };
+  }, [router]);
 
   const columns = useMemo<ColumnDef<ProjectTypes.ProjectType, unknown>[]>(
     () => [

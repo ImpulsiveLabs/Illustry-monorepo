@@ -1,5 +1,5 @@
 import { UseFormReturn } from 'react-hook-form';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { FileTypes } from '@illustry/types';
 import { Inputs } from '@/components/form/types';
 import { useLocale } from '@/components/providers/locale-provider';
@@ -25,9 +25,18 @@ const MappingTab = ({
 }: MappingTabProps) => {
   const { t } = useLocale();
   const [fileDetails, setFileDetails] = useState<boolean>(false);
+  const canUseAllDetails = selectedFileType === FileTypes.FileType.JSON;
   const handleFullDetails = (value: boolean) => {
-    setFileDetails(value);
+    const nextValue = canUseAllDetails ? value : false;
+    setFileDetails(nextValue);
+    form.setValue('fullDetails', nextValue);
   };
+  useEffect(() => {
+    if (!canUseAllDetails && fileDetails) {
+      setFileDetails(false);
+      form.setValue('fullDetails', false);
+    }
+  }, [canUseAllDetails, fileDetails, form]);
   const renderMapping = (fType: string, fDetails: boolean) => {
     if (fType) {
       switch (fType) {
@@ -71,7 +80,7 @@ const MappingTab = ({
   };
   return (
     <TabsContent className="w-50%" value="mapping">
-      <div className="col-span-2">
+      {canUseAllDetails && <div className="col-span-2">
         <FormField
           control={form.control}
           name="fullDetails"
@@ -85,10 +94,10 @@ const MappingTab = ({
                     </p>
                     <Checkbox
                       className="ml-[3%] mt-[0.5%]"
-                      defaultChecked={fileDetails}
+                      checked={fileDetails}
                       onCheckedChange={(isChecked) => {
                         handleFullDetails(isChecked as boolean);
-                        field.onChange(isChecked);
+                        field.onChange(canUseAllDetails ? isChecked : false);
                       }}
                     />
                   </div>
@@ -98,7 +107,7 @@ const MappingTab = ({
             </>
           )}
         />
-      </div>
+      </div>}
       {renderMapping(selectedFileType, fileDetails)}
     </TabsContent>
   );

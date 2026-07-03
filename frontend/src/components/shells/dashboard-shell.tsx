@@ -18,7 +18,7 @@ import {
   getServerDashboardExportPayload,
   getServerDashboardPreviewDataUrl
 } from '@/lib/chart-export';
-import { getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
+import { closeRealtimeSocket, getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 import ExportDownloadDialog, { type ExportDownloadValues } from '@/components/export/export-download-dialog';
 import HubShell from './hub-shell';
 
@@ -320,7 +320,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
           if (payload.action === 'deleted') {
             toast.error(t('dashboard.deletedByOwner'));
             closedByComponent = true;
-            socket?.close();
+            closeRealtimeSocket(socket);
             router.replace('/');
             return;
           }
@@ -345,11 +345,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
       }
-      try {
-        socket?.close();
-      } catch {
-        // The browser may already have torn the socket down during navigation.
-      }
+      closeRealtimeSocket(socket);
     };
   }, [currentShareId, realtimeClientId, router, t]);
 
@@ -402,7 +398,7 @@ const ResizableDashboard = ({ dashboard }: VisualizationData) => {
       if (reconnectTimer) {
         clearTimeout(reconnectTimer);
       }
-      socket?.close();
+      closeRealtimeSocket(socket);
     };
   }, [canEditDashboard, currentShareId, realtimeClientId, router]);
 

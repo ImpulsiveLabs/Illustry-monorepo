@@ -44,6 +44,23 @@ interface VerificationToken {
   updatedAt: Date;
 }
 
+interface PendingRegistration {
+  _id: Types.ObjectId;
+  email: string;
+  emailNormalized: string;
+  name: string;
+  passwordHash: string;
+  avatarFileName?: string;
+  avatarContentType?: string;
+  avatarSize?: number;
+  avatarData?: Buffer;
+  tokenHash: string;
+  codeHash: string;
+  expiresAt: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface AuthUserAvatar {
   _id: Types.ObjectId;
   userId: Types.ObjectId;
@@ -110,6 +127,7 @@ export {
   AuthUser,
   AuthSession,
   VerificationToken,
+  PendingRegistration,
   AuthUserAvatar,
   ClientMetadata,
   SessionIssueResult,

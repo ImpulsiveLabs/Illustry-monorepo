@@ -3,6 +3,8 @@ import { VisualizationTypes } from '@illustry/types';
 import JSZip from 'jszip';
 import { createDashboardExcelWorkbook, createVisualizationExcelWorkbook } from '../src/utils/excel-export';
 
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
+
 describe('excel export utility', () => {
   it('creates a visualization workbook with only the visualization image on the requested range', async () => {
     const workbookExport = await createVisualizationExcelWorkbook({
@@ -33,8 +35,19 @@ describe('excel export utility', () => {
 
     expect(worksheet).toBeDefined();
     expect(worksheet?.getCell('A1').value).toBeNull();
+    expect(worksheet?.getCell('H2').value).toBe('visualization-Sales');
+    expect(worksheet?.getCell('H12').value).toBe('Sales');
+    expect(worksheet?.getCell('H13').value).toBe('Category');
     expect(worksheet?.getImages()).toHaveLength(1);
     expect(workbookExport.filename).toBe('visualization-Sales.xlsx');
+
+    const zip = await JSZip.loadAsync(toZipBytes(workbookExport.buffer));
+    const sheetXml = await zip.file('xl/worksheets/sheet1.xml')?.async('string');
+    expect(sheetXml).toMatch(/<dimension ref="H2:Z\d+"/);
+    const drawingXml = await zip.file('xl/drawings/drawing1.xml')?.async('string');
+    expect(drawingXml).toContain('<xdr:oneCellAnchor');
+    expect(drawingXml).toMatch(/<xdr:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
+    expect(drawingXml).toMatch(/<a:ext cx="[1-9]\d*" cy="[1-9]\d*"\/>/);
   });
 
   it('embeds the Illustry Office add-in reference with hidden placement metadata', async () => {
@@ -55,7 +68,7 @@ describe('excel export utility', () => {
       cellRange: 'H3:Z10'
     });
 
-    const zip = await JSZip.loadAsync(workbookExport.buffer);
+    const zip = await JSZip.loadAsync(toZipBytes(workbookExport.buffer));
     const webExtensionXml = await zip.file('xl/webextensions/webextension1.xml')?.async('string');
     const taskpanesXml = await zip.file('xl/webextensions/taskpanes.xml')?.async('string');
     const workbookRelsXml = await zip.file('xl/_rels/workbook.xml.rels')?.async('string');

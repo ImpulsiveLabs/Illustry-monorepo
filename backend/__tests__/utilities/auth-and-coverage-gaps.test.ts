@@ -250,6 +250,13 @@ describe('coverage gaps', () => {
       name: 'Project A',
       userId: 'project-user'
     });
+    expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(4, {
+      name: 'Project A',
+      userId: 'project-user'
+    });
+    expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(5, {
+      userId: TEST_USER_ID
+    });
     expect(dbaccInstance.Visualization.createFilter).not.toHaveBeenCalled();
     expect(dbaccInstance.Dashboard.createFilter).not.toHaveBeenCalled();
     expect(dbaccInstance.Visualization.deleteMany).toHaveBeenCalledWith({});
@@ -284,6 +291,7 @@ describe('coverage gaps', () => {
     expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(1, { userId: TEST_USER_ID });
     expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(2, { userId: TEST_USER_ID });
     expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(3, { userId: 'project-user' });
+    expect(dbaccInstance.Project.createFilter).toHaveBeenNthCalledWith(4, { userId: 'project-user' });
   });
 
   it('throws when creating an active project without a user id', async () => {

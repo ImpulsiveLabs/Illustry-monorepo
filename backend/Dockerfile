@@ -36,6 +36,11 @@ FROM node:20-alpine3.20
 
 WORKDIR /illustry
 
+# Sharp/librsvg needs real fonts for chart labels in PNG/JPG/WebP and
+# document previews. Without these, Alpine renders SVG text as square glyphs.
+RUN apk add --no-cache fontconfig ttf-dejavu ttf-liberation \
+  && fc-cache -f
+
 # Set environment variables
 ENV NODE_ENV=production
 ENV ILLUSTRY_PORT=7001

@@ -74,24 +74,7 @@ describe('auth register route', () => {
   });
 
   it('allows initial registration without a pre-existing csrf token', async () => {
-    const publicUser = {
-      id: 'user-id',
-      email: 'user@example.com',
-      name: 'User',
-      isEmailVerified: false,
-      roles: ['user'],
-      hasAvatar: false
-    };
-
-    registerMock.mockResolvedValue({
-      sessionToken: 'session-token',
-      csrfToken: 'csrf-token',
-      expiresAt: new Date(Date.now() + 60_000)
-    });
-    getSessionPrincipalFromTokenMock.mockResolvedValue({
-      user: { _id: { toString: () => 'user-id' } }
-    });
-    toPublicUserMock.mockReturnValue(publicUser);
+    registerMock.mockResolvedValue({ ok: true, email: 'user@example.com', verificationRequired: true });
 
     const { default: Illustry } = await import('../../src/app');
     const app = new Illustry() as any;
@@ -111,8 +94,12 @@ describe('auth register route', () => {
       body: formData
     });
 
-    expect(response.status).toBe(201);
-    await expect(response.json()).resolves.toEqual({ user: publicUser });
+    expect(response.status).toBe(202);
+    await expect(response.json()).resolves.toEqual({
+      ok: true,
+      email: 'user@example.com',
+      verificationRequired: true
+    });
     expect(registerMock).toHaveBeenCalledWith(
       'user@example.com',
       'Secret123!Secret',
@@ -121,7 +108,7 @@ describe('auth register route', () => {
       expect.objectContaining({ userAgent: expect.any(String) }),
       'en'
     );
-    expect(response.headers.get('set-cookie')).toContain('illustry_csrf=csrf-token');
+    expect(response.headers.get('set-cookie')).toBeNull();
 
     await app.stop();
   });
@@ -188,6 +175,36 @@ describe('auth register route', () => {
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toEqual({ error: 'Authentication required' });
+
+    await app.stop();
+  });
+
+  it('rejects stale session cookies without clearing client auth cookies', async () => {
+    getSessionPrincipalFromTokenMock.mockResolvedValue(null);
+
+    const { default: Illustry } = await import('../../src/app');
+    const app = new Illustry() as any;
+    await app.start();
+    const server = app.httpServer;
+    await waitForServer(server);
+    const address = server.address();
+    const port = typeof address === 'object' && address ? address.port : 0;
+
+    const response = await fetch(`http://127.0.0.1:${port}/api/project`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: 'illustry_session=stale-session'
+      },
+      body: JSON.stringify({
+        projectName: 'Project',
+        projectDescription: 'Description'
+      })
+    });
+
+    expect(response.status).toBe(401);
+    await expect(response.json()).resolves.toEqual({ error: 'Authentication required' });
+    expect(response.headers.get('set-cookie')).toBeNull();
 
     await app.stop();
   });

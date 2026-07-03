@@ -60,9 +60,9 @@ const computeCalendar = (
     range: string;
     itemStyle: { borderWidth: number };
     orient: 'horizontal';
-    dayLabel: { show: boolean; fontSize: number; textStyle: { color: string } };
-    monthLabel: { show: boolean; fontSize: number; textStyle: { color: string } };
-    yearLabel: { show: boolean; fontSize: number; position: string; textStyle: { color: string } };
+    dayLabel: { show: boolean; fontSize: number; color: string };
+    monthLabel: { show: boolean; fontSize: number; color: string };
+    yearLabel: { show: boolean; fontSize: number; position: string; color: string };
   }>;
   series: Array<{
     type: 'heatmap';
@@ -119,18 +119,18 @@ const computeCalendar = (
       dayLabel: {
         show: true,
         fontSize: 14,
-        textStyle: { color: textColor }
+        color: textColor
       },
       monthLabel: {
         show: true,
         fontSize: 14,
-        textStyle: { color: textColor }
+        color: textColor
       },
       yearLabel: {
         show: true,
         fontSize: 14,
         position: 'top',
-        textStyle: { color: textColor }
+        color: textColor
       }
     })),
     series,

@@ -14,7 +14,7 @@ test.describe('large upload safety', () => {
     const startedAt = performance.now();
     let lastMessage = '';
     for (let index = 0; index < 10000; index += 1) {
-      lastMessage = validateBrowserFile(hugeFiles[index % hugeFiles.length], 'visualization-source');
+      lastMessage = validateBrowserFile(hugeFiles[index % hugeFiles.length]!, 'visualization-source');
     }
     const elapsedMs = performance.now() - startedAt;
 

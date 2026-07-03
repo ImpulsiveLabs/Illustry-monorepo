@@ -36,7 +36,7 @@ test('theme page supports switching sections and opening color picker', async ({
 });
 
 test('theme settings open from the user menu modal', async ({ page }) => {
-  test.skip(test.info().project.use.isMobile, 'Theme settings user menu is desktop-only.');
+  test.skip(Boolean(test.info().project.use.isMobile), 'Theme settings user menu is desktop-only.');
 
   const dialog = await openThemeSettings(page);
 
@@ -49,7 +49,7 @@ test('theme settings open from the user menu modal', async ({ page }) => {
 });
 
 test('theme palette edits apply immediately and persist in local cache', async ({ page }) => {
-  test.skip(test.info().project.use.isMobile, 'Theme settings user menu is desktop-only.');
+  test.skip(Boolean(test.info().project.use.isMobile), 'Theme settings user menu is desktop-only.');
 
   await page.addInitScript(() => {
     window.localStorage.setItem('theme', 'light');

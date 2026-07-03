@@ -35,10 +35,12 @@ const VisualizationHub = async ({ searchParams }: HubProps) => {
     ? await findSharedVisualization(share)
     : dashboardShare && name && type
       ? await findDashboardSharedVisualization(dashboardShare, { name, type })
-    : await findOneVisualization({
-      name,
-      type,
-    } as VisualizationTypes.VisualizationFilter);
+      : name && type
+        ? await findOneVisualization({
+          name,
+          type,
+        } as VisualizationTypes.VisualizationFilter)
+        : null;
 
   return <VisualizationHubClient visualization={visualization} />;
 };

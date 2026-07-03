@@ -2,6 +2,7 @@ const DEFAULT_SESSION_TTL_MINUTES = 60 * 24;
 const DEFAULT_EMAIL_VERIFY_TTL_MINUTES = 15;
 const DEFAULT_PASSWORD_RESET_TTL_MINUTES = 30;
 const DEFAULT_AVATAR_MAX_BYTES = 2 * 1024 * 1024;
+const DEFAULT_MAX_ACTIVE_SESSIONS_PER_USER = 5;
 
 const SESSION_COOKIE_NAME = process.env.AUTH_SESSION_COOKIE_NAME || 'illustry_sid';
 const CSRF_COOKIE_NAME = process.env.AUTH_CSRF_COOKIE_NAME || 'illustry_csrf';
@@ -14,7 +15,16 @@ const cookieSecure = process.env.AUTH_COOKIE_SECURE
   ? process.env.AUTH_COOKIE_SECURE === 'true'
   : isProduction;
 
+const parsePositiveInteger = (value: string | undefined, fallback: number) => {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
 const sessionTtlMinutes = Number(process.env.AUTH_SESSION_TTL_MINUTES || DEFAULT_SESSION_TTL_MINUTES);
+const maxActiveSessionsPerUser = parsePositiveInteger(
+  process.env.AUTH_MAX_ACTIVE_SESSIONS_PER_USER,
+  DEFAULT_MAX_ACTIVE_SESSIONS_PER_USER
+);
 const emailVerificationTtlMinutes = Number(
   process.env.AUTH_EMAIL_VERIFICATION_TTL_MINUTES || DEFAULT_EMAIL_VERIFY_TTL_MINUTES
 );
@@ -66,6 +76,7 @@ export {
   cookieDomain,
   cookieSecure,
   sessionTtlMinutes,
+  maxActiveSessionsPerUser,
   emailVerificationTtlMinutes,
   passwordResetTtlMinutes,
   appBaseUrl,

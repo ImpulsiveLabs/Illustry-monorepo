@@ -124,26 +124,6 @@ services:
     networks:
       - illustry-network
 
-  illustrymcp:
-    build:
-      context: ./
-      dockerfile: packages/Dockerfile
-    container_name: illustrymcp
-    profiles:
-      - tools
-    working_dir: /workspace
-    entrypoint: ["node", "/illustry/packages/mcp/dist/index.js"]
-    stdin_open: true
-    tty: false
-    environment:
-      ILLUSTRY_SERVER_URL: ${ILLUSTRY_SERVER_URL:-http://illustrybackend:7001}
-    volumes:
-      - illustry_mcp_workspace:/workspace/.illustry
-      - ./exports:/workspace/exports
-      - ./:/workspace/repo:ro
-    networks:
-      - illustry-network
-
   mailpit:
     image: axllent/mailpit:latest
     container_name: illustrymailpit
@@ -199,5 +179,4 @@ volumes:
   illustry_mongo:
   illustry_redis:
   illustry_cli_workspace:
-  illustry_mcp_workspace:
   # n8n_data:

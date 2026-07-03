@@ -10,11 +10,15 @@ import {
   handleCommand,
   modeAwareResources,
   promptDelete,
-  promptExport,
   promptImport,
   promptLabel,
   promptList,
   promptLogin,
+  promptVisualizationCreateUpdate,
+  promptVisualizationDelete,
+  promptVisualizationDetails,
+  promptVisualizationExport,
+  promptVisualizationList,
   renderMenu,
   runInteractive
 } from '../src/interactive';
@@ -30,6 +34,31 @@ describe('@illustry/cli interactive internals', () => {
   let tempDir: string;
   let originalFetch: typeof fetch;
   const output: string[] = [];
+  const mockHealthyBackend = () => {
+    global.fetch = async (input) => {
+      const pathname = new URL(input.toString()).pathname;
+      if (pathname === '/api/health' || pathname === '/health') {
+        return new Response(JSON.stringify({ ok: true }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      if (pathname === '/api/auth/me') {
+        return new Response(JSON.stringify({
+          id: '1',
+          email: 'dev@illustry.local',
+          name: 'Dev',
+          isEmailVerified: true,
+          roles: [],
+          hasAvatar: false
+        }), {
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+      return new Response(JSON.stringify({ ok: true }), {
+        headers: { 'content-type': 'application/json' }
+      });
+    };
+  };
 
   beforeEach(async () => {
     tempDir = await makeTempDir();
@@ -39,7 +68,7 @@ describe('@illustry/cli interactive internals', () => {
 
   afterEach(async () => {
     global.fetch = originalFetch;
-    await fs.rm(tempDir, { recursive: true, force: true });
+    await fs.rm(tempDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 25 });
   });
 
   const context = (extra: Partial<ConstructorParameters<typeof CliContext>[0]> = {}) => new CliContext({
@@ -50,52 +79,43 @@ describe('@illustry/cli interactive internals', () => {
   });
 
   it('chooses startup modes, renders status/menu, labels prompts, and builds mode-aware menus', async () => {
-    const offline = context({ flags: { startupMode: 'offline' } });
-    await chooseStartupMode(offline, makeRl([]));
-    expect((await offline.profile()).mode).toBe('offline');
-    expect(await promptLabel(offline)).toContain('offline');
-    expect(await modeAwareResources(offline)).toEqual(['assets']);
-    expect((await buildMenu(offline)).map((item) => item.action)).toContain('mode live');
-    await renderMenu(offline, await buildMenu(offline), 0);
-    expect(output.join('\n')).toContain('Illustry CLI');
-
+    mockHealthyBackend();
     const live = context({ configDir: path.join(tempDir, 'live-config'), flags: { startupMode: 'live', server: 'http://illustry.local' } });
     await chooseStartupMode(live, makeRl([]));
     expect((await live.profile()).mode).toBe('live');
+    expect(await promptLabel(live)).toContain('live');
     expect(await modeAwareResources(live)).toEqual(['projects', 'visualizations', 'dashboards']);
     expect((await buildMenu(live)).map((item) => item.action)).toContain('login');
+    expect((await buildMenu(live)).map((item) => item.action)).not.toContain('import');
+    await renderMenu(live, await buildMenu(live), 0);
+    expect(output.join('\n')).toContain('Illustry CLI');
 
     await live.config.saveSession({ cookie: 'sid=1', csrfToken: 'csrf', user: null });
     expect((await buildMenu(live)).map((item) => item.action)).toContain('logout');
 
     const prompted = context({ configDir: path.join(tempDir, 'prompt-config') });
-    await chooseStartupMode(prompted, makeRl(['2', 'http://prompted.local']));
+    await chooseStartupMode(prompted, makeRl(['1', 'http://prompted.local']));
     expect((await prompted.profile()).serverUrl).toBe('http://prompted.local');
+
+    const invalid = context({ configDir: path.join(tempDir, 'invalid-config') });
+    await expect(chooseStartupMode(invalid, makeRl(['bad', 'bad', 'bad'])))
+      .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_STARTUP_SELECTION_FAILED' });
+
+    const liveNoServer = context({ configDir: path.join(tempDir, 'live-no-server-config') });
+    await expect(chooseStartupMode(liveNoServer, makeRl(['2']))).resolves.toBe(false);
   });
 
-  it('handles shell commands and prompt-driven offline workflows', async () => {
+  it('handles shell commands', async () => {
+    mockHealthyBackend();
     const ctx = context();
-    const source = path.join(tempDir, 'data.csv');
-    await fs.writeFile(source, 'label,value\nA,1\n', 'utf8');
 
     await expect(handleCommand(ctx, makeRl([]), '')).resolves.toBe(true);
     await expect(handleCommand(ctx, makeRl([]), 'help')).resolves.toBe(true);
     await expect(handleCommand(ctx, makeRl([]), 'status')).resolves.toBe(true);
     await expect(handleCommand(ctx, makeRl([]), `connect http://illustry.local`)).resolves.toBe(true);
     expect((await ctx.profile()).mode).toBe('live');
-    await expect(handleCommand(ctx, makeRl([]), 'mode offline')).resolves.toBe(true);
-
-    await expect(handleCommand(ctx, makeRl([]), `import ${source}`)).resolves.toBe(true);
-    await expect(handleCommand(ctx, makeRl([]), 'list assets')).resolves.toBe(true);
-    await expect(handleCommand(ctx, makeRl([]), 'export Missing json')).rejects.toMatchObject({ code: 'ILLUSTRY_ASSET_NOT_FOUND' });
-    await expect(handleCommand(ctx, makeRl([]), 'delete assets Missing')).rejects.toMatchObject({ code: 'ILLUSTRY_ASSET_NOT_FOUND' });
-
-    await promptImport(ctx, makeRl([source, 'Prompt Chart', 'bar-chart']));
-    await promptList(ctx, makeRl(['assets']));
-    await promptExport(ctx, makeRl(['Prompt Chart', 'json', path.join(tempDir, 'exports')]));
-    await promptDelete(ctx, makeRl(['Prompt Chart', 'n']));
-    await promptDelete(ctx, makeRl(['Prompt Chart', 'yes']));
-    expect(output.join('\n')).toContain('Delete cancelled');
+    await expect(handleCommand(ctx, makeRl(['live', 'http://illustry.local']), 'mode')).resolves.toBe(true);
+    await expect(handleCommand(ctx, makeRl(['http://asked.local']), 'connect')).resolves.toBe(true);
     expect(await handleCommand(ctx, makeRl([]), 'exit')).toBe(false);
     expect(await handleCommand(ctx, makeRl([]), 'unknown')).toBe(true);
   });
@@ -136,7 +156,22 @@ describe('@illustry/cli interactive internals', () => {
         return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname === '/api/visualizations') {
-        return new Response(JSON.stringify({ items: [{ name: 'Live Chart' }] }), { headers: { 'content-type': 'application/json' } });
+        return new Response(JSON.stringify({
+          visualizations: [{
+            name: 'Live Chart',
+            type: 'bar-chart',
+            projectName: 'Default',
+            data: { headers: ['A'], values: { Value: [1] } }
+          }]
+        }), { headers: { 'content-type': 'application/json' } });
+      }
+      if (url.pathname === '/api/visualization/Live%20Chart') {
+        return new Response(JSON.stringify({
+          name: 'Live Chart',
+          type: 'bar-chart',
+          projectName: 'Default',
+          data: { headers: ['A'], values: { Value: [1] } }
+        }), { headers: { 'content-type': 'application/json' } });
       }
       if (url.pathname === '/api/visualization') {
         return new Response(JSON.stringify({ ok: true }), { headers: { 'content-type': 'application/json' } });
@@ -159,25 +194,31 @@ describe('@illustry/cli interactive internals', () => {
 
     await promptLogin(ctx, makeRl(['dev@illustry.local', 'secret']));
     await expect(handleCommand(ctx, makeRl([]), 'session')).resolves.toBe(true);
-    await promptImport(ctx, makeRl([source, 'Live Chart', 'bar-chart', 'Default']));
+    await promptImport(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', '', '', '', '2', '1']));
     await promptList(ctx, makeRl(['visualizations']));
-    await promptExport(ctx, makeRl(['visualization', 'Live Chart', 'svg', path.join(tempDir, 'out'), 'bar-chart']))
-      .catch(() => undefined);
+    await promptVisualizationCreateUpdate(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', '', '', '', '2', '1']));
+    await promptVisualizationCreateUpdate(ctx, makeRl(['CSV', source, 'bar-chart', 'Live Chart', '', '', ',', 'y', '', '', '', '2', '1']));
+    await promptVisualizationList(ctx, makeRl(['']));
+    await promptVisualizationDetails(ctx, makeRl(['Live Chart', 'bar-chart']));
+    await promptVisualizationExport(ctx, makeRl(['Live Chart', 'bar-chart', path.join(tempDir, 'out')]));
+    await promptVisualizationDelete(ctx, makeRl(['Live Chart', 'bar-chart', 'no']));
     await expect(handleCommand(ctx, makeRl([]), 'logout')).resolves.toBe(true);
     await expect(executeMenuAction(ctx, makeRl(['status']), { label: 'Command prompt', action: 'prompt' })).resolves.toBe(true);
     await expect(executeMenuAction(ctx, makeRl([]), { label: 'Exit', action: 'exit' })).resolves.toBe(false);
   });
 
   it('runs non-tty interactive startup without crashing', async () => {
+    mockHealthyBackend();
     const run = runInteractive(context({
-      flags: { startupMode: 'offline' },
+      flags: { startupMode: 'live', server: 'http://illustry.local' },
       io: { stdout: (message) => output.push(message) }
     }), { once: true });
     await expect(run).resolves.toEqual({ ok: true });
-    expect(output.join('\n')).toContain('Offline mode selected');
+    expect(output.join('\n')).toContain('Online mode selected');
   });
 
   it('can select menu items in tty mode with keyboard navigation', async () => {
+    mockHealthyBackend();
     const input = new PassThrough() as PassThrough & { isTTY?: boolean; setRawMode?: jest.Mock };
     input.isTTY = true;
     input.setRawMode = jest.fn();
@@ -189,7 +230,7 @@ describe('@illustry/cli interactive internals', () => {
       }
     });
     const ctx = context({
-      flags: { startupMode: 'offline' },
+      flags: { startupMode: 'live', server: 'http://illustry.local' },
       io: {
         stdin: input,
         outputStream,
@@ -200,9 +241,38 @@ describe('@illustry/cli interactive internals', () => {
     const run = runInteractive(ctx, {});
     setTimeout(() => {
       input.emit('keypress', '', { name: 'q' });
-    }, 10);
+    }, 50);
     await expect(run).resolves.toEqual({ ok: true });
     expect(input.setRawMode).toHaveBeenCalledWith(true);
     expect(writes.join('\n')).toContain('Use up/down arrows');
   });
+
+  it('handles ctrl-c and escape menu exits in tty mode', async () => {
+    mockHealthyBackend();
+    for (const key of [{ name: 'c', ctrl: true }, { name: 'escape' }]) {
+      const input = new PassThrough() as PassThrough & { isTTY?: boolean; setRawMode?: jest.Mock };
+      input.isTTY = true;
+      input.setRawMode = jest.fn();
+      const outputStream = new Writable({
+        write(_chunk, _encoding, callback) {
+          callback();
+        }
+      });
+      const ctx = context({
+        flags: { startupMode: 'live', server: 'http://illustry.local' },
+        io: {
+          stdin: input,
+          outputStream,
+          stdout: jest.fn()
+        }
+      });
+      const run = runInteractive(ctx, {});
+      setTimeout(() => {
+        input.emit('keypress', '', key);
+      }, 50);
+      await expect(run).resolves.toEqual({ ok: true });
+      expect(input.setRawMode).toHaveBeenCalledWith(false);
+    }
+  });
+
 });

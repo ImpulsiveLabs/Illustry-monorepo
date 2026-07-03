@@ -152,7 +152,7 @@ test.describe('frontend additional main flows', () => {
       await page.getByRole('tab', { name: 'Mapping' }).click();
 
       await expect(page.getByRole('button', { name: 'Create visualization' })).toBeDisabled();
-      await expect(page).toHaveURL(/\/visualizations\?modal=new(&page=1)?$/);
+      await expect(page).toHaveURL(/\/visualizations\?modal=new(&page=1)?(&per_page=10)?$/);
     } finally {
       await deleteProjectSilently(api, activeProjectName);
       await api.dispose();

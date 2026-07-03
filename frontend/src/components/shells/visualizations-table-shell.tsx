@@ -5,7 +5,9 @@ import { DotsHorizontalIcon } from '@radix-ui/react-icons';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { VisualizationTypes } from '@illustry/types';
-import { useMemo, useState, useTransition } from 'react';
+import {
+  useEffect, useMemo, useState, useTransition
+} from 'react';
 import { deleteVisualization } from '@/app/_actions/visualization';
 import { catchError, formatDate } from '@/lib/utils';
 import DataTableColumnHeader from '../data-table/data-table-column-header';
@@ -25,6 +27,7 @@ import { useRouter } from 'next/navigation';
 import { useLocale } from '../providers/locale-provider';
 import ExternalInternalToggle from '../data-table/external-internal-toggle';
 import ConfirmActionDialog from '@/components/ui/confirm-action-dialog';
+import { closeRealtimeSocket, getRealtimeClientId, type RealtimePayload } from '@/lib/realtime-client';
 
 type VisualizationsTableShellProps = {
   data?: VisualizationTypes.VisualizationType[];
@@ -48,6 +51,7 @@ const VisualizationsTableShell = ({
   } | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const router = useRouter();
+  const realtimeClientId = useMemo(() => getRealtimeClientId(), []);
 
   const requestDelete = (target: {
     type: 'single' | 'selected';
@@ -91,6 +95,77 @@ const VisualizationsTableShell = ({
       });
     });
   };
+
+  useEffect(() => {
+    if (
+      !process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL
+      || typeof WebSocket === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const url = new URL('/api/realtime', process.env.NEXT_PUBLIC_BACKEND_PUBLIC_URL);
+    url.protocol = url.protocol === 'https:' ? 'wss:' : 'ws:';
+    url.searchParams.set('resource', 'user');
+    url.searchParams.set('shareId', 'me');
+    url.searchParams.set('clientId', realtimeClientId);
+
+    let reconnectTimer: ReturnType<typeof setTimeout> | undefined;
+    let socket: WebSocket | undefined;
+    let closedByComponent = false;
+
+    const connect = () => {
+      socket = new WebSocket(url.toString());
+      socket.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data) as RealtimePayload;
+          if (payload.type === 'connected' || payload.originClientId === realtimeClientId) {
+            return;
+          }
+          if (
+            payload.action === 'created'
+            || payload.action === 'updated'
+            || payload.action === 'deleted'
+            || payload.action === 'shared'
+            || payload.action === 'theme-updated'
+          ) {
+            router.refresh();
+          }
+        } catch {
+          // Ignore malformed realtime messages instead of disturbing the visualizations table.
+        }
+      };
+      socket.onclose = () => {
+        if (!closedByComponent) {
+          reconnectTimer = setTimeout(connect, 2000);
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      closedByComponent = true;
+      if (reconnectTimer) {
+        clearTimeout(reconnectTimer);
+      }
+      closeRealtimeSocket(socket);
+    };
+  }, [realtimeClientId, router]);
+
+  useEffect(() => {
+    const refreshVisibleVisualizations = () => {
+      if (document.visibilityState === 'visible') {
+        router.refresh();
+      }
+    };
+    window.addEventListener('focus', refreshVisibleVisualizations);
+
+    return () => {
+      window.removeEventListener('focus', refreshVisibleVisualizations);
+    };
+  }, [router]);
+
   const columns = useMemo<ColumnDef<VisualizationTypes.VisualizationType, unknown>[]>(
     () => [
       {

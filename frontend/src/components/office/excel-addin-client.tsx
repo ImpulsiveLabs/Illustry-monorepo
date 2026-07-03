@@ -107,11 +107,9 @@ const visualizationOptions = [
   { translationKey: 'viz.pieChart', value: VisualizationTypes.VisualizationTypesEnum.PIE_CHART },
   { translationKey: 'viz.funnel', value: VisualizationTypes.VisualizationTypesEnum.FUNNEL },
   { translationKey: 'viz.scatter', value: VisualizationTypes.VisualizationTypesEnum.SCATTER },
-  { translationKey: 'viz.wordCloud', value: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD },
   { translationKey: 'viz.forcedLayoutGraph', value: VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH },
   { translationKey: 'viz.sankey', value: VisualizationTypes.VisualizationTypesEnum.SANKEY },
-  { translationKey: 'viz.calendar', value: VisualizationTypes.VisualizationTypesEnum.CALENDAR },
-  { translationKey: 'viz.matrix', value: VisualizationTypes.VisualizationTypesEnum.MATRIX }
+  { translationKey: 'viz.calendar', value: VisualizationTypes.VisualizationTypesEnum.CALENDAR }
 ];
 const WORKSHEET_SHAPE_NAME = 'Illustry Live Visualization';
 

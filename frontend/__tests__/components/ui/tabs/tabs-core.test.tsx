@@ -65,7 +65,7 @@ afterEach(() => {
 });
 
 describe('tabs mapping/type components', () => {
-    it('renders JSON and XML mapping tabs in both details modes', () => {
+    it('renders JSON all-details and XML mapped detail mode', () => {
         const router = { refresh: vi.fn() };
 
         const jsonRender = renderWithForm((form) => (
@@ -82,11 +82,6 @@ describe('tabs mapping/type components', () => {
         expect(screen.getByText('Type')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Type visualization name here.')).toBeInTheDocument();
 
-        jsonRender.unmount();
-        renderWithForm((form) => (
-            <XMLMappingTab form={form} router={router} fileDetails={true} />
-        ));
-        expect(screen.getByText("XML files don't need a special mapping")).toBeInTheDocument();
     });
 
     it('updates visualization detail fields', () => {
@@ -125,14 +120,15 @@ describe('tabs mapping/type components', () => {
         expect(router.refresh).toHaveBeenCalledTimes(1);
     });
 
-    it('hides matrix and timeline options when exclude is true', async () => {
+    it('does not offer removed visualization types in the creation selector', async () => {
         const user = userEvent.setup();
 
-        renderWithForm((form) => <VisualizationType form={form} router={{ refresh: vi.fn() }} exclude />, {
+        renderWithForm((form) => <VisualizationType form={form} router={{ refresh: vi.fn() }} exclude={false} />, {
             type: VisualizationTypes.VisualizationTypesEnum.LINE_CHART
         });
 
         await user.click(screen.getByRole('combobox'));
+        expect(screen.queryByText('Word Cloud')).not.toBeInTheDocument();
         expect(screen.queryByText('Matrix')).not.toBeInTheDocument();
         expect(screen.queryByText('Timeline')).not.toBeInTheDocument();
     });
@@ -162,6 +158,7 @@ describe('tabs mapping/type components', () => {
         ), 'mapping');
 
         expect(screen.getByText('Type')).toBeInTheDocument();
+        expect(screen.queryByText('Does your file include all the details?')).not.toBeInTheDocument();
         xmlRender.unmount();
 
         renderInTabsWithForm((form) => (
@@ -173,6 +170,7 @@ describe('tabs mapping/type components', () => {
         ), 'mapping');
 
         expect(screen.getByText('Separator')).toBeInTheDocument();
+        expect(screen.queryByText('Does your file include all the details?')).not.toBeInTheDocument();
 
         const excelRender = renderInTabsWithForm((form) => (
             <MappingTab
@@ -235,7 +233,6 @@ describe('tabs mapping/type components', () => {
 
     it('renders excel/csv mapping tab branches for each visualization type', () => {
         const typesToMarker: Array<[VisualizationTypes.VisualizationTypesEnum, string]> = [
-            [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Names:'],
             [VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH, 'Nodes:'],
             [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
             [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Data:'],
@@ -265,7 +262,7 @@ describe('tabs mapping/type components', () => {
                 fileDetails={true}
                 selectedFileType={FileTypes.FileType.CSV}
             />
-        ), { type: VisualizationTypes.VisualizationTypesEnum.TIMELINE, separator: ',' });
+        ), { type: 'unknown-type' as any, separator: ',' });
 
         expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Separator')).toBeInTheDocument();

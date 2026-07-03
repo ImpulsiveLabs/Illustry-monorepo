@@ -39,7 +39,7 @@ const TableBody = forwardRef<
   <tbody
     ref={ref}
     className={cn(
-      '[&_tr:last-child]:border-0 [&_tr:nth-child(even)]:bg-[hsl(var(--illustry-table-alternating-row-background))]',
+      '[&_tr:last-child]:border-0 [&_tr:nth-child(even):not([data-state=selected])]:bg-[hsl(var(--illustry-table-alternating-row-background))]',
       className
     )}
     {...props}
@@ -66,7 +66,7 @@ const TableRow = forwardRef<
   <tr
     ref={ref}
     className={cn(
-      'border-b border-[hsl(var(--illustry-table-border)/0.68)] bg-[hsl(var(--illustry-table-row-background))] transition-colors hover:bg-[hsl(var(--illustry-table-row-hover-background))] data-[state=selected]:bg-[hsl(var(--illustry-table-selected-row-background))]',
+      'border-b border-[hsl(var(--illustry-table-border)/0.68)] bg-[hsl(var(--illustry-table-row-background))] transition-colors hover:bg-[hsl(var(--illustry-table-row-hover-background))] data-[state=selected]:!bg-[hsl(var(--illustry-table-selected-row-background))]',
       className
     )}
     {...props}

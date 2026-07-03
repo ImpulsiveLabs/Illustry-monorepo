@@ -11,6 +11,7 @@ import JSZip from 'jszip';
 import { PDFDocument } from 'pdf-lib';
 import PptxGenJS from 'pptxgenjs';
 import sharp from 'sharp';
+import { Builder, Parser } from 'xml2js';
 import { IllustryError } from './errors';
 import { sanitizeFilename } from './local-store';
 import type {
@@ -32,6 +33,8 @@ const DEFAULT_CHART_HEIGHT = 720;
 const ZIP_MIME = 'application/zip';
 const ECHARTS_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts@6/dist/echarts.min.js';
 const WORDCLOUD_CDN_URL = 'https://cdn.jsdelivr.net/npm/echarts-wordcloud@2/dist/echarts-wordcloud.min.js';
+
+const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
 
 const mimeByFormat: Record<Exclude<IllustryExportFormat, 'json' | 'web-component' | 'excel' | 'pdf' | 'word' | 'ppt'>, string> = {
   png: 'image/png',
@@ -139,6 +142,22 @@ const stripSvgEnvelope = (svg: string) => svg
   .replace(/^\s*<svg\b[^>]*>/i, '')
   .replace(/<\/svg>\s*$/i, '');
 
+const getSvgDimensions = (svg: string) => {
+  const width = Number(svg.match(/\bwidth="([^"]+)"/)?.[1]);
+  const height = Number(svg.match(/\bheight="([^"]+)"/)?.[1]);
+  return Number.isFinite(width) && Number.isFinite(height) && width > 0 && height > 0
+    ? { width, height }
+    : { width: DEFAULT_CHART_WIDTH, height: DEFAULT_CHART_HEIGHT };
+};
+
+const getDocumentImageSize = (svg: string, targetWidth = 960) => {
+  const dimensions = getSvgDimensions(svg);
+  return {
+    width: targetWidth,
+    height: Math.max(120, Math.round((targetWidth * dimensions.height) / dimensions.width))
+  };
+};
+
 const renderSvg = (asset: IllustryLocalAsset, charts: Required<IllustryChartPayload>[]) => {
   if (charts.length === 1) {
     return renderChartSvg(charts[0]);
@@ -188,9 +207,16 @@ const encodeRaster = async (svg: string, format: 'png' | 'jpg' | 'webp') => {
   return image.png({ compressionLevel: 9 }).toBuffer();
 };
 
+const serializeForWebComponent = (value: unknown) => JSON.stringify(value, (_key, item) => {
+  if (typeof item === 'function') {
+    return { __illustryFunction: item.toString() };
+  }
+  return item;
+});
+
 const buildWebComponentHtml = (asset: IllustryLocalAsset, charts: Required<IllustryChartPayload>[]) => {
   const elementName = asset.kind === 'dashboard' ? 'illustry-dashboard' : 'illustry-visualization';
-  const payload = escapeScriptJson(JSON.stringify({
+  const payload = escapeScriptJson(serializeForWebComponent({
     kind: asset.kind,
     title: asset.name,
     charts: charts.map((chart) => ({ title: chart.title, option: chart.option }))
@@ -204,6 +230,7 @@ const buildWebComponentHtml = (asset: IllustryLocalAsset, charts: Required<Illus
   <title>${svgEscape(asset.name)}</title>
 </head>
 <body>
+  <!-- Drop this element and the script below into any HTML page. -->
   <${elementName}></${elementName}>
   <script type="application/json" id="illustry-web-component-data">${payload}</script>
   <script>
@@ -220,53 +247,136 @@ const buildWebComponentHtml = (asset: IllustryLocalAsset, charts: Required<Illus
     script.onerror = () => reject(new Error('Unable to load ' + src));
     document.head.appendChild(script);
   });
-  const ensureECharts = async () => {
-    if (!window.echarts) await loadScript('${ECHARTS_CDN_URL}');
-    if (JSON.stringify(payload).includes('"wordCloud"')) await loadScript('${WORDCLOUD_CDN_URL}').catch(() => undefined);
+  const revive = (value) => {
+    if (Array.isArray(value)) {
+      return value.map(revive);
+    }
+    if (value && typeof value === 'object') {
+      if (typeof value.__illustryFunction === 'string') {
+        return undefined;
+      }
+      Object.keys(value).forEach((key) => {
+        value[key] = revive(value[key]);
+      });
+    }
+    return value;
   };
-  class IllustryElement extends HTMLElement {
-    connectedCallback() { void this.render(); }
-    disconnectedCallback() { this.resizeObserver?.disconnect(); this.charts?.forEach((chart) => chart.dispose()); }
+  const ensureECharts = async () => {
+    if (!window.echarts) {
+      await loadScript('${ECHARTS_CDN_URL}');
+    }
+    const needsWordCloud = JSON.stringify(payload).includes('"wordCloud"');
+    if (needsWordCloud) {
+      await loadScript('${WORDCLOUD_CDN_URL}').catch(() => undefined);
+    }
+  };
+  class IllustryVisualizationElement extends HTMLElement {
+    connectedCallback() {
+      void this.render();
+    }
+
+    disconnectedCallback() {
+      this.resizeObserver?.disconnect();
+      this.charts?.forEach((chart) => chart.dispose());
+    }
+
     async render() {
       await ensureECharts();
-      const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
+      const charts = Array.isArray(payload.charts) ? payload.charts : [];
       const isDashboard = payload.kind === 'dashboard';
-      root.innerHTML = '<style>:host{display:block;width:100%;min-height:' + (isDashboard ? '640px' : '420px') + ';font-family:Inter,system-ui,sans-serif;color:#111827}.wrap{box-sizing:border-box;width:100%;min-height:inherit;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.card{height:320px;border:1px solid #e5e7eb;border-radius:8px;padding:8px}.chart{width:100%;height:' + (isDashboard ? '288px' : '420px') + '}.title{font-size:15px;font-weight:700;margin:0 0 10px}.chart-title{text-align:center;font-size:13px;font-weight:700;margin:0 0 6px}</style><section class="wrap"><h2 class="title"></h2><div class="mount"></div></section>';
+      const root = this.shadowRoot || this.attachShadow({ mode: 'open' });
+      root.innerHTML = '<style>' +
+        ':host{display:block;width:100%;min-height:' + (isDashboard ? '640px' : '420px') + ';font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#1f2937}' +
+        '.wrap{box-sizing:border-box;width:100%;height:100%;min-height:inherit;border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:12px;box-shadow:0 8px 24px rgba(15,23,42,.08)}' +
+        '.title{margin:0 0 10px;font-size:15px;font-weight:700;line-height:1.2}' +
+        '.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;height:calc(100% - 28px);min-height:580px}' +
+        '.card{box-sizing:border-box;min-height:280px;border:1px solid #e5e7eb;border-radius:8px;overflow:hidden;background:#fff;padding:10px}' +
+        '.chart-title{height:24px;margin:0;text-align:center;font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
+        '.chart{width:100%;height:' + (isDashboard ? 'calc(100% - 28px)' : '100%') + ';min-height:' + (isDashboard ? '240px' : '380px') + '}' +
+        '</style><section class="wrap"><h2 class="title"></h2><div class="mount"></div></section>';
       root.querySelector('.title').textContent = payload.title || 'Illustry export';
       const mount = root.querySelector('.mount');
       mount.className = isDashboard ? 'grid' : 'mount';
-      this.charts = (payload.charts || []).map((item, index) => {
+      mount.innerHTML = '';
+      this.charts = charts.map((chartConfig, index) => {
         const host = document.createElement(isDashboard ? 'article' : 'div');
         host.className = isDashboard ? 'card' : '';
         if (isDashboard) {
-          const label = document.createElement('h3');
-          label.className = 'chart-title';
-          label.textContent = item.title || 'Visualization ' + (index + 1);
-          host.appendChild(label);
+          const title = document.createElement('h3');
+          title.className = 'chart-title';
+          title.textContent = chartConfig.title || ('Visualization ' + (index + 1));
+          host.appendChild(title);
         }
-        const element = document.createElement('div');
-        element.className = 'chart';
-        host.appendChild(element);
+        const chartElement = document.createElement('div');
+        chartElement.className = 'chart';
+        host.appendChild(chartElement);
         mount.appendChild(host);
-        const chart = window.echarts.init(element, null, { renderer: 'svg' });
-        chart.setOption(item.option || {}, true);
+        const chart = window.echarts.init(chartElement, null, { renderer: this.getAttribute('renderer') || 'svg' });
+        chart.setOption(revive(chartConfig.option || {}), true);
         return chart;
       });
+      this.resizeObserver?.disconnect();
       this.resizeObserver = new ResizeObserver(() => this.charts?.forEach((chart) => chart.resize()));
       this.resizeObserver.observe(this);
+      requestAnimationFrame(() => this.charts?.forEach((chart) => chart.resize()));
     }
   }
-  if (!customElements.get('${elementName}')) customElements.define('${elementName}', IllustryElement);
+  if (!customElements.get('${elementName}')) {
+    customElements.define('${elementName}', IllustryVisualizationElement);
+  }
 })();
   </script>
 </body>
 </html>`;
 };
 
+const normalizeWorkbookDrawingExtents = async (buffer: Buffer) => {
+  const zip = await JSZip.loadAsync(toZipBytes(buffer));
+  const drawingFiles = Object.keys(zip.files).filter((filename) => /^xl\/drawings\/drawing\d+\.xml$/.test(filename));
+  const parser = new Parser();
+  const builder = new Builder({ headless: false, renderOpts: { pretty: false } });
+
+  await Promise.all(drawingFiles.map(async (filename) => {
+    const file = zip.file(filename);
+    if (!file) return;
+    const drawing = await parser.parseStringPromise(await file.async('string'));
+    const anchors = [
+      ...(drawing['xdr:wsDr']?.['xdr:oneCellAnchor'] || []),
+      ...(drawing['xdr:wsDr']?.['xdr:twoCellAnchor'] || [])
+    ] as Array<Record<string, unknown>>;
+    let changed = false;
+
+    anchors.forEach((anchor) => {
+      const outerExtent = (anchor['xdr:ext'] as Array<{ $?: { cx?: string; cy?: string } }> | undefined)?.[0]?.$;
+      if (!outerExtent?.cx || !outerExtent?.cy) return;
+      const picture = (anchor['xdr:pic'] as Array<Record<string, unknown>> | undefined)?.[0];
+      const shapeProperties = (picture?.['xdr:spPr'] as Array<Record<string, unknown>> | undefined)?.[0];
+      const transform = (shapeProperties?.['a:xfrm'] as Array<Record<string, unknown>> | undefined)?.[0];
+      const innerExtent = (transform?.['a:ext'] as Array<{ $?: { cx?: string; cy?: string } }> | undefined)?.[0];
+      if (!innerExtent?.$) return;
+      if (innerExtent.$.cx === '0' || innerExtent.$.cy === '0') {
+        innerExtent.$.cx = outerExtent.cx;
+        innerExtent.$.cy = outerExtent.cy;
+        changed = true;
+      }
+    });
+
+    if (changed) {
+      zip.file(filename, builder.buildObject(drawing));
+    }
+  }));
+
+  return zip.generateAsync({
+    type: 'nodebuffer',
+    compression: 'DEFLATE',
+    compressionOptions: { level: 9 }
+  });
+};
+
 const createExcelExport = async (
   asset: IllustryLocalAsset,
   png: Buffer,
-  charts: Required<IllustryChartPayload>[]
+  imageSize: { width: number; height: number }
 ): Promise<IllustryExportFile> => {
   const workbook = new ExcelJS.Workbook();
   workbook.creator = 'Illustry';
@@ -274,23 +384,27 @@ const createExcelExport = async (
   const imageId = workbook.addImage({ buffer: png, extension: 'png' });
   sheet.addImage(imageId, {
     tl: { col: 1, row: 1 },
-    ext: { width: charts[0].width, height: charts[0].height }
+    ext: imageSize
   });
   const dataSheet = workbook.addWorksheet('Illustry Data', { state: 'hidden' });
   dataSheet.getCell('A1').value = JSON.stringify(asset);
-  const buffer = await workbook.xlsx.writeBuffer();
+  const buffer = await normalizeWorkbookDrawingExtents(Buffer.from(await workbook.xlsx.writeBuffer()));
   return {
-    buffer: Buffer.from(buffer),
+    buffer,
     filename: `${sanitizeFilename(asset.name)}.xlsx`,
     mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   };
 };
 
-const createPdfExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<IllustryExportFile> => {
+const createPdfExport = async (
+  asset: IllustryLocalAsset,
+  png: Buffer,
+  imageSize: { width: number; height: number }
+): Promise<IllustryExportFile> => {
   const document = await PDFDocument.create();
-  const page = document.addPage([960, 540]);
+  const page = document.addPage([imageSize.width, imageSize.height]);
   const image = await document.embedPng(png);
-  page.drawImage(image, { x: 0, y: 0, width: 960, height: 540 });
+  page.drawImage(image, { x: 0, y: 0, width: imageSize.width, height: imageSize.height });
   return {
     buffer: Buffer.from(await document.save()),
     filename: `${sanitizeFilename(asset.name)}.pdf`,
@@ -298,7 +412,11 @@ const createPdfExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<
   };
 };
 
-const createWordExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<IllustryExportFile> => {
+const createWordExport = async (
+  asset: IllustryLocalAsset,
+  png: Buffer,
+  imageSize: { width: number; height: number }
+): Promise<IllustryExportFile> => {
   const document = new Document({
     sections: [{
       children: [
@@ -307,7 +425,7 @@ const createWordExport = async (asset: IllustryLocalAsset, png: Buffer): Promise
           children: [
             new ImageRun({
               data: png,
-              transformation: { width: 960, height: 540 },
+              transformation: imageSize,
               type: 'png'
             })
           ]
@@ -322,7 +440,25 @@ const createWordExport = async (asset: IllustryLocalAsset, png: Buffer): Promise
   };
 };
 
-const createPptExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<IllustryExportFile> => {
+const getPptImagePlacement = (imageSize: { width: number; height: number }) => {
+  const slideWidth = 13.333;
+  const slideHeight = 7.5;
+  const scale = Math.min(slideWidth / imageSize.width, slideHeight / imageSize.height);
+  const width = imageSize.width * scale;
+  const height = imageSize.height * scale;
+  return {
+    x: (slideWidth - width) / 2,
+    y: (slideHeight - height) / 2,
+    width,
+    height
+  };
+};
+
+const createPptExport = async (
+  asset: IllustryLocalAsset,
+  png: Buffer,
+  imageSize: { width: number; height: number }
+): Promise<IllustryExportFile> => {
   if (process.env.JEST_WORKER_ID) {
     return {
       buffer: await createFallbackPptx(asset, png),
@@ -338,13 +474,14 @@ const createPptExport = async (asset: IllustryLocalAsset, png: Buffer): Promise<
   pptx.subject = asset.name;
   pptx.title = asset.name;
   const slide = pptx.addSlide();
+  const placement = getPptImagePlacement(imageSize);
   slide.background = { color: 'FFFFFF' };
   slide.addImage({
     data: `data:image/png;base64,${png.toString('base64')}`,
-    x: 0,
-    y: 0,
-    w: 13.333,
-    h: 7.5,
+    x: placement.x,
+    y: placement.y,
+    w: placement.width,
+    h: placement.height,
     altText: asset.name
   });
   let buffer: Buffer;
@@ -408,7 +545,7 @@ const createFallbackPptx = async (asset: IllustryLocalAsset, png: Buffer, cause?
     '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/image1.png"/>',
     '</Relationships>'
   ].join(''));
-  zip.file('ppt/media/image1.png', png);
+  zip.file('ppt/media/image1.png', toZipBytes(png));
   const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' });
   if (!buffer.length) {
     throw new IllustryError('PowerPoint fallback export failed.', {
@@ -448,7 +585,7 @@ const createJsonExport = (asset: IllustryLocalAsset): IllustryExportFile => ({
 const zipFiles = async (files: IllustryExportFile[], title: string): Promise<IllustryExportBundle> => {
   const zip = new JSZip();
   files.forEach((file) => {
-    zip.file(file.filename, file.buffer, {
+    zip.file(file.filename, toZipBytes(file.buffer), {
       compression: 'DEFLATE',
       compressionOptions: { level: 9 }
     });
@@ -471,6 +608,7 @@ const createLocalExportBundle = async ({ asset, formats }: LocalExportInput): Pr
   const normalizedFormats = normalizeFormats(formats);
   const charts = normalizeCharts(asset);
   const svg = renderSvg(asset, charts);
+  const documentImageSize = getDocumentImageSize(svg);
   let png: Buffer | undefined;
   const getPng = async () => {
     png ??= await encodeRaster(svg, 'png');
@@ -492,10 +630,10 @@ const createLocalExportBundle = async ({ asset, formats }: LocalExportInput): Pr
         mimeType: 'text/html;charset=utf-8'
       };
     }
-    if (format === 'excel') return createExcelExport(asset, await getPng(), charts);
-    if (format === 'pdf') return createPdfExport(asset, await getPng());
-    if (format === 'word') return createWordExport(asset, await getPng());
-    if (format === 'ppt') return createPptExport(asset, await getPng());
+    if (format === 'excel') return createExcelExport(asset, await getPng(), documentImageSize);
+    if (format === 'pdf') return createPdfExport(asset, await getPng(), documentImageSize);
+    if (format === 'word') return createWordExport(asset, await getPng(), documentImageSize);
+    if (format === 'ppt') return createPptExport(asset, await getPng(), documentImageSize);
     return {
       buffer: await encodeRaster(svg, format),
       filename: `${sanitizeFilename(asset.name)}.${format}`,

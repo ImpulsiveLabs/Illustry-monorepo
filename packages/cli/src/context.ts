@@ -16,7 +16,7 @@ type CommandFlags = {
   csrf?: string;
   csrfToken?: string;
   json?: boolean;
-  startupMode?: 'offline' | 'live';
+  startupMode?: 'live';
 };
 
 type CliContextOptions = CliRunOptions & {

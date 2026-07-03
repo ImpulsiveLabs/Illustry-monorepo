@@ -1,6 +1,6 @@
 'use server';
 
-import makeRequest from '@/lib/request';
+import makeRequest, { BackendRequestError } from '@/lib/request';
 import getBackendUrl from '@/lib/backend-url';
 import { buildBackendHeaders } from '@/lib/auth-request';
 import type { CurrentUser } from '@/lib/auth-user';
@@ -38,8 +38,12 @@ const getCurrentUser = async (): Promise<CurrentUser | null> => {
         ? `${publicBackendUrl}/api/auth/me/avatar${user.avatarUpdatedAt ? `?v=${encodeURIComponent(user.avatarUpdatedAt)}` : ''}`
         : undefined
     };
-  } catch {
-    return null;
+  } catch (error) {
+    if (error instanceof BackendRequestError && (error.status === 401 || error.status === 403)) {
+      return null;
+    }
+
+    throw error;
   }
 };
 

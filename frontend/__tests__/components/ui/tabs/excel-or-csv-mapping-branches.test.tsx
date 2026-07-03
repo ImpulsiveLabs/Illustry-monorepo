@@ -44,7 +44,7 @@ describe('ExcelOrCsvMappingTab branches', () => {
   });
 
   it('renders default mapping-only block when visualization type is not mapped', () => {
-    renderWithForm({ type: VisualizationTypes.VisualizationTypesEnum.TIMELINE }, FileTypes.FileType.CSV, true);
+    renderWithForm({ type: 'unknown-type' as any }, FileTypes.FileType.CSV, true);
 
     expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
     expect(screen.getByText('Visualization Description:')).toBeInTheDocument();
@@ -59,7 +59,6 @@ describe('ExcelOrCsvMappingTab branches', () => {
   });
 
   it.each([
-    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Names:'],
     [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
     [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Headers:'],
     [VisualizationTypes.VisualizationTypesEnum.FUNNEL, 'Values:'],
@@ -72,7 +71,6 @@ describe('ExcelOrCsvMappingTab branches', () => {
   });
 
   it.each([
-    [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Values:'],
     [VisualizationTypes.VisualizationTypesEnum.SANKEY, 'Nodes:'],
     [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
     [VisualizationTypes.VisualizationTypesEnum.LINE_CHART, 'Headers:'],

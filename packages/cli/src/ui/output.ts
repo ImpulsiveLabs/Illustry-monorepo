@@ -54,7 +54,7 @@ const formatWarning = (message: string) => `${paint(color.yellow, '!')} ${messag
 const formatModeBadge = (mode: string) => (
   mode === 'live'
     ? paint(color.green, '[live]')
-    : paint(color.yellow, '[offline]')
+    : paint(color.yellow, '[not-connected]')
 );
 
 const formatError = (error: unknown, json = false) => {
@@ -79,10 +79,16 @@ const flattenItems = (value: unknown): unknown[] => {
   if (value && typeof value === 'object') {
     const record = value as Record<string, unknown>;
     if (Array.isArray(record.items)) return record.items;
+    if (Array.isArray(record.projects)) return record.projects;
+    if (Array.isArray(record.dashboards)) return record.dashboards;
+    if (Array.isArray(record.visualizations)) return record.visualizations;
     if (Array.isArray(record.data)) return record.data;
     if (record.data && typeof record.data === 'object') {
       const nested = record.data as Record<string, unknown>;
       if (Array.isArray(nested.items)) return nested.items;
+      if (Array.isArray(nested.projects)) return nested.projects;
+      if (Array.isArray(nested.dashboards)) return nested.dashboards;
+      if (Array.isArray(nested.visualizations)) return nested.visualizations;
     }
   }
   return [];
@@ -95,25 +101,136 @@ const stringifyCell = (value: unknown) => {
   return JSON.stringify(value);
 };
 
-const table = (rows: Array<Record<string, unknown>>, columns: string[]) => {
+type TableColumn = {
+  key: string;
+  label?: string;
+  width?: number;
+};
+
+const normalizeColumns = (columns: Array<string | TableColumn>): TableColumn[] => columns
+  .map((column) => (typeof column === 'string' ? { key: column } : column));
+
+const truncateCell = (value: string, width?: number) => {
+  if (!width || value.length <= width) return value;
+  if (width <= 3) return '.'.repeat(width);
+  return `${value.slice(0, width - 3)}...`;
+};
+
+const formatDateCell = (value: unknown) => {
+  if (!value) return '';
+  const date = value instanceof Date ? value : new Date(String(value));
+  if (Number.isNaN(date.getTime())) return stringifyCell(value);
+  return date.toISOString().replace('T', ' ').slice(0, 16);
+};
+
+const isProjectListPayload = (value: unknown) => {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record.projects)) return true;
+  if (record.data && typeof record.data === 'object') {
+    return Array.isArray((record.data as Record<string, unknown>).projects);
+  }
+  return false;
+};
+
+const isDashboardListPayload = (value: unknown) => {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record.dashboards)) return true;
+  if (record.data && typeof record.data === 'object') {
+    return Array.isArray((record.data as Record<string, unknown>).dashboards);
+  }
+  return false;
+};
+
+const isVisualizationListPayload = (value: unknown) => {
+  if (!value || typeof value !== 'object') return false;
+  const record = value as Record<string, unknown>;
+  if (Array.isArray(record.visualizations)) return true;
+  if (record.data && typeof record.data === 'object') {
+    return Array.isArray((record.data as Record<string, unknown>).visualizations);
+  }
+  return false;
+};
+
+const table = (rows: Array<Record<string, unknown>>, columns: Array<string | TableColumn>) => {
   if (rows.length === 0) {
     return paint(color.gray, 'No rows found.');
   }
-  const widths = columns.map((column) => Math.max(
-    column.length,
-    ...rows.map((row) => stringifyCell(row[column]).length)
+  const normalizedColumns = normalizeColumns(columns);
+  const widths = normalizedColumns.map((column) => column.width || Math.max(
+    (column.label || column.key).length,
+    ...rows.map((row) => stringifyCell(row[column.key]).length)
   ));
   const renderRow = (values: string[]) => values
-    .map((value, index) => value.padEnd(widths[index]))
+    .map((value, index) => truncateCell(value, widths[index]).padEnd(widths[index]))
     .join('  ')
     .trimEnd();
-  const header = renderRow(columns.map((column) => paint(color.bold, column)));
+  const header = normalizedColumns
+    .map((column, index) => paint(color.bold, truncateCell(column.label || column.key, widths[index]).padEnd(widths[index])))
+    .join('  ')
+    .trimEnd();
   const divider = renderRow(widths.map((width) => '-'.repeat(width)));
-  const body = rows.map((row) => renderRow(columns.map((column) => stringifyCell(row[column]))));
+  const body = rows.map((row) => renderRow(normalizedColumns.map((column) => stringifyCell(row[column.key]))));
   return [header, divider, ...body].join('\n');
 };
 
 const resourceTable = (value: unknown) => {
+  if (isProjectListPayload(value)) {
+    const projectRows = flattenItems(value)
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
+      .map((item) => ({
+        name: item.name,
+        description: item.description,
+        created: formatDateCell(item.createdAt),
+        updated: formatDateCell(item.updatedAt || item.createdAt),
+        active: item.isActive === undefined ? '' : item.isActive
+      }));
+    return table(projectRows, [
+      { key: 'name', width: 24 },
+      { key: 'description', width: 32 },
+      { key: 'created', width: 16 },
+      { key: 'updated', width: 16 },
+      { key: 'active', width: 6 }
+    ]);
+  }
+
+  if (isDashboardListPayload(value)) {
+    const dashboardRows = flattenItems(value)
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
+      .map((item) => ({
+        name: item.name,
+        description: item.description,
+        created: formatDateCell(item.createdAt),
+        updated: formatDateCell(item.updatedAt || item.createdAt)
+      }));
+    return table(dashboardRows, [
+      { key: 'name', width: 24 },
+      { key: 'description', width: 32 },
+      { key: 'created', width: 16 },
+      { key: 'updated', width: 16 }
+    ]);
+  }
+
+  if (isVisualizationListPayload(value)) {
+    const visualizationRows = flattenItems(value)
+      .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
+      .map((item) => ({
+        name: item.name,
+        type: item.type,
+        project: item.projectName,
+        created: formatDateCell(item.createdAt),
+        updated: formatDateCell(item.updatedAt || item.createdAt)
+      }));
+    return table(visualizationRows, [
+      { key: 'name', width: 24 },
+      { key: 'type', width: 18 },
+      { key: 'project', width: 24 },
+      { key: 'created', width: 16 },
+      { key: 'updated', width: 16 }
+    ]);
+  }
+
   const rows = flattenItems(value)
     .filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object' && !Array.isArray(item))
     .map((item) => ({
