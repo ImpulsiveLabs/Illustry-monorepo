@@ -32,62 +32,37 @@ To use a local MongoDB container instead of Atlas for development:
 docker compose --profile local-mongo up --build
 ```
 
-## CLI And MCP Automation
+## CLI Automation
 
-Illustry ships two automation frontends:
+Illustry ships a terminal frontend:
 
-- `@illustry/cli`: a terminal frontend with offline/local mode, live/server mode, auth/session persistence, keyboard-driven interactive menus, imports, exports, listing, deletes, and JSON output for CI.
-- `@illustry/mcp`: a Model Context Protocol stdio server exposing the same local/live workflows to agents.
+`@illustry/cli` provides live/server mode, auth/session persistence, keyboard-driven interactive menus, imports, exports, listing, deletes, and JSON output for CI.
 
-Both packages use shared import/export/API logic from `@illustry/core`.
+It uses shared import/export/API logic from `@illustry/core`.
 
-Full docs:
-
-- [`packages/cli/README.md`](packages/cli/README.md)
-- [`packages/mcp/README.md`](packages/mcp/README.md)
-
-CLI examples:
-
-```bash
-yarn workspace @illustry/cli build:ts
-node packages/cli/dist/index.js shell
-node packages/cli/dist/index.js status
-node packages/cli/dist/index.js import ./examples/data.csv --name Sales --workspace .illustry
-node packages/cli/dist/index.js export --asset Sales --format svg,png,excel --out exports --workspace .illustry
-node packages/cli/dist/index.js connect --server http://localhost:7001
-node packages/cli/dist/index.js login --email you@example.com --password secret
-node packages/cli/dist/index.js list visualizations --json
-```
-
-MCP example:
-
-```bash
-yarn workspace @illustry/mcp build:ts
-node packages/mcp/dist/index.js
-```
+Full docs: [`packages/cli/README.md`](packages/cli/README.md)
 
 For npm publishing, publish the shared packages first:
 
 1. `@illustry/types`
 2. `@illustry/core`
-3. `@illustry/cli` and/or `@illustry/mcp`
+3. `@illustry/cli`
 
-The publish-facing package metadata uses normal semver dependencies instead of `workspace:*`, so consumers can install the CLI/MCP from npm after those packages are published.
+The publish-facing package metadata uses normal semver dependencies instead of `workspace:*`, so consumers can install the CLI from npm after those packages are published.
 
 Package publishing is automated by `.github/workflows/publish-packages.yml`:
 
-- Pushes to `main` that touch `types`, `packages/core`, `packages/cli`, or `packages/mcp` automatically create a `minor` release for the changed package set and publish it.
-- If `@illustry/types` changes, the workflow also releases `@illustry/core`, `@illustry/cli`, and `@illustry/mcp` so semver dependencies stay aligned.
-- If `@illustry/core` changes, the workflow also releases `@illustry/cli` and `@illustry/mcp`.
+- Pushes to `main` that touch `types`, `packages/core`, or `packages/cli` publish the package versions already merged to `main`.
+- If `@illustry/types` changes, the workflow also includes `@illustry/core` and `@illustry/cli` so semver dependencies stay aligned.
+- If `@illustry/core` changes, the workflow also includes `@illustry/cli`.
 - Manual runs let you choose the package set, registry (`npm`, GitHub Packages, or both), version bump (`patch`, `minor`, `major`, or `none`), and dry-run mode.
 - Automatic push releases use the `ILLUSTRY_AUTO_REGISTRY` repository variable when set, otherwise `npm`.
-- `scripts/release-packages.mjs` updates package versions, updates internal `@illustry/*` dependency ranges, and can commit those package/lockfile changes after validation.
+- `scripts/release-packages.mjs` updates package versions, updates internal `@illustry/*` dependency ranges, and can commit those package/lockfile changes after validation. The workflow tries to push that commit to `main`; if branch protection blocks it, it opens a release PR instead.
 - Publish steps check each exact package version first and skip versions that already exist, which keeps first-time partial publishes from failing on already-published dependencies.
 - GitHub Packages publishes GitHub-owned package names under `@impulsivelabs/*`:
   - `@impulsivelabs/illustry-types`
   - `@impulsivelabs/illustry-core`
   - `@impulsivelabs/illustry-cli`
-  - `@impulsivelabs/illustry-mcp`
   Runtime imports still resolve through npm package aliases, so the source package names can remain `@illustry/*`.
 
 Required repository secrets:
@@ -117,13 +92,12 @@ To install from GitHub Packages:
 ```bash
 printf "@impulsivelabs:registry=https://npm.pkg.github.com\n//npm.pkg.github.com/:_authToken=YOUR_GITHUB_TOKEN\n" >> ~/.npmrc
 npm install -g @impulsivelabs/illustry-cli
-npm install -g @impulsivelabs/illustry-mcp
 ```
 
-For Docker Compose, the CLI and MCP are available under the `tools` profile:
+For Docker Compose, the CLI is available under the `tools` profile:
 
 ```bash
-docker compose --profile tools build illustrycli illustrymcp
+docker compose --profile tools build illustrycli
 docker compose --profile tools run --rm illustrycli --help
 docker compose --profile tools run --rm illustrycli status --workspace /workspace/.illustry --json
 ```
@@ -133,36 +107,6 @@ The tools containers mount:
 - `/workspace/.illustry`: a named Docker volume for local automation state.
 - `/workspace/exports`: the host `./exports` folder for generated files.
 - `/workspace/repo`: the current repository mounted read-only, useful for source files.
-
-Example Docker CLI import/export:
-
-```bash
-docker compose --profile tools run --rm illustrycli import visualization \
-  --workspace /workspace/.illustry \
-  --file /workspace/repo/path/to/data.csv \
-  --name Sales \
-  --json
-
-docker compose --profile tools run --rm illustrycli export \
-  --workspace /workspace/.illustry \
-  --asset Sales \
-  --format svg,png,excel \
-  --out /workspace/exports \
-  --json
-```
-
-For MCP clients that can launch Docker commands, use:
-
-```bash
-docker compose --profile tools run --rm -T illustrymcp
-```
-
-For MCP clients running directly on the host, use:
-
-```bash
-yarn workspace @illustry/mcp build:ts
-node packages/mcp/dist/index.js
-```
 
 ## Provisioning
 
@@ -193,7 +137,6 @@ yarn workspace @impulsivelabs/illustry-server test --runInBand
 yarn workspace @impulsivelabs/illustry-email-service test --runInBand
 yarn workspace @illustry/core test:shard
 yarn workspace @illustry/cli test:shard
-yarn workspace @illustry/mcp test:shard
 ```
 
 CI-style sharded examples:
@@ -203,7 +146,6 @@ SHARD_INDEX=1 SHARD_TOTAL=4 yarn test:backend:shard
 SHARD_INDEX=1 SHARD_TOTAL=4 yarn test:frontend:shard
 SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:core:shard
 SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:cli:shard
-SHARD_INDEX=1 SHARD_TOTAL=2 yarn test:mcp:shard
 ```
 
 ## Realtime

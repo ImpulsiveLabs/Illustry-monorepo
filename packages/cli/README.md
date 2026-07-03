@@ -184,8 +184,8 @@ The package does not use `workspace:*` in publish-facing dependencies. It depend
 
 Publishing is handled by the GitHub Actions workflow at `.github/workflows/publish-packages.yml`.
 
-- Pushes to `main` that change the CLI publish a new `minor` version automatically.
-- Manual workflow runs can publish `patch`, `minor`, `major`, or `none` bumps.
+- Pushes to `main` that change the CLI publish the package version already merged to `main`.
+- Manual workflow runs can publish `patch`, `minor`, `major`, or `none` bumps. Version bumps try to push to `main` first and open a release PR if branch protection blocks the push.
 - Manual workflow runs can publish to npm, GitHub Packages, or both.
 - If `@illustry/core` changes, the workflow releases the CLI too so the CLI dependency range points at the new core version.
 
