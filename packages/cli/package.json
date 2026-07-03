@@ -1,6 +1,6 @@
 {
   "name": "@illustry/cli",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Command line automation for Illustry local and server-backed workflows.",
   "license": "Apache-2.0",
   "author": "Vladimir Nitu",
@@ -25,7 +25,7 @@
     "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "dependencies": {
-    "@illustry/core": "1.0.1",
+    "@illustry/core": "1.0.2",
     "commander": "11.1.0"
   },
   "devDependencies": {

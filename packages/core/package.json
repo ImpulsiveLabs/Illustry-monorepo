@@ -1,6 +1,6 @@
 {
   "name": "@illustry/core",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Reusable local-first Illustry SDK for API, file, import, export, and automation flows.",
   "license": "Apache-2.0",
   "author": "Vladimir Nitu",
@@ -22,7 +22,7 @@
     "test:shard": "../../node_modules/.bin/jest --config jest.config.cjs --coverage --shard=${SHARD_INDEX:-1}/${SHARD_TOTAL:-1}"
   },
   "dependencies": {
-    "@illustry/types": "1.0.2",
+    "@illustry/types": "1.0.3",
     "docx": "9.6.1",
     "echarts": "6.1.0",
     "exceljs": "4.4.0",
