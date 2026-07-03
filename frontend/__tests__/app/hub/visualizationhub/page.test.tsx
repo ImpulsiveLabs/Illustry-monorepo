@@ -2,7 +2,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import React from 'react';
 import Hub from '@/app/(hub)/visualizationhub/page';
 import { findDashboardSharedVisualization, findOneVisualization } from '@/app/_actions/visualization';
-import { describe, it, vi, expect } from 'vitest';
+import { beforeEach, describe, it, vi, expect } from 'vitest';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -36,6 +36,10 @@ vi.mock('@/app/_actions/visualization', async () => {
 });
 
 describe('Hub page', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('renders HubShell with fetched visualization', async () => {
     const mockedData = { name: 'Test Viz', type: 'bar' };
     (findOneVisualization as unknown as ReturnType<typeof vi.fn>).mockResolvedValueOnce(mockedData);
@@ -61,7 +65,7 @@ describe('Hub page', () => {
       })
     );
 
-    expect(findOneVisualization).toHaveBeenCalledWith({ name: undefined, type: undefined });
+    expect(findOneVisualization).not.toHaveBeenCalled();
   });
 
   it('fetches inherited visualizations through a dashboard share context', async () => {

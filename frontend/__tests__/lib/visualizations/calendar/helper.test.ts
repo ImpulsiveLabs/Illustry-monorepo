@@ -41,7 +41,7 @@ describe('lib/visualizations/calendar/helper', () => {
         const result = computeCalendar(data, '#fff');
         expect(result.calendar.length).toBe(2);
         expect(result.series.length).toBe(2);
-        expect(result.calendar[0]?.dayLabel.textStyle.color).toBe('#fff');
+        expect(result.calendar[0]?.dayLabel.color).toBe('#fff');
         expect(result.series.some((s) => s.data.length > 0)).toBe(true);
         expect(result.encode).toEqual({ time: 0, value: 1, category: 2 });
     });
