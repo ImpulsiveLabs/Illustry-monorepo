@@ -15,7 +15,6 @@ import {
   createDashboard,
   createProject,
   deleteResource,
-  exportAsset,
   exportDashboard,
   exportVisualization,
   getDashboard,
@@ -32,6 +31,10 @@ import {
   updateDashboard,
   updateProject
 } from './services/resources';
+import {
+  assertCliVisualizationTypeSupported,
+  isCliVisualizationTypeSupported
+} from './services/visualization-types';
 import { getStatus } from './services/status';
 import type { CliIo } from './types';
 import {
@@ -49,7 +52,7 @@ import { formatStatusHeader, promptModeLabel } from './ui/status-line';
 
 type InteractiveOptions = {
   once?: boolean;
-  startupMode?: 'offline' | 'live';
+  startupMode?: 'live';
   server?: string;
 };
 
@@ -142,8 +145,8 @@ type VerifiedSession = {
   user: NonNullable<Awaited<ReturnType<typeof session>>['user']>;
 };
 
-type StartupChoice = 'online' | 'offline' | 'exit';
-type BackendFailureAction = 'retry' | 'offline' | 'exit';
+type StartupChoice = 'online' | 'exit';
+type BackendFailureAction = 'retry' | 'exit';
 type AuthCapability = 'login' | 'register' | 'verifyEmail' | 'resendVerification' | 'restoreSession';
 type AuthCapabilityMap = Record<AuthCapability, boolean>;
 
@@ -663,7 +666,6 @@ const selectVisualizationExportFormats = async (context: CliContext): Promise<st
 
 const startupItems: Array<{ choice: StartupChoice; label: string; description: string }> = [
   { choice: 'online', label: 'Online', description: 'Connect to an Illustry backend' },
-  { choice: 'offline', label: 'Offline', description: 'Use a local workspace on this machine' },
   { choice: 'exit', label: 'Exit', description: 'Close the CLI without changing mode' }
 ];
 
@@ -671,7 +673,7 @@ const formatStartupPanel = async (context: CliContext) => {
   const profile = await context.profile();
   const title = paint(color.bold, 'Illustry CLI');
   const rule = paint(color.gray, '='.repeat(58));
-  const savedMode = profile.mode === 'live' ? 'Online' : 'Offline';
+  const savedMode = profile.mode === 'live' ? 'Online' : 'Not connected';
   return [
     rule,
     `${title} ${paint(color.gray, 'interactive startup')}`,
@@ -693,7 +695,7 @@ const renderStartupMenu = async (context: CliContext, selected: number) => {
   const profile = await context.profile();
   const title = paint(color.bold, 'Illustry CLI');
   const rule = paint(color.gray, '='.repeat(58));
-  const savedMode = profile.mode === 'live' ? 'Online' : 'Offline';
+  const savedMode = profile.mode === 'live' ? 'Online' : 'Not connected';
   const lines = [
     '\x1b[2J\x1b[H',
     rule,
@@ -759,8 +761,7 @@ const selectStartupChoice = async (context: CliContext): Promise<StartupChoice> 
 const parseStartupChoice = (answer: string): StartupChoice | undefined => {
   const normalized = answer.trim().toLowerCase();
   if (normalized === '1' || normalized === 'online' || normalized === 'live') return 'online';
-  if (normalized === '2' || normalized === 'offline' || normalized === 'local') return 'offline';
-  if (normalized === '3' || normalized === 'exit' || normalized === 'quit' || normalized === 'q') return 'exit';
+  if (normalized === '2' || normalized === 'exit' || normalized === 'quit' || normalized === 'q') return 'exit';
   return undefined;
 };
 
@@ -916,8 +917,7 @@ const detectAuthCapabilities = async (context: CliContext): Promise<AuthCapabili
 const parseBackendFailureAction = (answer: string): BackendFailureAction | undefined => {
   const normalized = answer.trim().toLowerCase();
   if (normalized === '' || normalized === '1' || normalized === 'retry' || normalized === 'r') return 'retry';
-  if (normalized === '2' || normalized === 'offline' || normalized === 'local' || normalized === 'o') return 'offline';
-  if (normalized === '3' || normalized === 'exit' || normalized === 'quit' || normalized === 'q') return 'exit';
+  if (normalized === '2' || normalized === 'exit' || normalized === 'quit' || normalized === 'q') return 'exit';
   return undefined;
 };
 
@@ -926,14 +926,13 @@ const askAfterBackendFailure = async (context: CliContext, rl: PromptInterface) 
     write(context.io, [
       paint(color.gray, 'Next step:'),
       `  ${paint(color.blue, '1')}. ${paint(color.bold, 'Retry')}   ${paint(color.gray, 'Enter a different backend URL')}`,
-      `  ${paint(color.blue, '2')}. ${paint(color.bold, 'Offline')} ${paint(color.gray, 'Use local workspace instead')}`,
-      `  ${paint(color.blue, '3')}. ${paint(color.bold, 'Exit')}    ${paint(color.gray, 'Close the CLI')}`
+      `  ${paint(color.blue, '2')}. ${paint(color.bold, 'Exit')}    ${paint(color.gray, 'Close the CLI')}`
     ].join('\n'));
-    const action = parseBackendFailureAction(await ask(rl, 'Choose [retry/offline/exit]: '));
+    const action = parseBackendFailureAction(await ask(rl, 'Choose [retry/exit]: '));
     if (action) {
       return action;
     }
-    write(context.io, formatWarning('Choose Retry, Offline, or Exit.'));
+    write(context.io, formatWarning('Choose Retry or Exit.'));
   }
 };
 
@@ -953,11 +952,6 @@ const chooseOnlineBackend = async (context: CliContext, rl: PromptInterface) => 
       if (action === 'retry') {
         continue;
       }
-      if (action === 'offline') {
-        await context.config.setMode('offline');
-        write(context.io, formatSuccess('Offline mode selected.'));
-        return true;
-      }
       write(context.io, formatInfo('Startup cancelled. Goodbye.'));
       return false;
     }
@@ -965,12 +959,7 @@ const chooseOnlineBackend = async (context: CliContext, rl: PromptInterface) => 
 };
 
 const chooseStartupMode = async (context: CliContext, rl: PromptInterface) => {
-  const options = context.flags as typeof context.flags & { startupMode?: 'offline' | 'live' };
-  if (options.startupMode === 'offline') {
-    await context.config.setMode('offline');
-    write(context.io, formatSuccess('Offline mode selected.'));
-    return true;
-  }
+  const options = context.flags as typeof context.flags & { startupMode?: 'live' };
   if (options.startupMode === 'live') {
     if (!context.flags.server) {
       return chooseOnlineBackend(context, rl);
@@ -990,7 +979,7 @@ const chooseStartupMode = async (context: CliContext, rl: PromptInterface) => {
         choice = await selectStartupChoice(context);
       } else {
         write(context.io, await formatStartupPanel(context));
-        choice = parseStartupChoice(await ask(rl, 'Start [online/offline/exit]: '));
+        choice = parseStartupChoice(await ask(rl, 'Start [online/exit]: '));
       }
     } catch (error) {
       if (isReadlineClosedError(error)) {
@@ -1003,18 +992,13 @@ const chooseStartupMode = async (context: CliContext, rl: PromptInterface) => {
     if (choice === 'online') {
       return chooseOnlineBackend(context, rl);
     }
-    if (choice === 'offline') {
-      await context.config.setMode('offline');
-      write(context.io, formatSuccess('Offline mode selected.'));
-      return true;
-    }
     if (choice === 'exit') {
       write(context.io, formatInfo('Startup cancelled. Goodbye.'));
       return false;
     }
 
     invalidAttempts += 1;
-    write(context.io, formatWarning('Choose Online, Offline, or Exit. No mode was selected.'));
+    write(context.io, formatWarning('Choose Online or Exit. No mode was selected.'));
     if (invalidAttempts >= 3) {
       throw new IllustryError('Startup cancelled after too many invalid selections.', {
         code: 'ILLUSTRY_CLI_STARTUP_SELECTION_FAILED',
@@ -1072,8 +1056,7 @@ const visualizationTypeMenuItems: MenuItem[] = [
   { label: 'Scatter', action: 'scatter' },
   { label: 'Treemap', action: 'treemap' },
   { label: 'Sunburst', action: 'sunburst' },
-  { label: 'Funnel', action: 'funnel' },
-  { label: 'Timeline', action: 'timeline' }
+  { label: 'Funnel', action: 'funnel' }
 ];
 
 const parseFrontendFileType = (answer: string): FrontendFileType => {
@@ -1100,14 +1083,17 @@ const selectVisualizationType = async (
   rl: PromptInterface,
   suggestedType = 'bar-chart'
 ) => {
+  const fallbackType = isCliVisualizationTypeSupported(suggestedType) ? suggestedType : 'bar-chart';
   if (isInteractiveTty(context)) {
     const orderedItems = [
-      ...visualizationTypeMenuItems.filter((item) => item.action === suggestedType),
-      ...visualizationTypeMenuItems.filter((item) => item.action !== suggestedType)
+      ...visualizationTypeMenuItems.filter((item) => item.action === fallbackType),
+      ...visualizationTypeMenuItems.filter((item) => item.action !== fallbackType)
     ];
     return (await selectMenuItem(context, orderedItems)).action;
   }
-  return (await ask(rl, `Visualization type [${suggestedType}]: `)).trim() || suggestedType;
+  const answer = (await ask(rl, `Visualization type [${fallbackType}]: `)).trim() || fallbackType;
+  assertCliVisualizationTypeSupported(answer);
+  return answer;
 };
 
 const fileTypeSupportsAllDetails = (fileType: FrontendFileType) => fileType === 'JSON';
@@ -1143,14 +1129,15 @@ const requirePreviewColumn = (preview: ImportSourcePreview, label: string, value
     return column;
   }
   const normalized = column.toLowerCase();
-  if (!preview.columns.some((item) => item.toLowerCase() === normalized)) {
+  const columnIndex = preview.columns.findIndex((item) => item.toLowerCase() === normalized);
+  if (columnIndex === -1) {
     throw new IllustryError(`${label} column "${column}" was not found in the detected columns.`, {
       code: 'ILLUSTRY_CLI_IMPORT_MAPPING_COLUMN_NOT_FOUND',
       status: 400,
       details: { column, columns: preview.columns }
     });
   }
-  return column;
+  return String(columnIndex + 1);
 };
 
 const requirePreviewColumnValue = (
@@ -1246,134 +1233,22 @@ const mappingFieldsForVisualizationType = (type: string): MappingField[] => {
   ];
 };
 
-const renderColumnPicker = (
-  context: CliContext,
-  title: string,
-  columns: string[],
-  selectedColumns: Set<string>,
-  cursor: number,
-  options: { multiple: boolean; optional: boolean; message?: string }
-) => {
-  const lines = [
-    '\x1b[2J\x1b[H',
-    paint(color.bold, title),
-    paint(color.gray, options.multiple
-      ? 'Use up/down arrows, Space to select columns, Enter to confirm, Esc to skip.'
-      : 'Use up/down arrows, Enter to select a column, Esc to skip.'),
-    options.message ? paint(color.yellow, options.message) : '',
-    ''
-  ];
-  const rows = options.optional ? ['(skip)', ...columns] : columns;
-  rows.forEach((column, index) => {
-    const focused = index === cursor;
-    const marker = focused ? paint(color.blue, '>') : ' ';
-    const checked = selectedColumns.has(column) ? paint(color.green, '[x]') : '[ ]';
-    const label = focused ? paint(color.bold, column) : column;
-    lines.push(`${marker} ${options.multiple && column !== '(skip)' ? checked : '   '} ${label}`);
-  });
-  write(context.io, lines.filter((line) => line !== '').join('\n'));
-};
-
 const selectMappingColumnValue = async (
-  context: CliContext,
   rl: PromptInterface,
   preview: ImportSourcePreview,
   field: MappingField
 ) => {
-  if (!isInteractiveTty(context)) {
-    const value = (await ask(rl, `${field.label} column${field.optional ? ' [optional]' : ''}: `)).trim();
-    if (!value && field.optional) return undefined;
-    return requirePreviewColumnValue(preview, field.label, value, field.multiple);
-  }
-
-  const input = context.io.stdin || defaultStdin;
-  const output = (context.io.outputStream || defaultStdout) as NodeJS.WritableStream;
-  const rows = field.optional ? ['(skip)', ...preview.columns] : preview.columns;
-  const restoreKeyboard = takeKeyboardControl(input);
-  const selectedColumns = new Set<string>();
-  let cursor = 0;
-  let message: string | undefined;
-  renderColumnPicker(context, `Select ${field.label}`, preview.columns, selectedColumns, cursor, {
-    multiple: Boolean(field.multiple),
-    optional: Boolean(field.optional),
-    message
-  });
-
-  return new Promise<string | undefined>((resolve) => {
-    const cleanup = (result: string | undefined) => {
-      input.off('keypress', onKeypress);
-      restoreKeyboard();
-      output.write('\n');
-      resolve(result);
-    };
-    const redraw = () => renderColumnPicker(context, `Select ${field.label}`, preview.columns, selectedColumns, cursor, {
-      multiple: Boolean(field.multiple),
-      optional: Boolean(field.optional),
-      message
-    });
-    const onKeypress = (_chunk: string, key: { name?: string; ctrl?: boolean }) => {
-      if (key.ctrl && key.name === 'c') {
-        cleanup(undefined);
-        return;
-      }
-      if (key.name === 'escape') {
-        if (field.optional) {
-          cleanup(undefined);
-          return;
-        }
-        message = `${field.label} is required.`;
-        redraw();
-        return;
-      }
-      if (key.name === 'up') {
-        cursor = (cursor - 1 + rows.length) % rows.length;
-        message = undefined;
-        redraw();
-        return;
-      }
-      if (key.name === 'down') {
-        cursor = (cursor + 1) % rows.length;
-        message = undefined;
-        redraw();
-        return;
-      }
-      const row = rows[cursor];
-      if (key.name === 'space' && field.multiple && row !== '(skip)') {
-        if (selectedColumns.has(row)) {
-          selectedColumns.delete(row);
-        } else {
-          selectedColumns.add(row);
-        }
-        message = undefined;
-        redraw();
-        return;
-      }
-      if (key.name === 'return' || key.name === 'enter') {
-        if (row === '(skip)') {
-          cleanup(undefined);
-          return;
-        }
-        if (field.multiple) {
-          if (selectedColumns.size > 0) {
-            cleanup(Array.from(selectedColumns).join(','));
-            return;
-          }
-          cleanup(row);
-          return;
-        }
-        cleanup(row);
-      }
-    };
-    input.on('keypress', onKeypress);
-  });
+  const suffix = field.multiple ? ' column(s)' : ' column';
+  const value = (await ask(rl, `${field.label}${suffix}${field.optional ? ' [optional]' : ''}: `)).trim();
+  if (!value && field.optional) return undefined;
+  return requirePreviewColumnValue(preview, field.label, value, field.multiple);
 };
 
 const promptFrontendMapping = async (
   context: CliContext,
   rl: PromptInterface,
   preview: ImportSourcePreview,
-  type: string,
-  fullDetails: boolean
+  type: string
 ): Promise<Record<string, string>> => {
   if (preview.columns.length === 0) {
     throw new IllustryError('No columns were detected. Choose a file with headers/fields before importing.', {
@@ -1381,23 +1256,21 @@ const promptFrontendMapping = async (
       status: 400
     });
   }
-  write(context.io, formatInfo(`Mapping fields for ${type}. Use column numbers or detected column names.`));
+  write(context.io, formatInfo(`Mapping fields for ${type}. Enter column numbers as strings, comma-separated when needed.`));
   const mapping: Record<string, string> = {};
-  if (fullDetails) {
-    for (const field of [
-      mappingField('visualizationName', 'Visualization name', { optional: true }),
-      mappingField('visualizationDescription', 'Visualization description', { optional: true }),
-      mappingField('visualizationTags', 'Visualization tags', { optional: true })
-    ]) {
-      const value = await selectMappingColumnValue(context, rl, preview, field);
-      if (value) {
-        mapping[field.key] = value;
-      }
+  for (const field of [
+    mappingField('visualizationName', 'Visualization name', { optional: true }),
+    mappingField('visualizationDescription', 'Visualization description', { optional: true }),
+    mappingField('visualizationTags', 'Visualization tags', { optional: true })
+  ]) {
+    const value = await selectMappingColumnValue(rl, preview, field);
+    if (value) {
+      mapping[field.key] = value;
     }
   }
   const fields = mappingFieldsForVisualizationType(type);
   for (const field of fields) {
-    const value = await selectMappingColumnValue(context, rl, preview, field);
+    const value = await selectMappingColumnValue(rl, preview, field);
     if (value) {
       mapping[field.key] = value;
     } else if (!field.optional) {
@@ -1432,7 +1305,7 @@ const promptGuidedImport = async (
   const suggestedType = defaults.type || 'bar-chart';
   const fullDetails = fileTypeSupportsAllDetails(fileType)
     ? parseYesNo(
-      await ask(rl, `JSON has all visualization details? [${preview.fullConfigAvailable ? 'Y/n' : 'y/N'}]: `),
+      await ask(rl, `File has all visualization details? [${preview.fullConfigAvailable ? 'Y/n' : 'y/N'}]: `),
       preview.fullConfigAvailable
     )
     : false;
@@ -1460,7 +1333,6 @@ const promptGuidedImport = async (
   }
 
   let frontendMapping: Record<string, string> | undefined;
-  let localMapping: ImportColumnMapping | undefined;
   let sheets: string | undefined;
   let separator: string | undefined;
   let includeHeaders: boolean | undefined;
@@ -1472,12 +1344,8 @@ const promptGuidedImport = async (
     }
     includeHeaders = parseYesNo(await ask(rl, 'Include headers? [y/N]: '), false);
   }
-  if (!fullDetails) {
-    frontendMapping = await promptFrontendMapping(context, rl, preview, selectedType, fullDetails);
-    localMapping = {
-      label: frontendMapping.names || frontendMapping.categories || frontendMapping.headers || frontendMapping.dates,
-      value: frontendMapping.values || frontendMapping.data
-    };
+  if (fileType === 'CSV' || fileType === 'EXCEL') {
+    frontendMapping = await promptFrontendMapping(context, rl, preview, selectedType);
   }
   const result = await importVisualization(context, {
     file,
@@ -1485,7 +1353,7 @@ const promptGuidedImport = async (
     type: selectedType,
     description,
     tags,
-    mapping: localMapping,
+    mapping: frontendMapping,
     fullDetails,
     fileType,
     includeHeaders,
@@ -1494,38 +1362,15 @@ const promptGuidedImport = async (
     frontendMapping
   });
   printActionResult(context, `Visualization "${name}" ${actionLabel}.`, result);
+  return result;
 };
 
 const promptImport = async (context: CliContext, rl: PromptInterface) => {
   await promptGuidedImport(context, rl);
 };
 
-const promptExport = async (context: CliContext, rl: PromptInterface) => {
-  const profile = await context.profile();
-  const resource = profile.mode === 'live'
-    ? (await ask(rl, 'Resource [visualization/dashboard]: ')).trim()
-    : undefined;
-  const asset = (await ask(rl, 'Asset name: ')).trim();
-  const format = (await ask(rl, 'Formats [json]: ')).trim();
-  const out = (await ask(rl, 'Output directory [workspace exports]: ')).trim();
-  const type = profile.mode === 'live' && (!resource || resource.startsWith('visual'))
-    ? (await ask(rl, 'Visualization type [optional]: ')).trim()
-    : undefined;
-  const result = await exportAsset(context, {
-    asset,
-    resource: resource || undefined,
-    format: format || undefined,
-    out: out || undefined,
-    type: type || undefined
-  });
-  printValue(result, { json: false }, context.io);
-};
-
 const promptDelete = async (context: CliContext, rl: PromptInterface) => {
-  const profile = await context.profile();
-  const resource = profile.mode === 'live'
-    ? (await ask(rl, 'Resource [projects/visualizations/dashboards]: ')).trim()
-    : 'assets';
+  const resource = (await ask(rl, 'Resource [projects/visualizations/dashboards]: ')).trim();
   const name = (await ask(rl, 'Name: ')).trim();
   const type = resource === 'visualizations'
     ? (await ask(rl, 'Visualization type [optional]: ')).trim()
@@ -2125,7 +1970,7 @@ const modeAwareResources = async (context: CliContext) => {
   if (profile.mode === 'live') {
     return ['projects', 'visualizations', 'dashboards'];
   }
-  return ['assets'];
+  return ['projects', 'visualizations', 'dashboards'];
 };
 
 const promptList = async (context: CliContext, rl: PromptInterface) => {
@@ -2137,7 +1982,7 @@ const promptList = async (context: CliContext, rl: PromptInterface) => {
 };
 
 const switchMode = async (context: CliContext, rl: PromptInterface, mode?: string) => {
-  const nextMode = normalizeMode(mode || await ask(rl, 'Mode [offline/live]: '));
+  const nextMode = normalizeMode(mode || await ask(rl, 'Mode [live]: '));
   if (nextMode === 'live') {
     const profile = await context.profile();
     const server = profile.serverUrl || (await ask(rl, 'Server URL: ')).trim();
@@ -2146,8 +1991,6 @@ const switchMode = async (context: CliContext, rl: PromptInterface, mode?: strin
     } else {
       await context.config.setMode('live');
     }
-  } else {
-    await context.config.setMode('offline');
   }
   write(context.io, formatSuccess(`Mode switched to ${nextMode}.`));
 };
@@ -2175,10 +2018,8 @@ const handleCommand = async (context: CliContext, rl: PromptInterface, input: st
         '  projects          Open project workflows',
         '  dashboards        Open dashboard workflows',
         '  visualizations    Open visualization workflows',
-        '  exports           Open export workflows',
         '  session           Show current backend session',
         '  logout            Return to Authentication Menu',
-        '  mode offline      Switch to Offline mode',
         '  exit'
       ].join('\n'));
       return true;
@@ -2186,12 +2027,11 @@ const handleCommand = async (context: CliContext, rl: PromptInterface, input: st
     write(context.io, [
       'Commands:',
       '  status',
-      '  mode offline|live',
+      '  mode live',
       '  connect <server>',
       '  login',
       '  import <file>',
       '  list [assets|projects|visualizations|dashboards]',
-      '  export <asset> [formats]',
       '  exit'
     ].join('\n'));
     return true;
@@ -2283,11 +2123,6 @@ const handleCommand = async (context: CliContext, rl: PromptInterface, input: st
   if (command === 'visualizations') {
     return runVisualizationMenu(context, rl);
   }
-  if (command === 'exports') {
-    await requireAuthenticatedOnlineSession(context);
-    write(context.io, formatInfo('Exports workflows are gated for Use Case 9. Returning to the menu.'));
-    return true;
-  }
   if (command === 'import') {
     await requireAuthenticatedOnlineSession(context);
     if (rest[0]) {
@@ -2305,16 +2140,6 @@ const handleCommand = async (context: CliContext, rl: PromptInterface, input: st
       write(context.io, resourceTable(result));
     } else {
       await promptList(context, rl);
-    }
-    return true;
-  }
-  if (command === 'export') {
-    await requireAuthenticatedOnlineSession(context);
-    if (rest[0]) {
-      const result = await exportAsset(context, { asset: rest[0], format: rest[1] });
-      printValue(result, { json: false }, context.io);
-    } else {
-      await promptExport(context, rl);
     }
     return true;
   }
@@ -2361,26 +2186,14 @@ const buildMenu = async (context: CliContext): Promise<MenuItem[]> => {
       { label: 'Projects', description: 'Create, update, delete, query, and view projects', action: 'projects' },
       { label: 'Dashboards', description: 'Manage dashboards', action: 'dashboards' },
       { label: 'Visualizations', description: 'Manage visualizations', action: 'visualizations' },
-      { label: 'Exports', description: 'Export dashboards and visualizations', action: 'exports' },
       { label: 'Session', description: `Signed in as ${userLabel(verifiedSession.user)}`, action: 'session' },
       { label: 'Logout', description: 'Return to Authentication Menu', action: 'logout' },
-      { label: 'Switch Offline', description: 'Use local workspace only', action: 'mode offline' },
       { label: 'Exit', action: 'exit' }
     ];
   }
 
-  const common: MenuItem[] = [
-    { label: 'Show status', description: 'Mode, workspace, server, session', action: 'status' },
-    { label: 'Import visualization', description: 'Save a local source file', action: 'import' },
-    { label: 'List resources', description: 'Local assets', action: 'list' },
-    { label: 'Export', description: 'Render/bundle visualization output', action: 'export' }
-  ];
-
   return [
-    ...common,
-    { label: 'Switch to live', description: 'Connect to an Illustry backend', action: 'mode live' },
-    { label: 'Delete local asset', description: 'Remove an offline asset', action: 'delete' },
-    { label: 'Command prompt', description: 'Type an Illustry shell command', action: 'prompt' },
+    { label: 'Connect to backend', description: 'Use the online application', action: 'mode live' },
     { label: 'Exit', action: 'exit' }
   ];
 };
@@ -2393,7 +2206,7 @@ const renderMenu = async (context: CliContext, items: MenuItem[], selected: numb
     ? verifiedSession
       ? 'Online Application Menu'
       : 'Authentication Menu'
-    : 'Offline Menu';
+    : 'Online Setup';
   const lines = [
     '\x1b[2J\x1b[H',
     formatStatusHeader(status),
@@ -2533,7 +2346,6 @@ export {
   handleCommand,
   modeAwareResources,
   promptDelete,
-  promptExport,
   promptImport,
   promptLabel,
   promptList,

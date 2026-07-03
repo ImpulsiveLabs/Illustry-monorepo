@@ -29,7 +29,7 @@ describe('@illustry/cli output helpers', () => {
     expect(formatInfo('info')).toBe('> info');
     expect(formatWarning('warn')).toBe('! warn');
     expect(formatModeBadge('live')).toBe('[live]');
-    expect(formatModeBadge('offline')).toBe('[offline]');
+    expect(formatModeBadge('offline')).toBe('[not-connected]');
     expect(formatError(new IllustryError('Nope', { code: 'NOPE', status: 400 }))).toContain('NOPE');
     expect(formatError(new IllustryError('Nope', { code: 'NOPE', status: 400 }), true)).toContain('"ok": false');
     expect(table([], ['name'])).toBe('No rows found.');
@@ -95,7 +95,7 @@ describe('@illustry/cli output helpers', () => {
   it('uses color and console fallbacks when no IO callback is provided', () => {
     delete process.env.NO_COLOR;
     expect(paint(color.green, 'ok')).toContain('\u001b[32m');
-    expect(formatModeBadge('anything-else')).toContain('[offline]');
+    expect(formatModeBadge('anything-else')).toContain('[not-connected]');
 
     const logSpy = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => undefined);
@@ -108,20 +108,15 @@ describe('@illustry/cli output helpers', () => {
     errorSpy.mockRestore();
   });
 
-  it('formats persistent status lines for offline, live guest, and live sessions', () => {
-    const offline = {
+  it('formats persistent status lines for live guest and live sessions', () => {
+    const guest = {
       profile: 'default',
-      mode: 'offline' as const,
+      mode: 'live' as const,
       workspace: '/workspace',
-      server: undefined,
+      server: 'http://illustry.local',
       authenticated: false,
       user: null,
       assets: 2
-    };
-    const guest = {
-      ...offline,
-      mode: 'live' as const,
-      server: 'http://illustry.local'
     };
     const signedIn = {
       ...guest,
@@ -129,7 +124,6 @@ describe('@illustry/cli output helpers', () => {
       user: { email: 'dev@illustry.local' } as any
     };
 
-    expect(sessionLabel(offline)).toBe('local workspace');
     expect(sessionLabel(guest)).toBe('not signed in');
     expect(sessionLabel(signedIn)).toBe('dev@illustry.local');
     expect(promptModeLabel(guest)).toContain('live:guest');

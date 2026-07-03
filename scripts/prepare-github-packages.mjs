@@ -17,10 +17,6 @@ const packageMap = {
     githubName: '@impulsivelabs/illustry-cli',
     originalName: '@illustry/cli',
   },
-  'packages/mcp': {
-    githubName: '@impulsivelabs/illustry-mcp',
-    originalName: '@illustry/mcp',
-  },
 };
 
 function readJson(file) {
@@ -32,7 +28,7 @@ function writeJson(file, value) {
 }
 
 function dependencyAlias(githubName, version) {
-  return `npm:${githubName}@^${version}`;
+  return `npm:${githubName}@${version}`;
 }
 
 const packageJsonByDir = new Map();
@@ -57,7 +53,7 @@ for (const [packageDir, packageJson] of packageJsonByDir.entries()) {
     packageJson.dependencies['@illustry/types'] = dependencyAlias(packageMap.types.githubName, versions.types);
   }
 
-  if (packageDir === 'packages/cli' || packageDir === 'packages/mcp') {
+  if (packageDir === 'packages/cli') {
     packageJson.dependencies['@illustry/core'] = dependencyAlias(
       packageMap['packages/core'].githubName,
       versions['packages/core'],

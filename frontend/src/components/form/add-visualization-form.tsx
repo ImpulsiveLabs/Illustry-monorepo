@@ -28,6 +28,30 @@ import TypeTab from '../ui/tabs/typeTab/typeTab';
 import { useLocale } from '@/components/providers/locale-provider';
 import { CSVType, ExcelType, Inputs } from './types';
 
+const requiredMappingKeysByType: Partial<Record<VisualizationTypes.VisualizationTypesEnum, string[]>> = {
+  [VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH]: ['nodes', 'sources', 'targets', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING]: ['nodes', 'sources', 'targets', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.SANKEY]: ['nodes', 'sources', 'targets', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.CALENDAR]: ['dates', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.BAR_CHART]: ['data', 'headers'],
+  [VisualizationTypes.VisualizationTypesEnum.LINE_CHART]: ['data', 'headers'],
+  [VisualizationTypes.VisualizationTypesEnum.PIE_CHART]: ['names', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.FUNNEL]: ['names', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.SCATTER]: ['values'],
+  [VisualizationTypes.VisualizationTypesEnum.TREEMAP]: ['names', 'values'],
+  [VisualizationTypes.VisualizationTypesEnum.SUNBURST]: ['names', 'values']
+};
+
+const hasRequiredMapping = (
+  type: unknown,
+  mapping: Record<string, unknown> | undefined
+) => {
+  const keys = typeof type === 'string'
+    ? requiredMappingKeysByType[type as VisualizationTypes.VisualizationTypesEnum]
+    : undefined;
+  return Boolean(keys?.every((key) => String(mapping?.[key] ?? '').trim().length > 0));
+};
+
 const AddVisualizationForm = () => {
   const { t } = useLocale();
   const router = useRouter();
@@ -60,16 +84,15 @@ const AddVisualizationForm = () => {
   const watchedName = form.watch('name');
   const watchedType = form.watch('type');
   const watchedFileType = form.watch('fileType');
+  const canUseFullDetails = watchedFileType === FileTypes.FileType.JSON;
+  const fullDetails = canUseFullDetails && Boolean(watchedFullDetails);
   const hasSelectedFile = files.some((file) => file.file instanceof File);
-  const hasMappingValue = watchedMapping
-    ? Object.values(watchedMapping).some((value) => String(value ?? '').trim().length > 0)
-    : false;
   const mappingRequired = watchedFileType === FileTypes.FileType.CSV
     || watchedFileType === FileTypes.FileType.EXCEL;
   const canCreate = hasSelectedFile
     && (
-      Boolean(watchedFullDetails)
-      || (Boolean(watchedName) && Boolean(watchedType) && (!mappingRequired || hasMappingValue))
+      fullDetails
+      || (Boolean(watchedName) && Boolean(watchedType) && (!mappingRequired || hasRequiredMapping(watchedType, watchedMapping)))
     );
 
   const closeModal = (options: { refresh?: boolean } = {}) => {
@@ -99,14 +122,20 @@ const AddVisualizationForm = () => {
             throw Error(invalidFile);
           }
           const formData = new FormData();
+          const submitFullDetails = data.fileType === FileTypes.FileType.JSON && data.fullDetails === true;
+          const mapping = Object.fromEntries(
+            Object.entries((data as ExcelType).mapping || {})
+              .map(([key, value]): [string, string] => [key, String(value ?? '').trim()])
+              .filter(([, value]) => value.length > 0)
+          );
           const fileDetails: FileTypes.FileDetails = {
             fileType: data.fileType,
             includeHeaders: (data as ExcelType).includeHeaders,
-            mapping: (data as ExcelType).mapping,
+            mapping,
             sheets: (data as ExcelType).sheets,
             separator: (data as unknown as CSVType).separator
           };
-          formData.append('fullDetails', data.fullDetails.toString());
+          formData.append('fullDetails', String(submitFullDetails));
           formData.append('fileDetails', JSON.stringify(fileDetails));
           const visualizationDetails: VisualizationTypes.VisualizationUpdate = {
             name: (data as ExcelType).name as string,
@@ -141,12 +170,12 @@ const AddVisualizationForm = () => {
       form.reset({
         fileType: value as any,
         fullDetails: false,
-        type: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD,
+        type: VisualizationTypes.VisualizationTypesEnum.BAR_CHART,
         name: '',
         tags: '',
         includeHeaders: false,
         description: '',
-        mapping: { names: '', values: '', properties: '' }
+        mapping: { data: '', headers: '' }
       });
       setFiles([]); // Clear the files
     }

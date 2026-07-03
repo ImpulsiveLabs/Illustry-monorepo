@@ -508,10 +508,6 @@ const siteConfig = {
       id: randomUUID()
     },
     {
-      name: VisualizationTypes.VisualizationTypesEnum.MATRIX,
-      id: randomUUID()
-    },
-    {
       name: VisualizationTypes.VisualizationTypesEnum.PIE_CHART,
       id: randomUUID()
     },
@@ -528,15 +524,7 @@ const siteConfig = {
       id: randomUUID()
     },
     {
-      name: VisualizationTypes.VisualizationTypesEnum.TIMELINE,
-      id: randomUUID()
-    },
-    {
       name: VisualizationTypes.VisualizationTypesEnum.TREEMAP,
-      id: randomUUID()
-    },
-    {
-      name: VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD,
       id: randomUUID()
     }
   ],

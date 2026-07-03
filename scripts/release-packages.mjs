@@ -14,21 +14,16 @@ const packages = {
   core: {
     name: '@illustry/core',
     dir: 'packages/core',
-    dependents: ['cli', 'mcp'],
+    dependents: ['cli'],
   },
   cli: {
     name: '@illustry/cli',
     dir: 'packages/cli',
     dependents: [],
   },
-  mcp: {
-    name: '@illustry/mcp',
-    dir: 'packages/mcp',
-    dependents: [],
-  },
 };
 
-const packageOrder = ['types', 'core', 'cli', 'mcp'];
+const packageOrder = ['types', 'core', 'cli'];
 
 function parseArgs(argv) {
   const args = {};
@@ -118,7 +113,7 @@ function packageSet(target) {
     return packageOrder;
   }
   if (!packages[target]) {
-    throw new Error(`Unknown package set "${target}". Use types, core, cli, mcp, all, or auto.`);
+    throw new Error(`Unknown package set "${target}". Use types, core, cli, all, or auto.`);
   }
   return expandDependents([target]);
 }
@@ -151,8 +146,6 @@ function detectPackages(files) {
       selected.add('core');
     } else if (file.startsWith('packages/cli/')) {
       selected.add('cli');
-    } else if (file.startsWith('packages/mcp/')) {
-      selected.add('mcp');
     } else if (
       file === 'package.json' ||
       file === 'yarn.lock' ||
@@ -169,10 +162,9 @@ function detectPackages(files) {
 }
 
 function updateInternalDependency(packageJson, dependencyName, version) {
-  const range = `^${version}`;
   for (const field of ['dependencies', 'devDependencies', 'peerDependencies']) {
     if (packageJson[field]?.[dependencyName]) {
-      packageJson[field][dependencyName] = range;
+      packageJson[field][dependencyName] = version;
     }
   }
 }
@@ -195,7 +187,6 @@ function commitReleaseChanges(message, shouldPush) {
     'types/package.json',
     'packages/core/package.json',
     'packages/cli/package.json',
-    'packages/mcp/package.json',
     'yarn.lock',
   ].filter((file) => existsSync(path.join(root, file)));
 
@@ -267,7 +258,6 @@ function main() {
   }
   if (nextVersions.has('core')) {
     updateInternalDependency(packageJsonByKey.get('cli'), packages.core.name, nextVersions.get('core'));
-    updateInternalDependency(packageJsonByKey.get('mcp'), packages.core.name, nextVersions.get('core'));
   }
 
   if (bump !== 'none') {

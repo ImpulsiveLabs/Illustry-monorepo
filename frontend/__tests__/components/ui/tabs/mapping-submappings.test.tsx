@@ -7,7 +7,6 @@ import ExcelOrCsvHierarchyMapping from '@/components/ui/tabs/mappingTab/excelOrC
 import ExcelOrCsvNodeLinkMapping from '@/components/ui/tabs/mappingTab/excelOrCsvMappings/NodeLinkMapping';
 import ExcelOrCsvPieChartFunnelMapping from '@/components/ui/tabs/mappingTab/excelOrCsvMappings/PieChartFunnelMapping';
 import ExcelOrCsvScatterMapping from '@/components/ui/tabs/mappingTab/excelOrCsvMappings/ScatterMapping';
-import ExcelOrCsvWordCloudMapping from '@/components/ui/tabs/mappingTab/excelOrCsvMappings/WordCloudMapping';
 
 const createForm = () => ({
     getValues: vi.fn(() => ''),
@@ -122,19 +121,4 @@ describe('excel/csv mapping subcomponents', () => {
         expect(form.setValue).toHaveBeenCalledWith('mapping.properties', '4');
     });
 
-    it('updates word cloud mapping keys', () => {
-        vi.useFakeTimers();
-        const form = createForm();
-        render(<ExcelOrCsvWordCloudMapping form={form as any} />);
-
-        const inputs = screen.getAllByPlaceholderText('Column number');
-        fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
-        fireEvent.change(inputs[1] as HTMLElement, { target: { value: '2' } });
-        fireEvent.change(inputs[2] as HTMLElement, { target: { value: '3' } });
-        vi.runAllTimers();
-
-        expect(form.setValue).toHaveBeenCalledWith('mapping.names', '1');
-        expect(form.setValue).toHaveBeenCalledWith('mapping.values', '2');
-        expect(form.setValue).toHaveBeenCalledWith('mapping.properties', '3');
-    });
 });

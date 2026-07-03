@@ -203,23 +203,58 @@ describe('@illustry/cli resource helpers', () => {
     });
   });
 
-  it('rejects non-JSON all-details imports before contacting a live backend', async () => {
+  it('fails when a visualization lookup does not exist', async () => {
+    const client = {
+      findVisualization: jest.fn(async () => null),
+      getSessionSnapshot: jest.fn(() => ({ cookie: 'sid=1' }))
+    };
+    const context = {
+      client: jest.fn(async () => client),
+      saveClientSession: jest.fn()
+    } as any;
+
+    await expect(getVisualization(context, { name: 'Missing', type: 'bar-chart' }))
+      .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_VISUALIZATION_NOT_FOUND' });
+  });
+
+  it('rejects non-JSON all-details imports before contacting the live backend', async () => {
     const source = path.join(tempDir, 'sales.csv');
     await fs.writeFile(source, 'label,value\nA,1\n', 'utf8');
+    const client = {
+      uploadVisualizationSource: jest.fn(async () => ({ ok: true })),
+      getSessionSnapshot: jest.fn(() => ({}))
+    };
+    const context = {
+      client: jest.fn(async () => client),
+      profile: jest.fn(async () => ({ mode: 'live', serverUrl: 'http://illustry.local' })),
+      saveClientSession: jest.fn()
+    } as any;
+
+    await expect(importVisualization(context, {
+      file: source,
+      fullDetails: true
+    })).rejects.toMatchObject({ code: 'ILLUSTRY_CLI_IMPORT_FULL_DETAILS_JSON_ONLY' });
+    expect(client.uploadVisualizationSource).not.toHaveBeenCalled();
+  });
+
+  it('rejects removed visualization types embedded in live full-details files', async () => {
+    const source = path.join(tempDir, 'timeline.json');
+    await fs.writeFile(source, JSON.stringify({ type: 'timeline', data: { events: [] } }), 'utf8');
     const client = {
       uploadVisualizationSource: jest.fn(),
       getSessionSnapshot: jest.fn(() => ({}))
     };
     const context = {
       client: jest.fn(async () => client),
-      profile: jest.fn(async () => ({ mode: 'live', serverUrl: 'http://illustry.local' }))
+      profile: jest.fn(async () => ({ mode: 'live', serverUrl: 'http://illustry.local' })),
+      saveClientSession: jest.fn()
     } as any;
 
     await expect(importVisualization(context, {
       file: source,
       fullDetails: true
     })).rejects.toMatchObject({
-      code: 'ILLUSTRY_CLI_IMPORT_FULL_DETAILS_JSON_ONLY'
+      code: 'ILLUSTRY_CLI_UNSUPPORTED_VISUALIZATION_TYPE'
     });
     expect(client.uploadVisualizationSource).not.toHaveBeenCalled();
   });

@@ -107,10 +107,10 @@ vi.mock('@/components/ui/tabs/typeTab/typeTab', () => ({
                 form.setValue('separator', ',');
                 form.setValue('includeHeaders', true);
                 form.setValue('name', 'Visualization A');
-                form.setValue('type', 'word-cloud');
+                form.setValue('type', 'bar-chart');
                 form.setValue('description', 'Desc');
                 form.setValue('tags', 'a,b');
-                form.setValue('mapping', { names: '1', values: '2', properties: '3' });
+                form.setValue('mapping', { data: '2', headers: '1' });
                 const files = Array.from({ length: typeTabState.filesCount }, (_, index) => ({
                     id: String(index + 1),
                     file: new File(['a,b'], `demo-${index + 1}.csv`, { type: 'text/csv' })

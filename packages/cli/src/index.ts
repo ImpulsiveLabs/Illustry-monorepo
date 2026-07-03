@@ -16,10 +16,10 @@ import {
 } from './services/auth';
 import {
   deleteResource,
-  exportAsset,
   importVisualization,
   listResources
 } from './services/resources';
+import { CLI_VISUALIZATION_TYPES } from './services/visualization-types';
 import { getStatus } from './services/status';
 import type { CliIo, CliRunOptions, OutputMode } from './types';
 import {
@@ -44,7 +44,7 @@ const helpText = `Illustry CLI
 Usage:
   illustry                         Open the interactive shell
   illustry status                  Show mode, workspace, server, and session
-  illustry mode offline|live       Switch workspace mode
+  illustry mode live               Use live/server mode
   illustry connect --server URL    Configure live/server mode
   illustry login --email E --password P
   illustry signup --email E --password P --name N
@@ -52,9 +52,8 @@ Usage:
   illustry session
   illustry import data.csv --name Sales --type bar-chart
   illustry import visualization --file data.csv
-  illustry list assets|projects|visualizations|dashboards
-  illustry export --asset Sales --format svg,png,excel --out exports
-  illustry delete assets Sales
+  illustry list projects|visualizations|dashboards
+  illustry delete visualizations Sales
 
 Global:
   --workspace DIR   Override local workspace
@@ -89,6 +88,7 @@ const outputResult = (result: unknown, mode: OutputMode, io: CliIo, tableOutput 
 };
 
 const asBoolean = (value: unknown) => value === true || value === 'true';
+const visualizationTypeHelp = `supported visualization type: ${CLI_VISUALIZATION_TYPES.join(', ')}`;
 
 const runAction = async (
   action: ActionContext,
@@ -168,7 +168,7 @@ const configureProgram = (
       action.flags = {
         ...collectGlobalFlags(program),
         server: options.server || options.url || collectGlobalFlags(program).server,
-        startupMode: options.mode ? normalizeMode(options.mode) : undefined
+        startupMode: options.mode ? normalizeMode(options.mode) as 'live' : undefined
       };
       const result = await runInteractive(createContext(action), { once: asBoolean(options.once) });
       setResult(result);
@@ -181,7 +181,7 @@ const configureProgram = (
 
   program
     .command('mode <mode>')
-    .description('switch between offline and live mode')
+    .description('use live/server mode')
     .action(async (mode: string) => {
       action.flags = collectGlobalFlags(program);
       const context = createContext(action);
@@ -204,18 +204,6 @@ const configureProgram = (
       }
       const context = createContext(action);
       const profile = await context.config.setServer(server);
-      const result = { mode: profile.mode, server: profile.serverUrl };
-      printValue(result, { json: action.flags.json, quiet: program.opts().quiet }, action.io);
-      setResult(result);
-    });
-
-  program
-    .command('disconnect')
-    .description('switch back to offline mode without deleting the local workspace')
-    .action(async () => {
-      action.flags = collectGlobalFlags(program);
-      const context = createContext(action);
-      const profile = await context.config.setMode('offline');
       const result = { mode: profile.mode, server: profile.serverUrl };
       printValue(result, { json: action.flags.json, quiet: program.opts().quiet }, action.io);
       setResult(result);
@@ -294,12 +282,15 @@ const configureProgram = (
     .option('--file <file>', 'source file path')
     .option('--file-type <type>', 'source file type: JSON, CSV, EXCEL, or XML')
     .option('--name <name>', 'visualization name')
-    .option('--type <type>', 'visualization type')
+    .option('--type <type>', visualizationTypeHelp)
     .option('--map <mapping>', 'column mapping, for example label=Country,value=Revenue')
     .option('--mapping <mapping>', 'column mapping, for example label=Country,value=Revenue')
     .option('--label-column <column>', 'column/header to use as labels')
     .option('--value-column <column>', 'column/header to use as numeric values')
     .option('--full-details', 'ask backend to read full file details')
+    .option('--include-headers', 'treat the first CSV/Excel row as headers')
+    .option('--separator <separator>', 'CSV separator')
+    .option('--sheets <sheets>', 'number of Excel sheets to read')
     .action(async (file: string | undefined, options) => {
       const resolvedFile = file === 'visualization' ? options.file : file || options.file;
       await wrap((context) => importVisualization(context, {
@@ -310,7 +301,10 @@ const configureProgram = (
         mapping: options.map || options.mapping,
         labelColumn: options.labelColumn,
         valueColumn: options.valueColumn,
-        fullDetails: options.fullDetails
+        fullDetails: options.fullDetails,
+        includeHeaders: options.includeHeaders,
+        separator: options.separator,
+        sheets: options.sheets
       }))();
     });
 
@@ -333,31 +327,9 @@ const configureProgram = (
     });
 
   program
-    .command('export')
-    .description('export a local or live visualization/dashboard')
-    .requiredOption('--asset <name>', 'asset/resource name')
-    .option('--resource <resource>', 'visualization or dashboard')
-    .option('--format <formats>', 'comma-separated formats: json,svg,png,jpg,webp,web-component,excel,pdf,word,ppt')
-    .option('--out <dir>', 'output directory')
-    .option('--type <type>', 'visualization type in live mode')
-    .option('--title <title>', 'export title')
-    .option('--chart-file <path>', 'JSON chart payload for live exports')
-    .action(async (options) => {
-      await wrap((context) => exportAsset(context, {
-        asset: options.asset,
-        resource: options.resource,
-        format: options.format,
-        out: options.out,
-        type: options.type,
-        title: options.title,
-        chartFile: options.chartFile
-      }))();
-    });
-
-  program
     .command('delete <resource> <name>')
-    .description('delete a local asset or live resource')
-    .option('--type <type>', 'visualization type')
+    .description('delete a live resource')
+    .option('--type <type>', visualizationTypeHelp)
     .action(async (resource: string, name: string, options) => {
       await wrap((context) => deleteResource(context, {
         resource,
@@ -379,7 +351,7 @@ const configureProgram = (
             write(action.io, formatSuccess('Illustry server is reachable.'));
             return { ...status, reachable: true, health };
           } catch (error) {
-            write(action.io, formatInfo('Server is not reachable. Check --server or run `illustry disconnect`.'));
+            write(action.io, formatInfo('Server is not reachable. Check --server or run `illustry connect --server <url>`.'));
             return { ...status, reachable: false, healthError: error instanceof Error ? error.message : String(error) };
           }
         }

@@ -394,13 +394,12 @@ describe('api controllers', () => {
       },
       body: {
         fileDetails: JSON.stringify({ separator: ',' }),
-        visualizationDetails: JSON.stringify({ name: 'Chart' }),
-        fullDetails: 'true'
+        visualizationDetails: JSON.stringify({ name: 'Chart' })
       }
     });
     expect(visualizationCreateOrUpdateFromFilesMock).toHaveBeenCalledWith(
       [{ filePath: '/tmp/chart.csv', type: 'text/csv' }],
-      true,
+      false,
       { name: 'Chart' },
       { separator: ',' },
       'user-1'

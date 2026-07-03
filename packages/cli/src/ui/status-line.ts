@@ -7,7 +7,7 @@ import {
 
 const sessionLabel = (status: CliStatus) => {
   if (status.mode !== 'live') {
-    return 'local workspace';
+    return 'not connected';
   }
   if (status.authenticated) {
     return status.user?.email || 'signed in';
@@ -21,7 +21,7 @@ const promptModeLabel = (status: CliStatus) => {
       ? paint(color.green, `live:${status.user?.email || 'signed-in'}`)
       : paint(color.yellow, 'live:guest');
   }
-  return paint(color.yellow, 'offline');
+  return paint(color.yellow, 'not-connected');
 };
 
 const formatStatusHeader = (status: CliStatus) => [

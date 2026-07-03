@@ -22,15 +22,15 @@ describe('@illustry/cli config and context', () => {
     expect(createDefaultConfig().profiles.default.workspaceDir).toContain('.illustry');
     expect(resolveConfigDir()).toContain(path.join('.config', 'illustry'));
     expect(defaultWorkspace(tempDir)).toBe(path.join(tempDir, '.illustry'));
-    expect(createDefaultConfig(tempDir).profiles.default.mode).toBe('offline');
+    expect(createDefaultConfig(tempDir).profiles.default.mode).toBe('live');
     expect(resolveConfigDir({ env: { ILLUSTRY_CONFIG_DIR: path.join(tempDir, 'env-config') } as any }))
       .toBe(path.join(tempDir, 'env-config'));
-    expect(normalizeMode('local')).toBe('offline');
+    expect(() => normalizeMode('local')).toThrow('Unsupported mode');
     expect(normalizeMode('server')).toBe('live');
     expect(() => normalizeMode('moon')).toThrow('Unsupported mode');
 
     const store = new CliConfigStore({ configDir: path.join(tempDir, 'config'), cwd: tempDir });
-    await expect(store.getActiveProfile()).resolves.toMatchObject({ mode: 'offline' });
+    await expect(store.getActiveProfile()).resolves.toMatchObject({ mode: 'live' });
     await store.setWorkspace('workspace');
     await store.setServer('http://illustry.local');
     await store.saveSession({ cookie: 'sid=1', csrfToken: 'csrf', user: null });

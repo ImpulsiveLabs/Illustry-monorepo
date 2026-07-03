@@ -54,7 +54,7 @@ const formatWarning = (message: string) => `${paint(color.yellow, '!')} ${messag
 const formatModeBadge = (mode: string) => (
   mode === 'live'
     ? paint(color.green, '[live]')
-    : paint(color.yellow, '[offline]')
+    : paint(color.yellow, '[not-connected]')
 );
 
 const formatError = (error: unknown, json = false) => {

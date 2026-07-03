@@ -1,23 +1,16 @@
 # @illustry/cli
 
-Terminal frontend for Illustry local and live workflows.
+Terminal frontend for Illustry live workflows.
 
-The CLI is designed to be usable instead of the browser UI when you need automation, remote work, imports, exports, or a keyboard-driven terminal experience.
+The CLI is designed to be usable instead of the browser UI when you need automation, remote work, imports, or a keyboard-driven terminal experience.
 
-## Modes
+## Online Mode
 
-Illustry CLI always works in one of two modes:
-
-- `offline`: uses a local `.illustry` workspace and does not need the backend, UI, database, Redis, or MongoDB.
-- `live`: connects to the real Illustry backend and uses real auth/session/CSRF-backed API calls.
-
-Interactive and plain output always show the current mode. JSON output is kept clean for automation.
+Illustry CLI connects to the real Illustry backend and uses real auth/session/CSRF-backed API calls.
 
 ```bash
 illustry status
-illustry mode offline
 illustry connect --server http://localhost:7001
-illustry disconnect
 ```
 
 ## Interactive Shell
@@ -35,15 +28,12 @@ In a real terminal, the shell shows a colored mode-aware menu:
 - Up/down arrows move between actions.
 - Enter selects an action.
 - `q` or Escape exits.
-- Live-only actions are shown only in live mode.
-- Offline-only actions are shown only in offline mode.
 
-The shell keeps the current mode, workspace, server, session, and asset count visible.
+The shell keeps the current server and session visible.
 
 For scripted tests or non-TTY startup:
 
 ```bash
-illustry shell --once --mode offline
 illustry shell --once --mode live --url http://localhost:7001
 ```
 
@@ -70,8 +60,6 @@ illustry reset-password --token TOKEN --password new-secret
 
 ## Imports
 
-Offline imports parse, validate, preview, and save files locally through `@illustry/core`.
-
 Supported source formats:
 
 - JSON
@@ -84,8 +72,6 @@ illustry import ./data.csv --name Sales --type bar-chart
 illustry import visualization --file ./data.xlsx --name Workbook
 ```
 
-In live mode, imports upload to the backend:
-
 ```bash
 illustry connect --server http://localhost:7001
 illustry login --email you@example.com --password secret
@@ -95,19 +81,14 @@ illustry import ./data.csv --name Sales --type bar-chart --project Default
 ## Listing
 
 ```bash
-illustry list assets
 illustry list projects
 illustry list visualizations --text sales --page 2 --sort name
 illustry list dashboards --shared-scope external
 ```
 
-Offline mode lists local `assets`.
-
-Live mode lists backend `projects`, `visualizations`, and `dashboards`.
+Lists backend `projects`, `visualizations`, and `dashboards`.
 
 ## Exports
-
-Offline exports render real visualization output through `@illustry/core`.
 
 Supported formats:
 
@@ -124,26 +105,11 @@ Supported formats:
 
 Multiple formats are bundled into a ZIP.
 
-```bash
-illustry export --asset Sales --format svg,png,excel --out exports
-illustry export --asset Sales --format json
-```
-
-Live exports call the backend bundle endpoints. Because the backend export API needs chart render payloads, pass `--chart-file` or keep a matching local workspace asset with chart data.
-
-```bash
-illustry export \
-  --resource dashboard \
-  --asset "Executive Dashboard" \
-  --format svg,png,excel \
-  --chart-file chart.json \
-  --out exports
-```
+Exports are available from the interactive Dashboard and Visualization workflows.
 
 ## Deletes
 
 ```bash
-illustry delete assets "Local Chart"
 illustry delete projects "Project A"
 illustry delete dashboards "Dashboard A"
 illustry delete visualizations "Sales" --type bar-chart --project Default
@@ -156,7 +122,6 @@ Use `--json` for automation and CI:
 ```bash
 illustry status --json
 illustry list visualizations --json
-illustry export --asset Sales --format svg --json
 ```
 
 JSON mode does not include colored status prefixes.
@@ -178,7 +143,6 @@ ILLUSTRY_CONFIG_DIR=/tmp/illustry-config illustry status
 The config stores:
 
 - active profile
-- mode
 - workspace
 - server URL
 - session cookie and CSRF token after login/signup
@@ -187,11 +151,11 @@ The config stores:
 
 The CLI handles:
 
-- invalid mode
+- invalid live mode selection
 - missing workspace/server/file/asset/resource
 - malformed JSON/CSV/XLSX/XML imports
 - invalid chart files
-- unsupported resources and export resources
+- unsupported resources
 - missing live chart payloads
 - backend validation errors
 - expired sessions
@@ -205,7 +169,7 @@ yarn workspace @illustry/cli lint
 yarn workspace @illustry/cli test --runInBand
 ```
 
-The CLI suite covers direct commands, compatibility commands, interactive startup, offline and live modes, auth/session persistence, imports, exports, deletes, invalid inputs, backend routing, JSON mode, and mode-aware plain output.
+The CLI suite covers direct commands, compatibility commands, interactive startup, live mode, auth/session persistence, imports, exports, deletes, invalid inputs, backend routing, JSON mode, and mode-aware plain output.
 
 ## Publishing To npm
 

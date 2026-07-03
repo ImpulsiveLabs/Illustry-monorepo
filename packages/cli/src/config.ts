@@ -27,20 +27,17 @@ const createDefaultConfig = (cwd = process.cwd()): CliConfig => ({
   profiles: {
     [DEFAULT_PROFILE]: {
       name: DEFAULT_PROFILE,
-      mode: 'offline',
+      mode: 'live',
       workspaceDir: defaultWorkspace(cwd)
     }
   }
 });
 
 const normalizeMode = (value: string): CliMode => {
-  if (value === 'offline' || value === 'local') {
-    return 'offline';
-  }
   if (value === 'live' || value === 'server' || value === 'connected') {
     return 'live';
   }
-  throw new IllustryError(`Unsupported mode "${value}". Use offline or live.`, {
+  throw new IllustryError(`Unsupported mode "${value}". Use live.`, {
     code: 'ILLUSTRY_CLI_INVALID_MODE',
     status: 400
   });

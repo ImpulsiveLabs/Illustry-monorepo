@@ -2,16 +2,18 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import {
   IllustryError,
-  createLocalExportBundle,
-  importVisualizationSource,
+  previewVisualizationImportSource,
   parseImportMapping,
-  parseExportFormats,
   type IllustryChartPayload,
   type ImportColumnMapping,
   type ServerResource
 } from '@illustry/core';
 import { CliContext } from '../context';
 import type { ResourceName } from '../types';
+import {
+  assertCliVisualizationTypeSupported,
+  isCliVisualizationTypeUnsupported
+} from './visualization-types';
 
 type ImportOptions = {
   file?: string;
@@ -476,22 +478,34 @@ const scatterOption = (data: Record<string, unknown>, title: string) => {
   if (!Array.isArray(data.points)) return undefined;
   const points = data.points
     .map((point, index) => {
-      if (Array.isArray(point)) return [numberValue(point[0], index + 1), numberValue(point[1])];
+      if (Array.isArray(point)) {
+        return { category: 'Points', value: [numberValue(point[0], index + 1), numberValue(point[1])] };
+      }
       if (isRecord(point) && Array.isArray(point.value)) {
-        return [numberValue(point.value[0], index + 1), numberValue(point.value[1])];
+        return {
+          category: presentString(point.category, 'Points'),
+          value: [numberValue(point.value[0], index + 1), numberValue(point.value[1])]
+        };
       }
       return undefined;
     })
-    .filter((point): point is number[] => Array.isArray(point));
+    .filter((point): point is { category: string; value: number[] } => isRecord(point));
   if (points.length === 0) return undefined;
+  const categories = Array.from(new Set(points.map((point) => point.category)));
   return optionWithTitle({
+    legend: buildLegendOption(categories.length > 1, categories),
     tooltip: { trigger: 'item' },
     grid: {
-      top: 72, right: 28, bottom: 42, left: 54
+      top: getChartTopPadding(categories.length > 1), right: 28, bottom: 42, left: 54
     },
-    xAxis: { type: 'value' },
-    yAxis: { type: 'value' },
-    series: [{ name: title, type: 'scatter', data: points }]
+    xAxis: { type: 'value', scale: true },
+    yAxis: { type: 'value', scale: true },
+    series: categories.map((category) => ({
+      name: category,
+      type: 'scatter',
+      symbolSize: 14,
+      data: points.filter((point) => point.category === category).map((point) => point.value)
+    }))
   }, title);
 };
 
@@ -513,50 +527,56 @@ const nodeLinkOption = (data: Record<string, unknown>, type: string, title: stri
     }));
   const nodeNames = new Set(nodes.map((node) => node.name));
   links.forEach((link) => {
-    if (!nodeNames.has(link.source)) nodes.push({ name: link.source, category: 'Linked' });
-    if (!nodeNames.has(link.target)) nodes.push({ name: link.target, category: 'Linked' });
+    if (!nodeNames.has(link.source)) {
+      nodes.push({ name: link.source, category: 'Linked' });
+      nodeNames.add(link.source);
+    }
+    if (!nodeNames.has(link.target)) {
+      nodes.push({ name: link.target, category: 'Linked' });
+      nodeNames.add(link.target);
+    }
   });
   if (nodes.length === 0 || links.length === 0) return undefined;
-  if (type === 'matrix') {
-    const xNames = Array.from(new Set(links.map((link) => link.source)));
-    const yNames = Array.from(new Set(links.map((link) => link.target)));
+  const sankey = type === 'sankey';
+  const heb = type === 'hierarchical-edge-bundling';
+  const graphLayout = heb ? 'circular' : 'force';
+  if (sankey) {
     return optionWithTitle({
       tooltip: { trigger: 'item' },
-      grid: {
-        top: 72, right: 28, bottom: 48, left: 72
-      },
-      xAxis: { type: 'category', data: xNames },
-      yAxis: { type: 'category', data: yNames },
-      visualMap: {
-        min: 0,
-        max: Math.max(1, ...links.map((link) => link.value)),
-        orient: 'horizontal',
-        left: 'center',
-        bottom: 8
-      },
       series: [{
-        type: 'heatmap',
-        data: links.map((link) => [xNames.indexOf(link.source), yNames.indexOf(link.target), link.value])
+        type: 'sankey',
+        top: 72,
+        bottom: 24,
+        left: 24,
+        right: 80,
+        nodeAlign: 'justify',
+        draggable: false,
+        data: nodes.map((node) => ({ name: node.name })),
+        links,
+        lineStyle: { color: 'source', opacity: 0.35, curveness: 0.5 },
+        emphasis: { focus: 'adjacency' }
       }]
     }, title);
   }
-  const sankey = type === 'sankey';
   return optionWithTitle({
     tooltip: { trigger: 'item' },
     legend: { top: 44 },
     series: [{
-      type: sankey ? 'sankey' : 'graph',
-      layout: sankey ? undefined : 'force',
-      roam: !sankey,
+      type: 'graph',
+      layout: graphLayout,
+      circular: heb ? { rotateLabel: true } : undefined,
+      roam: true,
       top: 82,
       bottom: 24,
+      symbolSize: heb ? 16 : 14,
       data: nodes,
       nodes,
       links,
       edges: links,
       categories: Array.from(new Set(nodes.map((node) => node.category))).map((name) => ({ name })),
       emphasis: { focus: 'adjacency' },
-      force: { repulsion: 120, edgeLength: 70 }
+      force: heb ? undefined : { repulsion: 120, edgeLength: 70 },
+      lineStyle: heb ? { width: 1.5, curveness: 0.35, opacity: 0.75 } : undefined
     }]
   }, title);
 };
@@ -694,38 +714,27 @@ const calendarOption = (data: Record<string, unknown>, title: string) => {
 
 const getVisualizationTypeLabel = (type: string) => {
   const labels: Record<string, string> = {
+    'word-cloud': 'Word Cloud',
     'line-chart': 'Line Chart',
     'bar-chart': 'Bar Chart',
     'pie-chart': 'Pie Chart',
     calendar: 'Calendar',
+    matrix: 'Matrix',
     scatter: 'Scatter',
     treemap: 'Treemap',
     sunburst: 'Sunburst',
     funnel: 'Funnel',
-    timeline: 'Timeline',
-    'word-cloud': 'Word Cloud',
     'force-directed-graph': 'Forced Layout Graph',
     'hierarchical-edge-bundling': 'Hierarchical Edge Bundling',
-    sankey: 'Sankey',
-    matrix: 'Matrix'
+    sankey: 'Sankey'
   };
   return labels[type] || type;
 };
 
 const getDashboardVisualizationTitle = (name: string, type: string) => `${name} (${getVisualizationTypeLabel(type)})`;
 
-const timelineOption = (data: Record<string, unknown>, title: string) => {
-  const pairs = Object.entries(data)
-    .filter((entry) => isRecord(entry[1]))
-    .map(([date, value]) => {
-      const record = value as Record<string, unknown>;
-      const events = Array.isArray(record.events) ? record.events.length : 1;
-      return { name: date, value: events };
-    });
-  return pairOption(pairs, 'bar', title);
-};
-
 const dashboardOptionFromData = (data: unknown, type: string, title: string): Record<string, unknown> | undefined => {
+  if (isCliVisualizationTypeUnsupported(type)) return undefined;
   if (isRecord(data) && Array.isArray(data.series)) {
     return optionWithTitle(data, title);
   }
@@ -737,14 +746,13 @@ const dashboardOptionFromData = (data: unknown, type: string, title: string): Re
   if (type === 'pie-chart') return pairOption(pairsFromData(data), 'pie', title);
   if (type === 'funnel') return pairOption(pairsFromData(data), 'funnel', title);
   if (type === 'scatter') return scatterOption(data, title) || pairOption(pairsFromData(data), 'bar', title);
-  if (type === 'force-directed-graph' || type === 'hierarchical-edge-bundling' || type === 'sankey' || type === 'matrix') {
+  if (type === 'force-directed-graph' || type === 'hierarchical-edge-bundling' || type === 'sankey') {
     return nodeLinkOption(data, type, title) || pairOption(pairsFromData(data), 'bar', title);
   }
   if (type === 'treemap' || type === 'sunburst') {
     return hierarchyOption(data, type, title) || pairOption(pairsFromData(data), type === 'treemap' ? 'bar' : 'pie', title);
   }
   if (type === 'calendar') return calendarOption(data, title) || pairOption(pairsFromData(data), 'bar', title);
-  if (type === 'timeline') return timelineOption(data, title) || pairOption(pairsFromData(data), 'bar', title);
   return axisOption(data, 'bar', title) || pairOption(pairsFromData(data), 'bar', title);
 };
 
@@ -858,6 +866,12 @@ const loadVisualizationExportCharts = async (
     };
   }
   const visualization = await client.findVisualization(name, type);
+  if (!visualization) {
+    throw new IllustryError(`Visualization "${name}" was not found.`, {
+      code: 'ILLUSTRY_CLI_VISUALIZATION_NOT_FOUND',
+      status: 404
+    });
+  }
   const charts = createVisualizationChartPayloads(visualization, name, type);
   if (charts.length === 0) {
     throw new IllustryError(`Visualization "${name}" has no exportable chart data. Import or update the visualization with data and try again.`, {
@@ -907,7 +921,7 @@ const normalizeImportMapping = (options: ImportOptions): ImportColumnMapping | u
     label: options.labelColumn || parsed.label,
     value: options.valueColumn || parsed.value
   };
-  return mapping.label || mapping.value ? mapping : undefined;
+  return Object.values(mapping).some(Boolean) ? mapping : undefined;
 };
 
 const normalizeFrontendFileType = (value: string): FrontendFileType => {
@@ -976,71 +990,56 @@ const importVisualization = async (context: CliContext, options: ImportOptions) 
       status: 400
     });
   }
+  assertCliVisualizationTypeSupported(options.type);
 
-  const profile = await context.profile();
   const fileType = options.fileType ? normalizeFrontendFileType(options.fileType) : detectFrontendFileType(options.file);
+  const mapping = normalizeImportMapping(options);
+  const fullDetails = options.fullDetails === true && fileType === 'JSON';
   if (options.fullDetails === true && fileType !== 'JSON') {
-    throw new IllustryError('All-details import is only supported for JSON files.', {
+    throw new IllustryError('Full visualization details are only supported for JSON imports. CSV, XML, and Excel require type and mapping configuration.', {
       code: 'ILLUSTRY_CLI_IMPORT_FULL_DETAILS_JSON_ONLY',
       status: 400
     });
   }
-  const mapping = normalizeImportMapping(options);
-  if (profile.mode === 'live') {
-    const client = await context.client();
-    const result = await client.uploadVisualizationSource({
-      filePath: options.file,
-      visualizationDetails: {
-        name: options.name,
-        type: options.type || 'bar-chart',
-        description: options.description,
-        tags: options.tags
-      },
-      fileDetails: normalizeFrontendFileDetails({ ...options, fileType }, options.file, mapping),
-      fullDetails: options.fullDetails === true
-    });
-    await context.saveClientSession(client.getSessionSnapshot());
-    return result;
+  if (fullDetails) {
+    const preview = await previewVisualizationImportSource(options.file);
+    assertCliVisualizationTypeSupported(preview.suggestedType);
   }
-
-  const asset = await importVisualizationSource({
+  const client = await context.client();
+  const result = await client.uploadVisualizationSource({
     filePath: options.file,
-    name: options.name,
-    type: options.type || 'bar-chart',
-    mapping
+    visualizationDetails: {
+      name: options.name,
+      type: options.type || 'bar-chart',
+      description: options.description,
+      tags: options.tags
+    },
+    fileDetails: normalizeFrontendFileDetails({ ...options, fileType }, options.file, mapping),
+    fullDetails
   });
-  const store = await context.store();
-  return store.saveAsset(asset);
+  await context.saveClientSession(client.getSessionSnapshot());
+  return result;
 };
 
 const listResources = async (context: CliContext, options: ListOptions) => {
   const profile = await context.profile();
   const resource = normalizeListResource(options.resource);
-  if (profile.mode === 'live' && resource !== 'assets') {
-    const client = await context.client();
-    const data = await client.browse({
-      resource: normalizeServerResource(resource),
-      query: {
-        text: options.text,
-        page: options.page,
-        sort: options.sort,
-        sharedScope: options.sharedScope
-      }
-    });
-    await context.saveClientSession(client.getSessionSnapshot());
-    return {
-      mode: 'live',
-      server: profile.serverUrl,
-      resource,
-      data
-    };
-  }
-  const store = await context.store();
+  const client = await context.client();
+  const data = await client.browse({
+    resource: normalizeServerResource(resource),
+    query: {
+      text: options.text,
+      page: options.page,
+      sort: options.sort,
+      sharedScope: options.sharedScope
+    }
+  });
+  await context.saveClientSession(client.getSessionSnapshot());
   return {
-    mode: 'offline',
-    workspace: store.rootDir,
-    resource: 'assets',
-    data: await store.readAssets()
+    mode: 'live',
+    server: profile.serverUrl,
+    resource,
+    data
   };
 };
 
@@ -1052,51 +1051,36 @@ const exportAsset = async (context: CliContext, options: ExportOptions) => {
       status: 400
     });
   }
-  const profile = await context.profile();
+  assertCliVisualizationTypeSupported(options.type);
   const store = await context.store();
   const resource = normalizeExportResource(options.resource);
   const formats = resource === 'dashboard'
     ? parseDashboardBundleFormats(options.format)
-    : profile.mode === 'live'
-      ? parseVisualizationBundleFormats(options.format)
-      : parseExportFormats(options.format);
+    : parseVisualizationBundleFormats(options.format);
 
-  if (profile.mode === 'live') {
-    const client = await context.client();
-    const charts = resource === 'dashboard'
-      ? (await loadDashboardExportCharts(client, assetName, options.chartFile)).charts
-      : (await loadVisualizationExportCharts(client, assetName, options.type, options.chartFile)).charts;
-    const exported = await client.downloadExport({
-      resource,
+  const client = await context.client();
+  const charts = resource === 'dashboard'
+    ? (await loadDashboardExportCharts(client, assetName, options.chartFile)).charts
+    : (await loadVisualizationExportCharts(client, assetName, options.type, options.chartFile)).charts;
+  const exported = await client.downloadExport({
+    resource,
+    name: assetName,
+    body: {
       name: assetName,
-      body: {
-        name: assetName,
-        type: options.type,
-        formats,
-        charts,
-        title: resource === 'dashboard' ? getDashboardExportTitle(assetName, options.title) : options.title || assetName
-      }
-    });
-    await context.saveClientSession(client.getSessionSnapshot());
-    const filePath = await store.writeExportFile(exported, options.out);
-    return {
-      mode: 'live',
-      filePath,
-      filename: exported.filename,
-      mimeType: exported.mimeType,
-      bundled: exported.mimeType === 'application/zip'
-    };
-  }
-
-  const asset = await store.requireAsset(assetName);
-  const bundle = await createLocalExportBundle({ asset, formats });
-  const filePath = await store.writeExportFile(bundle, options.out);
+      type: options.type,
+      formats,
+      charts,
+      title: resource === 'dashboard' ? getDashboardExportTitle(assetName, options.title) : options.title || assetName
+    }
+  });
+  await context.saveClientSession(client.getSessionSnapshot());
+  const filePath = await store.writeExportFile(exported, options.out);
   return {
-    mode: 'offline',
+    mode: 'live',
     filePath,
-    filename: bundle.filename,
-    mimeType: bundle.mimeType,
-    bundled: bundle.bundled
+    filename: exported.filename,
+    mimeType: exported.mimeType,
+    bundled: exported.mimeType === 'application/zip'
   };
 };
 
@@ -1134,8 +1118,15 @@ const getVisualization = async (context: CliContext, options: VisualizationIdent
       status: 400
     });
   }
+  assertCliVisualizationTypeSupported(options.type);
   const client = await context.client();
   const result = await client.findVisualization(options.name, options.type);
+  if (!result) {
+    throw new IllustryError(`Visualization "${options.name}" was not found.`, {
+      code: 'ILLUSTRY_CLI_VISUALIZATION_NOT_FOUND',
+      status: 404
+    });
+  }
   await context.saveClientSession(client.getSessionSnapshot());
   return result;
 };
@@ -1147,8 +1138,15 @@ const removeVisualization = async (context: CliContext, options: VisualizationId
       status: 400
     });
   }
+  assertCliVisualizationTypeSupported(options.type);
   const client = await context.client();
-  await client.findVisualization(options.name, options.type);
+  const existing = await client.findVisualization(options.name, options.type);
+  if (!existing) {
+    throw new IllustryError(`Visualization "${options.name}" was not found.`, {
+      code: 'ILLUSTRY_CLI_VISUALIZATION_NOT_FOUND',
+      status: 404
+    });
+  }
   const result = await client.deleteVisualization({
     name: options.name,
     type: options.type
@@ -1164,6 +1162,7 @@ const exportVisualization = async (context: CliContext, options: VisualizationEx
       status: 400
     });
   }
+  assertCliVisualizationTypeSupported(options.type);
   const client = await context.client();
   const formats = parseVisualizationBundleFormats(options.format);
   const { visualization, charts } = await loadVisualizationExportCharts(client, options.name, options.type, options.chartFile);
@@ -1198,30 +1197,19 @@ const deleteResource = async (context: CliContext, options: DeleteOptions) => {
       status: 400
     });
   }
-  const profile = await context.profile();
   const resource = normalizeListResource(options.resource);
-  if (profile.mode === 'live' && resource !== 'assets') {
-    const client = await context.client();
-    let result: unknown;
-    if (resource === 'projects') {
-      result = await client.deleteProject(name);
-    } else if (resource === 'dashboards') {
-      result = await client.deleteDashboard(name);
-    } else {
-      result = await client.deleteVisualization({ name, type: options.type });
-    }
-    await context.saveClientSession(client.getSessionSnapshot());
-    return result;
+  assertCliVisualizationTypeSupported(options.type);
+  const client = await context.client();
+  let result: unknown;
+  if (resource === 'projects') {
+    result = await client.deleteProject(name);
+  } else if (resource === 'dashboards') {
+    result = await client.deleteDashboard(name);
+  } else {
+    result = await client.deleteVisualization({ name, type: options.type });
   }
-  const store = await context.store();
-  const deleted = await store.deleteAsset(name);
-  if (!deleted) {
-    throw new IllustryError(`Illustry asset "${name}" was not found.`, {
-      code: 'ILLUSTRY_ASSET_NOT_FOUND',
-      status: 404
-    });
-  }
-  return { ok: true, deleted: name };
+  await context.saveClientSession(client.getSessionSnapshot());
+  return result;
 };
 
 const createProject = async (context: CliContext, options: ProjectMutationOptions) => {

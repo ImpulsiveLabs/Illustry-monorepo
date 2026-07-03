@@ -1,13 +1,9 @@
 import { promises as fs } from 'fs';
 import os from 'os';
 import path from 'path';
-import ExcelJS from 'exceljs';
-import JSZip from 'jszip';
 import { runCli } from '../src';
 
 const makeTempDir = () => fs.mkdtemp(path.join(os.tmpdir(), 'illustry-cli-'));
-const toZipBytes = (buffer: Buffer) => new Uint8Array(buffer);
-
 describe('@illustry/cli', () => {
   let tempDir: string;
   let originalFetch: typeof fetch;
@@ -30,12 +26,8 @@ describe('@illustry/cli', () => {
     output.length = 0;
   });
 
-  it('switches modes and persists live server configuration', async () => {
+  it('persists live server configuration', async () => {
     const configDir = path.join(tempDir, 'config');
-
-    await runCli(['mode', 'offline', '--json'], { stdout: (message) => output.push(message) }, { configDir });
-    const offline = await runCli(['status', '--json'], { stdout: (message) => output.push(message) }, { configDir });
-    expect(JSON.stringify(offline)).toContain('"mode":"offline"');
 
     await runCli([
       'connect',
@@ -48,19 +40,12 @@ describe('@illustry/cli', () => {
     expect(JSON.stringify(live)).toContain('"mode":"live"');
     expect(JSON.stringify(live)).toContain('http://illustry.local');
 
-    await runCli(['disconnect', '--json'], { stdout: (message) => output.push(message) }, { configDir });
-    const disconnected = await runCli(['status', '--json'], { stdout: (message) => output.push(message) }, { configDir });
-    expect(JSON.stringify(disconnected)).toContain('"mode":"offline"');
+    await runCli(['mode', 'live', '--json'], { stdout: (message) => output.push(message) }, { configDir });
+    await expect(runCli(['mode', 'offline', '--json'], { stdout: (message) => output.push(message) }, { configDir }))
+      .rejects.toThrow('Unsupported mode');
   });
 
-  it('starts interactively and lets users choose offline or live mode', async () => {
-    const offlineConfig = path.join(tempDir, 'offline-config');
-    await runCli(['shell', '--once', '--mode', 'offline'], {
-      stdout: (message) => output.push(message)
-    }, { configDir: offlineConfig });
-    const offline = await runCli(['status', '--json'], { stdout: (message) => output.push(message) }, { configDir: offlineConfig });
-    expect(JSON.stringify(offline)).toContain('"mode":"offline"');
-
+  it('starts interactively in live mode', async () => {
     const liveConfig = path.join(tempDir, 'live-config');
     mockHealthyBackend();
     await runCli(['shell', '--once', '--mode', 'live', '--url', 'http://illustry.local'], {
@@ -76,64 +61,10 @@ describe('@illustry/cli', () => {
     await fs.rm(tempDir, { recursive: true, force: true });
   });
 
-  it('imports, lists, and exports locally without server access', async () => {
-    const configDir = path.join(tempDir, 'local-config');
-    const source = path.join(tempDir, 'data.csv');
-    const exportsDir = path.join(tempDir, 'exports');
-    await fs.writeFile(source, 'label,value\nA,5\nB,8\n', 'utf8');
-
-    await runCli([
-      'import',
-      'visualization',
-      '--workspace',
-      tempDir,
-      '--file',
-      source,
-      '--name',
-      'CLI Chart',
-      '--map',
-      'label=label,value=value',
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
-
-    const list = await runCli(['list', '--workspace', tempDir, '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir });
-    expect(JSON.stringify(list)).toContain('CLI Chart');
-
-    const exported = await runCli([
-      'export',
-      '--workspace',
-      tempDir,
-      '--asset',
-      'CLI Chart',
-      '--format',
-      'json',
-      '--out',
-      exportsDir,
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
-    expect(JSON.stringify(exported)).toContain('CLI-Chart.json');
-    await expect(fs.access(path.join(exportsDir, 'CLI-Chart.json'))).resolves.toBeUndefined();
-  });
-
-  it('can route list, import, and export through the Illustry server adapter', async () => {
+  it('can route list and import through the Illustry server adapter', async () => {
     const configDir = path.join(tempDir, 'server-adapter-config');
     const source = path.join(tempDir, 'server.csv');
-    const exportsDir = path.join(tempDir, 'server-exports');
     await fs.writeFile(source, 'label,value\nA,5\n', 'utf8');
-
-    await runCli([
-      'import',
-      'visualization',
-      '--workspace',
-      tempDir,
-      '--file',
-      source,
-      '--name',
-      'Server Chart',
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
 
     const calls: Array<{ pathname: string; method?: string; body?: BodyInit | null }> = [];
     global.fetch = async (input, init) => {
@@ -147,23 +78,6 @@ describe('@illustry/cli', () => {
       if (url.pathname === '/api/visualization') {
         return new Response(JSON.stringify({ name: 'Server Chart' }), {
           headers: { 'content-type': 'application/json' }
-        });
-      }
-      if (url.pathname === '/api/visualization/Server%20Chart') {
-        return new Response(JSON.stringify({
-          name: 'Server Chart',
-          type: 'bar-chart',
-          data: { headers: ['A'], values: { Value: [5] } }
-        }), {
-          headers: { 'content-type': 'application/json' }
-        });
-      }
-      if (url.pathname === '/api/visualization/export/bundle') {
-        return new Response(Buffer.from('<svg></svg>'), {
-          headers: {
-            'content-type': 'image/svg+xml;charset=utf-8',
-            'content-disposition': 'attachment; filename="Server-Chart.svg"'
-          }
         });
       }
       return new Response('not found', { status: 404 });
@@ -205,34 +119,9 @@ describe('@illustry/cli', () => {
       '--json'
     ], { stdout: (message) => output.push(message) }, { configDir });
 
-    const exported = await runCli([
-      'export',
-      '--server',
-      'http://illustry.local',
-      '--workspace',
-      tempDir,
-      '--asset',
-      'Server Chart',
-      '--type',
-      'bar-chart',
-      '--format',
-      'svg',
-      '--out',
-      exportsDir,
-      '--cookie',
-      'illustry_session=session; illustry_csrf=csrf-token',
-      '--csrf',
-      'csrf-token',
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
-
-    expect(JSON.stringify(exported)).toContain('Server-Chart.svg');
-    await expect(fs.access(path.join(exportsDir, 'Server-Chart.svg'))).resolves.toBeUndefined();
     expect(calls.map((call) => call.pathname)).toEqual([
       '/api/visualizations',
-      '/api/visualization',
-      '/api/visualization/Server%20Chart',
-      '/api/visualization/export/bundle'
+      '/api/visualization'
     ]);
     expect(calls[1].body).toBeInstanceOf(FormData);
     expect((calls[1].body as FormData).get('fileDetails')).toBe(JSON.stringify({
@@ -355,110 +244,6 @@ describe('@illustry/cli', () => {
     });
   });
 
-  it('imports JSON, CSV, XLSX, and XML locally and rejects malformed JSON', async () => {
-    const configDir = path.join(tempDir, 'imports-config');
-    const workspace = path.join(tempDir, 'imports');
-    const json = path.join(tempDir, 'sales.json');
-    const csv = path.join(tempDir, 'sales.csv');
-    const xml = path.join(tempDir, 'sales.xml');
-    const xlsx = path.join(tempDir, 'sales.xlsx');
-    const malformed = path.join(tempDir, 'bad.json');
-
-    await fs.writeFile(json, JSON.stringify({ rows: [{ label: 'A', value: 1 }] }), 'utf8');
-    await fs.writeFile(csv, 'label,value\nA,1\n', 'utf8');
-    await fs.writeFile(xml, '<rows><row><label>A</label><value>1</value></row></rows>', 'utf8');
-    await fs.writeFile(malformed, '{"broken"', 'utf8');
-
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet('Data');
-    sheet.addRows([['label', 'value'], ['A', 1]]);
-    await workbook.xlsx.writeFile(xlsx);
-
-    for (const [file, name] of [[json, 'JSON'], [csv, 'CSV'], [xlsx, 'XLSX'], [xml, 'XML']]) {
-      await runCli([
-        'import',
-        file,
-        '--workspace',
-        workspace,
-        '--name',
-        name,
-        '--json'
-      ], { stdout: (message) => output.push(message) }, { configDir });
-    }
-
-    const listed = await runCli(['list', 'assets', '--workspace', workspace, '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir });
-    expect(JSON.stringify(listed)).toContain('JSON');
-    expect(JSON.stringify(listed)).toContain('CSV');
-    expect(JSON.stringify(listed)).toContain('XLSX');
-    expect(JSON.stringify(listed)).toContain('XML');
-
-    await expect(runCli([
-      'import',
-      malformed,
-      '--workspace',
-      workspace,
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir })).rejects.toBeInstanceOf(Error);
-  });
-
-  it('exports every local format and bundles multiple assets into a zip', async () => {
-    const configDir = path.join(tempDir, 'export-config');
-    const workspace = path.join(tempDir, 'export-workspace');
-    const exportsDir = path.join(tempDir, 'all-exports');
-    const source = path.join(tempDir, 'chart.csv');
-    await fs.writeFile(source, 'label,value\nA,5\nB,8\n', 'utf8');
-    await runCli([
-      'import',
-      source,
-      '--workspace',
-      workspace,
-      '--name',
-      'All Formats',
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
-
-    for (const format of ['json', 'svg', 'png', 'jpg', 'webp', 'web-component', 'excel', 'pdf', 'word', 'ppt']) {
-      const exported = await runCli([
-        'export',
-        '--workspace',
-        workspace,
-        '--asset',
-        'All Formats',
-        '--format',
-        format,
-        '--out',
-        path.join(exportsDir, format),
-        '--json'
-      ], { stdout: (message) => output.push(message) }, { configDir });
-      expect(JSON.stringify(exported)).toContain('All-Formats');
-    }
-
-    const excelPath = path.join(exportsDir, 'excel', 'All-Formats.xlsx');
-    const excelZip = await JSZip.loadAsync(toZipBytes(await fs.readFile(excelPath)));
-    expect(excelZip.file('xl/workbook.xml')).toBeTruthy();
-    expect(Object.keys(excelZip.files).some((name) => name.startsWith('xl/media/'))).toBe(true);
-
-    const bundle = await runCli([
-      'export',
-      '--workspace',
-      workspace,
-      '--asset',
-      'All Formats',
-      '--format',
-      'svg,png,excel',
-      '--out',
-      exportsDir,
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir });
-    expect(JSON.stringify(bundle)).toContain('"bundled":true');
-    const bundleZip = await JSZip.loadAsync(toZipBytes(await fs.readFile(path.join(exportsDir, 'All-Formats.zip'))));
-    expect(bundleZip.file('All-Formats.svg')).toBeTruthy();
-    expect(bundleZip.file('All-Formats.png')).toBeTruthy();
-    expect(bundleZip.file('All-Formats.xlsx')).toBeTruthy();
-  });
-
   it('covers help, mode-aware plain output, inactive sessions, and invalid command inputs', async () => {
     const configDir = path.join(tempDir, 'edge-config');
 
@@ -471,8 +256,8 @@ describe('@illustry/cli', () => {
 
     output.length = 0;
     const status = await runCli(['status'], { stdout: (message) => output.push(message) }, { configDir });
-    expect(JSON.stringify(status)).toContain('"mode":"offline"');
-    expect(output.join('\n')).toContain('[offline]');
+    expect(JSON.stringify(status)).toContain('"mode":"live"');
+    expect(output.join('\n')).toContain('[live]');
 
     const inactiveSession = await runCli(['session', '--json'], {
       stdout: (message) => output.push(message)
@@ -501,15 +286,12 @@ describe('@illustry/cli', () => {
       .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_UNSUPPORTED_RESOURCE' });
     await expect(runCli([
       'export',
-      '--asset',
-      'Missing',
-      '--resource',
-      'report',
-      '--server',
-      'http://illustry.local',
       '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir }))
-      .rejects.toMatchObject({ code: 'ILLUSTRY_CLI_UNSUPPORTED_EXPORT_RESOURCE' });
+    ], {
+      stdout: (message) => output.push(message),
+      stderr: () => undefined
+    }, { configDir }))
+      .rejects.toMatchObject({ code: 'commander.unknownCommand' });
 
     global.fetch = async () => new Response('down', { status: 503 });
     const doctor = await runCli(['doctor', '--server', 'http://down.local', '--json'], {
@@ -580,21 +362,8 @@ describe('@illustry/cli', () => {
     }, { configDir })).rejects.toMatchObject({ status: 400 });
   });
 
-  it('covers live listing queries, delete routes, doctor, and live dashboard export with chart files', async () => {
+  it('covers live listing queries, delete routes, and doctor', async () => {
     const configDir = path.join(tempDir, 'live-coverage-config');
-    const workspace = path.join(tempDir, 'live-workspace');
-    const exportsDir = path.join(tempDir, 'live-exports');
-    const chartFile = path.join(tempDir, 'chart.json');
-    await fs.writeFile(chartFile, JSON.stringify({
-      charts: [{
-        title: 'Server chart',
-        option: {
-          xAxis: { type: 'category', data: ['A'] },
-          yAxis: { type: 'value' },
-          series: [{ type: 'bar', data: [1] }]
-        }
-      }]
-    }), 'utf8');
 
     const calls: Array<{ pathname: string; method?: string; body?: BodyInit | null; search?: string }> = [];
     global.fetch = async (input, init) => {
@@ -628,14 +397,6 @@ describe('@illustry/cli', () => {
       if (url.pathname === '/api/project' || url.pathname === '/api/dashboard' || url.pathname === '/api/visualization') {
         return new Response(JSON.stringify({ ok: true, deleted: true }), {
           headers: { 'content-type': 'application/json' }
-        });
-      }
-      if (url.pathname === '/api/dashboard/export/bundle') {
-        return new Response(Buffer.from('dashboard export'), {
-          headers: {
-            'content-type': 'application/zip',
-            'content-disposition': 'attachment; filename="Dashboard-A.zip"'
-          }
         });
       }
       return new Response('not found', { status: 404 });
@@ -678,25 +439,6 @@ describe('@illustry/cli', () => {
       stdout: (message) => output.push(message)
     }, { configDir, cwd: tempDir });
 
-    const exported = await runCli([
-      'export',
-      '--workspace',
-      workspace,
-      '--asset',
-      'Dashboard A',
-      '--resource',
-      'dashboard',
-      '--format',
-      'svg,png',
-      '--chart-file',
-      chartFile,
-      '--out',
-      exportsDir,
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir, cwd: tempDir });
-    expect(JSON.stringify(exported)).toContain('Dashboard-A.zip');
-    await expect(fs.access(path.join(exportsDir, 'Dashboard-A.zip'))).resolves.toBeUndefined();
-
     const doctor = await runCli(['doctor', '--json'], {
       stdout: (message) => output.push(message)
     }, { configDir, cwd: tempDir });
@@ -707,64 +449,26 @@ describe('@illustry/cli', () => {
       .map((call) => String(call.body));
     expect(browseBodies.join('\n')).toContain('"text":"Project"');
     expect(browseBodies.join('\n')).toContain('"sharedScope":"external"');
-    expect(calls.some((call) => call.pathname === '/api/dashboard/export/bundle')).toBe(true);
     expect(calls.some((call) => call.pathname === '/api/project' && call.method === 'DELETE')).toBe(true);
     expect(calls.some((call) => call.pathname === '/api/dashboard' && call.method === 'DELETE')).toBe(true);
     expect(calls.some((call) => call.pathname === '/api/visualization' && call.method === 'DELETE')).toBe(true);
   });
 
-  it('covers local delete behavior and server export validation failures', async () => {
+  it('requires a live server for import and delete', async () => {
     const configDir = path.join(tempDir, 'delete-config');
-    const workspace = path.join(tempDir, 'delete-workspace');
     const source = path.join(tempDir, 'delete.csv');
-    const invalidChartFile = path.join(tempDir, 'invalid-chart.json');
     await fs.writeFile(source, 'label,value\nA,1\n', 'utf8');
-    await fs.writeFile(invalidChartFile, JSON.stringify({ nope: true }), 'utf8');
-
-    await runCli(['import', source, '--workspace', workspace, '--name', 'Delete Me', '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir });
-
-    const deleted = await runCli(['delete', 'assets', 'Delete Me', '--workspace', workspace, '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir });
-    expect(JSON.stringify(deleted)).toContain('"ok":true');
-
-    await expect(runCli(['delete', 'assets', 'Delete Me', '--workspace', workspace, '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir })).rejects.toMatchObject({ code: 'ILLUSTRY_ASSET_NOT_FOUND' });
-
-    global.fetch = jest.fn(async () => new Response('unexpected request', { status: 500 }));
-    await runCli(['connect', '--server', 'http://illustry.local', '--json'], {
-      stdout: (message) => output.push(message)
-    }, { configDir });
 
     await expect(runCli([
-      'export',
-      '--server',
-      'http://illustry.local',
-      '--asset',
-      'Missing Charts',
-      '--resource',
-      'visualization',
-      '--format',
-      'json',
+      'import',
+      source,
       '--json'
     ], { stdout: (message) => output.push(message) }, { configDir })).rejects.toMatchObject({
-      code: 'ILLUSTRY_CLI_UNSUPPORTED_VISUALIZATION_EXPORT_FORMAT'
+      code: 'ILLUSTRY_CLI_MISSING_SERVER'
     });
 
-    await expect(runCli([
-      'export',
-      '--server',
-      'http://illustry.local',
-      '--asset',
-      'Invalid Charts',
-      '--chart-file',
-      invalidChartFile,
-      '--json'
-    ], { stdout: (message) => output.push(message) }, { configDir })).rejects.toMatchObject({
-      code: 'ILLUSTRY_CLI_INVALID_CHART_FILE'
-    });
+    await expect(runCli(['delete', 'visualizations', 'Missing', '--json'], {
+      stdout: (message) => output.push(message)
+    }, { configDir })).rejects.toMatchObject({ code: 'ILLUSTRY_CLI_MISSING_SERVER' });
   });
 });

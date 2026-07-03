@@ -109,7 +109,7 @@ const createOrUpdate = async (
       visualizationDetails = JSON.parse(reqVisDet);
     }
 
-    const allFileDetails = fullDetails === 'true';
+    const allFileDetails = fullDetails === 'true' && fileDetails?.fileType === FileTypes.FileType.JSON;
     const data = await Factory.getInstance()
       .getBZL()
       .VisualizationBZL.createOrUpdateFromFiles(

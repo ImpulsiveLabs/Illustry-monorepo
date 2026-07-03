@@ -11,7 +11,6 @@ import {
 } from '../../form';
 import Input from '../../input';
 import Checkbox from '../../checkbox';
-import ExcelOrCsvWordCloudMapping from './excelOrCsvMappings/WordCloudMapping';
 import VisualizationDetails from './visualizationDetails';
 import ExcelOrCsvNodeLinkMapping from './excelOrCsvMappings/NodeLinkMapping';
 import VisualizationType from './visualizationType';
@@ -93,13 +92,6 @@ const ExcelOrCsvMappingTab = ({
   const renderMapping = (type: VisualizationTypes.VisualizationTypesEnum) => {
     if (type) {
       switch (type) {
-        case VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD:
-          return (
-            <div className="space-y-4">
-              {fileDetails && <ExcelOrCsvVisualizationMapping form={form} />}
-              <ExcelOrCsvWordCloudMapping form={form} />
-            </div>
-          );
         case VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH:
         case VisualizationTypes.VisualizationTypesEnum.HIERARCHICAL_EDGE_BUNDLING:
         case VisualizationTypes.VisualizationTypesEnum.SANKEY:

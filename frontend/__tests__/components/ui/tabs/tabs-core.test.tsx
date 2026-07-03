@@ -120,14 +120,15 @@ describe('tabs mapping/type components', () => {
         expect(router.refresh).toHaveBeenCalledTimes(1);
     });
 
-    it('hides matrix and timeline options when exclude is true', async () => {
+    it('does not offer removed visualization types in the creation selector', async () => {
         const user = userEvent.setup();
 
-        renderWithForm((form) => <VisualizationType form={form} router={{ refresh: vi.fn() }} exclude />, {
+        renderWithForm((form) => <VisualizationType form={form} router={{ refresh: vi.fn() }} exclude={false} />, {
             type: VisualizationTypes.VisualizationTypesEnum.LINE_CHART
         });
 
         await user.click(screen.getByRole('combobox'));
+        expect(screen.queryByText('Word Cloud')).not.toBeInTheDocument();
         expect(screen.queryByText('Matrix')).not.toBeInTheDocument();
         expect(screen.queryByText('Timeline')).not.toBeInTheDocument();
     });
@@ -232,7 +233,6 @@ describe('tabs mapping/type components', () => {
 
     it('renders excel/csv mapping tab branches for each visualization type', () => {
         const typesToMarker: Array<[VisualizationTypes.VisualizationTypesEnum, string]> = [
-            [VisualizationTypes.VisualizationTypesEnum.WORD_CLOUD, 'Names:'],
             [VisualizationTypes.VisualizationTypesEnum.FORCE_DIRECTED_GRAPH, 'Nodes:'],
             [VisualizationTypes.VisualizationTypesEnum.CALENDAR, 'Dates:'],
             [VisualizationTypes.VisualizationTypesEnum.BAR_CHART, 'Data:'],
@@ -262,7 +262,7 @@ describe('tabs mapping/type components', () => {
                 fileDetails={true}
                 selectedFileType={FileTypes.FileType.CSV}
             />
-        ), { type: VisualizationTypes.VisualizationTypesEnum.TIMELINE, separator: ',' });
+        ), { type: 'unknown-type' as any, separator: ',' });
 
         expect(screen.getByText('Visualization Name:')).toBeInTheDocument();
         expect(screen.getByPlaceholderText('Separator')).toBeInTheDocument();
